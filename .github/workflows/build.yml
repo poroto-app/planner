@@ -25,7 +25,7 @@ jobs:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.2
           golangci-lint --version
       - name: Run golangci-lint
-        run: golangci-run
+        run: golangci-lint run
 
       - name: Upload Go test results
         uses: actions/upload-artifact@v3
