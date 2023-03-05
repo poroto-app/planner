@@ -1,2 +1,5 @@
 # editor
 .idea
+
+# dot env
+.env.local
