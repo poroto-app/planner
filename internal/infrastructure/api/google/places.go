@@ -54,7 +54,15 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Set objective place.Types
+	amusements := []string{"amusement_park", "aquarium", "art_gallary", "musium"}
+	restaurants := []string{"bakery", "bar", "cafe", "food", "restaurant"}
+	objectives := append(amusements, restaurants...)
+
 	for _, place := range res.Results {
-		log.Println(place.Name, place.Types)
+		/* To extract places */
+		if contains(place.Types, objectives) {
+			log.Println(place.Name, place.Types)
+		}
 	}
 }
