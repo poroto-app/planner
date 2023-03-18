@@ -25,11 +25,13 @@ func init() {
 }
 
 // Check whether including or not
-func contains(target, words []string) bool {
-	for _, element := range target {
-		for _, word := range words {
-			if element == word {
-				return true
+func intersection(target_slice []string, search_map map[string][]string) bool {
+	for _, values := range search_map {
+		for _, value := range values {
+			for _, t_elem := range target_slice {
+				if t_elem == value {
+					return true
+				}
 			}
 		}
 	}
@@ -55,13 +57,14 @@ func main() {
 	}
 
 	// Set objective place.Types
-	amusements := []string{"amusement_park", "aquarium", "art_gallary", "musium"}
-	restaurants := []string{"bakery", "bar", "cafe", "food", "restaurant"}
-	objectives := append(amusements, restaurants...)
+	var categories map[string][]string = make(map[string][]string)
+	// Need initialization for ensure memory of map
+	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
+	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
 
 	for _, place := range res.Results {
 		/* To extract places */
-		if contains(place.Types, objectives) {
+		if intersection(place.Types, categories) {
 			log.Println(place.Name, place.Types)
 		}
 	}
