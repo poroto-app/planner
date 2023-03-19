@@ -1,0 +1,28 @@
+name: "Decrypt secrets"
+description: "Action to decrypt application secrets"
+inputs:
+  google_credentials_json:
+    description: 'Google Service Account Credential'
+    required: true
+  gh_personal_access_token:
+    description: 'Github Personal Access Token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ inputs.google_credentials_json }}
+
+    - name: Clone infrastructure
+      uses: actions/checkout@v3
+      with:
+        repository: poroto-app/infrastructure
+        path: infrastructure
+        depth: 1
+        token: ${{ inputs.gh_personal_access_token }}
+
+    - name: Decrypt secrets
+      shell: bash
+      run: sh scripts/decrypt.sh
