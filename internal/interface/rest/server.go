@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +31,9 @@ func (s Server) ServeHTTP() error {
 	}
 
 	r.GET("/", func(c *gin.Context) {
-		c.Status(http.StatusOK)
+		c.JSON(200, gin.H{
+			"message": "Hello from planner API",
+		})
 	})
 
 	if err := r.Run(":" + s.port); err != nil {
