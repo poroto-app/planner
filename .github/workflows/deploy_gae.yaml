@@ -1,9 +1,9 @@
 name: deploy
 run-name: Deploy by @${{ github.actor }}
-on: push
-#  push:
-#    branches:
-#      - master
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
