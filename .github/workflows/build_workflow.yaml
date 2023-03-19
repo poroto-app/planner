@@ -1,0 +1,38 @@
+name: build
+on: workflow_call
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_environment
+      - name: Build
+        run: go build -v ./...
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_environment
+      - name: Install golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.0
+          golangci-lint --version
+      - name: Run golangci-lint
+        run: golangci-lint run
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup_environment
+      - name: Install Test Dependencies
+        run: |
+          go install github.com/golang/mock/mockgen@v1.6.0
+          go install github.com/jstemmer/go-junit-report@latest
+      - name: Run Test
+        run: go test -v ./... | go-junit-report -set-exit-code > report.xml
+      - name: Test Summary
+        uses: test-summary/action@v1
+        with:
+          paths: |
+            ./report.xml
+        if: always()

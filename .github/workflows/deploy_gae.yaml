@@ -6,8 +6,11 @@ on: push
 #      - master
 
 jobs:
+  build:
+    uses: ./.github/workflows/build_workflow.yaml
   # SEE: https://github.com/google-github-actions/deploy-appengine
   deploy:
+    needs: build
     name: GAE deploy
     runs-on: ubuntu-latest
     steps:
