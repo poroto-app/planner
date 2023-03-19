@@ -51,14 +51,14 @@ func main() {
 	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
 
 	// Refactoring map to slice for hasIntersection
-	var categories_slice []string
+	var categoriesSlice []string
 	for _, value := range categories {
-		categories_slice = append(value)
+		categoriesSlice = append(value)
 	}
 
 	for _, place := range res.Results {
 		/* To extract places */
-		if array.HasIntersection(place.Types, categories_slice) {
+		if array.HasIntersection(place.Types, categoriesSlice) {
 			log.Println(place.Name, place.Types)
 		}
 	}
