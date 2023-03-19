@@ -5,12 +5,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
       - name: Build
         run: go build -v ./...
   lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
       - name: Install golangci-lint
         run: |
@@ -21,6 +23,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
       - name: Test
         run: go test -v ./...

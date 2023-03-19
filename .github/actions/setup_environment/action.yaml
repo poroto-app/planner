@@ -3,7 +3,6 @@ description: "set up go and install libraries"
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v3
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
