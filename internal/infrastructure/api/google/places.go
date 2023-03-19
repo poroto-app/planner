@@ -25,13 +25,11 @@ func init() {
 }
 
 // Check whether including or not
-func intersection(target_slice []string, search_map map[string][]string) bool {
-	for _, values := range search_map {
-		for _, value := range values {
-			for _, t_elem := range target_slice {
-				if t_elem == value {
-					return true
-				}
+func hasIntersection(base []string, cmp []string) bool {
+	for _, value := range cmp {
+		for _, elem := range base {
+			if value == elem {
+				return true
 			}
 		}
 	}
@@ -62,9 +60,15 @@ func main() {
 	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
 	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
 
+	// Refactoring map to slice for hasIntersection
+	var categories_slice []string
+	for _, value := range categories {
+		categories_slice = append(value)
+	}
+
 	for _, place := range res.Results {
 		/* To extract places */
-		if intersection(place.Types, categories) {
+		if hasIntersection(place.Types, categories_slice) {
 			log.Println(place.Name, place.Types)
 		}
 	}
