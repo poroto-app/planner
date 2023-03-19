@@ -24,13 +24,20 @@ func init() {
 	}
 }
 
+func IsContain(array []string, value string) bool {
+	for _, elem := range array {
+		if value == elem {
+			return true
+		}
+	}
+	return false
+}
+
 // Check whether including or not
-func hasIntersection(base []string, cmp []string) bool {
-	for _, value := range cmp {
-		for _, elem := range base {
-			if value == elem {
-				return true
-			}
+func HasIntersection(a, b []string) bool {
+	for _, a_value := range a {
+		if IsContain(b, a_value) {
+			return true
 		}
 	}
 	return false
@@ -68,7 +75,7 @@ func main() {
 
 	for _, place := range res.Results {
 		/* To extract places */
-		if hasIntersection(place.Types, categories_slice) {
+		if HasIntersection(place.Types, categories_slice) {
 			log.Println(place.Name, place.Types)
 		}
 	}
