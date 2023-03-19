@@ -4,6 +4,17 @@
 
 ## 環境構築
 
+### goのインストール
+- 特定のバージョンのgoを使用するために[goenv](https://github.com/syndbg/goenv)の利用します
+- [インストール方法はこちらを参考にしてください](https://github.com/syndbg/goenv/blob/master/INSTALL.md)
+
+```shell
+goenv install 1.19.6
+
+goenv version
+# 1.19.6 (set by /your/path/to/planner/.go-version)
+```
+
 ### シークレットの復元
 
 - `plannner API`で使用するシークレットは[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理されています
