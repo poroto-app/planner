@@ -23,7 +23,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      MICROSERVICE_LOCATION: api/redirect/
+      MICROSERVICE_LOCATION: api/redirect
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
