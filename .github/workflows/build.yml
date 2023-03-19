@@ -22,14 +22,20 @@ jobs:
         run: golangci-lint run
   test:
     runs-on: ubuntu-latest
+    env:
+      MICROSERVICE_LOCATION: api/redirect/
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
-      - name: Test
+      - name: Install Test Dependencies
+        run: |
+          go install github.com/golang/mock/mockgen@v1.6.0
+          go install github.com/jstemmer/go-junit-report@latest
+      - name: Run Test
         run: go test ./... -json > TestResults-${{ matrix.go-version }}.json
-
-      - name: Upload Go test results
-        uses: actions/upload-artifact@v3
+      - name: Test Summary
+        uses: test-summary/action@v1
         with:
-          name: Go-results-${{ matrix.go-version }}
-          path: TestResults-${{ matrix.go-version }}.json
+          paths: |
+            ${{ env.MICROSERVICE_LOCATION }}/report.xml
+        if: always()
