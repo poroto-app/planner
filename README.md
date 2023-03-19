@@ -4,6 +4,27 @@
 
 ## 環境構築
 
+### goのインストール
+- 特定のバージョンのgoを使用するために[goenv](https://github.com/syndbg/goenv)の利用します
+- [インストール方法はこちらを参考にしてください](https://github.com/syndbg/goenv/blob/master/INSTALL.md)
+
+```shell
+goenv install 1.19.6
+
+goenv version
+# 1.19.6 (set by /your/path/to/planner/.go-version)
+```
+
+### ライブラリのインストール
+```shell
+go mod tidy
+```
+
+### IntelliJ IDEAの設定
+1. `go env`を実行し、`GOROOT`を取得する
+2. `Languages & Frameworks` → `GO`→ `GOROOT` を開く
+3. `GOROOT`を入力する
+
 ### シークレットの復元
 
 - `plannner API`で使用するシークレットは[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理されています
