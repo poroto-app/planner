@@ -53,7 +53,7 @@ func main() {
 	// Refactoring map to slice for hasIntersection
 	var categoriesSlice []string
 	for _, value := range categories {
-		categoriesSlice = append(value)
+		categoriesSlice = append(categoriesSlice, value...)
 	}
 
 	for _, place := range res.Results {
