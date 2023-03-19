@@ -7,6 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"googlemaps.github.io/maps"
+
+	"poroto.app/poroto/planner/internal/domain/array"
 )
 
 func init() {
@@ -22,25 +24,6 @@ func init() {
 	if err := godotenv.Load(".env." + env); err != nil {
 		log.Fatalf("error while loading .env.%s: %v", env, err)
 	}
-}
-
-func IsContain(array []string, value string) bool {
-	for _, elem := range array {
-		if value == elem {
-			return true
-		}
-	}
-	return false
-}
-
-// Check whether including or not
-func HasIntersection(a, b []string) bool {
-	for _, a_value := range a {
-		if IsContain(b, a_value) {
-			return true
-		}
-	}
-	return false
 }
 
 func main() {
@@ -75,7 +58,7 @@ func main() {
 
 	for _, place := range res.Results {
 		/* To extract places */
-		if HasIntersection(place.Types, categories_slice) {
+		if array.HasIntersection(place.Types, categories_slice) {
 			log.Println(place.Name, place.Types)
 		}
 	}
