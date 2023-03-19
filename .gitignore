@@ -1,5 +1,6 @@
 # editor
 .idea
+.vscode
 
 # dot env
 .env.local
