@@ -7,6 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"googlemaps.github.io/maps"
+
+	"poroto.app/poroto/planner/internal/domain/array"
 )
 
 func init() {
@@ -42,7 +44,22 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Set objective place.Types
+	var categories map[string][]string = make(map[string][]string)
+	// Need initialization for ensure memory of map
+	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
+	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
+
+	// Refactoring map to slice for hasIntersection
+	var categoriesSlice []string
+	for _, value := range categories {
+		categoriesSlice = append(categoriesSlice, value...)
+	}
+
 	for _, place := range res.Results {
-		log.Println(place.Name, place.Types)
+		/* To extract places */
+		if array.HasIntersection(place.Types, categoriesSlice) {
+			log.Println(place.Name, place.Types)
+		}
 	}
 }
