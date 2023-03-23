@@ -56,10 +56,32 @@ func main() {
 		categoriesSlice = append(categoriesSlice, value...)
 	}
 
+	/* Getting places nearby */
+	var placeIDs []string
 	for _, place := range res.Results {
 		/* To extract places */
 		if array.HasIntersection(place.Types, categoriesSlice) {
-			log.Println(place.Name, place.Types)
+			//log.Println(place.Name, place.Types)
+			placeIDs = append(placeIDs, place.PlaceID)
 		}
 	}
+
+	/* To get Place Details for each place */
+	for _, pid := range placeIDs {
+		res1, err1 := c.PlaceDetails(context.Background(), &maps.PlaceDetailsRequest{
+			PlaceID: pid,
+		})
+		if err != nil {
+			log.Fatal(err1)
+		} else if res1.Name == "" || res1.OpeningHours == nil {
+			// log.Println("No name or No OpeningHours")
+			continue
+		}
+
+		// whether opend or closed
+		if *res1.OpeningHours.OpenNow {
+			log.Printf("%v is Opend Now", res1.Name)
+		}
+	}
+
 }
