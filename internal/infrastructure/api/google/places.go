@@ -68,19 +68,18 @@ func main() {
 
 	/* To get Place Details for each place */
 	for _, pid := range placeIDs {
-		res1, err1 := c.PlaceDetails(context.Background(), &maps.PlaceDetailsRequest{
+		resPlaceDetails, err := c.PlaceDetails(context.Background(), &maps.PlaceDetailsRequest{
 			PlaceID: pid,
 		})
 		if err != nil {
-			log.Fatal(err1)
-		} else if res1.Name == "" || res1.OpeningHours == nil {
-			// log.Println("No name or No OpeningHours")
+			log.Fatal(err)
+		} else if resPlaceDetails.Name == "" || resPlaceDetails.OpeningHours == nil {
 			continue
 		}
 
 		// whether opend or closed
-		if *res1.OpeningHours.OpenNow {
-			log.Printf("%v is Opend Now", res1.Name)
+		if *resPlaceDetails.OpeningHours.OpenNow {
+			log.Printf("%v is Opend Now", resPlaceDetails.Name)
 		}
 	}
 
