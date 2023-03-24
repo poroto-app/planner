@@ -57,7 +57,6 @@ func main() {
 	}
 
 	// Getting places nearby
-	// var placeIDs []string
 	for _, place := range res.Results {
 		// To extract places
 		if !array.HasIntersection(place.Types, categoriesSlice) {
