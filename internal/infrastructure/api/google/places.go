@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"googlemaps.github.io/maps"
-
 	"poroto.app/poroto/planner/internal/domain/array"
 )
 
@@ -24,7 +23,7 @@ func NewGooglePlacesApi() GooglePlacesApi {
 	}
 }
 
-func main() {
+func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude float64) {
 	googlePlacesApi := NewGooglePlacesApi()
 	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
@@ -34,8 +33,8 @@ func main() {
 
 	res, err := c.NearbySearch(context.Background(), &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
-			Lat: 35.5689,
-			Lng: 139.3952,
+			Lat: latitude,
+			Lng: longitude,
 		},
 		Radius: 1000,
 	})
