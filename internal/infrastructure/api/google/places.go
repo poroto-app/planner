@@ -5,29 +5,28 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"googlemaps.github.io/maps"
 
 	"poroto.app/poroto/planner/internal/domain/array"
 )
 
-func init() {
-	env := os.Getenv("ENV")
-	if "" == env {
-		env = "development"
-	}
+type GooglePlacesApi struct {
+	apiKey string
+}
 
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
+func NewGooglePlacesApi() GooglePlacesApi {
+	apiKey := os.Getenv("GOOGLE_PLACES_API_KEY")
+	if apiKey == "" {
+		log.Fatalln("env variable GOOGLE_PLACES_API_KEY is not set")
 	}
-
-	if err := godotenv.Load(".env." + env); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
+	return GooglePlacesApi{
+		apiKey: apiKey,
 	}
 }
 
 func main() {
-	opt := maps.WithAPIKey(os.Getenv("GOOGLE_PLACES_API_KEY"))
+	googlePlacesApi := NewGooglePlacesApi()
+	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
 	if err != nil {
 		log.Fatalln(err)
