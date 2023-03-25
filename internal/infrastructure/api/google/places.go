@@ -34,7 +34,12 @@ type Location struct {
 	Longitude float64
 }
 
-func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude float64) ([]Place, error) {
+type FindPlacesFromLocationRequest struct {
+	Location Location
+	Radius   uint
+}
+
+func (r GooglePlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
 	googlePlacesApi := NewGooglePlacesApi()
 	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
@@ -42,12 +47,12 @@ func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude floa
 		return nil, err
 	}
 
-	res, err := c.NearbySearch(context.Background(), &maps.NearbySearchRequest{
+	res, err := c.NearbySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
-			Lat: latitude,
-			Lng: longitude,
+			Lat: req.Location.Latitude,
+			Lng: req.Location.Longitude,
 		},
-		Radius: 1000,
+		Radius: req.Radius,
 	})
 	if err != nil {
 		return nil, err
@@ -69,10 +74,12 @@ func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude floa
 	var places []Place
 	for _, place := range res.Results {
 		// To extract places
+		// TODO: フィルタリングするカテゴリを `FindPlacesFromLocationRequest`で指定できるようにする
 		if !array.HasIntersection(place.Types, categoriesSlice) {
 			continue
 		}
 
+		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
 		if place.OpeningHours.OpenNow == nil {
 			continue
 		}
