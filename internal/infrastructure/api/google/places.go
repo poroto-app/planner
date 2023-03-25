@@ -1,4 +1,4 @@
-package main
+package google
 
 import (
 	"context"
@@ -23,12 +23,23 @@ func NewGooglePlacesApi() GooglePlacesApi {
 	}
 }
 
-func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude float64) {
+type Place struct {
+	Name     string
+	Types    []string
+	Location Location
+}
+
+type Location struct {
+	Latitude  float64
+	Longitude float64
+}
+
+func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude float64) ([]Place, error) {
 	googlePlacesApi := NewGooglePlacesApi()
 	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	res, err := c.NearbySearch(context.Background(), &maps.NearbySearchRequest{
@@ -39,7 +50,7 @@ func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude floa
 		Radius: 1000,
 	})
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	// Set objective place.Types
@@ -55,6 +66,7 @@ func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude floa
 	}
 
 	// Getting places nearby
+	var places []Place
 	for _, place := range res.Results {
 		// To extract places
 		if !array.HasIntersection(place.Types, categoriesSlice) {
@@ -66,7 +78,16 @@ func (r GooglePlacesApi) FindPlacesFromLocation(latitude float64, longitude floa
 		}
 
 		if *place.OpeningHours.OpenNow {
-			log.Println(place.Name, "[Open Now]")
+			places = append(places, Place{
+				Name:  place.Name,
+				Types: place.Types,
+				Location: Location{
+					Latitude:  place.Geometry.Location.Lat,
+					Longitude: place.Geometry.Location.Lng,
+				},
+			})
 		}
 	}
+
+	return places, nil
 }
