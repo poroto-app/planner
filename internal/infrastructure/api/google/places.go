@@ -9,16 +9,16 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 )
 
-type GooglePlacesApi struct {
+type PlacesApi struct {
 	apiKey string
 }
 
-func NewGooglePlacesApi() GooglePlacesApi {
+func NewPlacesApi() PlacesApi {
 	apiKey := os.Getenv("GOOGLE_PLACES_API_KEY")
 	if apiKey == "" {
 		log.Fatalln("env variable GOOGLE_PLACES_API_KEY is not set")
 	}
-	return GooglePlacesApi{
+	return PlacesApi{
 		apiKey: apiKey,
 	}
 }
@@ -39,8 +39,8 @@ type FindPlacesFromLocationRequest struct {
 	Radius   uint
 }
 
-func (r GooglePlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-	googlePlacesApi := NewGooglePlacesApi()
+func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
+	googlePlacesApi := NewPlacesApi()
 	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
 	if err != nil {
