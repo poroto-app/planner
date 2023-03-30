@@ -1,47 +1,61 @@
-package main
+package google
 
 import (
 	"context"
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"googlemaps.github.io/maps"
-
 	"poroto.app/poroto/planner/internal/domain/array"
 )
 
-func init() {
-	env := os.Getenv("ENV")
-	if "" == env {
-		env = "development"
-	}
+type PlacesApi struct {
+	apiKey string
+}
 
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
+func NewPlacesApi() PlacesApi {
+	apiKey := os.Getenv("GOOGLE_PLACES_API_KEY")
+	if apiKey == "" {
+		log.Fatalln("env variable GOOGLE_PLACES_API_KEY is not set")
 	}
-
-	if err := godotenv.Load(".env." + env); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
+	return PlacesApi{
+		apiKey: apiKey,
 	}
 }
 
-func main() {
-	opt := maps.WithAPIKey(os.Getenv("GOOGLE_PLACES_API_KEY"))
+type Place struct {
+	Name     string
+	Types    []string
+	Location Location
+}
+
+type Location struct {
+	Latitude  float64
+	Longitude float64
+}
+
+type FindPlacesFromLocationRequest struct {
+	Location Location
+	Radius   uint
+}
+
+func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
+	googlePlacesApi := NewPlacesApi()
+	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
 	c, err := maps.NewClient(opt)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
-	res, err := c.NearbySearch(context.Background(), &maps.NearbySearchRequest{
+	res, err := c.NearbySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
-			Lat: 35.5689,
-			Lng: 139.3952,
+			Lat: req.Location.Latitude,
+			Lng: req.Location.Longitude,
 		},
-		Radius: 1000,
+		Radius: req.Radius,
 	})
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 
 	// Set objective place.Types
@@ -57,18 +71,30 @@ func main() {
 	}
 
 	// Getting places nearby
+	var places []Place
 	for _, place := range res.Results {
 		// To extract places
+		// TODO: フィルタリングするカテゴリを `FindPlacesFromLocationRequest`で指定できるようにする
 		if !array.HasIntersection(place.Types, categoriesSlice) {
 			continue
 		}
 
+		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
 		if place.OpeningHours.OpenNow == nil {
 			continue
 		}
 
 		if *place.OpeningHours.OpenNow {
-			log.Println(place.Name, "[Open Now]")
+			places = append(places, Place{
+				Name:  place.Name,
+				Types: place.Types,
+				Location: Location{
+					Latitude:  place.Geometry.Location.Lat,
+					Longitude: place.Geometry.Location.Lng,
+				},
+			})
 		}
 	}
+
+	return places, nil
 }
