@@ -56,10 +56,19 @@ func main() {
 		categoriesSlice = append(categoriesSlice, value...)
 	}
 
+	// Getting places nearby
 	for _, place := range res.Results {
-		/* To extract places */
-		if array.HasIntersection(place.Types, categoriesSlice) {
-			log.Println(place.Name, place.Types)
+		// To extract places
+		if !array.HasIntersection(place.Types, categoriesSlice) {
+			continue
+		}
+
+		if place.OpeningHours.OpenNow == nil {
+			continue
+		}
+
+		if *place.OpeningHours.OpenNow {
+			log.Println(place.Name, "[Open Now]")
 		}
 	}
 }
