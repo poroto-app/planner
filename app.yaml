@@ -9,3 +9,6 @@ automatic_scaling:
   min_pending_latency: 3000ms
   max_pending_latency: automatic
   max_instances: 2
+
+env_variables:
+  ENV: "production"
