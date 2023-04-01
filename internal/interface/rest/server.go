@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"fmt"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"poroto.app/poroto/planner/internal/interface/rest/plan"
 )
@@ -30,6 +33,23 @@ func (s Server) ServeHTTP() error {
 	if s.production {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	r.Use(cors.New(cors.Config{
+		AllowMethods:     []string{"POST"},
+		AllowCredentials: true,
+		AllowHeaders: []string{
+			"Content-Type",
+		},
+		AllowOriginFunc: func(origin string) bool {
+			if !s.production {
+				return true
+			}
+			protocol := os.Getenv("WEB_PROTOCOL")
+			host := os.Getenv("WEB_HOST")
+			return origin == fmt.Sprintf("%s://%s", protocol, host)
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
