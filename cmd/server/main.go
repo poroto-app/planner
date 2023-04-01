@@ -24,7 +24,7 @@ func init() {
 }
 
 func main() {
-	s := rest.NewRestServer(false)
+	s := rest.NewRestServer(os.Getenv("ENV") == "production")
 	if err := s.ServeHTTP(); err != nil {
 		log.Fatalf("error while starting server: %v", err)
 	}
