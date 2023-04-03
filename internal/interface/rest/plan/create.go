@@ -1,11 +1,14 @@
 package plan
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"poroto.app/poroto/planner/internal/domain/place"
 	"poroto.app/poroto/planner/internal/domain/plan"
+	"poroto.app/poroto/planner/internal/infrastructure/api/google"
 )
 
 type CreatePlansRequest struct {
@@ -24,21 +27,37 @@ func CreatePlans(c *gin.Context) {
 		})
 	}
 
-	// TODO: 実際にGoogle Places APIを利用して取得する
-	c.JSON(http.StatusOK, CreatePlansResponse{
-		Plans: []plan.Plan{
-			{
-				Name: "カフェでほっと一息",
-				Places: []place.Place{
-					{
-						Name: "スターバックス コーヒー 町田パリオ店",
-						Location: place.GeoLocation{
-							Latitude:  35.543261261835,
-							Longitude: 139.44401761365,
-						},
+	placesApi := google.NewPlacesApi()
+	places, err := placesApi.FindPlacesFromLocation(context.Background(), &google.FindPlacesFromLocationRequest{
+		Location: google.Location{
+			Latitude:  request.Location.Latitude,
+			Longitude: request.Location.Longitude,
+		},
+		Radius: 1000,
+	})
+	if err != nil {
+		c.Status(http.StatusInternalServerError)
+		log.Printf("error while fetching places: %v\n", err)
+		return
+	}
+
+	var plans []plan.Plan
+	for _, placeSearched := range places {
+		plans = append(plans, plan.Plan{
+			Name: placeSearched.Name,
+			Places: []place.Place{
+				{
+					Name: placeSearched.Name,
+					Location: place.GeoLocation{
+						Latitude:  placeSearched.Location.Latitude,
+						Longitude: placeSearched.Location.Longitude,
 					},
 				},
 			},
-		},
+		})
+	}
+
+	c.JSON(http.StatusOK, CreatePlansResponse{
+		Plans: plans,
 	})
 }
