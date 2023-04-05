@@ -105,3 +105,30 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 
 	return places, nil
 }
+
+func (r PlacesApi) GetPlaceDetailsFromPlaces(ctx context.Context, places []Place) ([]PlaceDetail, error) {
+	googlePlacesApi := NewPlacesApi()
+	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
+	c, err := maps.NewClient(opt)
+	if err != nil {
+		return nil, err
+	}
+
+	var placeDetails []PlaceDetail
+	for _, place := range places {
+		resPlaceDetails, err := c.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
+			PlaceID: place.PlaceID,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		placeDetails = append(placeDetails, PlaceDetail{
+			Place:  place,
+			Photos: resPlaceDetails.Photos,
+		},
+		)
+
+	}
+	return placeDetails, nil
+}
