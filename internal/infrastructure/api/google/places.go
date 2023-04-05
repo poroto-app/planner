@@ -24,6 +24,7 @@ func NewPlacesApi() PlacesApi {
 }
 
 type Place struct {
+	PlaceID  string
 	Name     string
 	Types    []string
 	Location Location
@@ -37,6 +38,11 @@ type Location struct {
 type FindPlacesFromLocationRequest struct {
 	Location Location
 	Radius   uint
+}
+
+type PlaceDetail struct {
+	Place  Place
+	Photos []maps.Photo `json:"photos,omitempty"`
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
@@ -86,8 +92,9 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 
 		if *place.OpeningHours.OpenNow {
 			places = append(places, Place{
-				Name:  place.Name,
-				Types: place.Types,
+				PlaceID: place.PlaceID,
+				Name:    place.Name,
+				Types:   place.Types,
 				Location: Location{
 					Latitude:  place.Geometry.Location.Lat,
 					Longitude: place.Geometry.Location.Lng,
