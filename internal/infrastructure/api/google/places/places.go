@@ -49,11 +49,6 @@ type FindPlacesFromLocationRequest struct {
 	Radius   uint
 }
 
-type PlaceDetail struct {
-	Place  Place
-	Photos []maps.Photo `json:"photos,omitempty"`
-}
-
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
 	res, err := r.mapsClient.NearbySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
@@ -106,24 +101,4 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 	}
 
 	return places, nil
-}
-
-func (r PlacesApi) GetPlaceDetailsFromPlaces(ctx context.Context, places []Place) ([]PlaceDetail, error) {
-	var placeDetails []PlaceDetail
-	for _, place := range places {
-		resPlaceDetails, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-			PlaceID: place.PlaceID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		placeDetails = append(placeDetails, PlaceDetail{
-			Place:  place,
-			Photos: resPlaceDetails.Photos,
-		},
-		)
-
-	}
-	return placeDetails, nil
 }
