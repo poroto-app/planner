@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google"
+	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 type CreatePlansRequest struct {
@@ -26,14 +26,14 @@ func CreatePlans(c *gin.Context) {
 		})
 	}
 
-	placesApi, err := google.NewPlacesApi()
+	placesApi, err := places.NewPlacesApi()
 	if err != nil {
 		log.Println(err)
 		c.Status(http.StatusInternalServerError)
 	}
 
-	places, err := placesApi.FindPlacesFromLocation(context.Background(), &google.FindPlacesFromLocationRequest{
-		Location: google.Location{
+	places, err := placesApi.FindPlacesFromLocation(context.Background(), &places.FindPlacesFromLocationRequest{
+		Location: places.Location{
 			Latitude:  request.Location.Latitude,
 			Longitude: request.Location.Longitude,
 		},
