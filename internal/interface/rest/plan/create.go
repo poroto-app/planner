@@ -27,7 +27,12 @@ func CreatePlans(c *gin.Context) {
 		})
 	}
 
-	placesApi := google.NewPlacesApi()
+	placesApi, err := google.NewPlacesApi()
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+	}
+
 	places, err := placesApi.FindPlacesFromLocation(context.Background(), &google.FindPlacesFromLocationRequest{
 		Location: google.Location{
 			Latitude:  request.Location.Latitude,
