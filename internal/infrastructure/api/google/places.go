@@ -82,7 +82,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 		}
 
 		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
-		if place.OpeningHours.OpenNow == nil {
+		if place.OpeningHours == nil || place.OpeningHours.OpenNow == nil {
 			continue
 		}
 
