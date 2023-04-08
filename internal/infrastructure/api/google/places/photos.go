@@ -10,7 +10,6 @@ type PlacePhoto struct {
 }
 
 func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
-	// TODO: implement me
 	const maxWidth int = 400
 	const maxHeight int = 400
 	const placePhotoApi string = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=%d&maxheight=%d&photo_reference=%s&key=%s"
