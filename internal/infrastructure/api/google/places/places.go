@@ -1,8 +1,8 @@
-package google
+package places
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 
 	"googlemaps.github.io/maps"
@@ -10,17 +10,26 @@ import (
 )
 
 type PlacesApi struct {
-	apiKey string
+	apiKey     string
+	mapsClient *maps.Client
 }
 
-func NewPlacesApi() PlacesApi {
+func NewPlacesApi() (*PlacesApi, error) {
 	apiKey := os.Getenv("GOOGLE_PLACES_API_KEY")
 	if apiKey == "" {
-		log.Fatalln("env variable GOOGLE_PLACES_API_KEY is not set")
+		return nil, fmt.Errorf("env variable GOOGLE_PLACES_API_KEY is not set")
 	}
-	return PlacesApi{
-		apiKey: apiKey,
+
+	opt := maps.WithAPIKey(apiKey)
+	c, err := maps.NewClient(opt)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing maps api client: %v", err)
 	}
+
+	return &PlacesApi{
+		apiKey:     apiKey,
+		mapsClient: c,
+	}, nil
 }
 
 type Place struct {
@@ -46,14 +55,7 @@ type PlaceDetail struct {
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-	googlePlacesApi := NewPlacesApi()
-	opt := maps.WithAPIKey(googlePlacesApi.apiKey)
-	c, err := maps.NewClient(opt)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.NearbySearch(ctx, &maps.NearbySearchRequest{
+	res, err := r.mapsClient.NearbySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
 			Lng: req.Location.Longitude,
@@ -86,7 +88,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 		}
 
 		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
-		if place.OpeningHours.OpenNow == nil {
+		if place.OpeningHours == nil || place.OpeningHours.OpenNow == nil {
 			continue
 		}
 

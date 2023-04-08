@@ -6,17 +6,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"poroto.app/poroto/planner/internal/domain/place"
-	"poroto.app/poroto/planner/internal/domain/plan"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google"
+	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 type CreatePlansRequest struct {
-	Location place.GeoLocation `json:"location"`
+	Location models.GeoLocation `json:"location"`
 }
 
 type CreatePlansResponse struct {
-	Plans []plan.Plan `json:"plans"`
+	Plans []models.Plan `json:"plans"`
 }
 
 func CreatePlans(c *gin.Context) {
@@ -27,9 +26,14 @@ func CreatePlans(c *gin.Context) {
 		})
 	}
 
-	placesApi := google.NewPlacesApi()
-	places, err := placesApi.FindPlacesFromLocation(context.Background(), &google.FindPlacesFromLocationRequest{
-		Location: google.Location{
+	placesApi, err := places.NewPlacesApi()
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+	}
+
+	places, err := placesApi.FindPlacesFromLocation(context.Background(), &places.FindPlacesFromLocationRequest{
+		Location: places.Location{
 			Latitude:  request.Location.Latitude,
 			Longitude: request.Location.Longitude,
 		},
@@ -41,14 +45,14 @@ func CreatePlans(c *gin.Context) {
 		return
 	}
 
-	var plans []plan.Plan
+	var plans []models.Plan
 	for _, placeSearched := range places {
-		plans = append(plans, plan.Plan{
+		plans = append(plans, models.Plan{
 			Name: placeSearched.Name,
-			Places: []place.Place{
+			Places: []models.Place{
 				{
 					Name: placeSearched.Name,
-					Location: place.GeoLocation{
+					Location: models.GeoLocation{
 						Latitude:  placeSearched.Location.Latitude,
 						Longitude: placeSearched.Location.Longitude,
 					},
