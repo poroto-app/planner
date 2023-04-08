@@ -51,7 +51,8 @@ type FindPlacesFromLocationRequest struct {
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-	res, err := r.mapsClient.NearbySearch(ctx, &maps.NearbySearchRequest{
+
+	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
 			Lng: req.Location.Longitude,
@@ -76,7 +77,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 
 	// Getting places nearby
 	var places []Place
-	for _, place := range res.Results {
+	for _, place := range placeSearchResults {
 		// To extract places
 		// TODO: フィルタリングするカテゴリを `FindPlacesFromLocationRequest`で指定できるようにする
 		if !array.HasIntersection(place.Types, categoriesSlice) {
