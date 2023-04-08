@@ -3,7 +3,6 @@ package places
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"googlemaps.github.io/maps"
@@ -33,10 +32,6 @@ func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchReque
 		}
 		placeSearchResults = append(placeSearchResults, res.Results...)
 		pageToken = res.NextPageToken
-	}
-
-	for _, place := range placeSearchResults {
-		log.Println(place.Name)
 	}
 
 	return placeSearchResults, nil
