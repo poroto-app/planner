@@ -33,10 +33,11 @@ func NewPlacesApi() (*PlacesApi, error) {
 }
 
 type Place struct {
-	PlaceID  string
-	Name     string
-	Types    []string
-	Location Location
+	PlaceID         string
+	Name            string
+	Types           []string
+	Location        Location
+	photoReferences []string
 }
 
 type Location struct {
@@ -87,17 +88,25 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			continue
 		}
 
-		if *place.OpeningHours.OpenNow {
-			places = append(places, Place{
-				PlaceID: place.PlaceID,
-				Name:    place.Name,
-				Types:   place.Types,
-				Location: Location{
-					Latitude:  place.Geometry.Location.Lat,
-					Longitude: place.Geometry.Location.Lng,
-				},
-			})
+		if !*place.OpeningHours.OpenNow {
+			continue
 		}
+
+		var photoReferences []string
+		for _, photo := range place.Photos {
+			photoReferences = append(photoReferences, photo.PhotoReference)
+		}
+
+		places = append(places, Place{
+			PlaceID: place.PlaceID,
+			Name:    place.Name,
+			Types:   place.Types,
+			Location: Location{
+				Latitude:  place.Geometry.Location.Lat,
+				Longitude: place.Geometry.Location.Lng,
+			},
+			photoReferences: photoReferences,
+		})
 	}
 
 	return places, nil
