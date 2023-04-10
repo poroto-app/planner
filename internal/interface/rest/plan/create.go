@@ -32,7 +32,7 @@ func CreatePlans(c *gin.Context) {
 		c.Status(http.StatusInternalServerError)
 	}
 
-	places, err := placesApi.FindPlacesFromLocation(context.Background(), &places.FindPlacesFromLocationRequest{
+	placesSearched, err := placesApi.FindPlacesFromLocation(context.Background(), &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  request.Location.Latitude,
 			Longitude: request.Location.Longitude,
@@ -45,8 +45,23 @@ func CreatePlans(c *gin.Context) {
 		return
 	}
 
+	// TODO: 移動距離ではなく、移動時間でやる
+	var placesRecommend []places.Place
+	placesInNear := FilterWithinDistanceRange(request.Location, 0, 500, placesSearched)
+	placesInMiddle := FilterWithinDistanceRange(request.Location, 500, 1000, placesSearched)
+	placesInFar := FilterWithinDistanceRange(request.Location, 1000, 2000, placesSearched)
+	if len(placesInNear) > 0 {
+		placesRecommend = append(placesRecommend, placesInNear[0])
+	}
+	if len(placesInMiddle) > 0 {
+		placesRecommend = append(placesRecommend, placesInMiddle[0])
+	}
+	if len(placesInFar) > 0 {
+		placesRecommend = append(placesRecommend, placesInFar[0])
+	}
+
 	var plans []models.Plan
-	for _, placeSearched := range places {
+	for _, placeSearched := range placesRecommend {
 		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), placeSearched)
 		if err != nil {
 			continue
@@ -74,4 +89,23 @@ func CreatePlans(c *gin.Context) {
 	c.JSON(http.StatusOK, CreatePlansResponse{
 		Plans: plans,
 	})
+}
+
+func FilterWithinDistanceRange(
+	currentLocation models.GeoLocation,
+	startInMeter float64,
+	endInMeter float64,
+	placesToFilter []places.Place,
+) []places.Place {
+	var placesWithInDistance []places.Place
+	for _, place := range placesToFilter {
+		distance := currentLocation.DistanceInMeter(models.GeoLocation{
+			Latitude:  place.Location.Latitude,
+			Longitude: place.Location.Longitude,
+		})
+		if startInMeter <= distance && distance < endInMeter {
+			placesWithInDistance = append(placesWithInDistance, place)
+		}
+	}
+	return placesWithInDistance
 }
