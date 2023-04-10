@@ -12,7 +12,7 @@ type PlacePhoto struct {
 }
 
 func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
-	u, err := url.Parse("https://maps.goog;eapis.com")
+	u, err := url.Parse("https://maps.googleapis.com")
 	if err != nil {
 		return "", err
 	}
