@@ -33,9 +33,11 @@ func NewPlacesApi() (*PlacesApi, error) {
 }
 
 type Place struct {
-	Name     string
-	Types    []string
-	Location Location
+	PlaceID         string
+	Name            string
+	Types           []string
+	Location        Location
+	photoReferences []string
 }
 
 type Location struct {
@@ -49,7 +51,8 @@ type FindPlacesFromLocationRequest struct {
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-	res, err := r.mapsClient.NearbySearch(ctx, &maps.NearbySearchRequest{
+
+	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
 			Lng: req.Location.Longitude,
@@ -74,7 +77,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 
 	// Getting places nearby
 	var places []Place
-	for _, place := range res.Results {
+	for _, place := range placeSearchResults {
 		// To extract places
 		// TODO: フィルタリングするカテゴリを `FindPlacesFromLocationRequest`で指定できるようにする
 		if !array.HasIntersection(place.Types, categoriesSlice) {
@@ -86,16 +89,25 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			continue
 		}
 
-		if *place.OpeningHours.OpenNow {
-			places = append(places, Place{
-				Name:  place.Name,
-				Types: place.Types,
-				Location: Location{
-					Latitude:  place.Geometry.Location.Lat,
-					Longitude: place.Geometry.Location.Lng,
-				},
-			})
+		if !*place.OpeningHours.OpenNow {
+			continue
 		}
+
+		var photoReferences []string
+		for _, photo := range place.Photos {
+			photoReferences = append(photoReferences, photo.PhotoReference)
+		}
+
+		places = append(places, Place{
+			PlaceID: place.PlaceID,
+			Name:    place.Name,
+			Types:   place.Types,
+			Location: Location{
+				Latitude:  place.Geometry.Location.Lat,
+				Longitude: place.Geometry.Location.Lng,
+			},
+			photoReferences: photoReferences,
+		})
 	}
 
 	return places, nil

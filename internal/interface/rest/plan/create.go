@@ -47,11 +47,21 @@ func CreatePlans(c *gin.Context) {
 
 	var plans []models.Plan
 	for _, placeSearched := range places {
+		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), placeSearched)
+		if err != nil {
+			continue
+		}
+		photos := []string{}
+		for _, photo := range placePhotos {
+			photos = append(photos, photo.ImageUrl)
+		}
+
 		plans = append(plans, models.Plan{
 			Name: placeSearched.Name,
 			Places: []models.Place{
 				{
-					Name: placeSearched.Name,
+					Name:   placeSearched.Name,
+					Photos: photos,
 					Location: models.GeoLocation{
 						Latitude:  placeSearched.Location.Latitude,
 						Longitude: placeSearched.Location.Longitude,
