@@ -11,7 +11,7 @@ type PlacePhoto struct {
 	ImageUrl string
 }
 
-func ImgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
+func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.goog;eapis.com")
 	if err != nil {
 		return "", err
@@ -35,7 +35,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePh
 	var placePhotos []PlacePhoto
 
 	for _, photoReference := range place.photoReferences {
-		url, err := ImgUrlBuilder(maxWidth, maxHeight, photoReference, r.apiKey)
+		url, err := imgUrlBuilder(maxWidth, maxHeight, photoReference, r.apiKey)
 		if err != nil {
 			return nil, err
 		}
