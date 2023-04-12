@@ -60,7 +60,7 @@ func CreatePlans(c *gin.Context) {
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
-	var plans []models.Plan
+	plans := []models.Plan{} // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, placeSearched := range placesRecommend {
 		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), placeSearched)
 		if err != nil {
