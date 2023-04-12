@@ -37,7 +37,7 @@ func CreatePlans(c *gin.Context) {
 			Latitude:  request.Location.Latitude,
 			Longitude: request.Location.Longitude,
 		},
-		Radius: 1000,
+		Radius: 2000,
 	})
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
