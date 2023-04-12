@@ -57,6 +57,11 @@ func (s Server) ServeHTTP() error {
 		})
 	})
 
+	r.POST("/graphql", GraphQlQuery)
+	if !s.production {
+		r.GET("/graphql/playground", GraphQlPlayGround)
+	}
+
 	// TODO: 早いうちにGraphQLに移行する
 	r.POST("/plans", plan.CreatePlans)
 
