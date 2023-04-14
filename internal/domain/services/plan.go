@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
@@ -41,6 +42,9 @@ func (s PlanService) CreatePlanByLocation(
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
+
+	// TODO: フィルタリングするカテゴリを指定できるようにする
+	placesSearched = s.filterByCategory(placesSearched)
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
@@ -84,6 +88,28 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	return &plans, nil
+}
+
+func (s PlanService) filterByCategory(
+	placesToFilter []places.Place,
+) []places.Place {
+	categories := map[string][]string{}
+	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
+	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
+
+	var categoriesSlice []string
+	for _, value := range categories {
+		categoriesSlice = append(categoriesSlice, value...)
+	}
+
+	var placesInCategory []places.Place
+	for _, place := range placesToFilter {
+		if array.HasIntersection(place.Types, categoriesSlice) {
+			placesInCategory = append(placesInCategory, place)
+		}
+	}
+
+	return placesInCategory
 }
 
 func FilterWithinDistanceRange(
