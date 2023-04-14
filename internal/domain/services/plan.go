@@ -43,8 +43,20 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	// TODO: フィルタリングするカテゴリを指定できるようにする
-	placesSearched = s.filterByCategory(placesSearched)
+	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
+		{
+			Name: "amusements",
+			SubCategories: []string{
+				"amusement_park", "aquarium", "art_gallary", "museum",
+			},
+		},
+		{
+			Name: "restaurants",
+			SubCategories: []string{
+				"bakery", "bar", "cafe", "food", "restaurant",
+			},
+		},
+	})
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
@@ -95,14 +107,11 @@ func (s PlanService) CreatePlanByLocation(
 
 func (s PlanService) filterByCategory(
 	placesToFilter []places.Place,
+	categories []models.LocationCategory,
 ) []places.Place {
-	categories := map[string][]string{}
-	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
-	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
-
 	var categoriesSlice []string
-	for _, value := range categories {
-		categoriesSlice = append(categoriesSlice, value...)
+	for _, category := range categories {
+		categoriesSlice = append(categoriesSlice, category.SubCategories...)
 	}
 
 	var placesInCategory []places.Place
