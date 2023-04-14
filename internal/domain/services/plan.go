@@ -46,6 +46,9 @@ func (s PlanService) CreatePlanByLocation(
 	// TODO: フィルタリングするカテゴリを指定できるようにする
 	placesSearched = s.filterByCategory(placesSearched)
 
+	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
+	placesSearched = s.filterByOpeningNow(placesSearched)
+
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 	placesInNear := FilterWithinDistanceRange(location, 0, 500, placesSearched)
@@ -110,6 +113,18 @@ func (s PlanService) filterByCategory(
 	}
 
 	return placesInCategory
+}
+
+func (s PlanService) filterByOpeningNow(
+	placesToFilter []places.Place,
+) []places.Place {
+	var placesOpeningNow []places.Place
+	for _, place := range placesToFilter {
+		if place.OpenNow {
+			placesOpeningNow = append(placesOpeningNow, place)
+		}
+	}
+	return placesOpeningNow
 }
 
 func FilterWithinDistanceRange(

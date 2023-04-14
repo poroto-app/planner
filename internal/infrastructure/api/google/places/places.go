@@ -37,6 +37,7 @@ type Place struct {
 	Types           []string
 	Location        Location
 	photoReferences []string
+	OpenNow         bool
 }
 
 type Location struct {
@@ -64,16 +65,6 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 	// Getting places nearby
 	var places []Place
 	for _, place := range placeSearchResults {
-
-		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
-		if place.OpeningHours == nil || place.OpeningHours.OpenNow == nil {
-			continue
-		}
-
-		if !*place.OpeningHours.OpenNow {
-			continue
-		}
-
 		var photoReferences []string
 		for _, photo := range place.Photos {
 			photoReferences = append(photoReferences, photo.PhotoReference)
@@ -87,6 +78,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 				Latitude:  place.Geometry.Location.Lat,
 				Longitude: place.Geometry.Location.Lng,
 			},
+			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
 			photoReferences: photoReferences,
 		})
 	}
