@@ -51,9 +51,9 @@ func (s PlanService) CreatePlanByLocation(
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
-	placesInNear := FilterWithinDistanceRange(location, 0, 500, placesSearched)
-	placesInMiddle := FilterWithinDistanceRange(location, 500, 1000, placesSearched)
-	placesInFar := FilterWithinDistanceRange(location, 1000, 2000, placesSearched)
+	placesInNear := s.filterWithinDistanceRange(placesSearched, location, 0, 500)
+	placesInMiddle := s.filterWithinDistanceRange(placesSearched, location, 500, 1000)
+	placesInFar := s.filterWithinDistanceRange(placesSearched, location, 1000, 2000)
 	if len(placesInNear) > 0 {
 		placesRecommend = append(placesRecommend, placesInNear[0])
 	}
@@ -127,11 +127,11 @@ func (s PlanService) filterByOpeningNow(
 	return placesOpeningNow
 }
 
-func FilterWithinDistanceRange(
+func (s PlanService) filterWithinDistanceRange(
+	placesToFilter []places.Place,
 	currentLocation models.GeoLocation,
 	startInMeter float64,
 	endInMeter float64,
-	placesToFilter []places.Place,
 ) []places.Place {
 	var placesWithInDistance []places.Place
 	for _, place := range placesToFilter {
