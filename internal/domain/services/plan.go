@@ -47,7 +47,7 @@ func (s PlanService) CreatePlanByLocation(
 		{
 			Name: "amusements",
 			SubCategories: []string{
-				"amusement_park", "aquarium", "art_gallary", "museum",
+				"amusement_park", "aquarium", "art_gallery", "museum",
 			},
 		},
 		{
