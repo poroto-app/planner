@@ -1,0 +1,24 @@
+type Plan {
+    name: String!
+    places: [Place!]!
+}
+
+type Place {
+    name: String!
+    location: GeoLocation!
+    photos: [String!]
+}
+
+type GeoLocation {
+    latitude: Float!
+    longitude: Float!
+}
+
+extend type Mutation {
+    createPlanByLocation(input: CreatePlanByLocationInput): [Plan!]!
+}
+
+input CreatePlanByLocationInput {
+    latitude: Float!
+    longitude: Float!
+}
