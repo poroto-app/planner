@@ -2,10 +2,23 @@
 
 package model
 
-type Message struct {
-	Text string `json:"text"`
+type CreatePlanByLocationInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
-type NewMessage struct {
-	Text string `json:"text"`
+type GeoLocation struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type Place struct {
+	Name     string       `json:"name"`
+	Location *GeoLocation `json:"location"`
+	Photos   []string     `json:"photos,omitempty"`
+}
+
+type Plan struct {
+	Name   string   `json:"name"`
+	Places []*Place `json:"places"`
 }

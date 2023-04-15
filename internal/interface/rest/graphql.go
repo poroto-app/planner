@@ -4,8 +4,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	"poroto.app/poroto/planner/graphql"
 	"poroto.app/poroto/planner/graphql/generated"
+	"poroto.app/poroto/planner/graphql/resolver"
 )
 
 func GraphQlPlayGround(c *gin.Context) {
@@ -14,7 +14,7 @@ func GraphQlPlayGround(c *gin.Context) {
 }
 
 func GraphQlQuery(c *gin.Context) {
-	schema := generated.NewExecutableSchema(generated.Config{Resolvers: &graphql.Resolver{}})
+	schema := generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{}})
 	h := handler.NewDefaultServer(schema)
 	h.ServeHTTP(c.Writer, c.Request)
 }
