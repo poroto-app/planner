@@ -33,6 +33,10 @@ func CreatePlans(c *gin.Context) {
 	}
 
 	plans, err := service.CreatePlanByLocation(c.Request.Context(), request.Location)
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+	}
 
 	c.JSON(http.StatusOK, CreatePlansResponse{
 		Plans: *plans,
