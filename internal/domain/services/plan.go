@@ -45,7 +45,14 @@ func (s PlanService) CreatePlanByLocation(
 
 	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
 		models.CategoryAmusements,
+		models.CategoryBook,
+		models.CategoryCamp,
+		models.CategoryCafe,
+		models.CategoryCulture,
+		models.CategoryNatural,
+		models.CategoryPark,
 		models.CategoryRestaurant,
+		models.CategoryShopping,
 	})
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
