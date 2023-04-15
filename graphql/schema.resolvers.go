@@ -6,28 +6,18 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 
 	graph "poroto.app/poroto/planner/graphql/generated"
-	"poroto.app/poroto/planner/graphql/model"
 )
 
-// CreateMessage is the resolver for the createMessage field.
-func (r *mutationResolver) CreateMessage(ctx context.Context, input model.NewMessage) (*model.Message, error) {
-	return &model.Message{
-		Text: input.Text,
-	}, nil
+// Ping is the resolver for the ping field.
+func (r *mutationResolver) Ping(ctx context.Context, message string) (string, error) {
+	return message, nil
 }
 
-// Messages is the resolver for the messages field.
-func (r *queryResolver) Messages(ctx context.Context) ([]*model.Message, error) {
-	var messages []*model.Message
-	for i := 0; i < 10; i++ {
-		messages = append(messages, &model.Message{
-			Text: fmt.Sprintf("Message %d", i),
-		})
-	}
-	return messages, nil
+// Version is the resolver for the version field.
+func (r *queryResolver) Version(ctx context.Context) (string, error) {
+	return "0.0.1", nil
 }
 
 // Mutation returns graph.MutationResolver implementation.

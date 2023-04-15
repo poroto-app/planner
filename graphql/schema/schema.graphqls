@@ -1,19 +1,12 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
-type Message {
-  text: String!
+schema {
+    query: Query
+    mutation: Mutation
 }
 
 type Query {
-  messages: [Message!]!
-}
-
-input NewMessage {
-  text: String!
+    version: String!
 }
 
 type Mutation {
-  createMessage(input: NewMessage!): Message!
+    ping(message: String!): String!
 }
