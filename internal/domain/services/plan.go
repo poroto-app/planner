@@ -76,13 +76,13 @@ func (s PlanService) CreatePlanByLocation(
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
-	plans := []models.Plan{} // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
+	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, place := range placesRecommend {
 		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), place)
 		if err != nil {
 			continue
 		}
-		photos := []string{}
+		photos := make([]string, 0)
 		for _, photo := range placePhotos {
 			photos = append(photos, photo.ImageUrl)
 		}
