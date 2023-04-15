@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"poroto.app/poroto/planner/graphql/model"
 )
@@ -19,5 +18,19 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	panic(fmt.Errorf("not implemented: MatchInterests - matchInterests"))
+	// TODO: 実際に付近の場所のカテゴリを提示する
+	return &model.InterestCandidate{
+		Categories: []*model.LocationCategory{
+			{
+				Name:        "spa",
+				DisplayName: "温泉",
+				Photo:       "https://images.pexels.com/photos/347137/pexels-photo-347137.jpeg",
+			},
+			{
+				Name:        "cafe",
+				DisplayName: "カフェ",
+				Photo:       "https://images.pexels.com/photos/1402407/pexels-photo-1402407.jpeg",
+			},
+		},
+	}, nil
 }
