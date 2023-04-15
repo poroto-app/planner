@@ -83,6 +83,14 @@ func CreatePlans(c *gin.Context) {
 					},
 				},
 			},
+			TimeInMinutes: CalTravelTimeFromCurrent( // MEMO: 一つのプランに一つのプレイスしかないため，現在地~プレイスの移動時間のみ定義
+				request.Location,
+				models.GeoLocation{
+					Latitude:  placeSearched.Location.Latitude,
+					Longitude: placeSearched.Location.Longitude,
+				},
+				80.0,
+			),
 		})
 	}
 
@@ -108,4 +116,17 @@ func FilterWithinDistanceRange(
 		}
 	}
 	return placesWithInDistance
+}
+
+func CalTravelTimeFromCurrent(
+	currentLocation models.GeoLocation,
+	targetLocation models.GeoLocation,
+	meterPerMinutes float64,
+) float64 {
+	timeInMinutes := 0.0
+	distance := currentLocation.DistanceInMeter(targetLocation)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = distance / meterPerMinutes
+	}
+	return timeInMinutes
 }
