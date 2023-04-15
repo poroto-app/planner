@@ -14,11 +14,32 @@ type GeoLocation {
     longitude: Float!
 }
 
+type LocationCategory {
+    name: String!
+    displayName: String!
+    photo: String!
+}
+
+type InterestCandidate {
+    categories: [LocationCategory!]!
+}
+
+extend type Query {
+    matchInterests(input: MatchInterestsInput): InterestCandidate!
+}
+
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput): [Plan!]!
 }
 
+# TODO: CreatePlanというMutationにidだけ渡せば作れる状態にする
 input CreatePlanByLocationInput {
+    latitude: Float!
+    longitude: Float!
+    categories: [String!]!
+}
+
+input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
 }

@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"poroto.app/poroto/planner/graphql/model"
 )
@@ -14,4 +15,9 @@ import (
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *model.CreatePlanByLocationInput) ([]*model.Plan, error) {
 	// TODO: implement
 	return []*model.Plan{}, nil
+}
+
+// MatchInterests is the resolver for the matchInterests field.
+func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
+	panic(fmt.Errorf("not implemented: MatchInterests - matchInterests"))
 }
