@@ -8,14 +8,14 @@ type LocationCategory struct {
 var (
 	// SEE: https://developers.google.com/maps/documentation/places/web-service/supported_types?hl=ja#table1
 	CategoryActivity = LocationCategory{
-		Name: "Activity",
+		Name: "activity",
 		SubCategories: []string{
 			"bowling_alley",
 		},
 	}
 
 	CategoryAmusements = LocationCategory{
-		Name: "Amusements",
+		Name: "amusements",
 		SubCategories: []string{
 			"amusement_park",
 			"campground",
@@ -29,7 +29,7 @@ var (
 	}
 
 	CategoryBook = LocationCategory{
-		Name: "Book",
+		Name: "book",
 		SubCategories: []string{
 			"book_store",
 			"library",
@@ -37,7 +37,7 @@ var (
 	}
 
 	CategoryCulture = LocationCategory{
-		Name: "Cultural Facility",
+		Name: "cultural Facility",
 		SubCategories: []string{
 			"art_gallery",
 			"museum",
@@ -46,7 +46,7 @@ var (
 	}
 
 	CategoryNatural = LocationCategory{
-		Name: "Natural Facility",
+		Name: "natural Facility",
 		SubCategories: []string{
 			"aquarium",
 			"zoo",
@@ -54,7 +54,7 @@ var (
 	}
 
 	CategoryRestaurant = LocationCategory{
-		Name: "Restaurant",
+		Name: "restaurant",
 		SubCategories: []string{
 			"bakery",
 			"bar",
@@ -65,7 +65,7 @@ var (
 	}
 
 	CategoryShopping = LocationCategory{
-		Name: "Shopping",
+		Name: "shopping",
 		SubCategories: []string{
 			"clothing_store",
 			"department_store",
