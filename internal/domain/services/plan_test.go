@@ -56,3 +56,41 @@ func TestFuncFilterByCategory(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterByOpeningNow(t *testing.T) {
+	cases := []struct {
+		name           string
+		placesToFilter []places.Place
+		expected       []places.Place
+	}{
+		{
+			name: "should filter places by opening now",
+			placesToFilter: []places.Place{
+				{
+					Name:    "Museo Nacional de Bellas Artes",
+					OpenNow: true,
+				},
+				{
+					Name:    "Subway",
+					OpenNow: false,
+				},
+			},
+			expected: []places.Place{
+				{
+					Name:    "Museo Nacional de Bellas Artes",
+					OpenNow: true,
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			s := PlanService{}
+			actual := s.filterByOpeningNow(c.placesToFilter)
+			if !reflect.DeepEqual(actual, c.expected) {
+				t.Errorf("expected %v, got %v", c.expected, actual)
+			}
+		})
+	}
+}
