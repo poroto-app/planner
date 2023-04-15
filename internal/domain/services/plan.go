@@ -77,8 +77,8 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := []models.Plan{} // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-	for _, placeSearched := range placesRecommend {
-		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), placeSearched)
+	for _, place := range placesRecommend {
+		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), place)
 		if err != nil {
 			continue
 		}
@@ -88,14 +88,14 @@ func (s PlanService) CreatePlanByLocation(
 		}
 
 		plans = append(plans, models.Plan{
-			Name: placeSearched.Name,
+			Name: place.Name,
 			Places: []models.Place{
 				{
-					Name:   placeSearched.Name,
+					Name:   place.Name,
 					Photos: photos,
 					Location: models.GeoLocation{
-						Latitude:  placeSearched.Location.Latitude,
-						Longitude: placeSearched.Location.Longitude,
+						Latitude:  place.Location.Latitude,
+						Longitude: place.Location.Longitude,
 					},
 				},
 			},
