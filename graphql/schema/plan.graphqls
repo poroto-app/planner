@@ -32,11 +32,11 @@ extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput): [Plan!]!
 }
 
-# TODO: CreatePlanというMutationにidだけ渡せば作れる状態にする
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
-    categories: [String!]!
+    # ユーザーの興味をOptionalなパラメータとして渡す
+    categories: [String!]
 }
 
 input MatchInterestsInput {
