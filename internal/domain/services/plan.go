@@ -94,6 +94,14 @@ func (s PlanService) CreatePlanByLocation(
 					},
 				},
 			},
+			TimeInMinutes: s.travelTimeFromCurrent(
+				location,
+				models.GeoLocation{
+					Latitude:  place.Location.Latitude,
+					Longitude: place.Location.Longitude,
+				},
+				80.0,
+			),
 		})
 	}
 
@@ -148,4 +156,17 @@ func (s PlanService) filterWithinDistanceRange(
 		}
 	}
 	return placesWithInDistance
+}
+
+func (s PlanService) travelTimeFromCurrent(
+	currentLocation models.GeoLocation,
+	targetLocation models.GeoLocation,
+	meterPerMinutes float64,
+) float64 {
+	timeInMinutes := 0.0
+	distance := currentLocation.DistanceInMeter(targetLocation)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = distance / meterPerMinutes
+	}
+	return timeInMinutes
 }
