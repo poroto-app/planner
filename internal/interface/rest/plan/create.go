@@ -42,3 +42,16 @@ func CreatePlans(c *gin.Context) {
 		Plans: *plans,
 	})
 }
+
+func CalTravelTimeFromCurrent(
+	currentLocation models.GeoLocation,
+	targetLocation models.GeoLocation,
+	meterPerMinutes float64,
+) float64 {
+	timeInMinutes := 0.0
+	distance := currentLocation.DistanceInMeter(targetLocation)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = distance / meterPerMinutes
+	}
+	return timeInMinutes
+}
