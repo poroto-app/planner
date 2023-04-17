@@ -27,12 +27,7 @@ func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) (*[]models.Plan, error) {
-	placesApi, err := places.NewPlacesApi()
-	if err != nil {
-		return nil, err
-	}
-
-	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  location.Latitude,
 			Longitude: location.Longitude,
@@ -78,7 +73,7 @@ func (s PlanService) CreatePlanByLocation(
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, place := range placesRecommend {
-		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), place)
+		placePhotos, err := s.placesApi.FetchPlacePhotos(context.Background(), place)
 		if err != nil {
 			continue
 		}
