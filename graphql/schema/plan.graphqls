@@ -14,11 +14,32 @@ type GeoLocation {
     longitude: Float!
 }
 
+type LocationCategory {
+    name: String!
+    displayName: String!
+    photo: String!
+}
+
+type InterestCandidate {
+    categories: [LocationCategory!]!
+}
+
+extend type Query {
+    matchInterests(input: MatchInterestsInput): InterestCandidate!
+}
+
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput): [Plan!]!
 }
 
 input CreatePlanByLocationInput {
+    latitude: Float!
+    longitude: Float!
+    # ユーザーの興味をOptionalなパラメータとして渡す
+    categories: [String!]
+}
+
+input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
 }
