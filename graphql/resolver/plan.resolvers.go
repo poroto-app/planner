@@ -6,8 +6,11 @@ package resolver
 
 import (
 	"context"
+	"fmt"
+	"log"
 
 	"poroto.app/poroto/planner/graphql/model"
+	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
@@ -19,18 +22,36 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	// TODO: 実際に付近の場所のカテゴリを提示する
-	return &model.InterestCandidate{
-		Categories: []*model.LocationCategory{
-			{
-				Name:        "spa",
-				DisplayName: "温泉",
-				Photo:       "https://images.pexels.com/photos/347137/pexels-photo-347137.jpeg",
+	var categories = []*model.LocationCategory{}
+
+	placesApi, err := places.NewPlacesApi()
+	if err != nil {
+		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+	}
+	categoriesSearched, err := placesApi.FetchNearCategories(
+		ctx,
+		&places.FindPlacesFromLocationRequest{
+			Location: places.Location{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
 			},
-			{
-				Name:        "cafe",
-				DisplayName: "カフェ",
-				Photo:       "https://images.pexels.com/photos/1402407/pexels-photo-1402407.jpeg",
-			},
+			Radius: 2000,
 		},
+	)
+	if err != nil {
+		log.Println(err)
+
+		log.Println(categoriesSearched)
+	}
+
+	for _, categorySearched := range categoriesSearched {
+		categories = append(categories, &model.LocationCategory{
+			Name:        categorySearched.Name,
+			DisplayName: categorySearched.Name,
+			Photo:       categorySearched.Photo.ImageUrl,
+		})
+	}
+	return &model.InterestCandidate{
+		Categories: categories,
 	}, nil
 }
