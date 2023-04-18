@@ -1,13 +1,12 @@
 package plan
 
 import (
-	"context"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/services"
 )
 
 type CreatePlansRequest struct {
@@ -26,107 +25,20 @@ func CreatePlans(c *gin.Context) {
 		})
 	}
 
-	placesApi, err := places.NewPlacesApi()
+	service, err := services.NewPlanService()
+	if err != nil {
+		log.Println(err)
+		c.Status(http.StatusInternalServerError)
+		return
+	}
+
+	plans, err := service.CreatePlanByLocation(c.Request.Context(), request.Location)
 	if err != nil {
 		log.Println(err)
 		c.Status(http.StatusInternalServerError)
 	}
 
-	placesSearched, err := placesApi.FindPlacesFromLocation(context.Background(), &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  request.Location.Latitude,
-			Longitude: request.Location.Longitude,
-		},
-		Radius: 2000,
-	})
-	if err != nil {
-		c.Status(http.StatusInternalServerError)
-		log.Printf("error while fetching places: %v\n", err)
-		return
-	}
-
-	// TODO: 移動距離ではなく、移動時間でやる
-	var placesRecommend []places.Place
-	placesInNear := FilterWithinDistanceRange(request.Location, 0, 500, placesSearched)
-	placesInMiddle := FilterWithinDistanceRange(request.Location, 500, 1000, placesSearched)
-	placesInFar := FilterWithinDistanceRange(request.Location, 1000, 2000, placesSearched)
-	if len(placesInNear) > 0 {
-		placesRecommend = append(placesRecommend, placesInNear[0])
-	}
-	if len(placesInMiddle) > 0 {
-		placesRecommend = append(placesRecommend, placesInMiddle[0])
-	}
-	if len(placesInFar) > 0 {
-		placesRecommend = append(placesRecommend, placesInFar[0])
-	}
-
-	plans := []models.Plan{} // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-	for _, placeSearched := range placesRecommend {
-		placePhotos, err := placesApi.FetchPlacePhotos(context.Background(), placeSearched)
-		if err != nil {
-			continue
-		}
-		photos := []string{}
-		for _, photo := range placePhotos {
-			photos = append(photos, photo.ImageUrl)
-		}
-
-		plans = append(plans, models.Plan{
-			Name: placeSearched.Name,
-			Places: []models.Place{
-				{
-					Name:   placeSearched.Name,
-					Photos: photos,
-					Location: models.GeoLocation{
-						Latitude:  placeSearched.Location.Latitude,
-						Longitude: placeSearched.Location.Longitude,
-					},
-				},
-			},
-			TimeInMinutes: CalTravelTimeFromCurrent( // MEMO: 一つのプランに一つのプレイスしかないため，現在地~プレイスの移動時間のみ定義
-				request.Location,
-				models.GeoLocation{
-					Latitude:  placeSearched.Location.Latitude,
-					Longitude: placeSearched.Location.Longitude,
-				},
-				80.0,
-			),
-		})
-	}
-
 	c.JSON(http.StatusOK, CreatePlansResponse{
-		Plans: plans,
+		Plans: *plans,
 	})
-}
-
-func FilterWithinDistanceRange(
-	currentLocation models.GeoLocation,
-	startInMeter float64,
-	endInMeter float64,
-	placesToFilter []places.Place,
-) []places.Place {
-	var placesWithInDistance []places.Place
-	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(models.GeoLocation{
-			Latitude:  place.Location.Latitude,
-			Longitude: place.Location.Longitude,
-		})
-		if startInMeter <= distance && distance < endInMeter {
-			placesWithInDistance = append(placesWithInDistance, place)
-		}
-	}
-	return placesWithInDistance
-}
-
-func CalTravelTimeFromCurrent(
-	currentLocation models.GeoLocation,
-	targetLocation models.GeoLocation,
-	meterPerMinutes float64,
-) float64 {
-	timeInMinutes := 0.0
-	distance := currentLocation.DistanceInMeter(targetLocation)
-	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = distance / meterPerMinutes
-	}
-	return timeInMinutes
 }
