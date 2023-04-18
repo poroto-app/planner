@@ -47,7 +47,7 @@ var (
 	}
 
 	CategoryCulture = LocationCategory{
-		Name:        "cultural Facility",
+		Name:        "cultural_facility",
 		DisplayName: "芸術や文化に触れる",
 		SubCategories: []string{
 			"art_gallery",
@@ -57,7 +57,7 @@ var (
 	}
 
 	CategoryNatural = LocationCategory{
-		Name:        "natural Facility",
+		Name:        "natural_facility",
 		DisplayName: "動物を見に行こう",
 		SubCategories: []string{
 			"aquarium",
