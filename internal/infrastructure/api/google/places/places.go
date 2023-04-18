@@ -38,6 +38,7 @@ type Place struct {
 	Location        Location
 	photoReferences []string
 	OpenNow         bool
+	Categories      []string
 }
 
 type Location struct {
@@ -80,6 +81,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			},
 			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
 			photoReferences: photoReferences,
+			Categories:      place.Types,
 		})
 	}
 
