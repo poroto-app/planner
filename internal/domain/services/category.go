@@ -25,7 +25,7 @@ func (s PlanService) FetchNearCategories(
 		return nearLocationCategories, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 	for _, place := range placesSearched {
-		for _, category := range place.Categories {
+		for _, category := range place.Types {
 			if !array.IsContain(nearCategories, category) {
 				photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
 				if err != nil {
