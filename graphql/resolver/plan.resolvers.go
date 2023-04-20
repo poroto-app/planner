@@ -15,7 +15,6 @@ import (
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *model.CreatePlanByLocationInput) ([]*model.Plan, error) {
-	// TODO: implement
 	service, err := services.NewPlanService()
 	if err != nil {
 		log.Println(err)
@@ -30,6 +29,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 	if err != nil {
 		log.Println(err)
 	}
+
 	retPlans := []*model.Plan{}
 	for _, plan := range *plans {
 		retPlans = append(retPlans, &model.Plan{
