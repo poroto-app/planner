@@ -32,9 +32,21 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 
 	retPlans := []*model.Plan{}
 	for _, plan := range *plans {
+		places := make([]*model.Place, 0)
+		for _, place := range plan.Places {
+			places = append(places, &model.Place{
+				Name:   place.Name,
+				Photos: place.Photos,
+				Location: &model.GeoLocation{
+					Latitude:  place.Location.Latitude,
+					Longitude: place.Location.Longitude,
+				},
+			})
+		}
+
 		retPlans = append(retPlans, &model.Plan{
 			Name:          plan.Name,
-			Places:        []*model.Place{},
+			Places:        places,
 			TimeInMinutes: plan.TimeInMinutes,
 		})
 	}
