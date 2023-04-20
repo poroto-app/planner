@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"poroto.app/poroto/planner/graphql/model"
+	"poroto.app/poroto/planner/internal/domain/services"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
@@ -24,11 +25,11 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	// TODO: 実際に付近の場所のカテゴリを提示する
 	var categories = []*model.LocationCategory{}
 
-	placesApi, err := places.NewPlacesApi()
+	planService, err := services.NewPlanService()
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
-	categoriesSearched, err := placesApi.FetchNearCategories(
+	categoriesSearched, err := planService.FetchNearCategories(
 		ctx,
 		&places.FindPlacesFromLocationRequest{
 			Location: places.Location{

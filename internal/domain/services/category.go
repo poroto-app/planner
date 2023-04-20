@@ -1,32 +1,33 @@
-package places
+package services
 
 import (
 	"context"
 	"fmt"
 
 	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 type LocationCategory struct {
 	Name  string
-	Photo PlacePhoto
+	Photo places.PlacePhoto
 }
 
-func (r PlacesApi) FetchNearCategories(
+func (s PlanService) FetchNearCategories(
 	ctx context.Context,
-	req *FindPlacesFromLocationRequest,
+	req *places.FindPlacesFromLocationRequest,
 ) ([]LocationCategory, error) {
 	var nearCategories = []string{}
 	var nearLocationCategories = []LocationCategory{}
 
-	placesSearched, err := r.FindPlacesFromLocation(ctx, req)
+	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, req)
 	if err != nil {
 		return nearLocationCategories, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 	for _, place := range placesSearched {
 		for _, category := range place.Categories {
 			if !array.IsContain(nearCategories, category) {
-				photos, err := r.FetchPlacePhotos(ctx, place)
+				photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
 				if err != nil {
 					continue
 				}
@@ -40,7 +41,7 @@ func (r PlacesApi) FetchNearCategories(
 				} else {
 					nearLocationCategories = append(nearLocationCategories, LocationCategory{
 						Name: category,
-						Photo: PlacePhoto{
+						Photo: places.PlacePhoto{
 							ImageUrl: "Not Found",
 						},
 					})
