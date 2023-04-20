@@ -26,28 +26,30 @@ func (s PlanService) FetchNearCategories(
 	}
 	for _, place := range placesSearched {
 		for _, category := range place.Types {
-			if !array.IsContain(nearCategories, category) {
-				photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
-				if err != nil {
-					continue
-				}
-				nearCategories = append(nearCategories, category)
-
-				if photos != nil {
-					nearLocationCategories = append(nearLocationCategories, LocationCategory{
-						Name:  category,
-						Photo: photos[0],
-					})
-				} else {
-					nearLocationCategories = append(nearLocationCategories, LocationCategory{
-						Name: category,
-						Photo: places.PlacePhoto{
-							ImageUrl: "Not Found",
-						},
-					})
-				}
-
+			if array.IsContain(nearCategories, category) {
+				continue
 			}
+
+			photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+			if err != nil {
+				continue
+			}
+			nearCategories = append(nearCategories, category)
+
+			if len(photos) == 0 {
+				nearLocationCategories = append(nearLocationCategories, LocationCategory{
+					Name: category,
+					Photo: places.PlacePhoto{
+						ImageUrl: "https://example.com/sample/category.jpg",
+					},
+				})
+				continue
+			}
+
+			nearLocationCategories = append(nearLocationCategories, LocationCategory{
+				Name:  category,
+				Photo: photos[0],
+			})
 		}
 	}
 	return nearLocationCategories, nil
