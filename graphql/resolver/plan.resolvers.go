@@ -30,7 +30,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 		log.Println(err)
 	}
 
-	retPlans := []*model.Plan{}
+	retPlans := make([]*model.Plan, 0)
 	for _, plan := range *plans {
 		places := make([]*model.Place, 0)
 		for _, place := range plan.Places {
