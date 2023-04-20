@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"googlemaps.github.io/maps"
-	"poroto.app/poroto/planner/internal/domain/array"
 )
 
 type PlacesApi struct {
@@ -38,6 +37,7 @@ type Place struct {
 	Types           []string
 	Location        Location
 	photoReferences []string
+	OpenNow         bool
 }
 
 type Location struct {
@@ -51,7 +51,6 @@ type FindPlacesFromLocationRequest struct {
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-
 	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
@@ -63,36 +62,9 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 		return nil, err
 	}
 
-	// Set objective place.Types
-	var categories map[string][]string = make(map[string][]string)
-	// Need initialization for ensure memory of map
-	categories["amusements"] = []string{"amusement_park", "aquarium", "art_gallary", "museum"}
-	categories["restaurants"] = []string{"bakery", "bar", "cafe", "food", "restaurant"}
-
-	// Refactoring map to slice for hasIntersection
-	var categoriesSlice []string
-	for _, value := range categories {
-		categoriesSlice = append(categoriesSlice, value...)
-	}
-
 	// Getting places nearby
 	var places []Place
 	for _, place := range placeSearchResults {
-		// To extract places
-		// TODO: フィルタリングするカテゴリを `FindPlacesFromLocationRequest`で指定できるようにする
-		if !array.HasIntersection(place.Types, categoriesSlice) {
-			continue
-		}
-
-		// TODO: 現在時刻でフィルタリングするかを `FindPlacesFromLocationRequest`で指定できるようにする
-		if place.OpeningHours == nil || place.OpeningHours.OpenNow == nil {
-			continue
-		}
-
-		if !*place.OpeningHours.OpenNow {
-			continue
-		}
-
 		var photoReferences []string
 		for _, photo := range place.Photos {
 			photoReferences = append(photoReferences, photo.PhotoReference)
@@ -106,6 +78,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 				Latitude:  place.Geometry.Location.Lat,
 				Longitude: place.Geometry.Location.Lng,
 			},
+			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
 			photoReferences: photoReferences,
 		})
 	}
