@@ -1,5 +1,7 @@
 package models
 
+import "poroto.app/poroto/planner/internal/domain/array"
+
 type LocationCategory struct {
 	Name          string
 	SubCategories []string
@@ -120,4 +122,15 @@ var AllCategory = []LocationCategory{
 	CategoryPark,
 	CategoryRestaurant,
 	CategoryShopping,
+}
+
+// SubCategory がどの大カテゴリに所属するか
+func CategoryOfSubCategory(placeType string) *LocationCategory {
+	for _, category := range AllCategory {
+		if array.IsContain(category.SubCategories, placeType) {
+			return &category
+		}
+	}
+
+	return nil
 }
