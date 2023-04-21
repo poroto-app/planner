@@ -241,7 +241,8 @@ func fetchNearSubCategories(
 
 			if len(photos) == 0 {
 				nearLocationCategories = append(nearLocationCategories, SubCategories{
-					name:   category,
+					name: category,
+					// TODO: implement me!
 					imgUrl: "https://placehold.jp/0a0a0a/ffffff/300x500.png?text=SubCategory",
 				})
 				continue
