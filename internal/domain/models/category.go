@@ -111,7 +111,7 @@ var (
 	}
 )
 
-// 大カテゴリの集合
+// MEMO: 大カテゴリの集合，ループ処理などで使う
 var AllCategory = []LocationCategory{
 	CategoryAmusements,
 	CategoryBook,
@@ -124,7 +124,24 @@ var AllCategory = []LocationCategory{
 	CategoryShopping,
 }
 
-// SubCategory がどの大カテゴリに所属するか
+func GetCategoryOfName(name string) LocationCategory {
+	return categoryMap[name]
+}
+
+// MEMO: 特定のカテゴリだけを引っ張るためのマップ
+var categoryMap = map[string]LocationCategory{
+	CategoryAmusements.Name: CategoryAmusements,
+	CategoryBook.Name:       CategoryBook,
+	CategoryCafe.Name:       CategoryCafe,
+	CategoryCamp.Name:       CategoryCamp,
+	CategoryCulture.Name:    CategoryCulture,
+	CategoryNatural.Name:    CategoryNatural,
+	CategoryPark.Name:       CategoryPark,
+	CategoryRestaurant.Name: CategoryRestaurant,
+	CategoryShopping.Name:   CategoryShopping,
+}
+
+// MEMO: SubCategory がどの大カテゴリに所属するか
 func CategoryOfSubCategory(placeType string) *LocationCategory {
 	for _, category := range AllCategory {
 		if array.IsContain(category.SubCategories, placeType) {

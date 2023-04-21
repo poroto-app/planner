@@ -178,33 +178,32 @@ func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) ([]models.LocationCategory, error) {
-	var categories []models.LocationCategory
-	var locationCategory *models.LocationCategory
-
-	var bookedCategories = []string{}
+	categoriesNames := make([]string, 0)
 
 	subCategoriesSearched, err := fetchNearSubCategories(ctx, location, &s.placesApi)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, placeType := range subCategoriesSearched {
-		locationCategory = models.CategoryOfSubCategory(placeType.name)
+	for _, subCategories := range subCategoriesSearched {
+		// サブカテゴリから大カテゴリを取得
+		locationCategory := models.CategoryOfSubCategory(subCategories.name)
 		if locationCategory == nil {
 			continue
 		}
-		if array.IsContain(bookedCategories, locationCategory.Name) {
+		// 異なるサブカテゴリが同じ大カテゴリに属する場合の処理
+		if array.IsContain(categoriesNames, locationCategory.Name) {
 			continue
 		}
 
-		categories = append(categories, models.LocationCategory{
-			Name:          locationCategory.Name,
-			SubCategories: locationCategory.SubCategories,
-			Photo:         locationCategory.Photo,
-		})
-
-		bookedCategories = append(bookedCategories, locationCategory.Name)
+		categoriesNames = append(categoriesNames, locationCategory.Name)
 	}
+
+	categories := make([]models.LocationCategory, 0)
+	for _, categoryName := range categoriesNames {
+		categories = append(categories, models.GetCategoryOfName(categoryName))
+	}
+
 	return categories, nil
 }
 
