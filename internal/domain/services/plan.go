@@ -13,13 +13,6 @@ type PlanService struct {
 	placesApi places.PlacesApi
 }
 
-// TODO: 日本語での表示名を格納する
-type LocationCategory struct {
-	Name          string
-	SubCategories []string
-	Photo         places.PlacePhoto
-}
-
 func NewPlanService() (*PlanService, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
@@ -179,8 +172,8 @@ func (s PlanService) travelTimeFromCurrent(
 func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
 	req *places.FindPlacesFromLocationRequest,
-) ([]LocationCategory, error) {
-	var categories []LocationCategory
+) ([]models.LocationCategory, error) {
+	var categories []models.LocationCategory
 	var locationCategory models.LocationCategory
 
 	var bookedCategories = []string{}
@@ -196,7 +189,7 @@ func (s PlanService) CategoriesNearLocation(
 			continue
 		}
 
-		categories = append(categories, LocationCategory{
+		categories = append(categories, models.LocationCategory{
 			Name:          locationCategory.Name,
 			SubCategories: locationCategory.SubCategories,
 			Photo:         placeType.Photo,
@@ -212,9 +205,9 @@ func fetchNearPlacesTypes(
 	ctx context.Context,
 	req *places.FindPlacesFromLocationRequest,
 	placesApi *places.PlacesApi,
-) ([]LocationCategory, error) {
+) ([]models.LocationCategory, error) {
 	var nearCategories = []string{}
-	var nearLocationCategories = []LocationCategory{}
+	var nearLocationCategories = []models.LocationCategory{}
 
 	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, req)
 	if err != nil {
@@ -233,20 +226,16 @@ func fetchNearPlacesTypes(
 			nearCategories = append(nearCategories, category)
 
 			if len(photos) == 0 {
-				nearLocationCategories = append(nearLocationCategories, LocationCategory{
-					Name:          category,
-					SubCategories: []string{},
-					Photo: places.PlacePhoto{
-						ImageUrl: "https://example.com/sample/category.jpg",
-					},
+				nearLocationCategories = append(nearLocationCategories, models.LocationCategory{
+					Name: category,
 				})
 				continue
 			}
 
-			nearLocationCategories = append(nearLocationCategories, LocationCategory{
+			nearLocationCategories = append(nearLocationCategories, models.LocationCategory{
 				Name:          category,
 				SubCategories: []string{},
-				Photo:         photos[0],
+				Photo:         photos[0].ImageUrl,
 			})
 		}
 	}
