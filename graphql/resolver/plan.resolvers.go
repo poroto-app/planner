@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	"poroto.app/poroto/planner/graphql/model"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
@@ -31,12 +31,9 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	categoriesSearched, err := planService.CategoriesNearLocation(
 		ctx,
-		&places.FindPlacesFromLocationRequest{
-			Location: places.Location{
-				Latitude:  input.Latitude,
-				Longitude: input.Longitude,
-			},
-			Radius: 2000,
+		models.GeoLocation{
+			Latitude:  input.Latitude,
+			Longitude: input.Longitude,
 		},
 	)
 

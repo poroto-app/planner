@@ -176,14 +176,14 @@ func (s PlanService) travelTimeFromCurrent(
 // 付近のPlacesTypesを呼び出して大カテゴリに集約する関数
 func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
-	req *places.FindPlacesFromLocationRequest,
+	location models.GeoLocation,
 ) ([]models.LocationCategory, error) {
 	var categories []models.LocationCategory
 	var locationCategory *models.LocationCategory
 
 	var bookedCategories = []string{}
 
-	subCategoriesSearched, err := fetchNearSubCategories(ctx, req, &s.placesApi)
+	subCategoriesSearched, err := fetchNearSubCategories(ctx, location, &s.placesApi)
 	if err != nil {
 		return nil, err
 	}
@@ -211,13 +211,19 @@ func (s PlanService) CategoriesNearLocation(
 // 付近のSubCategoriesをとってくるだけの関数
 func fetchNearSubCategories(
 	ctx context.Context,
-	req *places.FindPlacesFromLocationRequest,
+	location models.GeoLocation,
 	placesApi *places.PlacesApi,
 ) ([]SubCategories, error) {
 	var nearCategories = []string{}
 	var nearLocationCategories = []SubCategories{}
 
-	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, req)
+	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+		Location: places.Location{
+			Latitude:  location.Latitude,
+			Longitude: location.Longitude,
+		},
+		Radius: 2000,
+	})
 	if err != nil {
 		return nearLocationCategories, fmt.Errorf("error while fetching places: %v\n", err)
 	}
