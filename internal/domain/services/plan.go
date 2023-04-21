@@ -173,7 +173,7 @@ func (s PlanService) travelTimeFromCurrent(
 	return timeInMinutes
 }
 
-// 付近のPlacesTypesを呼び出して大カテゴリに集約する関数
+// 付近のSubCategoryを呼び出して大カテゴリに集約する関数
 func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
