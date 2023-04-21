@@ -13,6 +13,11 @@ type PlanService struct {
 	placesApi places.PlacesApi
 }
 
+type SubCategories struct {
+	name   string
+	imgUrl string
+}
+
 func NewPlanService() (*PlanService, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
@@ -174,17 +179,20 @@ func (s PlanService) CategoriesNearLocation(
 	req *places.FindPlacesFromLocationRequest,
 ) ([]models.LocationCategory, error) {
 	var categories []models.LocationCategory
-	var locationCategory models.LocationCategory
+	var locationCategory *models.LocationCategory
 
 	var bookedCategories = []string{}
 
-	placesTypesSearched, err := fetchNearPlacesTypes(ctx, req, &s.placesApi)
+	subCategoriesSearched, err := fetchNearSubCategories(ctx, req, &s.placesApi)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, placeType := range placesTypesSearched {
-		locationCategory = *categoryOfType(placeType.Name)
+	for _, placeType := range subCategoriesSearched {
+		locationCategory = categoryOfType(placeType.name)
+		if locationCategory == nil {
+			continue
+		}
 		if array.IsContain(bookedCategories, locationCategory.Name) {
 			continue
 		}
@@ -192,7 +200,7 @@ func (s PlanService) CategoriesNearLocation(
 		categories = append(categories, models.LocationCategory{
 			Name:          locationCategory.Name,
 			SubCategories: locationCategory.SubCategories,
-			Photo:         placeType.Photo,
+			Photo:         locationCategory.Photo,
 		})
 
 		bookedCategories = append(bookedCategories, locationCategory.Name)
@@ -200,14 +208,14 @@ func (s PlanService) CategoriesNearLocation(
 	return categories, nil
 }
 
-// 付近のPlacesTypesをとってくるだけの関数
-func fetchNearPlacesTypes(
+// 付近のSubCategoriesをとってくるだけの関数
+func fetchNearSubCategories(
 	ctx context.Context,
 	req *places.FindPlacesFromLocationRequest,
 	placesApi *places.PlacesApi,
-) ([]models.LocationCategory, error) {
+) ([]SubCategories, error) {
 	var nearCategories = []string{}
-	var nearLocationCategories = []models.LocationCategory{}
+	var nearLocationCategories = []SubCategories{}
 
 	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, req)
 	if err != nil {
@@ -226,22 +234,23 @@ func fetchNearPlacesTypes(
 			nearCategories = append(nearCategories, category)
 
 			if len(photos) == 0 {
-				nearLocationCategories = append(nearLocationCategories, models.LocationCategory{
-					Name: category,
+				nearLocationCategories = append(nearLocationCategories, SubCategories{
+					name:   category,
+					imgUrl: "https://placehold.jp/0a0a0a/ffffff/300x500.png?text=SubCategory",
 				})
 				continue
 			}
 
-			nearLocationCategories = append(nearLocationCategories, models.LocationCategory{
-				Name:          category,
-				SubCategories: []string{},
-				Photo:         photos[0].ImageUrl,
+			nearLocationCategories = append(nearLocationCategories, SubCategories{
+				name:   category,
+				imgUrl: photos[0].ImageUrl,
 			})
 		}
 	}
 	return nearLocationCategories, nil
 }
 
+// SubCategory がどの大カテゴリに所属するか
 func categoryOfType(placeType string) *models.LocationCategory {
 	for _, category := range models.AllCategory {
 		if array.IsContain(category.SubCategories, placeType) {
