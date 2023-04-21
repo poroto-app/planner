@@ -191,7 +191,7 @@ func (s PlanService) CategoriesNearLocation(
 	}
 
 	for _, placeType := range placesTypesSearched {
-		locationCategory = CategoryOfType(placeType.Name)
+		locationCategory = categoryOfType(placeType.Name)
 		if array.IsContain(bookedCategories, locationCategory.Name) {
 			continue
 		}
@@ -254,7 +254,7 @@ func fetchNearPlacesTypes(
 }
 
 // Place.Type がどの大カテゴリに所属するか
-func CategoryOfType(placeType string) models.LocationCategory {
+func categoryOfType(placeType string) models.LocationCategory {
 	for _, category := range models.AllCategory {
 		if array.IsContain(category.SubCategories, placeType) {
 			return category
