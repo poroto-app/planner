@@ -3,6 +3,7 @@ package models
 type LocationCategory struct {
 	Name          string
 	SubCategories []string
+	Photo         string
 }
 
 var (
@@ -16,6 +17,7 @@ var (
 			"spa",
 			"stadium",
 		},
+		Photo: "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
 	}
 
 	CategoryBook = LocationCategory{
@@ -24,6 +26,7 @@ var (
 			"book_store",
 			"library",
 		},
+		Photo: "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
 	}
 
 	CategoryCafe = LocationCategory{
@@ -31,6 +34,7 @@ var (
 		SubCategories: []string{
 			"cafe",
 		},
+		Photo: "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
 	}
 
 	CategoryCamp = LocationCategory{
@@ -39,6 +43,7 @@ var (
 			"campground",
 			"rv_park",
 		},
+		Photo: "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
 	}
 
 	CategoryCulture = LocationCategory{
@@ -48,6 +53,7 @@ var (
 			"museum",
 			"tourist_attraction",
 		},
+		Photo: "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
 	}
 
 	CategoryNatural = LocationCategory{
@@ -56,6 +62,7 @@ var (
 			"aquarium",
 			"zoo",
 		},
+		Photo: "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
 	}
 
 	CategoryPark = LocationCategory{
@@ -63,6 +70,7 @@ var (
 		SubCategories: []string{
 			"park",
 		},
+		Photo: "https://placehold.jp/fbff00/ffffff/300x500.png?text=park",
 	}
 
 	CategoryRestaurant = LocationCategory{
@@ -73,6 +81,7 @@ var (
 			"food",
 			"restaurant",
 		},
+		Photo: "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
 	}
 
 	CategoryShopping = LocationCategory{
@@ -87,6 +96,7 @@ var (
 			"shoe_store",
 			"store",
 		},
+		Photo: "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
 	}
 )
 
