@@ -178,20 +178,57 @@ func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) ([]models.LocationCategory, error) {
-	categoriesNames := make([]string, 0)
+	// MEMO: APIよりサブカテゴリ取得
+	subCategoriesSearched := make([]string, 0)
+	nearSubCategories := make([]SubCategories, 0)
 
-	subCategoriesSearched, err := fetchNearSubCategories(ctx, location, &s.placesApi)
+	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+		Location: places.Location{
+			Latitude:  location.Latitude,
+			Longitude: location.Longitude,
+		},
+		Radius: 2000,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	for _, subCategories := range subCategoriesSearched {
-		// サブカテゴリから大カテゴリを取得
+	for _, place := range placesSearched {
+		for _, subCategory := range place.Types {
+			if array.IsContain(subCategoriesSearched, subCategory) {
+				continue
+			}
+
+			photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+			if err != nil {
+				continue
+			}
+
+			subCategoriesSearched = append(subCategoriesSearched, subCategory)
+
+			if len(photos) == 0 {
+				nearSubCategories = append(nearSubCategories, SubCategories{
+					name: subCategory,
+					// TODO: サブカテゴリの画像がなかった場合のデフォルト値
+					imgUrl: "https://placehold.jp/0a0a0a/ffffff/300x500.png?text=SubCategory",
+				})
+				continue
+			}
+			nearSubCategories = append(nearSubCategories, SubCategories{
+				name:   subCategory,
+				imgUrl: photos[0].ImageUrl,
+			})
+		}
+	}
+
+	// MEMO: サブカテゴリから大カテゴリを取得
+	categoriesNames := make([]string, 0)
+	for _, subCategories := range nearSubCategories {
 		locationCategory := models.CategoryOfSubCategory(subCategories.name)
 		if locationCategory == nil {
 			continue
 		}
-		// 異なるサブカテゴリが同じ大カテゴリに属する場合の処理
+
 		if array.IsContain(categoriesNames, locationCategory.Name) {
 			continue
 		}
@@ -205,53 +242,4 @@ func (s PlanService) CategoriesNearLocation(
 	}
 
 	return categories, nil
-}
-
-// 付近のSubCategoriesをとってくるだけの関数
-func fetchNearSubCategories(
-	ctx context.Context,
-	location models.GeoLocation,
-	placesApi *places.PlacesApi,
-) ([]SubCategories, error) {
-	var nearCategories = []string{}
-	var nearLocationCategories = []SubCategories{}
-
-	placesSearched, err := placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  location.Latitude,
-			Longitude: location.Longitude,
-		},
-		Radius: 2000,
-	})
-	if err != nil {
-		return nearLocationCategories, fmt.Errorf("error while fetching places: %v\n", err)
-	}
-	for _, place := range placesSearched {
-		for _, category := range place.Types {
-			if array.IsContain(nearCategories, category) {
-				continue
-			}
-
-			photos, err := placesApi.FetchPlacePhotos(ctx, place)
-			if err != nil {
-				continue
-			}
-			nearCategories = append(nearCategories, category)
-
-			if len(photos) == 0 {
-				nearLocationCategories = append(nearLocationCategories, SubCategories{
-					name: category,
-					// TODO: implement me!
-					imgUrl: "https://placehold.jp/0a0a0a/ffffff/300x500.png?text=SubCategory",
-				})
-				continue
-			}
-
-			nearLocationCategories = append(nearLocationCategories, SubCategories{
-				name:   category,
-				imgUrl: photos[0].ImageUrl,
-			})
-		}
-	}
-	return nearLocationCategories, nil
 }
