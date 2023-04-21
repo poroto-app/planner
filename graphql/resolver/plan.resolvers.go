@@ -43,7 +43,8 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	for _, categorySearched := range categoriesSearched {
 		categories = append(categories, &model.LocationCategory{
-			Name:        categorySearched.Name,
+			Name: categorySearched.Name,
+			// TODO: PR#39マージ後にDisplayNameを指定する
 			DisplayName: categorySearched.SubCategories[0],
 			Photo:       categorySearched.Photo,
 		})
