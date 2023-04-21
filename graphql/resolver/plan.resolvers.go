@@ -7,7 +7,6 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/services"
@@ -29,7 +28,8 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
-	categoriesSearched, err := planService.FetchNearCategories(
+
+	categoriesSearched, err := planService.CategoriesNearLocation(
 		ctx,
 		&places.FindPlacesFromLocationRequest{
 			Location: places.Location{
@@ -39,16 +39,15 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 			Radius: 2000,
 		},
 	)
-	if err != nil {
-		log.Println(err)
 
-		log.Println(categoriesSearched)
+	if err != nil {
+		return nil, fmt.Errorf("error while searching categories: %v", err)
 	}
 
 	for _, categorySearched := range categoriesSearched {
 		categories = append(categories, &model.LocationCategory{
 			Name:        categorySearched.Name,
-			DisplayName: categorySearched.Name,
+			DisplayName: categorySearched.SubCategories[0],
 			Photo:       categorySearched.Photo.ImageUrl,
 		})
 	}

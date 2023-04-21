@@ -26,18 +26,18 @@ var (
 		},
 	}
 
+	CategoryCafe = LocationCategory{
+		Name: "cafe",
+		SubCategories: []string{
+			"cafe",
+		},
+	}
+
 	CategoryCamp = LocationCategory{
 		Name: "camp",
 		SubCategories: []string{
 			"campground",
 			"rv_park",
-		},
-	}
-
-	CategoryCafe = LocationCategory{
-		Name: "cafe",
-		SubCategories: []string{
-			"cafe",
 		},
 	}
 
@@ -89,3 +89,16 @@ var (
 		},
 	}
 )
+
+// 大カテゴリの集合
+var AllCategory = []LocationCategory{
+	CategoryAmusements,
+	CategoryBook,
+	CategoryCafe,
+	CategoryCamp,
+	CategoryCulture,
+	CategoryNatural,
+	CategoryPark,
+	CategoryRestaurant,
+	CategoryShopping,
+}
