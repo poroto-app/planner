@@ -110,69 +110,6 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) filterByCategory(
-	placesToFilter []places.Place,
-	categories []models.LocationCategory,
-) []places.Place {
-	var categoriesSlice []string
-	for _, category := range categories {
-		categoriesSlice = append(categoriesSlice, category.SubCategories...)
-	}
-
-	var placesInCategory []places.Place
-	for _, place := range placesToFilter {
-		if array.HasIntersection(place.Types, categoriesSlice) {
-			placesInCategory = append(placesInCategory, place)
-		}
-	}
-
-	return placesInCategory
-}
-
-func (s PlanService) filterByOpeningNow(
-	placesToFilter []places.Place,
-) []places.Place {
-	var placesOpeningNow []places.Place
-	for _, place := range placesToFilter {
-		if place.OpenNow {
-			placesOpeningNow = append(placesOpeningNow, place)
-		}
-	}
-	return placesOpeningNow
-}
-
-func (s PlanService) filterWithinDistanceRange(
-	placesToFilter []places.Place,
-	currentLocation models.GeoLocation,
-	startInMeter float64,
-	endInMeter float64,
-) []places.Place {
-	var placesWithInDistance []places.Place
-	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(models.GeoLocation{
-			Latitude:  place.Location.Latitude,
-			Longitude: place.Location.Longitude,
-		})
-		if startInMeter <= distance && distance < endInMeter {
-			placesWithInDistance = append(placesWithInDistance, place)
-		}
-	}
-	return placesWithInDistance
-}
-
-func (s PlanService) travelTimeFromCurrent(
-	currentLocation models.GeoLocation,
-	targetLocation models.GeoLocation,
-	meterPerMinutes float64,
-) float64 {
-	timeInMinutes := 0.0
-	distance := currentLocation.DistanceInMeter(targetLocation)
-	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = distance / meterPerMinutes
-	}
-	return timeInMinutes
-}
-
 // 付近のSubCategoryを呼び出して大カテゴリに集約する関数
 func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
@@ -242,4 +179,67 @@ func (s PlanService) CategoriesNearLocation(
 	}
 
 	return categories, nil
+}
+
+func (s PlanService) filterByCategory(
+	placesToFilter []places.Place,
+	categories []models.LocationCategory,
+) []places.Place {
+	var categoriesSlice []string
+	for _, category := range categories {
+		categoriesSlice = append(categoriesSlice, category.SubCategories...)
+	}
+
+	var placesInCategory []places.Place
+	for _, place := range placesToFilter {
+		if array.HasIntersection(place.Types, categoriesSlice) {
+			placesInCategory = append(placesInCategory, place)
+		}
+	}
+
+	return placesInCategory
+}
+
+func (s PlanService) filterByOpeningNow(
+	placesToFilter []places.Place,
+) []places.Place {
+	var placesOpeningNow []places.Place
+	for _, place := range placesToFilter {
+		if place.OpenNow {
+			placesOpeningNow = append(placesOpeningNow, place)
+		}
+	}
+	return placesOpeningNow
+}
+
+func (s PlanService) filterWithinDistanceRange(
+	placesToFilter []places.Place,
+	currentLocation models.GeoLocation,
+	startInMeter float64,
+	endInMeter float64,
+) []places.Place {
+	var placesWithInDistance []places.Place
+	for _, place := range placesToFilter {
+		distance := currentLocation.DistanceInMeter(models.GeoLocation{
+			Latitude:  place.Location.Latitude,
+			Longitude: place.Location.Longitude,
+		})
+		if startInMeter <= distance && distance < endInMeter {
+			placesWithInDistance = append(placesWithInDistance, place)
+		}
+	}
+	return placesWithInDistance
+}
+
+func (s PlanService) travelTimeFromCurrent(
+	currentLocation models.GeoLocation,
+	targetLocation models.GeoLocation,
+	meterPerMinutes float64,
+) float64 {
+	timeInMinutes := 0.0
+	distance := currentLocation.DistanceInMeter(targetLocation)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = distance / meterPerMinutes
+	}
+	return timeInMinutes
 }
