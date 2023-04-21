@@ -2,13 +2,15 @@ package models
 
 type LocationCategory struct {
 	Name          string
+	DisplayName   string
 	SubCategories []string
 }
 
 var (
 	// SEE: https://developers.google.com/maps/documentation/places/web-service/supported_types?hl=ja#table1
 	CategoryAmusements = LocationCategory{
-		Name: "amusements",
+		Name:        "amusements",
+		DisplayName: "遊び",
 		SubCategories: []string{
 			"amusement_park",
 			"bowling_alley",
@@ -19,7 +21,8 @@ var (
 	}
 
 	CategoryBook = LocationCategory{
-		Name: "book",
+		Name:        "book",
+		DisplayName: "本",
 		SubCategories: []string{
 			"book_store",
 			"library",
@@ -27,7 +30,8 @@ var (
 	}
 
 	CategoryCamp = LocationCategory{
-		Name: "camp",
+		Name:        "camp",
+		DisplayName: "キャンプ",
 		SubCategories: []string{
 			"campground",
 			"rv_park",
@@ -35,14 +39,16 @@ var (
 	}
 
 	CategoryCafe = LocationCategory{
-		Name: "cafe",
+		Name:        "cafe",
+		DisplayName: "カフェ",
 		SubCategories: []string{
 			"cafe",
 		},
 	}
 
 	CategoryCulture = LocationCategory{
-		Name: "cultural Facility",
+		Name:        "cultural_facility",
+		DisplayName: "芸術や文化に触れる",
 		SubCategories: []string{
 			"art_gallery",
 			"museum",
@@ -51,7 +57,8 @@ var (
 	}
 
 	CategoryNatural = LocationCategory{
-		Name: "natural Facility",
+		Name:        "natural_facility",
+		DisplayName: "動物を見に行こう",
 		SubCategories: []string{
 			"aquarium",
 			"zoo",
@@ -59,14 +66,16 @@ var (
 	}
 
 	CategoryPark = LocationCategory{
-		Name: "park",
+		Name:        "park",
+		DisplayName: "公園でゆったり",
 		SubCategories: []string{
 			"park",
 		},
 	}
 
 	CategoryRestaurant = LocationCategory{
-		Name: "restaurant",
+		Name:        "restaurant",
+		DisplayName: "ご飯",
 		SubCategories: []string{
 			"bakery",
 			"bar",
@@ -76,7 +85,8 @@ var (
 	}
 
 	CategoryShopping = LocationCategory{
-		Name: "shopping",
+		Name:        "shopping",
+		DisplayName: "ショッピング",
 		SubCategories: []string{
 			"clothing_store",
 			"department_store",
