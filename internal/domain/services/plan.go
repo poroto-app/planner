@@ -135,6 +135,7 @@ func (s PlanService) CategoriesNearLocation(
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
 
+	// 検索された場所のカテゴリとその写真を取得
 	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
 		photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
@@ -142,7 +143,7 @@ func (s PlanService) CategoriesNearLocation(
 			continue
 		}
 
-		// MEMO: 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
+		// 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
 		for _, subCategory := range place.Types {
 			category := models.CategoryOfSubCategory(subCategory)
 			if category == nil {
@@ -153,7 +154,7 @@ func (s PlanService) CategoriesNearLocation(
 				continue
 			}
 
-			// MEMO: modelsに登録済みの写真がデフォルトで登録されるが，APIから写真が取得できたときは上書き
+			// 場所の写真を取得（取得できなかった場合はデフォルトの画像を利用）
 			categoryPhotos[category.Name] = category.Photo
 			if len(photos) > 0 {
 				categoryPhotos[category.Name] = photos[0].ImageUrl

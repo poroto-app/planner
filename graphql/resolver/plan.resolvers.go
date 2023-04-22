@@ -21,9 +21,6 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	// TODO: 実際に付近の場所のカテゴリを提示する
-	var categories = []*model.LocationCategory{}
-
 	planService, err := services.NewPlanService()
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
@@ -36,11 +33,11 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 			Longitude: input.Longitude,
 		},
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("error while searching categories: %v", err)
 	}
 
+	var categories = []*model.LocationCategory{}
 	for _, categorySearched := range categoriesSearched {
 		categories = append(categories, &model.LocationCategory{
 			Name: categorySearched.Name,
