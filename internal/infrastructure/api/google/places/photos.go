@@ -1,7 +1,6 @@
 package places
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"path"

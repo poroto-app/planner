@@ -70,7 +70,7 @@ func (s PlanService) CreatePlanByLocation(
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, place := range placesRecommend {
-		placePhotos, err := s.placesApi.FetchPlacePhotos(context.Background(), place)
+		placePhotos, err := s.placesApi.FetchPlacePhotos(place)
 		if err != nil {
 			continue
 		}
