@@ -38,13 +38,13 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePh
 	var placePhotos []PlacePhoto
 
 	for _, photoReference := range place.photoReferences {
-		url, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference, r.apiKey)
+		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference, r.apiKey)
 		if err != nil {
 			return nil, err
 		}
 
 		placePhotos = append(placePhotos, PlacePhoto{
-			ImageUrl: url,
+			ImageUrl: imgUrl,
 		})
 	}
 
