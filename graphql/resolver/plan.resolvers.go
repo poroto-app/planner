@@ -45,6 +45,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 		}
 
 		retPlans = append(retPlans, &model.Plan{
+			ID:            plan.Id,
 			Name:          plan.Name,
 			Places:        places,
 			TimeInMinutes: plan.TimeInMinutes,
