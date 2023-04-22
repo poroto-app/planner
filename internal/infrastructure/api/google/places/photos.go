@@ -1,9 +1,12 @@
 package places
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"path"
+
+	"googlemaps.github.io/maps"
 )
 
 type PlacePhoto struct {
@@ -54,11 +57,21 @@ func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
-func (r PlacesApi) FetchPlacePhotos(place Place) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
 	var placePhotos []PlacePhoto
 
-	for _, photoReference := range place.photoReferences {
-		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference, r.apiKey)
+	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
+		PlaceID: place.PlaceID,
+		Fields: []maps.PlaceDetailsFieldMask{
+			maps.PlaceDetailsFieldMaskPhotos,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, photo := range resp.Photos {
+		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
 			return nil, err
 		}
