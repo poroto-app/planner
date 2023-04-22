@@ -120,7 +120,7 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	categoriesPhotos := make(map[string]string)
+	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
 		photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
 		if err != nil {
@@ -134,20 +134,20 @@ func (s PlanService) CategoriesNearLocation(
 				continue
 			}
 
-			if _, ok := categoriesPhotos[category.Name]; ok {
+			if _, ok := categoryPhotos[category.Name]; ok {
 				continue
 			}
 
 			// MEMO: modelsに登録済みの写真がデフォルトで登録されるが，APIから写真が取得できたときは上書き
-			categoriesPhotos[category.Name] = category.Photo
+			categoryPhotos[category.Name] = category.Photo
 			if len(photos) > 0 {
-				categoriesPhotos[category.Name] = photos[0].ImageUrl
+				categoryPhotos[category.Name] = photos[0].ImageUrl
 			}
 		}
 	}
 
 	categories := make([]models.LocationCategory, 0)
-	for key, value := range categoriesPhotos {
+	for key, value := range categoryPhotos {
 		categories = append(categories, models.GetCategoryOfName(key))
 		categories[len(categories)-1].Photo = value
 	}
