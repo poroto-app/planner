@@ -13,11 +13,6 @@ type PlanService struct {
 	placesApi places.PlacesApi
 }
 
-type SubCategories struct {
-	name   string
-	imgUrl string
-}
-
 func NewPlanService() (*PlanService, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
@@ -110,15 +105,10 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-// 付近のSubCategoryを呼び出して大カテゴリに集約する関数
 func (s PlanService) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) ([]models.LocationCategory, error) {
-	// MEMO: APIよりサブカテゴリ取得
-	subCategoriesSearched := make([]string, 0)
-	nearSubCategories := make([]SubCategories, 0)
-
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  location.Latitude,
@@ -130,52 +120,36 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
+	categoriesPhotos := make(map[string]string)
 	for _, place := range placesSearched {
+		photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+		if err != nil {
+			continue
+		}
+
+		// MEMO: 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
 		for _, subCategory := range place.Types {
-			if array.IsContain(subCategoriesSearched, subCategory) {
+			category := models.CategoryOfSubCategory(subCategory)
+			if category == nil {
 				continue
 			}
 
-			photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
-			if err != nil {
+			if _, ok := categoriesPhotos[category.Name]; ok {
 				continue
 			}
 
-			subCategoriesSearched = append(subCategoriesSearched, subCategory)
-
-			if len(photos) == 0 {
-				nearSubCategories = append(nearSubCategories, SubCategories{
-					name: subCategory,
-					// TODO: サブカテゴリの画像がなかった場合のデフォルト値
-					imgUrl: "https://placehold.jp/0a0a0a/ffffff/300x500.png?text=SubCategory",
-				})
-				continue
+			// MEMO: modelsに登録済みの写真がデフォルトで登録されるが，APIから写真が取得できたときは上書き
+			categoriesPhotos[category.Name] = category.Photo
+			if len(photos) > 0 {
+				categoriesPhotos[category.Name] = photos[0].ImageUrl
 			}
-			nearSubCategories = append(nearSubCategories, SubCategories{
-				name:   subCategory,
-				imgUrl: photos[0].ImageUrl,
-			})
 		}
-	}
-
-	// MEMO: サブカテゴリから大カテゴリを取得
-	categoriesNames := make([]string, 0)
-	for _, subCategories := range nearSubCategories {
-		locationCategory := models.CategoryOfSubCategory(subCategories.name)
-		if locationCategory == nil {
-			continue
-		}
-
-		if array.IsContain(categoriesNames, locationCategory.Name) {
-			continue
-		}
-
-		categoriesNames = append(categoriesNames, locationCategory.Name)
 	}
 
 	categories := make([]models.LocationCategory, 0)
-	for _, categoryName := range categoriesNames {
-		categories = append(categories, models.GetCategoryOfName(categoryName))
+	for key, value := range categoriesPhotos {
+		categories = append(categories, models.GetCategoryOfName(key))
+		categories[len(categories)-1].Photo = value
 	}
 
 	return categories, nil
