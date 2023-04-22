@@ -36,6 +36,7 @@ func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey st
 }
 
 // FetchPlaceThumbnail は，指定された場所のサムネイル画像を１件取得する
+// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
 	if len(place.photoReferences) == 0 {
 		return nil, nil
@@ -52,6 +53,7 @@ func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
+// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlacePhotos(place Place) ([]PlacePhoto, error) {
 	var placePhotos []PlacePhoto
 
