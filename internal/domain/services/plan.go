@@ -73,10 +73,12 @@ func (s PlanService) CreatePlanByLocation(
 	for _, place := range placesRecommend {
 		thumbnailPhoto, err := s.placesApi.FetchPlaceThumbnail(place)
 		if err != nil {
+			log.Printf("error while fetching place thumbnail: %v\n", err)
 			continue
 		}
 		placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, place)
 		if err != nil {
+			log.Printf("error while fetching place photos: %v\n", err)
 			continue
 		}
 
