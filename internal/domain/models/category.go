@@ -139,9 +139,9 @@ func GetCategoryOfName(name string) LocationCategory {
 }
 
 // MEMO: SubCategory がどの大カテゴリに所属するか
-func CategoryOfSubCategory(placeType string) *LocationCategory {
+func CategoryOfSubCategory(subCategory string) *LocationCategory {
 	for _, category := range AllCategory {
-		if array.IsContain(category.SubCategories, placeType) {
+		if array.IsContain(category.SubCategories, subCategory) {
 			return &category
 		}
 	}
