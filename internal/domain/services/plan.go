@@ -120,6 +120,21 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
+	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
+		models.CategoryAmusements,
+		models.CategoryBook,
+		models.CategoryCamp,
+		models.CategoryCafe,
+		models.CategoryCulture,
+		models.CategoryNatural,
+		models.CategoryPark,
+		models.CategoryRestaurant,
+		models.CategoryShopping,
+	})
+
+	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
+	placesSearched = s.filterByOpeningNow(placesSearched)
+
 	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
 		photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
