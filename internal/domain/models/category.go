@@ -125,20 +125,17 @@ var AllCategory = []LocationCategory{
 }
 
 func GetCategoryOfName(name string) LocationCategory {
-	return categoryMap[name]
-}
-
-// MEMO: 特定のカテゴリだけを引っ張るためのマップ
-var categoryMap = map[string]LocationCategory{
-	CategoryAmusements.Name: CategoryAmusements,
-	CategoryBook.Name:       CategoryBook,
-	CategoryCafe.Name:       CategoryCafe,
-	CategoryCamp.Name:       CategoryCamp,
-	CategoryCulture.Name:    CategoryCulture,
-	CategoryNatural.Name:    CategoryNatural,
-	CategoryPark.Name:       CategoryPark,
-	CategoryRestaurant.Name: CategoryRestaurant,
-	CategoryShopping.Name:   CategoryShopping,
+	return map[string]LocationCategory{
+		CategoryAmusements.Name: CategoryAmusements,
+		CategoryBook.Name:       CategoryBook,
+		CategoryCafe.Name:       CategoryCafe,
+		CategoryCamp.Name:       CategoryCamp,
+		CategoryCulture.Name:    CategoryCulture,
+		CategoryNatural.Name:    CategoryNatural,
+		CategoryPark.Name:       CategoryPark,
+		CategoryRestaurant.Name: CategoryRestaurant,
+		CategoryShopping.Name:   CategoryShopping,
+	}[name]
 }
 
 // MEMO: SubCategory がどの大カテゴリに所属するか
