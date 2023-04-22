@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -80,6 +81,7 @@ func (s PlanService) CreatePlanByLocation(
 		}
 
 		plans = append(plans, models.Plan{
+			Id:   uuid.New().String(),
 			Name: place.Name,
 			Places: []models.Place{
 				{

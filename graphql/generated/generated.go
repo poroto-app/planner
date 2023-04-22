@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 	}
 
 	Plan struct {
+		ID            func(childComplexity int) int
 		Name          func(childComplexity int) int
 		Places        func(childComplexity int) int
 		TimeInMinutes func(childComplexity int) int
@@ -193,6 +194,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Place.Photos(childComplexity), true
 
+	case "Plan.id":
+		if e.complexity.Plan.ID == nil {
+			break
+		}
+
+		return e.complexity.Plan.ID(childComplexity), true
+
 	case "Plan.name":
 		if e.complexity.Plan.Name == nil {
 			break
@@ -304,6 +312,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../schema/plan.graphqls", Input: `type Plan {
+    id: String!
     name: String!
     places: [Place!]!
     timeInMinutes: Float!
@@ -832,6 +841,8 @@ func (ec *executionContext) fieldContext_Mutation_createPlanByLocation(ctx conte
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Plan_name(ctx, field)
 			case "places":
@@ -981,6 +992,50 @@ func (ec *executionContext) _Place_photos(ctx context.Context, field graphql.Col
 func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -3426,6 +3481,13 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Plan")
+		case "id":
+
+			out.Values[i] = ec._Plan_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 
 			out.Values[i] = ec._Plan_name(ctx, field, obj)
