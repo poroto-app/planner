@@ -35,6 +35,8 @@ type Place struct {
 }
 
 type Plan struct {
-	Name   string   `json:"name"`
-	Places []*Place `json:"places"`
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Places        []*Place `json:"places"`
+	TimeInMinutes float64  `json:"timeInMinutes"`
 }

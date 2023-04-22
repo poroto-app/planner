@@ -1,6 +1,8 @@
 type Plan {
+    id: String!
     name: String!
     places: [Place!]!
+    timeInMinutes: Float!
 }
 
 type Place {

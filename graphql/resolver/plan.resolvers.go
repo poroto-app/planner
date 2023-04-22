@@ -7,7 +7,8 @@ package resolver
 import (
 	"context"
 	"fmt"
-
+	"log"
+  
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services"
@@ -15,8 +16,43 @@ import (
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *model.CreatePlanByLocationInput) ([]*model.Plan, error) {
-	// TODO: implement
-	return []*model.Plan{}, nil
+	service, err := services.NewPlanService()
+	if err != nil {
+		log.Println(err)
+	}
+
+	plans, err := service.CreatePlanByLocation(
+		ctx,
+		models.GeoLocation{
+			Latitude:  input.Latitude,
+			Longitude: input.Longitude,
+		})
+	if err != nil {
+		log.Println(err)
+	}
+
+	retPlans := make([]*model.Plan, 0)
+	for _, plan := range *plans {
+		places := make([]*model.Place, 0)
+		for _, place := range plan.Places {
+			places = append(places, &model.Place{
+				Name:   place.Name,
+				Photos: place.Photos,
+				Location: &model.GeoLocation{
+					Latitude:  place.Location.Latitude,
+					Longitude: place.Location.Longitude,
+				},
+			})
+		}
+
+		retPlans = append(retPlans, &model.Plan{
+			ID:            plan.Id,
+			Name:          plan.Name,
+			Places:        places,
+			TimeInMinutes: plan.TimeInMinutes,
+		})
+	}
+	return retPlans, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.
