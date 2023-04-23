@@ -13,14 +13,19 @@ type PlacePhoto struct {
 	ImageUrl string
 }
 
+type ImageSize struct {
+	Width  uint
+	Height uint
+}
+
 const (
 	imgMaxHeight          = 1000
 	imgMaxWidth           = 1000
-	imgThumbnailMaxHeight = 400
-	imgThumbnailMaxWidth  = 400
+	ImgThumbnailMaxHeight = 400
+	ImgThumbnailMaxWidth  = 400
 )
 
-func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
+func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
 	if err != nil {
 		return "", err
@@ -38,14 +43,21 @@ func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey st
 	return u.String(), nil
 }
 
-// FetchPlaceThumbnail は，指定された場所のサムネイル画像を１件取得する
+// FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
-func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
 	if len(place.photoReferences) == 0 {
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imgThumbnailMaxWidth, imgThumbnailMaxHeight, place.photoReferences[0], r.apiKey)
+	if imageSize == nil {
+		imageSize = &ImageSize{
+			Width:  imgMaxWidth,
+			Height: imgMaxHeight,
+		}
+	}
+
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.photoReferences[0], r.apiKey)
 	if err != nil {
 		return nil, err
 	}

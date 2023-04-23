@@ -72,7 +72,10 @@ func (s PlanService) CreatePlanByLocation(
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, place := range placesRecommend {
-		thumbnailPhoto, err := s.placesApi.FetchPlaceThumbnail(place)
+		thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
+			Width:  places.ImgThumbnailMaxWidth,
+			Height: places.ImgThumbnailMaxHeight,
+		})
 		if err != nil {
 			log.Printf("error while fetching place thumbnail: %v\n", err)
 			continue
