@@ -92,8 +92,11 @@ func (s PlanService) CreatePlanByLocation(
 		categoriesInPlan := make([]string, 0)
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
-			// TODO: Typeではなく、LocationCategoryで区別する
-			if len(place.Types) == 0 || array.IsContain(categoriesInPlan, place.Types[0]) {
+			if len(place.Types) == 0 {
+				continue
+			}
+			category := models.CategoryOfSubCategory(place.Types[0])
+			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
