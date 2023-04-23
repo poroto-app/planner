@@ -130,10 +130,7 @@ func (s PlanService) CreatePlanByLocation(
 			Places: placesInPlan,
 			TimeInMinutes: s.travelTimeFromCurrent(
 				location,
-				models.GeoLocation{
-					Latitude:  placeRecommend.Location.Latitude,
-					Longitude: placeRecommend.Location.Longitude,
-				},
+				placeRecommend.Location.ToGeoLocation(),
 				80.0,
 			),
 		})
@@ -248,10 +245,7 @@ func (s PlanService) filterWithinDistanceRange(
 ) []places.Place {
 	var placesWithInDistance []places.Place
 	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(models.GeoLocation{
-			Latitude:  place.Location.Latitude,
-			Longitude: place.Location.Longitude,
-		})
+		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
 		if startInMeter <= distance && distance < endInMeter {
 			placesWithInDistance = append(placesWithInDistance, place)
 		}
