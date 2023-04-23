@@ -70,8 +70,6 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
-	var placePhotos []PlacePhoto
-
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: place.PlaceID,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -82,6 +80,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePh
 		return nil, err
 	}
 
+	var placePhotos []PlacePhoto
 	for _, photo := range resp.Photos {
 		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
