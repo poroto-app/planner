@@ -89,7 +89,14 @@ func (s PlanService) CreatePlanByLocation(
 		)
 
 		placesInPlan := make([]models.Place, 0)
+		categoriesInPlan := make([]string, 0)
 		for _, place := range placesWithInRange {
+			// 既にプランに含まれるカテゴリの場所は無視する
+			// TODO: Typeではなく、LocationCategoryで区別する
+			if len(place.Types) == 0 || array.IsContain(categoriesInPlan, place.Types[0]) {
+				continue
+			}
+
 			placePhotos, err := s.placesApi.FetchPlacePhotos(place)
 			if err != nil {
 				continue
@@ -114,6 +121,7 @@ func (s PlanService) CreatePlanByLocation(
 				Thumbnail: thumbnail,
 				Location:  place.Location.ToGeoLocation(),
 			})
+			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 		}
 
 		plans = append(plans, models.Plan{
