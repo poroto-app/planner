@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-  
+
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services"
@@ -76,9 +76,8 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	var categories = []*model.LocationCategory{}
 	for _, categorySearched := range categoriesSearched {
 		categories = append(categories, &model.LocationCategory{
-			Name: categorySearched.Name,
-			// TODO: PR#39マージ後にDisplayNameを指定する
-			DisplayName: categorySearched.SubCategories[0],
+			Name:        categorySearched.Name,
+			DisplayName: categorySearched.DisplayName,
 			Photo:       categorySearched.Photo,
 		})
 	}
