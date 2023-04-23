@@ -157,11 +157,6 @@ func (s PlanService) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
-		photo, err := s.placesApi.FetchPlacePhoto(place, nil)
-		if err != nil {
-			continue
-		}
-
 		// 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
 		for _, subCategory := range place.Types {
 			category := models.CategoryOfSubCategory(subCategory)
@@ -170,6 +165,11 @@ func (s PlanService) CategoriesNearLocation(
 			}
 
 			if _, ok := categoryPhotos[category.Name]; ok {
+				continue
+			}
+
+			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
+			if err != nil {
 				continue
 			}
 
