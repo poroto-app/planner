@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"poroto.app/poroto/planner/internal/interface/rest/plan"
 )
 
 type Server struct {
@@ -61,9 +60,6 @@ func (s Server) ServeHTTP() error {
 	if !s.production {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
-
-	// TODO: 早いうちにGraphQLに移行する
-	r.POST("/plans", plan.CreatePlans)
 
 	if err := r.Run(":" + s.port); err != nil {
 		return nil
