@@ -151,7 +151,7 @@ func (s PlanService) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
-		photos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+		photos, err := s.placesApi.FetchPlacePhotos(place)
 		if err != nil {
 			continue
 		}
