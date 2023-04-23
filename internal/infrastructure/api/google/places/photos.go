@@ -44,6 +44,7 @@ func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey 
 }
 
 // FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
+// imageSize が nilの場合は、最大1000x1000の画像を取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
 	if len(place.photoReferences) == 0 {
