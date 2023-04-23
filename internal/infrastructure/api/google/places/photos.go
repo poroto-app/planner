@@ -1,7 +1,6 @@
 package places
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 	"path"
@@ -10,6 +9,13 @@ import (
 type PlacePhoto struct {
 	ImageUrl string
 }
+
+const (
+	imgMaxHeight          = 1000
+	imgMaxWidth           = 1000
+	imgThumbnailMaxHeight = 400
+	imgThumbnailMaxWidth  = 400
+)
 
 func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
@@ -29,19 +35,36 @@ func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey st
 	return u.String(), nil
 }
 
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
-	const maxWidth int = 400
-	const maxHeight int = 400
+// FetchPlaceThumbnail は，指定された場所のサムネイル画像を１件取得する
+// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
+func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
+	if len(place.photoReferences) == 0 {
+		return nil, nil
+	}
+
+	imgUrl, err := imgUrlBuilder(imgThumbnailMaxWidth, imgThumbnailMaxHeight, place.photoReferences[0], r.apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PlacePhoto{
+		ImageUrl: imgUrl,
+	}, nil
+}
+
+// FetchPlacePhotos は，指定された場所の写真を全件取得する
+// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
+func (r PlacesApi) FetchPlacePhotos(place Place) ([]PlacePhoto, error) {
 	var placePhotos []PlacePhoto
 
 	for _, photoReference := range place.photoReferences {
-		url, err := imgUrlBuilder(maxWidth, maxHeight, photoReference, r.apiKey)
+		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference, r.apiKey)
 		if err != nil {
 			return nil, err
 		}
 
 		placePhotos = append(placePhotos, PlacePhoto{
-			ImageUrl: url,
+			ImageUrl: imgUrl,
 		})
 	}
 
