@@ -30,7 +30,7 @@ func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey st
 	q := u.Query()
 
 	q.Set("maxwidth", fmt.Sprint(maxWidth))
-	q.Set("maxHeight", fmt.Sprint(maxHeight))
+	q.Set("maxheight", fmt.Sprint(maxHeight))
 	q.Set("photo_reference", photoReference)
 	q.Set("key", apiKey)
 
