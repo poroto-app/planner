@@ -1,23 +1,31 @@
 package places
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"path"
+
+	"googlemaps.github.io/maps"
 )
 
 type PlacePhoto struct {
 	ImageUrl string
 }
 
+type ImageSize struct {
+	Width  uint
+	Height uint
+}
+
 const (
 	imgMaxHeight          = 1000
 	imgMaxWidth           = 1000
-	imgThumbnailMaxHeight = 400
-	imgThumbnailMaxWidth  = 400
+	ImgThumbnailMaxHeight = 400
+	ImgThumbnailMaxWidth  = 400
 )
 
-func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey string) (string, error) {
+func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
 	if err != nil {
 		return "", err
@@ -35,14 +43,22 @@ func imgUrlBuilder(maxWidth int, maxHeight int, photoReference string, apiKey st
 	return u.String(), nil
 }
 
-// FetchPlaceThumbnail は，指定された場所のサムネイル画像を１件取得する
+// FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
+// imageSize が nilの場合は、最大1000x1000の画像を取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
-func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
 	if len(place.photoReferences) == 0 {
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imgThumbnailMaxWidth, imgThumbnailMaxHeight, place.photoReferences[0], r.apiKey)
+	if imageSize == nil {
+		imageSize = &ImageSize{
+			Width:  imgMaxWidth,
+			Height: imgMaxHeight,
+		}
+	}
+
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.photoReferences[0], r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -54,11 +70,20 @@ func (r PlacesApi) FetchPlaceThumbnail(place Place) (*PlacePhoto, error) {
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
-func (r PlacesApi) FetchPlacePhotos(place Place) ([]PlacePhoto, error) {
-	var placePhotos []PlacePhoto
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
+	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
+		PlaceID: place.PlaceID,
+		Fields: []maps.PlaceDetailsFieldMask{
+			maps.PlaceDetailsFieldMaskPhotos,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	for _, photoReference := range place.photoReferences {
-		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference, r.apiKey)
+	var placePhotos []PlacePhoto
+	for _, photo := range resp.Photos {
+		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
 			return nil, err
 		}

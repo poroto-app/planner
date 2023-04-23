@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 
 	"github.com/google/uuid"
@@ -100,22 +101,27 @@ func (s PlanService) CreatePlanByLocation(
 				continue
 			}
 
-			placePhotos, err := s.placesApi.FetchPlacePhotos(place)
+			thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
+				Width:  places.ImgThumbnailMaxWidth,
+				Height: places.ImgThumbnailMaxHeight,
+			})
 			if err != nil {
-				continue
-			}
-			photos := make([]string, 0)
-			for _, photo := range placePhotos {
-				photos = append(photos, photo.ImageUrl)
-			}
-
-			thumbnailPhoto, err := s.placesApi.FetchPlaceThumbnail(placeRecommend)
-			if err != nil {
+				log.Printf("error while fetching place thumbnail: %v\n", err)
 				continue
 			}
 			var thumbnail *string
 			if thumbnailPhoto != nil {
 				thumbnail = &thumbnailPhoto.ImageUrl
+			}
+
+			placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+			if err != nil {
+				log.Printf("error while fetching place photos: %v\n", err)
+				continue
+			}
+			photos := make([]string, 0)
+			for _, photo := range placePhotos {
+				photos = append(photos, photo.ImageUrl)
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
@@ -175,11 +181,6 @@ func (s PlanService) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categoryPhotos := make(map[string]string)
 	for _, place := range placesSearched {
-		photos, err := s.placesApi.FetchPlacePhotos(place)
-		if err != nil {
-			continue
-		}
-
 		// 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
 		for _, subCategory := range place.Types {
 			category := models.CategoryOfSubCategory(subCategory)
@@ -191,10 +192,15 @@ func (s PlanService) CategoriesNearLocation(
 				continue
 			}
 
+			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
+			if err != nil {
+				continue
+			}
+
 			// 場所の写真を取得（取得できなかった場合はデフォルトの画像を利用）
 			categoryPhotos[category.Name] = category.Photo
-			if len(photos) > 0 {
-				categoryPhotos[category.Name] = photos[0].ImageUrl
+			if photo != nil {
+				categoryPhotos[category.Name] = photo.ImageUrl
 			}
 		}
 	}
