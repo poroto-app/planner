@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -70,45 +71,60 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-	for _, place := range placesRecommend {
-		thumbnailPhoto, err := s.placesApi.FetchPlaceThumbnail(place)
-		if err != nil {
-			continue
-		}
-		placePhotos, err := s.placesApi.FetchPlacePhotos(place)
-		if err != nil {
-			continue
-		}
+	for _, placeRecommend := range placesRecommend {
+		// 起点となる場所との距離順でソート
+		placesSortedByDistance := placesSearched
+		sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
+			locationRecommend := placeRecommend.Location.ToGeoLocation()
+			distanceI := locationRecommend.DistanceInMeter(placesSearched[i].Location.ToGeoLocation())
+			distanceJ := locationRecommend.DistanceInMeter(placesSearched[j].Location.ToGeoLocation())
+			return distanceI < distanceJ
+		})
 
-		var thumbnail *string
-		if thumbnailPhoto != nil {
-			thumbnail = &thumbnailPhoto.ImageUrl
-		}
+		placesWithInRange := s.filterWithinDistanceRange(
+			placesSortedByDistance,
+			placeRecommend.Location.ToGeoLocation(),
+			0,
+			500,
+		)
 
-		photos := make([]string, 0)
-		for _, photo := range placePhotos {
-			photos = append(photos, photo.ImageUrl)
+		placesInPlan := make([]models.Place, 0)
+		for _, place := range placesWithInRange {
+			placePhotos, err := s.placesApi.FetchPlacePhotos(place)
+			if err != nil {
+				continue
+			}
+			photos := make([]string, 0)
+			for _, photo := range placePhotos {
+				photos = append(photos, photo.ImageUrl)
+			}
+
+			thumbnailPhoto, err := s.placesApi.FetchPlaceThumbnail(placeRecommend)
+			if err != nil {
+				continue
+			}
+			var thumbnail *string
+			if thumbnailPhoto != nil {
+				thumbnail = &thumbnailPhoto.ImageUrl
+			}
+
+			placesInPlan = append(placesInPlan, models.Place{
+				Name:      place.Name,
+				Photos:    photos,
+				Thumbnail: thumbnail,
+				Location:  place.Location.ToGeoLocation(),
+			})
 		}
 
 		plans = append(plans, models.Plan{
-			Id:   uuid.New().String(),
-			Name: place.Name,
-			Places: []models.Place{
-				{
-					Name:      place.Name,
-					Thumbnail: thumbnail,
-					Photos:    photos,
-					Location: models.GeoLocation{
-						Latitude:  place.Location.Latitude,
-						Longitude: place.Location.Longitude,
-					},
-				},
-			},
+			Id:     uuid.New().String(),
+			Name:   placeRecommend.Name,
+			Places: placesInPlan,
 			TimeInMinutes: s.travelTimeFromCurrent(
 				location,
 				models.GeoLocation{
-					Latitude:  place.Location.Latitude,
-					Longitude: place.Location.Longitude,
+					Latitude:  placeRecommend.Location.Latitude,
+					Longitude: placeRecommend.Location.Longitude,
 				},
 				80.0,
 			),
