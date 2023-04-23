@@ -166,8 +166,9 @@ func (s PlanService) CategoriesNearLocation(
 
 	categories := make([]models.LocationCategory, 0)
 	for categoryName, categoryPhoto := range categoryPhotos {
-		categories = append(categories, models.GetCategoryOfName(categoryName))
-		categories[len(categories)-1].Photo = categoryPhoto
+		category := models.GetCategoryOfName(categoryName)
+		category.Photo = categoryPhoto
+		categories = append(categories, category)
 	}
 
 	return categories, nil
