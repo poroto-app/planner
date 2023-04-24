@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -71,51 +72,74 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-	for _, place := range placesRecommend {
-		thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
-			Width:  places.ImgThumbnailMaxWidth,
-			Height: places.ImgThumbnailMaxHeight,
+	for _, placeRecommend := range placesRecommend {
+		// 起点となる場所との距離順でソート
+		placesSortedByDistance := placesSearched
+		sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
+			locationRecommend := placeRecommend.Location.ToGeoLocation()
+			distanceI := locationRecommend.DistanceInMeter(placesSearched[i].Location.ToGeoLocation())
+			distanceJ := locationRecommend.DistanceInMeter(placesSearched[j].Location.ToGeoLocation())
+			return distanceI < distanceJ
 		})
-		if err != nil {
-			log.Printf("error while fetching place thumbnail: %v\n", err)
-			continue
-		}
-		placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, place)
-		if err != nil {
-			log.Printf("error while fetching place photos: %v\n", err)
-			continue
-		}
 
-		var thumbnail *string
-		if thumbnailPhoto != nil {
-			thumbnail = &thumbnailPhoto.ImageUrl
-		}
+		placesWithInRange := s.filterWithinDistanceRange(
+			placesSortedByDistance,
+			placeRecommend.Location.ToGeoLocation(),
+			0,
+			500,
+		)
 
-		photos := make([]string, 0)
-		for _, photo := range placePhotos {
-			photos = append(photos, photo.ImageUrl)
+		placesInPlan := make([]models.Place, 0)
+		categoriesInPlan := make([]string, 0)
+		for _, place := range placesWithInRange {
+			// 既にプランに含まれるカテゴリの場所は無視する
+			if len(place.Types) == 0 {
+				continue
+			}
+			category := models.CategoryOfSubCategory(place.Types[0])
+			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
+				continue
+			}
+
+			thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
+				Width:  places.ImgThumbnailMaxWidth,
+				Height: places.ImgThumbnailMaxHeight,
+			})
+			if err != nil {
+				log.Printf("error while fetching place thumbnail: %v\n", err)
+				continue
+			}
+			var thumbnail *string
+			if thumbnailPhoto != nil {
+				thumbnail = &thumbnailPhoto.ImageUrl
+			}
+
+			placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+			if err != nil {
+				log.Printf("error while fetching place photos: %v\n", err)
+				continue
+			}
+			photos := make([]string, 0)
+			for _, photo := range placePhotos {
+				photos = append(photos, photo.ImageUrl)
+			}
+
+			placesInPlan = append(placesInPlan, models.Place{
+				Name:      place.Name,
+				Photos:    photos,
+				Thumbnail: thumbnail,
+				Location:  place.Location.ToGeoLocation(),
+			})
+			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 		}
 
 		plans = append(plans, models.Plan{
-			Id:   uuid.New().String(),
-			Name: place.Name,
-			Places: []models.Place{
-				{
-					Name:      place.Name,
-					Thumbnail: thumbnail,
-					Photos:    photos,
-					Location: models.GeoLocation{
-						Latitude:  place.Location.Latitude,
-						Longitude: place.Location.Longitude,
-					},
-				},
-			},
+			Id:     uuid.New().String(),
+			Name:   placeRecommend.Name,
+			Places: placesInPlan,
 			TimeInMinutes: s.travelTimeFromCurrent(
 				location,
-				models.GeoLocation{
-					Latitude:  place.Location.Latitude,
-					Longitude: place.Location.Longitude,
-				},
+				placeRecommend.Location.ToGeoLocation(),
 				80.0,
 			),
 		})
@@ -230,10 +254,7 @@ func (s PlanService) filterWithinDistanceRange(
 ) []places.Place {
 	var placesWithInDistance []places.Place
 	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(models.GeoLocation{
-			Latitude:  place.Location.Latitude,
-			Longitude: place.Location.Longitude,
-		})
+		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
 		if startInMeter <= distance && distance < endInMeter {
 			placesWithInDistance = append(placesWithInDistance, place)
 		}
