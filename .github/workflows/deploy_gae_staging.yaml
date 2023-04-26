@@ -1,0 +1,26 @@
+name: deploy-staging
+run-name: Deploy Staging by @${{ github.actor }}
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    uses: ./.github/workflows/build_workflow.yaml
+  # SEE: https://github.com/google-github-actions/deploy-appengine
+  deploy:
+    needs: build
+    name: GAE Staging deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/decrypt_secrets
+        with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      # SEE: https://github.com/google-github-actions/deploy-appengine#authorization
+      - name: Deploy an App Engine app
+        uses: google-github-actions/deploy-appengine@v1
+        with:
+          deliverables: app-staging.yaml
