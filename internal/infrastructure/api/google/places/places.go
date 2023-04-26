@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"googlemaps.github.io/maps"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type PlacesApi struct {
@@ -43,6 +44,13 @@ type Place struct {
 type Location struct {
 	Latitude  float64
 	Longitude float64
+}
+
+func (r Location) ToGeoLocation() models.GeoLocation {
+	return models.GeoLocation{
+		Latitude:  r.Latitude,
+		Longitude: r.Longitude,
+	}
 }
 
 type FindPlacesFromLocationRequest struct {
