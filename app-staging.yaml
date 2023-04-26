@@ -1,0 +1,7 @@
+runtime: go119
+service: planner-staging
+
+main: ./cmd/server
+
+env_variables:
+  ENV: "staging"
