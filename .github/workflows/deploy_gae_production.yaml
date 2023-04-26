@@ -1,5 +1,5 @@
-name: deploy
-run-name: Deploy by @${{ github.actor }}
+name: deploy-production
+run-name: Deploy Production by @${{ github.actor }}
 on:
   push:
     branches:
@@ -11,7 +11,7 @@ jobs:
   # SEE: https://github.com/google-github-actions/deploy-appengine
   deploy:
     needs: build
-    name: GAE deploy
+    name: GAE Production Deploy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
