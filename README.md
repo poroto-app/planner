@@ -55,3 +55,14 @@ go mod tidy
 ```shell
 docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.46.2 golangci-lint run -v
 ```
+
+## GraphQL
+### コード生成
+```shell
+go generate ./...
+```
+
+## Test
+```shell
+go test ./...
+```
