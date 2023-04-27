@@ -4,10 +4,11 @@ service: planner
 main: ./cmd/server
 
 automatic_scaling:
-  min_idle_instances: automatic
+  min_idle_instances: 1
   max_idle_instances: 1
   min_pending_latency: 3000ms
   max_pending_latency: automatic
+  min_instances: 1
   max_instances: 2
 
 env_variables:
