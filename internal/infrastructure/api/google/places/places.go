@@ -56,6 +56,7 @@ func (r Location) ToGeoLocation() models.GeoLocation {
 type FindPlacesFromLocationRequest struct {
 	Location Location
 	Radius   uint
+	Language string
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
