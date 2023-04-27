@@ -35,7 +35,8 @@ func (s PlanService) CreatePlanByLocation(
 			Latitude:  location.Latitude,
 			Longitude: location.Longitude,
 		},
-		Radius: 2000,
+		Radius:   2000,
+		Language: "ja",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
@@ -157,7 +158,8 @@ func (s PlanService) CategoriesNearLocation(
 			Latitude:  location.Latitude,
 			Longitude: location.Longitude,
 		},
-		Radius: 2000,
+		Radius:   2000,
+		Language: "ja",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)

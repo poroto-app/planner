@@ -65,7 +65,8 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			Lat: req.Location.Latitude,
 			Lng: req.Location.Longitude,
 		},
-		Radius: req.Radius,
+		Radius:   req.Radius,
+		Language: req.Language,
 	})
 	if err != nil {
 		return nil, err
