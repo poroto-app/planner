@@ -26,7 +26,7 @@ func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchReque
 		// ノータイムでリクエストを送信すると、INVALID_REQUEST となってしまう。
 		time.Sleep(2000 * time.Millisecond)
 
-		res, err := r.nearBySearchWithPageToken(ctx, pageToken)
+		res, err := r.nearBySearchWithPageToken(ctx, pageToken, req.Language)
 		if err != nil {
 			return placeSearchResults, err
 		}
@@ -45,9 +45,10 @@ func (r PlacesApi) neaBySearchOnce(ctx context.Context, req *maps.NearbySearchRe
 	return &res, nil
 }
 
-func (r PlacesApi) nearBySearchWithPageToken(ctx context.Context, nextPageToken string) (*maps.PlacesSearchResponse, error) {
+func (r PlacesApi) nearBySearchWithPageToken(ctx context.Context, nextPageToken string, language string) (*maps.PlacesSearchResponse, error) {
 	res, err := r.mapsClient.NearbySearch(ctx, &maps.NearbySearchRequest{
 		PageToken: nextPageToken,
+		Language:  language,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while nearby search with page token: %v", err)
