@@ -42,6 +42,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 					Latitude:  place.Location.Latitude,
 					Longitude: place.Location.Longitude,
 				},
+				TimeInMinutes: int(place.TimeInMinutes),
 			})
 		}
 

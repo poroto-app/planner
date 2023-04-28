@@ -130,6 +130,8 @@ func (s PlanService) CreatePlanByLocation(
 				Photos:    photos,
 				Thumbnail: thumbnail,
 				Location:  place.Location.ToGeoLocation(),
+				// TODO: categoryから引っ張ってくる
+				TimeInMinutes: uint16(100),
 			})
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 		}
