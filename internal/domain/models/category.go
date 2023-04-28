@@ -7,7 +7,7 @@ type LocationCategory struct {
 	DisplayName   string
 	SubCategories []string
 	Photo         string
-	TimeInMinutes uint
+	TimeInMinutes uint16
 }
 
 var (
