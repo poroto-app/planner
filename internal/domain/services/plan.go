@@ -92,6 +92,8 @@ func (s PlanService) CreatePlanByLocation(
 
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
+		previousLocation := location
+		var timeInPlan uint16 = 0
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
@@ -136,18 +138,22 @@ func (s PlanService) CreatePlanByLocation(
 				Location:      place.Location.ToGeoLocation(),
 				TimeInMinutes: category.TimeInMinutes,
 			})
+			timeInPlan += uint16(s.travelTimeFromCurrent(
+				previousLocation,
+				place.Location.ToGeoLocation(),
+				80.0,
+			))
+			timeInPlan += category.TimeInMinutes
+
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
+			previousLocation = place.Location.ToGeoLocation()
 		}
 
 		plans = append(plans, models.Plan{
-			Id:     uuid.New().String(),
-			Name:   placeRecommend.Name,
-			Places: placesInPlan,
-			TimeInMinutes: s.travelTimeFromCurrent(
-				location,
-				placeRecommend.Location.ToGeoLocation(),
-				80.0,
-			),
+			Id:            uuid.New().String(),
+			Name:          placeRecommend.Name,
+			Places:        placesInPlan,
+			TimeInMinutes: timeInPlan,
 		})
 	}
 
