@@ -39,5 +39,5 @@ type Plan struct {
 	ID            string   `json:"id"`
 	Name          string   `json:"name"`
 	Places        []*Place `json:"places"`
-	TimeInMinutes float64  `json:"timeInMinutes"`
+	TimeInMinutes int      `json:"timeInMinutes"`
 }

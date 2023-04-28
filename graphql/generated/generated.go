@@ -323,7 +323,7 @@ var sources = []*ast.Source{
     id: String!
     name: String!
     places: [Place!]!
-    timeInMinutes: Float!
+    timeInMinutes: Int!
 }
 
 type Place {
@@ -1223,9 +1223,9 @@ func (ec *executionContext) _Plan_timeInMinutes(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_timeInMinutes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1235,7 +1235,7 @@ func (ec *executionContext) fieldContext_Plan_timeInMinutes(ctx context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
