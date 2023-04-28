@@ -97,8 +97,12 @@ func (s PlanService) CreatePlanByLocation(
 			if len(place.Types) == 0 {
 				continue
 			}
+
 			category := models.CategoryOfSubCategory(place.Types[0])
-			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
+			if category == nil {
+				continue
+			}
+			if array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
@@ -126,12 +130,11 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
-				Name:      place.Name,
-				Photos:    photos,
-				Thumbnail: thumbnail,
-				Location:  place.Location.ToGeoLocation(),
-				// TODO: categoryから引っ張ってくる
-				TimeInMinutes: uint16(100),
+				Name:          place.Name,
+				Photos:        photos,
+				Thumbnail:     thumbnail,
+				Location:      place.Location.ToGeoLocation(),
+				TimeInMinutes: category.TimeInMinutes,
 			})
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 		}
