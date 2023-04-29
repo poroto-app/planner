@@ -10,26 +10,32 @@ import (
 )
 
 type Server struct {
-	port       string
-	production bool
+	port string
+	mode string
 }
 
-func NewRestServer(production bool) *Server {
+const (
+	ServerModeDevelopment = "development"
+	ServerModeStaging     = "staging"
+	ServerModeProduction  = "production"
+)
+
+func NewRestServer(env string) *Server {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
 	return &Server{
-		port:       port,
-		production: production,
+		port: port,
+		mode: serverModeFromEnv(env),
 	}
 }
 
 func (s Server) ServeHTTP() error {
 	r := gin.Default()
 
-	if s.production {
+	if s.isProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -40,7 +46,7 @@ func (s Server) ServeHTTP() error {
 			"Content-Type",
 		},
 		AllowOriginFunc: func(origin string) bool {
-			if !s.production {
+			if !s.isProduction() {
 				return true
 			}
 			protocol := os.Getenv("WEB_PROTOCOL")
@@ -57,7 +63,7 @@ func (s Server) ServeHTTP() error {
 	})
 
 	r.POST("/graphql", GraphQlQuery)
-	if !s.production {
+	if !s.isProduction() {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
 
@@ -66,4 +72,22 @@ func (s Server) ServeHTTP() error {
 	}
 
 	return nil
+}
+
+func serverModeFromEnv(env string) string {
+	serverMode := ServerModeDevelopment
+	if env == "production" {
+		serverMode = ServerModeProduction
+	} else if env == "staging" {
+		serverMode = ServerModeStaging
+	}
+	return serverMode
+}
+
+func (s Server) isProduction() bool {
+	return s.mode == ServerModeProduction
+}
+
+func (s Server) isDevelopment() bool {
+	return s.mode == ServerModeDevelopment
 }
