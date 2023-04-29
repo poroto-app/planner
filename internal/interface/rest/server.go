@@ -46,7 +46,7 @@ func (s Server) ServeHTTP() error {
 			"Content-Type",
 		},
 		AllowOriginFunc: func(origin string) bool {
-			if !s.isProduction() {
+			if s.isDevelopment() {
 				return true
 			}
 			protocol := os.Getenv("WEB_PROTOCOL")
