@@ -49,9 +49,15 @@ func (s Server) ServeHTTP() error {
 			if s.isDevelopment() {
 				return true
 			}
+
+			u, err := url.Parse(origin)
+			if err != nil {
+				return false
+			}
+
 			protocol := os.Getenv("WEB_PROTOCOL")
 			host := os.Getenv("WEB_HOST")
-			return origin == fmt.Sprintf("%s://%s", protocol, host)
+			return u.Scheme == protocol && u.Host == host
 		},
 		MaxAge: 12 * time.Hour,
 	}))
