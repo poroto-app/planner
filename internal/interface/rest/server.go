@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"fmt"
+	"net/url"
 	"os"
 	"time"
 
@@ -35,7 +35,7 @@ func NewRestServer(env string) *Server {
 func (s Server) ServeHTTP() error {
 	r := gin.Default()
 
-	if s.isProduction() {
+	if !s.isDevelopment() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
