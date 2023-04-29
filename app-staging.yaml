@@ -3,5 +3,9 @@ service: planner-staging
 
 main: ./cmd/server
 
+automatic_scaling:
+  max_idle_instances: 1
+  max_instances: 1
+
 env_variables:
   ENV: "staging"
