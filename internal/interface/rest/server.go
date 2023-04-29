@@ -35,7 +35,7 @@ func NewRestServer(env string) *Server {
 func (s Server) ServeHTTP() error {
 	r := gin.Default()
 
-	if !s.isDevelopment() {
+	if s.isStaging() || s.isProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -69,7 +69,7 @@ func (s Server) ServeHTTP() error {
 	})
 
 	r.POST("/graphql", GraphQlQuery)
-	if !s.isProduction() {
+	if s.isDevelopment() || s.isStaging() {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
 
@@ -96,4 +96,8 @@ func (s Server) isProduction() bool {
 
 func (s Server) isDevelopment() bool {
 	return s.mode == ServerModeDevelopment
+}
+
+func (s Server) isStaging() bool {
+	return s.mode == ServerModeStaging
 }
