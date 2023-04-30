@@ -9,7 +9,7 @@ type Place {
     name: String!
     location: GeoLocation!
     photos: [String!]
-    timeInMinutes: Int!
+    estimatedStayDuration: Int!
 }
 
 type GeoLocation {

@@ -129,11 +129,11 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
-				Name:          place.Name,
-				Photos:        photos,
-				Thumbnail:     thumbnail,
-				Location:      place.Location.ToGeoLocation(),
-				TimeInMinutes: category.EstimatedStayDuration,
+				Name:                  place.Name,
+				Photos:                photos,
+				Thumbnail:             thumbnail,
+				Location:              place.Location.ToGeoLocation(),
+				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
 			timeInPlan += uint16(s.travelTimeFromCurrent(
 				previousLocation,

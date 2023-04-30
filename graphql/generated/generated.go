@@ -65,10 +65,10 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
-		Location      func(childComplexity int) int
-		Name          func(childComplexity int) int
-		Photos        func(childComplexity int) int
-		TimeInMinutes func(childComplexity int) int
+		EstimatedStayDuration func(childComplexity int) int
+		Location              func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		Photos                func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -174,6 +174,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Ping(childComplexity, args["message"].(string)), true
 
+	case "Place.estimatedStayDuration":
+		if e.complexity.Place.EstimatedStayDuration == nil {
+			break
+		}
+
+		return e.complexity.Place.EstimatedStayDuration(childComplexity), true
+
 	case "Place.location":
 		if e.complexity.Place.Location == nil {
 			break
@@ -194,13 +201,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.Photos(childComplexity), true
-
-	case "Place.timeInMinutes":
-		if e.complexity.Place.TimeInMinutes == nil {
-			break
-		}
-
-		return e.complexity.Place.TimeInMinutes(childComplexity), true
 
 	case "Plan.id":
 		if e.complexity.Plan.ID == nil {
@@ -330,7 +330,7 @@ type Place {
     name: String!
     location: GeoLocation!
     photos: [String!]
-    timeInMinutes: Int!
+    estimatedStayDuration: Int!
 }
 
 type GeoLocation {
@@ -1011,8 +1011,8 @@ func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Place_timeInMinutes(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Place_timeInMinutes(ctx, field)
+func (ec *executionContext) _Place_estimatedStayDuration(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1025,7 +1025,7 @@ func (ec *executionContext) _Place_timeInMinutes(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.TimeInMinutes, nil
+		return obj.EstimatedStayDuration, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1042,7 +1042,7 @@ func (ec *executionContext) _Place_timeInMinutes(ctx context.Context, field grap
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Place_timeInMinutes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Place_estimatedStayDuration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Place",
 		Field:      field,
@@ -1188,8 +1188,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
-			case "timeInMinutes":
-				return ec.fieldContext_Place_timeInMinutes(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -3515,9 +3515,9 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Place_photos(ctx, field, obj)
 
-		case "timeInMinutes":
+		case "estimatedStayDuration":
 
-			out.Values[i] = ec._Place_timeInMinutes(ctx, field, obj)
+			out.Values[i] = ec._Place_estimatedStayDuration(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
