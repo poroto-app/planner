@@ -12,12 +12,12 @@ func TestGetCategoryOfName(t *testing.T) {
 		expected     LocationCategory
 	}{
 		{
-			name:         "amusements is name of CategoryAmusements",
+			name:         "The category of amusements is CategoryAmusements",
 			categoryName: "amusements",
 			expected:     CategoryAmusements,
 		},
 		{
-			name:         "restaurant is name of CategoryRestaurant",
+			name:         "The category of restaurant is CategoryRestaurant",
 			categoryName: "restaurant",
 			expected:     CategoryRestaurant,
 		},
