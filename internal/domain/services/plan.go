@@ -136,14 +136,14 @@ func (s PlanService) CreatePlanByLocation(
 				Photos:        photos,
 				Thumbnail:     thumbnail,
 				Location:      place.Location.ToGeoLocation(),
-				TimeInMinutes: category.TimeInMinutes,
+				TimeInMinutes: category.EstimatedStayDuration,
 			})
 			timeInPlan += uint16(s.travelTimeFromCurrent(
 				previousLocation,
 				place.Location.ToGeoLocation(),
 				80.0,
 			))
-			timeInPlan += category.TimeInMinutes
+			timeInPlan += category.EstimatedStayDuration
 
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 			previousLocation = place.Location.ToGeoLocation()
