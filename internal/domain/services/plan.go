@@ -101,10 +101,7 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			category := models.CategoryOfSubCategory(place.Types[0])
-			if category == nil {
-				continue
-			}
-			if array.IsContain(categoriesInPlan, category.Name) {
+			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
