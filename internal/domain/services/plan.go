@@ -104,7 +104,8 @@ func (s PlanService) CreatePlanByLocation(
 
 			// TODO: meal_takeaway を対応する
 			// TODO: カテゴリ不明な場合，プランに含まれる場所が一件もなかった場合，フィルタリングではじく
-			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
+			// MEMO: カテゴリが不明な場合，滞在時間が取得できない
+			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
