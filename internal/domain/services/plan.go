@@ -101,7 +101,10 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			category := models.CategoryOfSubCategory(place.Types[0])
-			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
+
+			// TODO: meal_takeaway を対応する
+			// TODO: カテゴリ不明な場合，プランに含まれる場所が一件もなかった場合，フィルタリングではじく
+			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
