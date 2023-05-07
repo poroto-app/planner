@@ -7,14 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
-      - name: Build
+      - name: Codegen
         run: go generate ./...
   check-codegen:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
-      - name: Build
+      - name: Codegen
         run: go generate ./...
       - name: Check diff
         run: git diff --exit-code
