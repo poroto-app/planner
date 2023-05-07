@@ -2,6 +2,14 @@
 
 package model
 
+type CachedCreatedPlans struct {
+	Plans []*Plan `json:"plans,omitempty"`
+}
+
+type CachedCreatedPlansInput struct {
+	Session string `json:"session"`
+}
+
 type CreatePlanByLocationInput struct {
 	Latitude   float64  `json:"latitude"`
 	Longitude  float64  `json:"longitude"`
@@ -11,14 +19,6 @@ type CreatePlanByLocationInput struct {
 type CreatePlanByLocationOutput struct {
 	Session string  `json:"session"`
 	Plans   []*Plan `json:"plans"`
-}
-
-type FetchCachedPlansInput struct {
-	Session string `json:"session"`
-}
-
-type FetchCachedPlansOutput struct {
-	Plans []*Plan `json:"plans,omitempty"`
 }
 
 type GeoLocation struct {

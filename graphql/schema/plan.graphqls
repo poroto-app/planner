@@ -30,14 +30,14 @@ extend type Query {
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
-    fetchCachedPlans(input: FetchCachedPlansInput!): FetchCachedPlansOutput!
+    CachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 }
 
-type FetchCachedPlansOutput {
+type CachedCreatedPlans {
     plans: [Plan!]
 }
 
-input FetchCachedPlansInput {
+input CachedCreatedPlansInput {
     # CreatePlanByLocationOutputのsession
     session: String!
 }

@@ -44,13 +44,13 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	CachedCreatedPlans struct {
+		Plans func(childComplexity int) int
+	}
+
 	CreatePlanByLocationOutput struct {
 		Plans   func(childComplexity int) int
 		Session func(childComplexity int) int
-	}
-
-	FetchCachedPlansOutput struct {
-		Plans func(childComplexity int) int
 	}
 
 	GeoLocation struct {
@@ -87,9 +87,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		FetchCachedPlans func(childComplexity int, input model.FetchCachedPlansInput) int
-		MatchInterests   func(childComplexity int, input *model.MatchInterestsInput) int
-		Version          func(childComplexity int) int
+		CachedCreatedPlans func(childComplexity int, input model.CachedCreatedPlansInput) int
+		MatchInterests     func(childComplexity int, input *model.MatchInterestsInput) int
+		Version            func(childComplexity int) int
 	}
 }
 
@@ -100,7 +100,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
 	MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error)
-	FetchCachedPlans(ctx context.Context, input model.FetchCachedPlansInput) (*model.FetchCachedPlansOutput, error)
+	CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error)
 }
 
 type executableSchema struct {
@@ -118,6 +118,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "CachedCreatedPlans.plans":
+		if e.complexity.CachedCreatedPlans.Plans == nil {
+			break
+		}
+
+		return e.complexity.CachedCreatedPlans.Plans(childComplexity), true
+
 	case "CreatePlanByLocationOutput.plans":
 		if e.complexity.CreatePlanByLocationOutput.Plans == nil {
 			break
@@ -131,13 +138,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CreatePlanByLocationOutput.Session(childComplexity), true
-
-	case "FetchCachedPlansOutput.plans":
-		if e.complexity.FetchCachedPlansOutput.Plans == nil {
-			break
-		}
-
-		return e.complexity.FetchCachedPlansOutput.Plans(childComplexity), true
 
 	case "GeoLocation.latitude":
 		if e.complexity.GeoLocation.Latitude == nil {
@@ -254,17 +254,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Plan.TimeInMinutes(childComplexity), true
 
-	case "Query.fetchCachedPlans":
-		if e.complexity.Query.FetchCachedPlans == nil {
+	case "Query.CachedCreatedPlans":
+		if e.complexity.Query.CachedCreatedPlans == nil {
 			break
 		}
 
-		args, err := ec.field_Query_fetchCachedPlans_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_CachedCreatedPlans_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.FetchCachedPlans(childComplexity, args["input"].(model.FetchCachedPlansInput)), true
+		return e.complexity.Query.CachedCreatedPlans(childComplexity, args["input"].(model.CachedCreatedPlansInput)), true
 
 	case "Query.matchInterests":
 		if e.complexity.Query.MatchInterests == nil {
@@ -293,8 +293,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCachedCreatedPlansInput,
 		ec.unmarshalInputCreatePlanByLocationInput,
-		ec.unmarshalInputFetchCachedPlansInput,
 		ec.unmarshalInputMatchInterestsInput,
 	)
 	first := true
@@ -388,14 +388,14 @@ extend type Query {
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
-    fetchCachedPlans(input: FetchCachedPlansInput!): FetchCachedPlansOutput!
+    CachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 }
 
-type FetchCachedPlansOutput {
+type CachedCreatedPlans {
     plans: [Plan!]
 }
 
-input FetchCachedPlansInput {
+input CachedCreatedPlansInput {
     # CreatePlanByLocationOutputのsession
     session: String!
 }
@@ -469,6 +469,21 @@ func (ec *executionContext) field_Mutation_ping_args(ctx context.Context, rawArg
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_CachedCreatedPlans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CachedCreatedPlansInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -481,21 +496,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_fetchCachedPlans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.FetchCachedPlansInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNFetchCachedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFetchCachedPlansInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
 	return args, nil
 }
 
@@ -551,6 +551,57 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _CachedCreatedPlans_plans(ctx context.Context, field graphql.CollectedField, obj *model.CachedCreatedPlans) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CachedCreatedPlans_plans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plans, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Plan)
+	fc.Result = res
+	return ec.marshalOPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CachedCreatedPlans",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _CreatePlanByLocationOutput_session(ctx context.Context, field graphql.CollectedField, obj *model.CreatePlanByLocationOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CreatePlanByLocationOutput_session(ctx, field)
@@ -630,57 +681,6 @@ func (ec *executionContext) _CreatePlanByLocationOutput_plans(ctx context.Contex
 func (ec *executionContext) fieldContext_CreatePlanByLocationOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CreatePlanByLocationOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Plan_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Plan_name(ctx, field)
-			case "places":
-				return ec.fieldContext_Plan_places(ctx, field)
-			case "timeInMinutes":
-				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _FetchCachedPlansOutput_plans(ctx context.Context, field graphql.CollectedField, obj *model.FetchCachedPlansOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_FetchCachedPlansOutput_plans(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Plans, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Plan)
-	fc.Result = res
-	return ec.marshalOPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_FetchCachedPlansOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "FetchCachedPlansOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1511,8 +1511,8 @@ func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_fetchCachedPlans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_fetchCachedPlans(ctx, field)
+func (ec *executionContext) _Query_CachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_CachedCreatedPlans(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1525,7 +1525,7 @@ func (ec *executionContext) _Query_fetchCachedPlans(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FetchCachedPlans(rctx, fc.Args["input"].(model.FetchCachedPlansInput))
+		return ec.resolvers.Query().CachedCreatedPlans(rctx, fc.Args["input"].(model.CachedCreatedPlansInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1537,12 +1537,12 @@ func (ec *executionContext) _Query_fetchCachedPlans(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.FetchCachedPlansOutput)
+	res := resTmp.(*model.CachedCreatedPlans)
 	fc.Result = res
-	return ec.marshalNFetchCachedPlansOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFetchCachedPlansOutput(ctx, field.Selections, res)
+	return ec.marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_fetchCachedPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_CachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -1551,9 +1551,9 @@ func (ec *executionContext) fieldContext_Query_fetchCachedPlans(ctx context.Cont
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "plans":
-				return ec.fieldContext_FetchCachedPlansOutput_plans(ctx, field)
+				return ec.fieldContext_CachedCreatedPlans_plans(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type FetchCachedPlansOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CachedCreatedPlans", field.Name)
 		},
 	}
 	defer func() {
@@ -1563,7 +1563,7 @@ func (ec *executionContext) fieldContext_Query_fetchCachedPlans(ctx context.Cont
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_fetchCachedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_CachedCreatedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3472,6 +3472,34 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCachedCreatedPlansInput(ctx context.Context, obj interface{}) (model.CachedCreatedPlansInput, error) {
+	var it model.CachedCreatedPlansInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"session"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "session":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
+			it.Session, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.Context, obj interface{}) (model.CreatePlanByLocationInput, error) {
 	var it model.CreatePlanByLocationInput
 	asMap := map[string]interface{}{}
@@ -3507,34 +3535,6 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categories"))
 			it.Categories, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputFetchCachedPlansInput(ctx context.Context, obj interface{}) (model.FetchCachedPlansInput, error) {
-	var it model.FetchCachedPlansInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"session"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "session":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
-			it.Session, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3588,6 +3588,31 @@ func (ec *executionContext) unmarshalInputMatchInterestsInput(ctx context.Contex
 
 // region    **************************** object.gotpl ****************************
 
+var cachedCreatedPlansImplementors = []string{"CachedCreatedPlans"}
+
+func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, obj *model.CachedCreatedPlans) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cachedCreatedPlansImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CachedCreatedPlans")
+		case "plans":
+
+			out.Values[i] = ec._CachedCreatedPlans_plans(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var createPlanByLocationOutputImplementors = []string{"CreatePlanByLocationOutput"}
 
 func (ec *executionContext) _CreatePlanByLocationOutput(ctx context.Context, sel ast.SelectionSet, obj *model.CreatePlanByLocationOutput) graphql.Marshaler {
@@ -3612,31 +3637,6 @@ func (ec *executionContext) _CreatePlanByLocationOutput(ctx context.Context, sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var fetchCachedPlansOutputImplementors = []string{"FetchCachedPlansOutput"}
-
-func (ec *executionContext) _FetchCachedPlansOutput(ctx context.Context, sel ast.SelectionSet, obj *model.FetchCachedPlansOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, fetchCachedPlansOutputImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("FetchCachedPlansOutput")
-		case "plans":
-
-			out.Values[i] = ec._FetchCachedPlansOutput_plans(ctx, field, obj)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3954,7 +3954,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "fetchCachedPlans":
+		case "CachedCreatedPlans":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -3963,7 +3963,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_fetchCachedPlans(ctx, field)
+				res = ec._Query_CachedCreatedPlans(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -4333,6 +4333,25 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCachedCreatedPlans2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v model.CachedCreatedPlans) graphql.Marshaler {
+	return ec._CachedCreatedPlans(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v *model.CachedCreatedPlans) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CachedCreatedPlans(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx context.Context, v interface{}) (model.CachedCreatedPlansInput, error) {
+	res, err := ec.unmarshalInputCachedCreatedPlansInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx context.Context, v interface{}) (model.CreatePlanByLocationInput, error) {
 	res, err := ec.unmarshalInputCreatePlanByLocationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4350,25 +4369,6 @@ func (ec *executionContext) marshalNCreatePlanByLocationOutput2ᚖporotoᚗapp�
 		return graphql.Null
 	}
 	return ec._CreatePlanByLocationOutput(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNFetchCachedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFetchCachedPlansInput(ctx context.Context, v interface{}) (model.FetchCachedPlansInput, error) {
-	res, err := ec.unmarshalInputFetchCachedPlansInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNFetchCachedPlansOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFetchCachedPlansOutput(ctx context.Context, sel ast.SelectionSet, v model.FetchCachedPlansOutput) graphql.Marshaler {
-	return ec._FetchCachedPlansOutput(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNFetchCachedPlansOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFetchCachedPlansOutput(ctx context.Context, sel ast.SelectionSet, v *model.FetchCachedPlansOutput) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._FetchCachedPlansOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
