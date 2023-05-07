@@ -17,6 +17,10 @@ type FetchCachedPlansInput struct {
 	Session string `json:"session"`
 }
 
+type FetchCachedPlansOutput struct {
+	Plans []*Plan `json:"plans,omitempty"`
+}
+
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
