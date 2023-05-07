@@ -28,6 +28,14 @@ type InterestCandidate {
 
 extend type Query {
     matchInterests(input: MatchInterestsInput): InterestCandidate!
+
+    # キャッシュされたプラン一覧を取得する
+    fetchCachedPlans(input: FetchCachedPlansInput!): [Plan!]
+}
+
+input FetchCachedPlansInput {
+    # CreatePlanByLocationOutputのsession
+    session: String!
 }
 
 extend type Mutation {

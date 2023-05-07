@@ -90,3 +90,9 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		Categories: categories,
 	}, nil
 }
+
+// FetchCachedPlans is the resolver for the fetchCachedPlans field.
+func (r *queryResolver) FetchCachedPlans(ctx context.Context, input model.FetchCachedPlansInput) ([]*model.Plan, error) {
+	// TODO: Sessionと作成したプランを紐付けて保存する
+	return nil, nil
+}
