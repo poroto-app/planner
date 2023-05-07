@@ -31,7 +31,7 @@ extend type Query {
 }
 
 extend type Mutation {
-    createPlanByLocation(input: CreatePlanByLocationInput): [Plan!]!
+    createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -39,6 +39,11 @@ input CreatePlanByLocationInput {
     longitude: Float!
     # ユーザーの興味をOptionalなパラメータとして渡す
     categories: [String!]
+}
+
+type CreatePlanByLocationOutput {
+    session: String!
+    plans: [Plan!]!
 }
 
 input MatchInterestsInput {

@@ -8,6 +8,11 @@ type CreatePlanByLocationInput struct {
 	Categories []string `json:"categories,omitempty"`
 }
 
+type CreatePlanByLocationOutput struct {
+	Session string  `json:"session"`
+	Plans   []*Plan `json:"plans"`
+}
+
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
