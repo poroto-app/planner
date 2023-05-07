@@ -30,7 +30,7 @@ extend type Query {
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
-    CachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 }
 
 type CachedCreatedPlans {

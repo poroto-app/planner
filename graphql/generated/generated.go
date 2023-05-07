@@ -254,12 +254,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Plan.TimeInMinutes(childComplexity), true
 
-	case "Query.CachedCreatedPlans":
+	case "Query.cachedCreatedPlans":
 		if e.complexity.Query.CachedCreatedPlans == nil {
 			break
 		}
 
-		args, err := ec.field_Query_CachedCreatedPlans_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_cachedCreatedPlans_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -388,7 +388,7 @@ extend type Query {
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
-    CachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 }
 
 type CachedCreatedPlans {
@@ -469,21 +469,6 @@ func (ec *executionContext) field_Mutation_ping_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_CachedCreatedPlans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.CachedCreatedPlansInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -496,6 +481,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_cachedCreatedPlans_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CachedCreatedPlansInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1511,8 +1511,8 @@ func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_CachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_CachedCreatedPlans(ctx, field)
+func (ec *executionContext) _Query_cachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_cachedCreatedPlans(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1542,7 +1542,7 @@ func (ec *executionContext) _Query_CachedCreatedPlans(ctx context.Context, field
 	return ec.marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_CachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -1563,7 +1563,7 @@ func (ec *executionContext) fieldContext_Query_CachedCreatedPlans(ctx context.Co
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_CachedCreatedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_cachedCreatedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3954,7 +3954,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "CachedCreatedPlans":
+		case "cachedCreatedPlans":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -3963,7 +3963,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_CachedCreatedPlans(ctx, field)
+				res = ec._Query_cachedCreatedPlans(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
