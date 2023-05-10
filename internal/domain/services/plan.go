@@ -102,7 +102,6 @@ func (s PlanService) CreatePlanByLocation(
 
 			category := models.CategoryOfSubCategory(place.Types[0])
 
-			// TODO: カテゴリ不明な場合，プランに含まれる場所が一件もなかった場合，フィルタリングではじく
 			// MEMO: カテゴリが不明な場合，滞在時間が取得できない
 			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
 				continue
@@ -149,6 +148,9 @@ func (s PlanService) CreatePlanByLocation(
 			previousLocation = place.Location.ToGeoLocation()
 		}
 
+		if len(placesInPlan) == 0 {
+			continue
+		}
 		plans = append(plans, models.Plan{
 			Id:            uuid.New().String(),
 			Name:          placeRecommend.Name,
