@@ -102,7 +102,6 @@ func (s PlanService) CreatePlanByLocation(
 
 			category := models.CategoryOfSubCategory(place.Types[0])
 
-			// TODO: meal_takeaway を対応する
 			// TODO: カテゴリ不明な場合，プランに含まれる場所が一件もなかった場合，フィルタリングではじく
 			// MEMO: カテゴリが不明な場合，滞在時間が取得できない
 			if category == nil || array.IsContain(categoriesInPlan, category.Name) {

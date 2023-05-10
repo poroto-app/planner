@@ -113,6 +113,8 @@ var (
 			"bar",
 			"food",
 			"restaurant",
+			"meal_delivery",
+			"meal_takeaway",
 		},
 		// TODO: implement me!
 		Photo: "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
