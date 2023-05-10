@@ -29,9 +29,10 @@ func NewPlanService() (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
+	input_time int,
 ) (*[]models.Plan, error) {
 	// TODO: poroto側からの入力を元に初期化する
-	var free_time uint16 = 150
+	free_time := uint16(input_time)
 
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
