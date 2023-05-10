@@ -31,9 +31,9 @@ func (s PlanService) CreatePlanByLocation(
 	location models.GeoLocation,
 	input_time int,
 ) (*[]models.Plan, error) {
-	// TODO: poroto側からの入力を元に初期化する
+	// MEMO: プラン時間の指定は必ずされるものと仮定
+	// MEMO: プラン時間のデフォルトはporoto.appの方で実装？
 	free_time := uint16(input_time)
-
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  location.Latitude,
