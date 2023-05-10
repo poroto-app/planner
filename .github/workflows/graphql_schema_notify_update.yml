@@ -1,0 +1,19 @@
+name: Dispatch GraphQL Schema Update
+on:
+  push:
+    branches: [develop]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: technote-space/get-diff-action@v4.0.1
+        with:
+          PATTERNS: graphql/schema/*.graphqls
+      - name: Dispatch update-graphql-schema
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          repository: poroto-app/poroto
+          token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          event-type: update-graphql-schema
+        if: env.GIT_DIFF

@@ -9,13 +9,14 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
-func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *model.CreatePlanByLocationInput) ([]*model.Plan, error) {
+func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
 	service, err := services.NewPlanService()
 	if err != nil {
 		log.Println(err)
@@ -42,6 +43,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 					Latitude:  place.Location.Latitude,
 					Longitude: place.Location.Longitude,
 				},
+				EstimatedStayDuration: int(place.EstimatedStayDuration),
 			})
 		}
 
@@ -49,10 +51,14 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input *mode
 			ID:            plan.Id,
 			Name:          plan.Name,
 			Places:        places,
-			TimeInMinutes: plan.TimeInMinutes,
+			TimeInMinutes: int(plan.TimeInMinutes),
 		})
 	}
-	return retPlans, nil
+	return &model.CreatePlanByLocationOutput{
+		// TODO: Sessionと作成したプランを紐付けて保存する
+		Session: uuid.New().String(),
+		Plans:   retPlans,
+	}, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.
@@ -83,5 +89,12 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	}
 	return &model.InterestCandidate{
 		Categories: categories,
+	}, nil
+}
+
+// CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
+func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
+	return &model.CachedCreatedPlans{
+		Plans: nil,
 	}, nil
 }

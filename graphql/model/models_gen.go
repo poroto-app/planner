@@ -2,10 +2,23 @@
 
 package model
 
+type CachedCreatedPlans struct {
+	Plans []*Plan `json:"plans,omitempty"`
+}
+
+type CachedCreatedPlansInput struct {
+	Session string `json:"session"`
+}
+
 type CreatePlanByLocationInput struct {
 	Latitude   float64  `json:"latitude"`
 	Longitude  float64  `json:"longitude"`
 	Categories []string `json:"categories,omitempty"`
+}
+
+type CreatePlanByLocationOutput struct {
+	Session string  `json:"session"`
+	Plans   []*Plan `json:"plans"`
 }
 
 type GeoLocation struct {
@@ -29,14 +42,15 @@ type MatchInterestsInput struct {
 }
 
 type Place struct {
-	Name     string       `json:"name"`
-	Location *GeoLocation `json:"location"`
-	Photos   []string     `json:"photos,omitempty"`
+	Name                  string       `json:"name"`
+	Location              *GeoLocation `json:"location"`
+	Photos                []string     `json:"photos,omitempty"`
+	EstimatedStayDuration int          `json:"estimatedStayDuration"`
 }
 
 type Plan struct {
 	ID            string   `json:"id"`
 	Name          string   `json:"name"`
 	Places        []*Place `json:"places"`
-	TimeInMinutes float64  `json:"timeInMinutes"`
+	TimeInMinutes int      `json:"timeInMinutes"`
 }
