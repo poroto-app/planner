@@ -74,9 +74,10 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
-		Location func(childComplexity int) int
-		Name     func(childComplexity int) int
-		Photos   func(childComplexity int) int
+		EstimatedStayDuration func(childComplexity int) int
+		Location              func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		Photos                func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -204,6 +205,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Ping(childComplexity, args["message"].(string)), true
+
+	case "Place.estimatedStayDuration":
+		if e.complexity.Place.EstimatedStayDuration == nil {
+			break
+		}
+
+		return e.complexity.Place.EstimatedStayDuration(childComplexity), true
 
 	case "Place.location":
 		if e.complexity.Place.Location == nil {
@@ -360,13 +368,14 @@ var sources = []*ast.Source{
     id: String!
     name: String!
     places: [Place!]!
-    timeInMinutes: Float!
+    timeInMinutes: Int!
 }
 
 type Place {
     name: String!
     location: GeoLocation!
     photos: [String!]
+    estimatedStayDuration: Int!
 }
 
 type GeoLocation {
@@ -1224,6 +1233,50 @@ func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_estimatedStayDuration(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EstimatedStayDuration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_estimatedStayDuration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_id(ctx, field)
 	if err != nil {
@@ -1357,6 +1410,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -1390,9 +1445,9 @@ func (ec *executionContext) _Plan_timeInMinutes(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_timeInMinutes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1402,7 +1457,7 @@ func (ec *executionContext) fieldContext_Plan_timeInMinutes(ctx context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3829,6 +3884,13 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Place_photos(ctx, field, obj)
 
+		case "estimatedStayDuration":
+
+			out.Values[i] = ec._Place_estimatedStayDuration(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4394,6 +4456,21 @@ func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplann
 		return graphql.Null
 	}
 	return ec._GeoLocation(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNInterestCandidate2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx context.Context, sel ast.SelectionSet, v model.InterestCandidate) graphql.Marshaler {

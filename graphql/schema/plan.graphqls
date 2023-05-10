@@ -2,13 +2,14 @@ type Plan {
     id: String!
     name: String!
     places: [Place!]!
-    timeInMinutes: Float!
+    timeInMinutes: Int!
 }
 
 type Place {
     name: String!
     location: GeoLocation!
     photos: [String!]
+    estimatedStayDuration: Int!
 }
 
 type GeoLocation {

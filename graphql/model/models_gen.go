@@ -42,14 +42,15 @@ type MatchInterestsInput struct {
 }
 
 type Place struct {
-	Name     string       `json:"name"`
-	Location *GeoLocation `json:"location"`
-	Photos   []string     `json:"photos,omitempty"`
+	Name                  string       `json:"name"`
+	Location              *GeoLocation `json:"location"`
+	Photos                []string     `json:"photos,omitempty"`
+	EstimatedStayDuration int          `json:"estimatedStayDuration"`
 }
 
 type Plan struct {
 	ID            string   `json:"id"`
 	Name          string   `json:"name"`
 	Places        []*Place `json:"places"`
-	TimeInMinutes float64  `json:"timeInMinutes"`
+	TimeInMinutes int      `json:"timeInMinutes"`
 }

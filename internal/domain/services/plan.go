@@ -92,13 +92,18 @@ func (s PlanService) CreatePlanByLocation(
 
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
+		previousLocation := location
+		var timeInPlan uint16 = 0
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
 				continue
 			}
+
 			category := models.CategoryOfSubCategory(place.Types[0])
-			if category != nil && array.IsContain(categoriesInPlan, category.Name) {
+
+			// MEMO: カテゴリが不明な場合，滞在時間が取得できない
+			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
 				continue
 			}
 
@@ -126,23 +131,31 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
-				Name:      place.Name,
-				Photos:    photos,
-				Thumbnail: thumbnail,
-				Location:  place.Location.ToGeoLocation(),
+				Name:                  place.Name,
+				Photos:                photos,
+				Thumbnail:             thumbnail,
+				Location:              place.Location.ToGeoLocation(),
+				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
+			timeInPlan += uint16(s.travelTimeFromCurrent(
+				previousLocation,
+				place.Location.ToGeoLocation(),
+				80.0,
+			))
+			timeInPlan += category.EstimatedStayDuration
+
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
+			previousLocation = place.Location.ToGeoLocation()
 		}
 
+		if len(placesInPlan) == 0 {
+			continue
+		}
 		plans = append(plans, models.Plan{
-			Id:     uuid.New().String(),
-			Name:   placeRecommend.Name,
-			Places: placesInPlan,
-			TimeInMinutes: s.travelTimeFromCurrent(
-				location,
-				placeRecommend.Location.ToGeoLocation(),
-				80.0,
-			),
+			Id:            uuid.New().String(),
+			Name:          placeRecommend.Name,
+			Places:        placesInPlan,
+			TimeInMinutes: timeInPlan,
 		})
 	}
 

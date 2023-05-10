@@ -43,6 +43,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 					Latitude:  place.Location.Latitude,
 					Longitude: place.Location.Longitude,
 				},
+				EstimatedStayDuration: int(place.EstimatedStayDuration),
 			})
 		}
 
@@ -50,7 +51,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			ID:            plan.Id,
 			Name:          plan.Name,
 			Places:        places,
-			TimeInMinutes: plan.TimeInMinutes,
+			TimeInMinutes: int(plan.TimeInMinutes),
 		})
 	}
 	return &model.CreatePlanByLocationOutput{
