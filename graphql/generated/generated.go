@@ -418,6 +418,7 @@ input CreatePlanByLocationInput {
     longitude: Float!
     # ユーザーの興味をOptionalなパラメータとして渡す
     categories: [String!]
+    free_time: Int!
 }
 
 type CreatePlanByLocationOutput {
@@ -3562,7 +3563,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "categories"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "categories", "free_time"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3590,6 +3591,14 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categories"))
 			it.Categories, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "free_time":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("free_time"))
+			it.FreeTime, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
