@@ -30,6 +30,9 @@ func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) (*[]models.Plan, error) {
+	// TODO: poroto側からの入力を元に初期化する
+	var free_time uint16 = 150
+
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  location.Latitude,
@@ -130,6 +133,14 @@ func (s PlanService) CreatePlanByLocation(
 				photos = append(photos, photo.ImageUrl)
 			}
 
+			trip_time := uint16(s.travelTimeFromCurrent(
+				previousLocation,
+				place.Location.ToGeoLocation(),
+				80.0,
+			))
+			if (timeInPlan + category.EstimatedStayDuration + trip_time) > free_time {
+				break
+			}
 			placesInPlan = append(placesInPlan, models.Place{
 				Name:                  place.Name,
 				Photos:                photos,
@@ -137,12 +148,8 @@ func (s PlanService) CreatePlanByLocation(
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
-			timeInPlan += uint16(s.travelTimeFromCurrent(
-				previousLocation,
-				place.Location.ToGeoLocation(),
-				80.0,
-			))
-			timeInPlan += category.EstimatedStayDuration
+
+			timeInPlan += category.EstimatedStayDuration + trip_time
 
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 			previousLocation = place.Location.ToGeoLocation()
