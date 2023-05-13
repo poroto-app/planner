@@ -28,7 +28,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
-		uint16(*input.FreeTime))
+		input.FreeTime)
 	if err != nil {
 		log.Println(err)
 	}

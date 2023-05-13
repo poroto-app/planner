@@ -29,7 +29,7 @@ func NewPlanService() (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
-	freeTime uint16,
+	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
@@ -136,7 +136,7 @@ func (s PlanService) CreatePlanByLocation(
 				place.Location.ToGeoLocation(),
 				80.0,
 			))
-			if freeTime != 0 && (timeInPlan+category.EstimatedStayDuration+tripTime) > freeTime {
+			if freeTime != nil && (timeInPlan+category.EstimatedStayDuration+tripTime) > uint16(*freeTime) {
 				break
 			}
 			placesInPlan = append(placesInPlan, models.Place{
