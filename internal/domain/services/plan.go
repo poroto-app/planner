@@ -29,11 +29,8 @@ func NewPlanService() (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
-	input_time int,
+	freeTime uint16,
 ) (*[]models.Plan, error) {
-	// MEMO: プラン時間の指定は必ずされるものと仮定
-	// MEMO: プラン時間のデフォルトはporoto.appの方で実装？
-	free_time := uint16(input_time)
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
 			Latitude:  location.Latitude,
@@ -134,12 +131,12 @@ func (s PlanService) CreatePlanByLocation(
 				photos = append(photos, photo.ImageUrl)
 			}
 
-			trip_time := uint16(s.travelTimeFromCurrent(
+			tripTime := uint16(s.travelTimeFromCurrent(
 				previousLocation,
 				place.Location.ToGeoLocation(),
 				80.0,
 			))
-			if (timeInPlan + category.EstimatedStayDuration + trip_time) > free_time {
+			if freeTime != 0 && (timeInPlan+category.EstimatedStayDuration+tripTime) > freeTime {
 				break
 			}
 			placesInPlan = append(placesInPlan, models.Place{
@@ -150,7 +147,7 @@ func (s PlanService) CreatePlanByLocation(
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
 
-			timeInPlan += category.EstimatedStayDuration + trip_time
+			timeInPlan += category.EstimatedStayDuration + tripTime
 
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 			previousLocation = place.Location.ToGeoLocation()
