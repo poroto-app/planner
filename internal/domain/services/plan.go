@@ -131,11 +131,11 @@ func (s PlanService) CreatePlanByLocation(
 				photos = append(photos, photo.ImageUrl)
 			}
 
-			tripTime := uint16(s.travelTimeFromCurrent(
+			tripTime := s.travelTimeBetween(
 				previousLocation,
 				place.Location.ToGeoLocation(),
 				80.0,
-			))
+			)
 			if freeTime != nil && (timeInPlan+category.EstimatedStayDuration+tripTime) > uint16(*freeTime) {
 				break
 			}
@@ -282,15 +282,15 @@ func (s PlanService) filterWithinDistanceRange(
 	return placesWithInDistance
 }
 
-func (s PlanService) travelTimeFromCurrent(
-	currentLocation models.GeoLocation,
-	targetLocation models.GeoLocation,
+func (s PlanService) travelTimeBetween(
+	locationDeparture models.GeoLocation,
+	locationDestination models.GeoLocation,
 	meterPerMinutes float64,
-) float64 {
-	timeInMinutes := 0.0
-	distance := currentLocation.DistanceInMeter(targetLocation)
+) uint16 {
+	var timeInMinutes uint16 = 0
+	distance := locationDeparture.DistanceInMeter(locationDestination)
 	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = distance / meterPerMinutes
+		timeInMinutes = uint16(distance / meterPerMinutes)
 	}
 	return timeInMinutes
 }
