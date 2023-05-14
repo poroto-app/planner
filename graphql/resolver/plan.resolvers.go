@@ -33,8 +33,14 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
+	session := uuid.New().String()
+
+	if err := service.CachePlanCandidate(session, *plans); err != nil {
+		log.Println("error while caching plan candidate: ", err)
+	}
+
 	return &model.CreatePlanByLocationOutput{
-		Session: uuid.New().String(),
+		Session: session,
 		Plans:   plansFromDomainModel(plans),
 	}, nil
 }
@@ -72,8 +78,26 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
+	planService, err := services.NewPlanService()
+	if err != nil {
+		log.Println("error while initializing places api: ", err)
+		return nil, err
+	}
+
+	planCandidate, err := planService.FindPlanCandidate(input.Session)
+	if err != nil {
+		log.Println("error while finding plan candidate: ", err)
+		return nil, err
+	}
+
+	if planCandidate == nil {
+		return &model.CachedCreatedPlans{
+			Plans: nil,
+		}, nil
+	}
+
 	return &model.CachedCreatedPlans{
-		Plans: nil,
+		Plans: plansFromDomainModel(&planCandidate.Plans),
 	}, nil
 }
 
