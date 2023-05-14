@@ -18,8 +18,8 @@ func (p *PlanCandidateInMemoryRepository) Save(planCandidate *models.PlanCandida
 	return nil
 }
 
-func (p *PlanCandidateInMemoryRepository) Find(planCandidateId *models.PlanCandidate) (*models.PlanCandidate, error) {
-	if candidate, ok := data[planCandidateId.Id]; ok {
+func (p *PlanCandidateInMemoryRepository) Find(planCandidateId string) (*models.PlanCandidate, error) {
+	if candidate, ok := data[planCandidateId]; ok {
 		return candidate, nil
 	}
 	return nil, nil
