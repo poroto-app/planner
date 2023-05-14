@@ -9,11 +9,14 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/infrastructure/inmemory"
 )
 
 type PlanService struct {
-	placesApi places.PlacesApi
+	placesApi               places.PlacesApi
+	planCandidateRepository repository.PlanCandidateRepository
 }
 
 func NewPlanService() (*PlanService, error) {
@@ -21,8 +24,12 @@ func NewPlanService() (*PlanService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
+
+	planCandidateRepository := inmemory.NewPlanCandidateRepository()
+
 	return &PlanService{
-		placesApi: *placesApi,
+		placesApi:               *placesApi,
+		planCandidateRepository: planCandidateRepository,
 	}, err
 }
 
