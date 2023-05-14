@@ -17,6 +17,7 @@ import (
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
+	// TODO: エラー時は処理を停止させる
 	service, err := services.NewPlanService()
 	if err != nil {
 		log.Println(err)
@@ -32,32 +33,9 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	retPlans := make([]*model.Plan, 0)
-	for _, plan := range *plans {
-		places := make([]*model.Place, 0)
-		for _, place := range plan.Places {
-			places = append(places, &model.Place{
-				Name:   place.Name,
-				Photos: place.Photos,
-				Location: &model.GeoLocation{
-					Latitude:  place.Location.Latitude,
-					Longitude: place.Location.Longitude,
-				},
-				EstimatedStayDuration: int(place.EstimatedStayDuration),
-			})
-		}
-
-		retPlans = append(retPlans, &model.Plan{
-			ID:            plan.Id,
-			Name:          plan.Name,
-			Places:        places,
-			TimeInMinutes: int(plan.TimeInMinutes),
-		})
-	}
 	return &model.CreatePlanByLocationOutput{
-		// TODO: Sessionと作成したプランを紐付けて保存する
 		Session: uuid.New().String(),
-		Plans:   retPlans,
+		Plans:   plansFromDomainModel(plans),
 	}, nil
 }
 
@@ -97,4 +75,32 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	return &model.CachedCreatedPlans{
 		Plans: nil,
 	}, nil
+}
+
+func plansFromDomainModel(plans *[]models.Plan) []*model.Plan {
+	graphqlPlans := make([]*model.Plan, 0)
+
+	for _, plan := range *plans {
+		places := make([]*model.Place, 0)
+		for _, place := range plan.Places {
+			places = append(places, &model.Place{
+				Name:   place.Name,
+				Photos: place.Photos,
+				Location: &model.GeoLocation{
+					Latitude:  place.Location.Latitude,
+					Longitude: place.Location.Longitude,
+				},
+				EstimatedStayDuration: int(place.EstimatedStayDuration),
+			})
+		}
+
+		graphqlPlans = append(graphqlPlans, &model.Plan{
+			ID:            plan.Id,
+			Name:          plan.Name,
+			Places:        places,
+			TimeInMinutes: int(plan.TimeInMinutes),
+		})
+	}
+
+	return graphqlPlans
 }
