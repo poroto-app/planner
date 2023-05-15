@@ -7,5 +7,5 @@ type Place struct {
 	Location              GeoLocation `json:"location"`
 	Thumbnail             *string     `json:"thumbnail"`
 	Photos                []string    `json:"photos"`
-	EstimatedStayDuration uint16      `json:"estimated_stay_duration"`
+	EstimatedStayDuration uint        `json:"estimated_stay_duration"`
 }

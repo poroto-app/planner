@@ -94,7 +94,7 @@ func (s PlanService) CreatePlanByLocation(
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
 		previousLocation := location
-		var timeInPlan uint16 = 0
+		var timeInPlan uint = 0
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
@@ -136,7 +136,7 @@ func (s PlanService) CreatePlanByLocation(
 				place.Location.ToGeoLocation(),
 				80.0,
 			)
-			if freeTime != nil && (timeInPlan+category.EstimatedStayDuration+tripTime) > uint16(*freeTime) {
+			if freeTime != nil && (timeInPlan+category.EstimatedStayDuration+tripTime) > uint(*freeTime) {
 				break
 			}
 			placesInPlan = append(placesInPlan, models.Place{
@@ -286,11 +286,11 @@ func (s PlanService) travelTimeBetween(
 	locationDeparture models.GeoLocation,
 	locationDestination models.GeoLocation,
 	meterPerMinutes float64,
-) uint16 {
-	var timeInMinutes uint16 = 0
+) uint {
+	var timeInMinutes uint = 0
 	distance := locationDeparture.DistanceInMeter(locationDestination)
 	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = uint16(distance / meterPerMinutes)
+		timeInMinutes = uint(distance / meterPerMinutes)
 	}
 	return timeInMinutes
 }
