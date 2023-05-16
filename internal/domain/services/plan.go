@@ -136,7 +136,8 @@ func (s PlanService) CreatePlanByLocation(
 				place.Location.ToGeoLocation(),
 				80.0,
 			)
-			if freeTime != nil && (timeInPlan+category.EstimatedStayDuration+tripTime) > uint(*freeTime) {
+			timeInPlace := category.EstimatedStayDuration + tripTime
+			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 				break
 			}
 			placesInPlan = append(placesInPlan, models.Place{
@@ -146,9 +147,7 @@ func (s PlanService) CreatePlanByLocation(
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
-
-			timeInPlan += category.EstimatedStayDuration + tripTime
-
+			timeInPlan += timeInPlace
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 			previousLocation = place.Location.ToGeoLocation()
 		}
