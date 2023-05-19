@@ -52,6 +52,7 @@ input CreatePlanByLocationInput {
     longitude: Float!
     # ユーザーの興味をOptionalなパラメータとして渡す
     categories: [String!]
+    freeTime: Int
 }
 
 type CreatePlanByLocationOutput {

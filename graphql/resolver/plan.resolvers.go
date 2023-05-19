@@ -29,7 +29,8 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
-		})
+		},
+		input.FreeTime)
 	if err != nil {
 		log.Println(err)
 	}
