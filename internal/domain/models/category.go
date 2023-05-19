@@ -7,7 +7,7 @@ type LocationCategory struct {
 	DisplayName           string
 	SubCategories         []string
 	Photo                 string
-	EstimatedStayDuration uint16
+	EstimatedStayDuration uint
 }
 
 var (

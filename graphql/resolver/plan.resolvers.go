@@ -10,6 +10,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"poroto.app/poroto/planner/graphql/factory"
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services"
@@ -17,6 +18,7 @@ import (
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
+	// TODO: エラー時は処理を停止させる
 	service, err := services.NewPlanService()
 	if err != nil {
 		log.Println(err)
@@ -27,37 +29,21 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
-		})
+		},
+		input.FreeTime)
 	if err != nil {
 		log.Println(err)
 	}
 
-	retPlans := make([]*model.Plan, 0)
-	for _, plan := range *plans {
-		places := make([]*model.Place, 0)
-		for _, place := range plan.Places {
-			places = append(places, &model.Place{
-				Name:   place.Name,
-				Photos: place.Photos,
-				Location: &model.GeoLocation{
-					Latitude:  place.Location.Latitude,
-					Longitude: place.Location.Longitude,
-				},
-				EstimatedStayDuration: int(place.EstimatedStayDuration),
-			})
-		}
+	session := uuid.New().String()
 
-		retPlans = append(retPlans, &model.Plan{
-			ID:            plan.Id,
-			Name:          plan.Name,
-			Places:        places,
-			TimeInMinutes: int(plan.TimeInMinutes),
-		})
+	if err := service.CachePlanCandidate(session, *plans); err != nil {
+		log.Println("error while caching plan candidate: ", err)
 	}
+
 	return &model.CreatePlanByLocationOutput{
-		// TODO: Sessionと作成したプランを紐付けて保存する
-		Session: uuid.New().String(),
-		Plans:   retPlans,
+		Session: session,
+		Plans:   factory.PlansFromDomainModel(plans),
 	}, nil
 }
 
@@ -94,7 +80,25 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
+	planService, err := services.NewPlanService()
+	if err != nil {
+		log.Println("error while initializing places api: ", err)
+		return nil, err
+	}
+
+	planCandidate, err := planService.FindPlanCandidate(input.Session)
+	if err != nil {
+		log.Println("error while finding plan candidate: ", err)
+		return nil, err
+	}
+
+	if planCandidate == nil {
+		return &model.CachedCreatedPlans{
+			Plans: nil,
+		}, nil
+	}
+
 	return &model.CachedCreatedPlans{
-		Plans: nil,
+		Plans: factory.PlansFromDomainModel(&planCandidate.Plans),
 	}, nil
 }

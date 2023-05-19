@@ -9,11 +9,14 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/infrastructure/inmemory"
 )
 
 type PlanService struct {
-	placesApi places.PlacesApi
+	placesApi               places.PlacesApi
+	planCandidateRepository repository.PlanCandidateRepository
 }
 
 func NewPlanService() (*PlanService, error) {
@@ -21,14 +24,19 @@ func NewPlanService() (*PlanService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
+
+	planCandidateRepository := inmemory.NewPlanCandidateRepository()
+
 	return &PlanService{
-		placesApi: *placesApi,
+		placesApi:               *placesApi,
+		planCandidateRepository: planCandidateRepository,
 	}, err
 }
 
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
+	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
@@ -93,7 +101,7 @@ func (s PlanService) CreatePlanByLocation(
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
 		previousLocation := location
-		var timeInPlan uint16 = 0
+		var timeInPlan uint = 0
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
@@ -130,6 +138,15 @@ func (s PlanService) CreatePlanByLocation(
 				photos = append(photos, photo.ImageUrl)
 			}
 
+			tripTime := s.travelTimeBetween(
+				previousLocation,
+				place.Location.ToGeoLocation(),
+				80.0,
+			)
+			timeInPlace := category.EstimatedStayDuration + tripTime
+			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
+				break
+			}
 			placesInPlan = append(placesInPlan, models.Place{
 				Name:                  place.Name,
 				Photos:                photos,
@@ -137,13 +154,7 @@ func (s PlanService) CreatePlanByLocation(
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
-			timeInPlan += uint16(s.travelTimeFromCurrent(
-				previousLocation,
-				place.Location.ToGeoLocation(),
-				80.0,
-			))
-			timeInPlan += category.EstimatedStayDuration
-
+			timeInPlan += timeInPlace
 			categoriesInPlan = append(categoriesInPlan, place.Types[0])
 			previousLocation = place.Location.ToGeoLocation()
 		}
@@ -277,15 +288,15 @@ func (s PlanService) filterWithinDistanceRange(
 	return placesWithInDistance
 }
 
-func (s PlanService) travelTimeFromCurrent(
-	currentLocation models.GeoLocation,
-	targetLocation models.GeoLocation,
+func (s PlanService) travelTimeBetween(
+	locationDeparture models.GeoLocation,
+	locationDestination models.GeoLocation,
 	meterPerMinutes float64,
-) float64 {
-	timeInMinutes := 0.0
-	distance := currentLocation.DistanceInMeter(targetLocation)
+) uint {
+	var timeInMinutes uint = 0
+	distance := locationDeparture.DistanceInMeter(locationDestination)
 	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = distance / meterPerMinutes
+		timeInMinutes = uint(distance / meterPerMinutes)
 	}
 	return timeInMinutes
 }
