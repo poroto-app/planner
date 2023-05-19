@@ -25,7 +25,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 90,
 	}
 
 	CategoryBook = LocationCategory{
@@ -50,7 +50,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 60,
 	}
 
 	CategoryCamp = LocationCategory{
@@ -63,7 +63,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 300,
 	}
 
 	CategoryCulture = LocationCategory{
@@ -77,7 +77,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 90,
 	}
 
 	CategoryNatural = LocationCategory{
@@ -90,7 +90,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 120,
 	}
 
 	CategoryPark = LocationCategory{
@@ -119,7 +119,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 60,
 	}
 
 	CategoryShopping = LocationCategory{
@@ -138,7 +138,7 @@ var (
 		// TODO: implement me!
 		Photo: "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
 		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 60,
 	}
 )
 
