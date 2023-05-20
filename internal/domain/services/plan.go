@@ -11,7 +11,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
-	"poroto.app/poroto/planner/internal/infrastructure/inmemory"
+	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
 type PlanService struct {
@@ -25,7 +25,10 @@ func NewPlanService() (*PlanService, error) {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
 
-	planCandidateRepository := inmemory.NewPlanCandidateRepository()
+	planCandidateRepository, err := firestore.NewPlanCandidateRepository(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
 	return &PlanService{
 		placesApi:               *placesApi,
