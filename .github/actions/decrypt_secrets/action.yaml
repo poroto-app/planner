@@ -7,6 +7,9 @@ inputs:
   gh_personal_access_token:
     description: 'Github Personal Access Token'
     required: true
+  environment:
+    description: "Deployment environment"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -25,4 +28,4 @@ runs:
 
     - name: Decrypt secrets
       shell: bash
-      run: sh scripts/decrypt.sh
+      run: bash scripts/decrypt.sh ${{ inputs.environment }}
