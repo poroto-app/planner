@@ -30,17 +30,17 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 	}, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) Save(planCandidate *models.PlanCandidate) error {
+func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandidate *models.PlanCandidate) error {
 	doc := p.doc(planCandidate.Id)
-	if _, err := doc.Set(context.Background(), entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
+	if _, err := doc.Set(ctx, entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
 		return fmt.Errorf("error while saving plan candidate: %v", err)
 	}
 	return nil
 }
 
-func (p *PlanCandidateFirestoreRepository) Find(planCandidateId string) (*models.PlanCandidate, error) {
+func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
 	doc := p.doc(planCandidateId)
-	snapshot, err := doc.Get(context.Background())
+	snapshot, err := doc.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
 	}

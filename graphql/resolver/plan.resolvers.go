@@ -37,7 +37,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 	session := uuid.New().String()
 
-	if err := service.CachePlanCandidate(session, *plans); err != nil {
+	if err := service.CachePlanCandidate(ctx, session, *plans); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -86,7 +86,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 		return nil, err
 	}
 
-	planCandidate, err := planService.FindPlanCandidate(input.Session)
+	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
 	if err != nil {
 		log.Println("error while finding plan candidate: ", err)
 		return nil, err
