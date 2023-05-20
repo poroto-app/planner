@@ -3,10 +3,11 @@ package entity
 import "poroto.app/poroto/planner/internal/domain/models"
 
 type PlanEntity struct {
-	Id            string        `firestore:"id"`
-	Name          string        `firestore:"name"`
-	Places        []PlaceEntity `firestore:"places"`
-	TimeInMinutes uint          `firestore:"time_in_minutes"`
+	Id     string        `firestore:"id"`
+	Name   string        `firestore:"name"`
+	Places []PlaceEntity `firestore:"places"`
+	// MEMO: Firestoreではuintをサポートしていないため，intにしている
+	TimeInMinutes int `firestore:"time_in_minutes"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
@@ -19,7 +20,7 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		Id:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
-		TimeInMinutes: plan.TimeInMinutes,
+		TimeInMinutes: int(plan.TimeInMinutes),
 	}
 }
 
@@ -33,6 +34,6 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		Id:            entity.Id,
 		Name:          entity.Name,
 		Places:        places,
-		TimeInMinutes: entity.TimeInMinutes,
+		TimeInMinutes: uint(entity.TimeInMinutes),
 	}
 }
