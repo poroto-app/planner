@@ -36,13 +36,13 @@ fi
 
 case "$env" in
 "development")
-  secrets_variable=("secrets/google-credential.json.dev")
+  secrets_variable=("secrets/google-credential.json")
   ;;
 "staging")
-  secrets_variable=("secrets/google-credential.json.stg")
+  secrets_variable=("secrets/google-credential.json")
   ;;
 "production")
-  secrets_variable=("secrets/google-credential.json.prd")
+  secrets_variable=("secrets/google-credential.json")
   ;;
 esac
 
