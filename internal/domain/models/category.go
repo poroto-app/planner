@@ -119,6 +119,7 @@ var (
 			"meal_delivery",
 			"meal_takeaway",
 		},
+		// TODO: implement me!
 		Photo:                 "https://placehold.jp/1d7187/ffffff/300x500.png?text=quick%0Aservice%0Arestaurant",
 		EstimatedStayDuration: 30,
 	}
