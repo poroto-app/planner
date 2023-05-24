@@ -23,9 +23,8 @@ var (
 			"stadium",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
+		EstimatedStayDuration: 90,
 	}
 
 	CategoryBook = LocationCategory{
@@ -36,8 +35,7 @@ var (
 			"library",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
-		// TODO: implement me!
+		Photo:                 "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
 		EstimatedStayDuration: 30,
 	}
 
@@ -48,9 +46,8 @@ var (
 			"cafe",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
+		EstimatedStayDuration: 60,
 	}
 
 	CategoryCamp = LocationCategory{
@@ -61,9 +58,8 @@ var (
 			"rv_park",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
+		EstimatedStayDuration: 300,
 	}
 
 	CategoryCulture = LocationCategory{
@@ -75,9 +71,8 @@ var (
 			"tourist_attraction",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
+		EstimatedStayDuration: 90,
 	}
 
 	CategoryNatural = LocationCategory{
@@ -88,9 +83,8 @@ var (
 			"zoo",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
+		EstimatedStayDuration: 120,
 	}
 
 	CategoryPark = LocationCategory{
@@ -100,8 +94,7 @@ var (
 			"park",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/fbff00/ffffff/300x500.png?text=park",
-		// TODO: implement me!
+		Photo:                 "https://placehold.jp/fbff00/ffffff/300x500.png?text=park",
 		EstimatedStayDuration: 30,
 	}
 
@@ -113,12 +106,20 @@ var (
 			"bar",
 			"food",
 			"restaurant",
-			"meal_delivery",
+		},
+		// TODO: implement me!
+		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
+		EstimatedStayDuration: 60,
+	}
+
+	CategoryMealTakeaway = LocationCategory{
+		Name:        "meal_takeaway",
+		DisplayName: "テイクアウト",
+		SubCategories: []string{
 			"meal_takeaway",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
-		// TODO: implement me!
+		Photo:                 "https://placehold.jp/1d7187/ffffff/300x500.png?text=quick%0Aservice%0Arestaurant",
 		EstimatedStayDuration: 30,
 	}
 
@@ -136,9 +137,8 @@ var (
 			"store",
 		},
 		// TODO: implement me!
-		Photo: "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
-		// TODO: implement me!
-		EstimatedStayDuration: 30,
+		Photo:                 "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
+		EstimatedStayDuration: 60,
 	}
 )
 
