@@ -4,3 +4,6 @@
 
 # dot env
 .env.local
+
+# secrets
+secrets
