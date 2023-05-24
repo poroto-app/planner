@@ -19,13 +19,13 @@ type PlanService struct {
 	planCandidateRepository repository.PlanCandidateRepository
 }
 
-func NewPlanService() (*PlanService, error) {
+func NewPlanService(ctx context.Context) (*PlanService, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
 
-	planCandidateRepository, err := firestore.NewPlanCandidateRepository(context.Background())
+	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
 	if err != nil {
 		return nil, err
 	}

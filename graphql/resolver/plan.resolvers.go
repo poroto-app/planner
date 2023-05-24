@@ -19,7 +19,7 @@ import (
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
 	// TODO: エラー時は処理を停止させる
-	service, err := services.NewPlanService()
+	service, err := services.NewPlanService(ctx)
 	if err != nil {
 		log.Println(err)
 	}
@@ -37,7 +37,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 	session := uuid.New().String()
 
-	if err := service.CachePlanCandidate(session, *plans); err != nil {
+	if err := service.CachePlanCandidate(ctx, session, *plans); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -49,7 +49,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	planService, err := services.NewPlanService()
+	planService, err := services.NewPlanService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
@@ -80,13 +80,13 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := services.NewPlanService()
+	planService, err := services.NewPlanService(ctx)
 	if err != nil {
 		log.Println("error while initializing places api: ", err)
 		return nil, err
 	}
 
-	planCandidate, err := planService.FindPlanCandidate(input.Session)
+	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
 	if err != nil {
 		log.Println("error while finding plan candidate: ", err)
 		return nil, err
