@@ -27,14 +27,36 @@ go mod tidy
 
 ### シークレットの復元
 
-- `plannner API`で使用するシークレットは[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理されています
-- `scipts/decrypt.sh`
-  を実行することで復元できます（※ [事前に gcloud をインストールする必要があります](https://cloud.google.com/sdk/docs/install?hl=ja)）
+`plannnr API`で使用するシークレットは[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理されています
 
+1. gcloudコマンドをインストール
+  参照： [gcloud CLI をインストールする](/https://cloud.google.com/sdk/docs/install)
+2. Google Cloud porotoプロジェクトを操作する権利があるアカウントにログイン
+   ```sh
+   gcloud auth login
+   ```
+3. 復号化スクリプトを実行
+    ```sh
+    scripts/decrypt.sh
+    ```
 ### シークレット（.env.local等）変更時
+暗号化し、[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理してください
 
-- 暗号化し、[poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)で管理してください
-- `scripts/encrypt.sh` を実行することで暗号化できます
+1. [poroto-app/infrastructure](https://github.com/poroto-app/infrastructure)を以下の場所にclone
+    ```sh
+    - your_dir_of_poroto
+      - planner
+      - infrastructure
+    ```
+2. Google Cloud porotoプロジェクトを操作する権利があるアカウントにログイン
+   ```sh
+   gcloud auth login
+   ```
+3. 暗号化スクリプトを実行
+    ```sh
+    scripts/encrypt.sh
+    ```
+4. infrastructureリポジトリの変更をコミット
 
 ## 開発思想
 
