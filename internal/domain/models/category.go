@@ -112,11 +112,10 @@ var (
 		EstimatedStayDuration: 60,
 	}
 
-	CategoryQuickServiceRestaurant = LocationCategory{
-		Name:        "quick_service_restaurant",
-		DisplayName: "クイック・サービス・レストラン",
+	CategoryMealTakeaway = LocationCategory{
+		Name:        "meal_takeaway",
+		DisplayName: "テイクアウト",
 		SubCategories: []string{
-			"meal_delivery",
 			"meal_takeaway",
 		},
 		// TODO: implement me!
