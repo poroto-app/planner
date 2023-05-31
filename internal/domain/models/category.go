@@ -149,6 +149,21 @@ var (
 	}
 )
 
+func GetCategoryToFilter() []LocationCategory {
+	return []LocationCategory{
+		CategoryAmusements,
+		CategoryBookStore,
+		CategoryCamp,
+		CategoryCafe,
+		CategoryCulture,
+		CategoryLibrary,
+		CategoryNatural,
+		CategoryPark,
+		CategoryRestaurant,
+		CategoryShopping,
+	}
+}
+
 func GetCategoryOfName(name string) LocationCategory {
 	return map[string]LocationCategory{
 		CategoryAmusements.Name: CategoryAmusements,
