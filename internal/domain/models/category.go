@@ -27,9 +27,9 @@ var (
 		EstimatedStayDuration: 90,
 	}
 
-	CategoryBook = LocationCategory{
-		Name:        "book",
-		DisplayName: "本",
+	CategoryBookStore = LocationCategory{
+		Name:        "book_store",
+		DisplayName: "本屋",
 		SubCategories: []string{
 			"book_store",
 		},
@@ -152,7 +152,7 @@ var (
 func GetCategoryOfName(name string) LocationCategory {
 	return map[string]LocationCategory{
 		CategoryAmusements.Name: CategoryAmusements,
-		CategoryBook.Name:       CategoryBook,
+		CategoryBookStore.Name:  CategoryBookStore,
 		CategoryCafe.Name:       CategoryCafe,
 		CategoryCamp.Name:       CategoryCamp,
 		CategoryCulture.Name:    CategoryCulture,
@@ -167,10 +167,11 @@ func GetCategoryOfName(name string) LocationCategory {
 func CategoryOfSubCategory(subCategory string) *LocationCategory {
 	var allCategory = []LocationCategory{
 		CategoryAmusements,
-		CategoryBook,
+		CategoryBookStore,
 		CategoryCafe,
 		CategoryCamp,
 		CategoryCulture,
+		CategoryLibrary,
 		CategoryNatural,
 		CategoryPark,
 		CategoryRestaurant,

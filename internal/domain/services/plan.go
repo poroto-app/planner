@@ -55,7 +55,7 @@ func (s PlanService) CreatePlanByLocation(
 
 	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
 		models.CategoryAmusements,
-		models.CategoryBook,
+		models.CategoryBookStore,
 		models.CategoryCamp,
 		models.CategoryCafe,
 		models.CategoryCulture,
@@ -194,7 +194,7 @@ func (s PlanService) CategoriesNearLocation(
 
 	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
 		models.CategoryAmusements,
-		models.CategoryBook,
+		models.CategoryBookStore,
 		models.CategoryCamp,
 		models.CategoryCafe,
 		models.CategoryCulture,
