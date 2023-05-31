@@ -32,7 +32,6 @@ var (
 		DisplayName: "本",
 		SubCategories: []string{
 			"book_store",
-			"library",
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
@@ -110,6 +109,14 @@ var (
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
 		EstimatedStayDuration: 60,
+	}
+
+	CategoryLibrary = LocationCategory{
+		Name:                  "library",
+		DisplayName:           "図書館",
+		SubCategories:         []string{"library"},
+		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryMealTakeaway = LocationCategory{
