@@ -9,17 +9,22 @@ func TestGetCategoryOfName(t *testing.T) {
 	cases := []struct {
 		name         string
 		categoryName string
-		expected     LocationCategory
+		expected     *LocationCategory
 	}{
 		{
 			name:         "The category of amusements is CategoryAmusements",
 			categoryName: "amusements",
-			expected:     CategoryAmusements,
+			expected:     &CategoryAmusements,
 		},
 		{
 			name:         "The category of restaurant is CategoryRestaurant",
 			categoryName: "restaurant",
-			expected:     CategoryRestaurant,
+			expected:     &CategoryRestaurant,
+		},
+		{
+			name:         "The category does not exist",
+			categoryName: "not_exist",
+			expected:     nil,
 		},
 	}
 

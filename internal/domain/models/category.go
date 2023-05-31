@@ -164,36 +164,36 @@ func GetCategoryToFilter() []LocationCategory {
 	}
 }
 
-func GetCategoryOfName(name string) LocationCategory {
-	return map[string]LocationCategory{
-		CategoryAmusements.Name: CategoryAmusements,
-		CategoryBookStore.Name:  CategoryBookStore,
-		CategoryCafe.Name:       CategoryCafe,
-		CategoryCamp.Name:       CategoryCamp,
-		CategoryCulture.Name:    CategoryCulture,
-		CategoryNatural.Name:    CategoryNatural,
-		CategoryPark.Name:       CategoryPark,
-		CategoryRestaurant.Name: CategoryRestaurant,
-		CategoryShopping.Name:   CategoryShopping,
-	}[name]
-}
-
-// SubCategory がどの大カテゴリに所属するか
-func CategoryOfSubCategory(subCategory string) *LocationCategory {
-	var allCategory = []LocationCategory{
+func getAllCategories() []LocationCategory {
+	return []LocationCategory{
 		CategoryAmusements,
 		CategoryBookStore,
 		CategoryCafe,
 		CategoryCamp,
 		CategoryCulture,
-		CategoryLibrary,
 		CategoryNatural,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
 	}
+}
 
-	for _, category := range allCategory {
+// GetCategoryOfName name に対応する LocationCategory を返す
+// name が見つからない場合は nil を返す
+// NOTE: category の値が上書きされないようにコピーを渡している
+func GetCategoryOfName(name string) *LocationCategory {
+	for _, category := range getAllCategories() {
+		if category.Name == name {
+			c := category
+			return &c
+		}
+	}
+	return nil
+}
+
+// CategoryOfSubCategory SubCategory がどの大カテゴリに所属するか
+func CategoryOfSubCategory(subCategory string) *LocationCategory {
+	for _, category := range getAllCategories() {
 		if array.IsContain(category.SubCategories, subCategory) {
 			return &category
 		}
