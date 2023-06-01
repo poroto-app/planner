@@ -54,4 +54,5 @@ type Plan struct {
 	Name          string   `json:"name"`
 	Places        []*Place `json:"places"`
 	TimeInMinutes int      `json:"timeInMinutes"`
+	Description   *string  `json:"description,omitempty"`
 }
