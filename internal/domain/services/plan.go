@@ -53,17 +53,7 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
-		models.CategoryAmusements,
-		models.CategoryBook,
-		models.CategoryCamp,
-		models.CategoryCafe,
-		models.CategoryCulture,
-		models.CategoryNatural,
-		models.CategoryPark,
-		models.CategoryRestaurant,
-		models.CategoryShopping,
-	})
+	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
@@ -192,17 +182,7 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, []models.LocationCategory{
-		models.CategoryAmusements,
-		models.CategoryBook,
-		models.CategoryCamp,
-		models.CategoryCafe,
-		models.CategoryCulture,
-		models.CategoryNatural,
-		models.CategoryPark,
-		models.CategoryRestaurant,
-		models.CategoryShopping,
-	})
+	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
@@ -237,8 +217,12 @@ func (s PlanService) CategoriesNearLocation(
 	categories := make([]models.LocationCategory, 0)
 	for categoryName, categoryPhoto := range categoryPhotos {
 		category := models.GetCategoryOfName(categoryName)
+		if category == nil {
+			continue
+		}
+
 		category.Photo = categoryPhoto
-		categories = append(categories, category)
+		categories = append(categories, *category)
 	}
 
 	return categories, nil
