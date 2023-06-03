@@ -47,23 +47,19 @@ func (s PlanService) CategoriesNearLocation(
 		})
 
 		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
-		var placePhoto *places.PlacePhoto
 		for _, place := range placesNotUsedInOtherCategory {
-			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
+			placePhoto, err := s.placesApi.FetchPlacePhoto(place, nil)
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
 				continue
 			}
 			if placePhoto != nil {
-				placePhoto = photo
+				category.Photo = placePhoto.ImageUrl
 				placesUsedOfCategory = append(placesUsedOfCategory, place)
 				break
 			}
 		}
 
-		if placePhoto != nil {
-			category.Photo = placePhoto.ImageUrl
-		}
 		categories = append(categories, *category)
 	}
 
