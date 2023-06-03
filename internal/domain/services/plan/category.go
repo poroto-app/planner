@@ -39,15 +39,16 @@ func (s PlanService) CategoriesNearLocation(
 			continue
 		}
 
-		var placePhoto *places.PlacePhoto
-		for _, place := range categoryPlaces.places {
-			didUsedInOtherCategory := len(s.filterPlaces(placesUsedOfCategory, func(compare places.Place) bool {
+		// すでに他のカテゴリで利用した場所は利用しない
+		placesNotUsedInOtherCategory := s.filterPlaces(categoryPlaces.places, func(place places.Place) bool {
+			return s.findPlace(placesUsedOfCategory, func(compare places.Place) bool {
 				return compare.PlaceID == place.PlaceID
-			})) != 0
-			if didUsedInOtherCategory {
-				continue
-			}
+			}) == nil
+		})
 
+		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
+		var placePhoto *places.PlacePhoto
+		for _, place := range placesNotUsedInOtherCategory {
 			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
