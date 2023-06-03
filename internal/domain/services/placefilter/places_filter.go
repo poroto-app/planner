@@ -24,12 +24,14 @@ func (f PlacesFilter) Places() []places.Place {
 	return f.placesToFilter
 }
 
-func (f PlacesFilter) filterPlaces(filterFunc func(place places.Place) bool) []places.Place {
+func (f PlacesFilter) FilterPlaces(filterFunc func(place places.Place) bool) PlacesFilter {
 	var values []places.Place
 	for _, place := range f.placesToFilter {
 		if filterFunc(place) {
 			values = append(values, place)
 		}
 	}
-	return values
+	return PlacesFilter{
+		placesToFilter: values,
+	}
 }

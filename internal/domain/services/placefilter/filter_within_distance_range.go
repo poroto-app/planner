@@ -10,9 +10,8 @@ func (f PlacesFilter) FilterWithinDistanceRange(
 	startInMeter float64,
 	endInMeter float64,
 ) PlacesFilter {
-	f.placesToFilter = f.filterPlaces(func(place places.Place) bool {
+	return f.FilterPlaces(func(place places.Place) bool {
 		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
 		return startInMeter <= distance && distance < endInMeter
 	})
-	return f
 }

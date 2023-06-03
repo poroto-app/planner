@@ -12,7 +12,7 @@ func (f PlacesFilter) FilterByCategory(categories []models.LocationCategory) Pla
 		subCategories = append(subCategories, category.SubCategories...)
 	}
 
-	f.placesToFilter = f.filterPlaces(func(place places.Place) bool {
+	return f.FilterPlaces(func(place places.Place) bool {
 		for _, category := range place.Types {
 			if array.IsContain(subCategories, category) {
 				return true
@@ -20,6 +20,4 @@ func (f PlacesFilter) FilterByCategory(categories []models.LocationCategory) Pla
 		}
 		return false
 	})
-
-	return f
 }
