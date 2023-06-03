@@ -15,12 +15,12 @@ func (s PlanService) filterByCategory(
 		categoriesSlice = append(categoriesSlice, category.SubCategories...)
 	}
 
-	var placesInCategory []places.Place
-	for _, place := range placesToFilter {
-		if array.HasIntersection(place.Types, categoriesSlice) {
-			placesInCategory = append(placesInCategory, place)
+	return s.filterPlaces(placesToFilter, func(place places.Place) bool {
+		for _, category := range place.Types {
+			if array.IsContain(categoriesSlice, category) {
+				return true
+			}
 		}
-	}
-
-	return placesInCategory
+		return false
+	})
 }
