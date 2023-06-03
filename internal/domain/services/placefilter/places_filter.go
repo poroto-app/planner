@@ -14,12 +14,6 @@ func NewPlacesFilter(placesToFilter []places.Place) PlacesFilter {
 	}
 }
 
-func (f PlacesFilter) Copy() PlacesFilter {
-	return PlacesFilter{
-		placesToFilter: f.placesToFilter,
-	}
-}
-
 func (f PlacesFilter) Places() []places.Place {
 	return f.placesToFilter
 }
