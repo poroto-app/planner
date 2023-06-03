@@ -37,7 +37,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 	session := uuid.New().String()
 
-	if err := service.CachePlanCandidate(ctx, session, *plans); err != nil {
+	if err := service.CachePlanCandidate(ctx, session, *plans, true); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
