@@ -52,6 +52,7 @@ func (s PlanService) CategoriesNearLocation(
 			categoryPhotos[category.Name] = category.Photo
 			if photo != nil {
 				categoryPhotos[category.Name] = photo.ImageUrl
+				break
 			}
 		}
 	}
@@ -68,4 +69,39 @@ func (s PlanService) CategoriesNearLocation(
 	}
 
 	return categories, nil
+}
+
+type groupPlacesByCategoryResult struct {
+	category string
+	places   []places.Place
+}
+
+// groupPlacesByCategory は場所をカテゴリごとにグループ化する
+// 同じ場所が複数のカテゴリに含まれることがある
+func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]places.Place, 0)
+	for _, location := range placesToGroup {
+		for _, subCategory := range location.Types {
+			category := models.CategoryOfSubCategory(subCategory)
+			if category == nil {
+				continue
+			}
+
+			if _, ok := locationsGroupByCategory[category.Name]; ok {
+				locationsGroupByCategory[category.Name] = []places.Place{}
+			}
+
+			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], location)
+		}
+	}
+
+	var result []groupPlacesByCategoryResult
+	for category, placesOfCategory := range locationsGroupByCategory {
+		result = append(result, groupPlacesByCategoryResult{
+			category: category,
+			places:   placesOfCategory,
+		})
+	}
+
+	return result
 }
