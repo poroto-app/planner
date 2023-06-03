@@ -9,7 +9,7 @@ type Plan {
 type Place {
     name: String!
     location: GeoLocation!
-    photos: [String!]
+    photos: [String!]!
     estimatedStayDuration: Int!
 }
 
