@@ -37,6 +37,8 @@ extend type Query {
 
 type CachedCreatedPlans {
     plans: [Plan!]
+    # 現在地から作成されたプラン候補か
+    createdFromCurrentLocation: Boolean!
 }
 
 input CachedCreatedPlansInput {
@@ -54,6 +56,12 @@ input CreatePlanByLocationInput {
     # ユーザーの興味をOptionalなパラメータとして渡す
     categories: [String!]
     freeTime: Int
+    # 指定した位置情報をプランに含めるか
+    # examples:
+    #   True    場所を指定してプランを作成した場合
+    #   False   現在地からプランを作成した場合
+    # TODO: 必須パラメータにする
+    includeLocationToPlan: Boolean
 }
 
 type CreatePlanByLocationOutput {
