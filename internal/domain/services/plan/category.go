@@ -32,6 +32,7 @@ func (s PlanService) CategoriesNearLocation(
 
 	// 検索された場所のカテゴリとその写真を取得
 	categories := make([]models.LocationCategory, 0)
+	placesUsedOfCategory := make([]places.Place, 0)
 	for _, categoryPlaces := range groupPlacesByCategory(placesSearched) {
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
@@ -40,12 +41,14 @@ func (s PlanService) CategoriesNearLocation(
 
 		var placePhoto *places.PlacePhoto
 		for _, place := range categoryPlaces.places {
-			placePhoto, err = s.placesApi.FetchPlacePhoto(place, nil)
+			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
 				continue
 			}
 			if placePhoto != nil {
+				placePhoto = photo
+				placesUsedOfCategory = append(placesUsedOfCategory, place)
 				break
 			}
 		}
