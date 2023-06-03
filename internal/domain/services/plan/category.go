@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -46,8 +47,14 @@ func (s PlanService) CategoriesNearLocation(
 			}) == nil
 		})
 
+		// カテゴリと関連の強い場所から順に写真を取得する
+		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
+		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
+			return indexOfCategory(placesSortedByCategoryIndex[i], *category) < indexOfCategory(placesSortedByCategoryIndex[j], *category)
+		})
+
 		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
-		for _, place := range placesNotUsedInOtherCategory {
+		for _, place := range placesSortedByCategoryIndex {
 			placePhoto, err := s.placesApi.FetchPlacePhoto(place, nil)
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
@@ -99,4 +106,15 @@ func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategory
 	}
 
 	return result
+}
+
+// indexOfCategory は places.Place.Types 中の`category`に対応するTypeのインデックスを返す
+func indexOfCategory(place places.Place, category models.LocationCategory) int {
+	for i, placeType := range place.Types {
+		c := models.CategoryOfSubCategory(placeType)
+		if c.Name == category.Name {
+			return i
+		}
+	}
+	return -1
 }
