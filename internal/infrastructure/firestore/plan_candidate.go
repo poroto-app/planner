@@ -7,8 +7,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -44,11 +42,11 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	doc := p.doc(planCandidateId)
 	snapshot, err := doc.Get(ctx)
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, nil
-		}
-
 		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
+	}
+
+	if !snapshot.Exists() {
+		return nil, nil
 	}
 
 	var planCandidateEntity entity.PlanCandidateEntity
