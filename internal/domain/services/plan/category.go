@@ -41,6 +41,13 @@ func (s PlanService) CategoriesNearLocation(
 
 		var placePhoto *places.PlacePhoto
 		for _, place := range categoryPlaces.places {
+			didUsedInOtherCategory := len(s.filterPlaces(placesUsedOfCategory, func(compare places.Place) bool {
+				return compare.PlaceID == place.PlaceID
+			})) != 0
+			if didUsedInOtherCategory {
+				continue
+			}
+
 			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
