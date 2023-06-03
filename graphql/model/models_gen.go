@@ -3,8 +3,8 @@
 package model
 
 type CachedCreatedPlans struct {
-	Plans                      []*Plan `json:"plans,omitempty"`
-	CreatedFromCurrentLocation bool    `json:"createdFromCurrentLocation"`
+	Plans                         []*Plan `json:"plans,omitempty"`
+	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
 }
 
 type CachedCreatedPlansInput struct {
@@ -12,11 +12,11 @@ type CachedCreatedPlansInput struct {
 }
 
 type CreatePlanByLocationInput struct {
-	Latitude              float64  `json:"latitude"`
-	Longitude             float64  `json:"longitude"`
-	Categories            []string `json:"categories,omitempty"`
-	FreeTime              *int     `json:"freeTime,omitempty"`
-	IncludeLocationToPlan *bool    `json:"includeLocationToPlan,omitempty"`
+	Latitude                      float64  `json:"latitude"`
+	Longitude                     float64  `json:"longitude"`
+	Categories                    []string `json:"categories,omitempty"`
+	FreeTime                      *int     `json:"freeTime,omitempty"`
+	CreatedBasedOnCurrentLocation *bool    `json:"createdBasedOnCurrentLocation,omitempty"`
 }
 
 type CreatePlanByLocationOutput struct {

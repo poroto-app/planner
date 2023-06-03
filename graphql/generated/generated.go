@@ -45,8 +45,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CachedCreatedPlans struct {
-		CreatedFromCurrentLocation func(childComplexity int) int
-		Plans                      func(childComplexity int) int
+		CreatedBasedOnCurrentLocation func(childComplexity int) int
+		Plans                         func(childComplexity int) int
 	}
 
 	CreatePlanByLocationOutput struct {
@@ -121,12 +121,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "CachedCreatedPlans.createdFromCurrentLocation":
-		if e.complexity.CachedCreatedPlans.CreatedFromCurrentLocation == nil {
+	case "CachedCreatedPlans.createdBasedOnCurrentLocation":
+		if e.complexity.CachedCreatedPlans.CreatedBasedOnCurrentLocation == nil {
 			break
 		}
 
-		return e.complexity.CachedCreatedPlans.CreatedFromCurrentLocation(childComplexity), true
+		return e.complexity.CachedCreatedPlans.CreatedBasedOnCurrentLocation(childComplexity), true
 
 	case "CachedCreatedPlans.plans":
 		if e.complexity.CachedCreatedPlans.Plans == nil {
@@ -419,8 +419,7 @@ extend type Query {
 
 type CachedCreatedPlans {
     plans: [Plan!]
-    # 現在地から作成されたプラン候補か
-    createdFromCurrentLocation: Boolean!
+    createdBasedOnCurrentLocation: Boolean!
 }
 
 input CachedCreatedPlansInput {
@@ -438,12 +437,9 @@ input CreatePlanByLocationInput {
     # ユーザーの興味をOptionalなパラメータとして渡す
     categories: [String!]
     freeTime: Int
-    # 指定した位置情報をプランに含めるか
-    # examples:
-    #   True    場所を指定してプランを作成した場合
-    #   False   現在地からプランを作成した場合
+    # 現在地から作成されたプランか
     # TODO: 必須パラメータにする
-    includeLocationToPlan: Boolean
+    createdBasedOnCurrentLocation: Boolean
 }
 
 type CreatePlanByLocationOutput {
@@ -640,8 +636,8 @@ func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _CachedCreatedPlans_createdFromCurrentLocation(ctx context.Context, field graphql.CollectedField, obj *model.CachedCreatedPlans) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CachedCreatedPlans_createdFromCurrentLocation(ctx, field)
+func (ec *executionContext) _CachedCreatedPlans_createdBasedOnCurrentLocation(ctx context.Context, field graphql.CollectedField, obj *model.CachedCreatedPlans) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CachedCreatedPlans_createdBasedOnCurrentLocation(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -654,7 +650,7 @@ func (ec *executionContext) _CachedCreatedPlans_createdFromCurrentLocation(ctx c
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedFromCurrentLocation, nil
+		return obj.CreatedBasedOnCurrentLocation, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -671,7 +667,7 @@ func (ec *executionContext) _CachedCreatedPlans_createdFromCurrentLocation(ctx c
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_CachedCreatedPlans_createdFromCurrentLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_CachedCreatedPlans_createdBasedOnCurrentLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CachedCreatedPlans",
 		Field:      field,
@@ -1722,8 +1718,8 @@ func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Co
 			switch field.Name {
 			case "plans":
 				return ec.fieldContext_CachedCreatedPlans_plans(ctx, field)
-			case "createdFromCurrentLocation":
-				return ec.fieldContext_CachedCreatedPlans_createdFromCurrentLocation(ctx, field)
+			case "createdBasedOnCurrentLocation":
+				return ec.fieldContext_CachedCreatedPlans_createdBasedOnCurrentLocation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CachedCreatedPlans", field.Name)
 		},
@@ -3679,7 +3675,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "categories", "freeTime", "includeLocationToPlan"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "categories", "freeTime", "createdBasedOnCurrentLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3718,11 +3714,11 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 			if err != nil {
 				return it, err
 			}
-		case "includeLocationToPlan":
+		case "createdBasedOnCurrentLocation":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeLocationToPlan"))
-			it.IncludeLocationToPlan, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBasedOnCurrentLocation"))
+			it.CreatedBasedOnCurrentLocation, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3790,9 +3786,9 @@ func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = ec._CachedCreatedPlans_plans(ctx, field, obj)
 
-		case "createdFromCurrentLocation":
+		case "createdBasedOnCurrentLocation":
 
-			out.Values[i] = ec._CachedCreatedPlans_createdFromCurrentLocation(ctx, field, obj)
+			out.Values[i] = ec._CachedCreatedPlans_createdBasedOnCurrentLocation(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
