@@ -228,53 +228,6 @@ func (s PlanService) CategoriesNearLocation(
 	return categories, nil
 }
 
-func (s PlanService) filterByCategory(
-	placesToFilter []places.Place,
-	categories []models.LocationCategory,
-) []places.Place {
-	var categoriesSlice []string
-	for _, category := range categories {
-		categoriesSlice = append(categoriesSlice, category.SubCategories...)
-	}
-
-	var placesInCategory []places.Place
-	for _, place := range placesToFilter {
-		if array.HasIntersection(place.Types, categoriesSlice) {
-			placesInCategory = append(placesInCategory, place)
-		}
-	}
-
-	return placesInCategory
-}
-
-func (s PlanService) filterByOpeningNow(
-	placesToFilter []places.Place,
-) []places.Place {
-	var placesOpeningNow []places.Place
-	for _, place := range placesToFilter {
-		if place.OpenNow {
-			placesOpeningNow = append(placesOpeningNow, place)
-		}
-	}
-	return placesOpeningNow
-}
-
-func (s PlanService) filterWithinDistanceRange(
-	placesToFilter []places.Place,
-	currentLocation models.GeoLocation,
-	startInMeter float64,
-	endInMeter float64,
-) []places.Place {
-	var placesWithInDistance []places.Place
-	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
-		if startInMeter <= distance && distance < endInMeter {
-			placesWithInDistance = append(placesWithInDistance, place)
-		}
-	}
-	return placesWithInDistance
-}
-
 func (s PlanService) travelTimeBetween(
 	locationDeparture models.GeoLocation,
 	locationDestination models.GeoLocation,
