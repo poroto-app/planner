@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
@@ -26,13 +27,14 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
+	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+	placesFilter = placesFilter.FilterByCategory(models.GetCategoryToFilter())
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesSearched = s.filterByOpeningNow(placesSearched)
+	placesFilter = placesFilter.FilterByOpeningNow()
 
 	// 場所をカテゴリごとにグループ化し、対応する場所の少ないカテゴリから順に写真を取得する
-	placeCategoryGroups := groupPlacesByCategory(placesSearched)
+	placeCategoryGroups := groupPlacesByCategory(placesFilter.Places())
 	sort.Slice(placeCategoryGroups, func(i, j int) bool {
 		return len(placeCategoryGroups[i].places) < len(placeCategoryGroups[j].places)
 	})
@@ -47,11 +49,11 @@ func (s PlanService) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := s.filterPlaces(categoryPlaces.places, func(place places.Place) bool {
-			return s.findPlace(placesUsedOfCategory, func(compare places.Place) bool {
-				return compare.PlaceID == place.PlaceID
-			}) == nil
-		})
+		placesNotUsedInOtherCategory := placefilter.NewPlacesFilter(
+			categoryPlaces.places,
+		).FilterPlaces(func(place places.Place) bool {
+			return placefilter.NewPlacesFilter(placesUsedOfCategory).FindById(place.PlaceID) == nil
+		}).Places()
 
 		// カテゴリと関連の強い場所から順に写真を取得する
 		placesSortedByCategoryIndex := placesNotUsedInOtherCategory

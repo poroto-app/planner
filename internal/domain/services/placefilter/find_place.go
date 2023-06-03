@@ -11,3 +11,9 @@ func (f PlacesFilter) Find(findFunc func(place places.Place) bool) *places.Place
 	}
 	return nil
 }
+
+func (f PlacesFilter) FindById(placeId string) *places.Place {
+	return f.Find(func(place places.Place) bool {
+		return place.PlaceID == placeId
+	})
+}

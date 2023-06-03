@@ -10,6 +10,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
@@ -53,16 +54,19 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
+	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+
+	placesFilter = placesFilter.FilterByCategory(models.GetCategoryToFilter())
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesSearched = s.filterByOpeningNow(placesSearched)
+	placesFilter = placesFilter.FilterByOpeningNow()
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
-	placesInNear := s.filterWithinDistanceRange(placesSearched, location, 0, 500)
-	placesInMiddle := s.filterWithinDistanceRange(placesSearched, location, 500, 1000)
-	placesInFar := s.filterWithinDistanceRange(placesSearched, location, 1000, 2000)
+
+	placesInNear := placesFilter.FilterWithinDistanceRange(location, 0, 500).Places()
+	placesInMiddle := placesFilter.FilterWithinDistanceRange(location, 500, 1000).Places()
+	placesInFar := placesFilter.FilterWithinDistanceRange(location, 1000, 2000).Places()
 	if len(placesInNear) > 0 {
 		placesRecommend = append(placesRecommend, placesInNear[0])
 	}
@@ -76,20 +80,19 @@ func (s PlanService) CreatePlanByLocation(
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 	for _, placeRecommend := range placesRecommend {
 		// 起点となる場所との距離順でソート
-		placesSortedByDistance := placesSearched
+		placesSortedByDistance := placesFilter.Places()
 		sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 			locationRecommend := placeRecommend.Location.ToGeoLocation()
-			distanceI := locationRecommend.DistanceInMeter(placesSearched[i].Location.ToGeoLocation())
-			distanceJ := locationRecommend.DistanceInMeter(placesSearched[j].Location.ToGeoLocation())
+			distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
+			distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
 			return distanceI < distanceJ
 		})
 
-		placesWithInRange := s.filterWithinDistanceRange(
-			placesSortedByDistance,
+		placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
 			placeRecommend.Location.ToGeoLocation(),
 			0,
 			500,
-		)
+		).Places()
 
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
