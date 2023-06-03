@@ -34,7 +34,14 @@ func (s PlanService) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categories := make([]models.LocationCategory, 0)
 	placesUsedOfCategory := make([]places.Place, 0)
-	for _, categoryPlaces := range groupPlacesByCategory(placesSearched) {
+
+	// 場所をカテゴリごとにグループ化し、場所の少ないカテゴリから順に写真を取得する
+	placeCategoryGroups := groupPlacesByCategory(placesSearched)
+	sort.Slice(placeCategoryGroups, func(i, j int) bool {
+		return len(placeCategoryGroups[i].places) < len(placeCategoryGroups[j].places)
+	})
+
+	for _, categoryPlaces := range placeCategoryGroups {
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
 			continue
