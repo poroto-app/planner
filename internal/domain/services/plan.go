@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -74,6 +76,7 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
+
 	for _, placeRecommend := range placesRecommend {
 		// 起点となる場所との距離順でソート
 		placesSortedByDistance := placesSearched
@@ -95,6 +98,7 @@ func (s PlanService) CreatePlanByLocation(
 		categoriesInPlan := make([]string, 0)
 		previousLocation := location
 		var timeInPlan uint = 0
+
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
@@ -140,6 +144,16 @@ func (s PlanService) CreatePlanByLocation(
 			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 				break
 			}
+
+			if freeTime != nil && !s.filterWithFreeTime(
+				ctx,
+				place,
+				time.Now(),
+				*freeTime,
+			) {
+				continue
+			}
+
 			placesInPlan = append(placesInPlan, models.Place{
 				Name:                  place.Name,
 				Photos:                photos,
@@ -273,6 +287,49 @@ func (s PlanService) filterWithinDistanceRange(
 		}
 	}
 	return placesWithInDistance
+}
+
+func (s PlanService) filterWithFreeTime(
+	ctx context.Context,
+	place places.Place,
+	startTime time.Time,
+	freeTime int,
+) bool {
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
+	if err != nil {
+		log.Printf("error while fetching place periods: %v\n", err)
+		return false
+	}
+	// 時刻フィルタリング用変数
+	weekday := startTime.Weekday()
+	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
+	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
+
+	for _, placeOpeningPeriod := range placeOpeningPeriods {
+		if placeOpeningPeriod.DayOfWeek != weekday.String() {
+			continue
+		}
+		fmt.Printf("Today[%v] is opening day\n", weekday.String())
+		openingPeriod, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime)
+		closingPeriod, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime)
+		if opErr != nil || clErr != nil {
+			log.Println("error while converting period [string->int]")
+			continue
+		}
+		openingTime := today.Add(time.Hour*time.Duration(openingPeriod/100) + time.Minute*time.Duration(openingPeriod%100))
+		closingTime := today.Add(time.Hour*time.Duration(closingPeriod/100) + time.Minute*time.Duration(closingPeriod%100))
+
+		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
+		if startTime.After(openingTime) && endTime.Before(closingTime) {
+			fmt.Printf("[%s]\n", place.Name)
+			fmt.Printf(" - Plan StartTime: [%v]\n", startTime)
+			fmt.Printf(" - Plan EndTime: [%v]\n", endTime)
+			fmt.Printf("  - Place OpeningTime: [%v]\n", openingTime)
+			fmt.Printf("  - Place ClosingTime: [%v]\n", closingTime)
+			return true
+		}
+	}
+	return false
 }
 
 func (s PlanService) travelTimeBetween(
