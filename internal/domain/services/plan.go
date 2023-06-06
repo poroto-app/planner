@@ -309,7 +309,6 @@ func (s PlanService) filterWithFreeTime(
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
-		fmt.Printf("Today[%v] is opening day\n", weekday.String())
 		openingPeriod, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime)
 		closingPeriod, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime)
 		if opErr != nil || clErr != nil {
@@ -321,11 +320,6 @@ func (s PlanService) filterWithFreeTime(
 
 		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
 		if startTime.After(openingTime) && endTime.Before(closingTime) {
-			fmt.Printf("[%s]\n", place.Name)
-			fmt.Printf(" - Plan StartTime: [%v]\n", startTime)
-			fmt.Printf(" - Plan EndTime: [%v]\n", endTime)
-			fmt.Printf("  - Place OpeningTime: [%v]\n", openingTime)
-			fmt.Printf("  - Place ClosingTime: [%v]\n", closingTime)
 			return true
 		}
 	}
