@@ -159,7 +159,7 @@ func (s PlanService) CreatePlanByLocation(
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
 			timeInPlan += timeInPlace
-			categoriesInPlan = append(categoriesInPlan, place.Types[0])
+			categoriesInPlan = append(categoriesInPlan, category.Name)
 			previousLocation = place.Location.ToGeoLocation()
 			fmt.Printf("- [%s] is [%s]\n", place.Name, category.Name)
 		}
