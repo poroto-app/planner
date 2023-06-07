@@ -309,11 +309,11 @@ func (s PlanService) filterWithFreeTime(
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
-		openingPeriodHour, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
-		openingPeriodMinute, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
-		closingPeriodHour, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
-		closingPeriodMinute, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
-		if opErr != nil || clErr != nil {
+		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
+		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
+		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
+		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
+		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
 			log.Println("error while converting period [string->int]")
 			continue
 		}
