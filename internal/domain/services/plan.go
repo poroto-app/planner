@@ -39,7 +39,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
-	preferenceCategories []string,
+	preferenceCategoryNames []string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
@@ -54,17 +54,24 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	passCategories := models.GetCategoryToFilter()
-	if preferenceCategories != nil {
-		passCategories = nil
-		for _, preferenceCategory := range preferenceCategories {
-			if models.GetCategoryOfName(preferenceCategory) != nil {
-				passCategories = append(passCategories, *models.GetCategoryOfName(preferenceCategory))
+	var preferenceCategories []models.LocationCategory
+	if preferenceCategoryNames != nil {
+		preferenceCategories = nil
+		for _, categoryName := range preferenceCategoryNames {
+			if category := models.GetCategoryOfName(categoryName); category != nil {
+				preferenceCategories = append(preferenceCategories, *category)
 			}
 		}
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, passCategories)
+	var categoryToFiler []models.LocationCategory
+	if len(preferenceCategoryNames) > 0 {
+		categoryToFiler = preferenceCategories
+	} else {
+		categoryToFiler = models.GetCategoryToFilter()
+	}
+
+	placesSearched = s.filterByCategory(placesSearched, categoryToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
