@@ -309,14 +309,16 @@ func (s PlanService) filterWithFreeTime(
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
-		openingPeriod, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime)
-		closingPeriod, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime)
+		openingPeriodHour, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
+		openingPeriodMinute, opErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
+		closingPeriodHour, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
+		closingPeriodMinute, clErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
 		if opErr != nil || clErr != nil {
 			log.Println("error while converting period [string->int]")
 			continue
 		}
-		openingTime := today.Add(time.Hour*time.Duration(openingPeriod/100) + time.Minute*time.Duration(openingPeriod%100))
-		closingTime := today.Add(time.Hour*time.Duration(closingPeriod/100) + time.Minute*time.Duration(closingPeriod%100))
+		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
+		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
 
 		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
 		if startTime.After(openingTime) && endTime.Before(closingTime) {
