@@ -301,11 +301,11 @@ func (s PlanService) filterWithFreeTime(
 		return false
 	}
 	// 時刻フィルタリング用変数
-	weekday := startTime.Weekday()
 	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
 	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
+		weekday := startTime.Weekday()
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
