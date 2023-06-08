@@ -10,9 +10,18 @@
 
 ```shell
 goenv install 1.19.6
-
+```
+- バージョンを指定
+```shell
+goenv global 1.19.6
+```
+- バージョンを確認
+```shell
 goenv version
 # 1.19.6 (set by /your/path/to/planner/.go-version)
+
+go version
+# go version go1.19.6 linux/amd64
 ```
 
 ### ライブラリのインストール
