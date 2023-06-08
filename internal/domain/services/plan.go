@@ -39,7 +39,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
-	preferenceCategoryNames []string,
+	preferenceCategoryNames *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
@@ -56,8 +56,7 @@ func (s PlanService) CreatePlanByLocation(
 
 	var preferenceCategories []models.LocationCategory
 	if preferenceCategoryNames != nil {
-		preferenceCategories = nil
-		for _, categoryName := range preferenceCategoryNames {
+		for _, categoryName := range *preferenceCategoryNames {
 			if category := models.GetCategoryOfName(categoryName); category != nil {
 				preferenceCategories = append(preferenceCategories, *category)
 			}
@@ -65,7 +64,7 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	var categoryToFiler []models.LocationCategory
-	if len(preferenceCategoryNames) > 0 {
+	if len(*preferenceCategoryNames) > 0 {
 		categoryToFiler = preferenceCategories
 	} else {
 		categoryToFiler = models.GetCategoryToFilter()
