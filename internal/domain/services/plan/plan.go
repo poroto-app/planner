@@ -1,15 +1,18 @@
-package services
+package plan
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
@@ -39,6 +42,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
+	preferenceCategoryNames *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
@@ -53,16 +57,35 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
+	
+	var preferenceCategories []models.LocationCategory
+	if preferenceCategoryNames != nil {
+		for _, categoryName := range *preferenceCategoryNames {
+			if category := models.GetCategoryOfName(categoryName); category != nil {
+				preferenceCategories = append(preferenceCategories, *category)
+			}
+		}
+	}
+
+	var categoryToFiler []models.LocationCategory
+	if len(*preferenceCategoryNames) > 0 {
+		categoryToFiler = preferenceCategories
+	} else {
+		categoryToFiler = models.GetCategoryToFilter()
+	}
+
+	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+	placesFilter = placesFilter.FilterByCategory(categoryToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesSearched = s.filterByOpeningNow(placesSearched)
+	placesFilter = placesFilter.FilterByOpeningNow()
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
-	placesInNear := s.filterWithinDistanceRange(placesSearched, location, 0, 500)
-	placesInMiddle := s.filterWithinDistanceRange(placesSearched, location, 500, 1000)
-	placesInFar := s.filterWithinDistanceRange(placesSearched, location, 1000, 2000)
+
+	placesInNear := placesFilter.FilterWithinDistanceRange(location, 0, 500).Places()
+	placesInMiddle := placesFilter.FilterWithinDistanceRange(location, 500, 1000).Places()
+	placesInFar := placesFilter.FilterWithinDistanceRange(location, 1000, 2000).Places()
 	if len(placesInNear) > 0 {
 		placesRecommend = append(placesRecommend, placesInNear[0])
 	}
@@ -74,27 +97,28 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
+
 	for _, placeRecommend := range placesRecommend {
 		// 起点となる場所との距離順でソート
-		placesSortedByDistance := placesSearched
+		placesSortedByDistance := placesFilter.Places()
 		sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 			locationRecommend := placeRecommend.Location.ToGeoLocation()
-			distanceI := locationRecommend.DistanceInMeter(placesSearched[i].Location.ToGeoLocation())
-			distanceJ := locationRecommend.DistanceInMeter(placesSearched[j].Location.ToGeoLocation())
+			distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
+			distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
 			return distanceI < distanceJ
 		})
 
-		placesWithInRange := s.filterWithinDistanceRange(
-			placesSortedByDistance,
+		placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
 			placeRecommend.Location.ToGeoLocation(),
 			0,
 			500,
-		)
+		).Places()
 
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
 		previousLocation := location
 		var timeInPlan uint = 0
+
 		for _, place := range placesWithInRange {
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
@@ -140,6 +164,16 @@ func (s PlanService) CreatePlanByLocation(
 			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 				break
 			}
+
+			if freeTime != nil && !s.filterWithFreeTime(
+				ctx,
+				place,
+				time.Now(),
+				*freeTime,
+			) {
+				continue
+			}
+
 			placesInPlan = append(placesInPlan, models.Place{
 				Name:                  place.Name,
 				Photos:                photos,
@@ -148,7 +182,7 @@ func (s PlanService) CreatePlanByLocation(
 				EstimatedStayDuration: category.EstimatedStayDuration,
 			})
 			timeInPlan += timeInPlace
-			categoriesInPlan = append(categoriesInPlan, place.Types[0])
+			categoriesInPlan = append(categoriesInPlan, category.Name)
 			previousLocation = place.Location.ToGeoLocation()
 		}
 
@@ -166,113 +200,43 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) CategoriesNearLocation(
+func (s PlanService) filterWithFreeTime(
 	ctx context.Context,
-	location models.GeoLocation,
-) ([]models.LocationCategory, error) {
-	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  location.Latitude,
-			Longitude: location.Longitude,
-		},
-		Radius:   2000,
-		Language: "ja",
-	})
+	place places.Place,
+	startTime time.Time,
+	freeTime int,
+) bool {
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		log.Printf("error while fetching place periods: %v\n", err)
+		return false
 	}
+	// 時刻フィルタリング用変数
+	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
+	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
-	placesSearched = s.filterByCategory(placesSearched, models.GetCategoryToFilter())
-
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesSearched = s.filterByOpeningNow(placesSearched)
-
-	// 検索された場所のカテゴリとその写真を取得
-	categoryPhotos := make(map[string]string)
-	for _, place := range placesSearched {
-		// 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
-		for _, subCategory := range place.Types {
-			category := models.CategoryOfSubCategory(subCategory)
-			if category == nil {
-				continue
-			}
-
-			if _, ok := categoryPhotos[category.Name]; ok {
-				continue
-			}
-
-			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
-			if err != nil {
-				continue
-			}
-
-			// 場所の写真を取得（取得できなかった場合はデフォルトの画像を利用）
-			categoryPhotos[category.Name] = category.Photo
-			if photo != nil {
-				categoryPhotos[category.Name] = photo.ImageUrl
-			}
-		}
-	}
-
-	categories := make([]models.LocationCategory, 0)
-	for categoryName, categoryPhoto := range categoryPhotos {
-		category := models.GetCategoryOfName(categoryName)
-		if category == nil {
+	for _, placeOpeningPeriod := range placeOpeningPeriods {
+		weekday := startTime.Weekday()
+		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
+		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
+		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
+		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
+		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
+		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
+			log.Println("error while converting period [string->int]")
+			continue
+		}
+		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
+		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
 
-		category.Photo = categoryPhoto
-		categories = append(categories, *category)
-	}
-
-	return categories, nil
-}
-
-func (s PlanService) filterByCategory(
-	placesToFilter []places.Place,
-	categories []models.LocationCategory,
-) []places.Place {
-	var categoriesSlice []string
-	for _, category := range categories {
-		categoriesSlice = append(categoriesSlice, category.SubCategories...)
-	}
-
-	var placesInCategory []places.Place
-	for _, place := range placesToFilter {
-		if array.HasIntersection(place.Types, categoriesSlice) {
-			placesInCategory = append(placesInCategory, place)
+		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
+		if startTime.After(openingTime) && endTime.Before(closingTime) {
+			return true
 		}
 	}
-
-	return placesInCategory
-}
-
-func (s PlanService) filterByOpeningNow(
-	placesToFilter []places.Place,
-) []places.Place {
-	var placesOpeningNow []places.Place
-	for _, place := range placesToFilter {
-		if place.OpenNow {
-			placesOpeningNow = append(placesOpeningNow, place)
-		}
-	}
-	return placesOpeningNow
-}
-
-func (s PlanService) filterWithinDistanceRange(
-	placesToFilter []places.Place,
-	currentLocation models.GeoLocation,
-	startInMeter float64,
-	endInMeter float64,
-) []places.Place {
-	var placesWithInDistance []places.Place
-	for _, place := range placesToFilter {
-		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
-		if startInMeter <= distance && distance < endInMeter {
-			placesWithInDistance = append(placesWithInDistance, place)
-		}
-	}
-	return placesWithInDistance
+	return false
 }
 
 func (s PlanService) travelTimeBetween(
