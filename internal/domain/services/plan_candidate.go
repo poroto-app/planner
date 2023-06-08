@@ -7,11 +7,12 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s PlanService) CachePlanCandidate(ctx context.Context, session string, plans []models.Plan) error {
+func (s PlanService) CachePlanCandidate(ctx context.Context, session string, plans []models.Plan, createdBasedOnCurrentLocation bool) error {
 	return s.planCandidateRepository.Save(ctx, &models.PlanCandidate{
-		Id:        session,
-		Plans:     plans,
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		Id:                            session,
+		Plans:                         plans,
+		CreatedBasedOnCurrentLocation: createdBasedOnCurrentLocation,
+		ExpiresAt:                     time.Now().Add(7 * 24 * time.Hour),
 	})
 }
 
