@@ -3,6 +3,8 @@ package plan
 import (
 	"context"
 	"fmt"
+	"log"
+	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -29,43 +31,96 @@ func (s PlanService) CategoriesNearLocation(
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesSearched = s.filterByOpeningNow(placesSearched)
 
+	// 場所をカテゴリごとにグループ化し、対応する場所の少ないカテゴリから順に写真を取得する
+	placeCategoryGroups := groupPlacesByCategory(placesSearched)
+	sort.Slice(placeCategoryGroups, func(i, j int) bool {
+		return len(placeCategoryGroups[i].places) < len(placeCategoryGroups[j].places)
+	})
+
 	// 検索された場所のカテゴリとその写真を取得
-	categoryPhotos := make(map[string]string)
-	for _, place := range placesSearched {
-		// 対応するLocationCategoryを取得（重複処理および写真保存のためmapを採用）
-		for _, subCategory := range place.Types {
+	categories := make([]models.LocationCategory, 0)
+	placesUsedOfCategory := make([]places.Place, 0)
+	for _, categoryPlaces := range placeCategoryGroups {
+		category := models.GetCategoryOfName(categoryPlaces.category)
+		if category == nil {
+			continue
+		}
+
+		// すでに他のカテゴリで利用した場所は利用しない
+		placesNotUsedInOtherCategory := s.filterPlaces(categoryPlaces.places, func(place places.Place) bool {
+			return s.findPlace(placesUsedOfCategory, func(compare places.Place) bool {
+				return compare.PlaceID == place.PlaceID
+			}) == nil
+		})
+
+		// カテゴリと関連の強い場所から順に写真を取得する
+		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
+		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
+			return indexOfCategory(placesSortedByCategoryIndex[i], *category) < indexOfCategory(placesSortedByCategoryIndex[j], *category)
+		})
+
+		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
+		for _, place := range placesSortedByCategoryIndex {
+			placePhoto, err := s.placesApi.FetchPlacePhoto(place, nil)
+			if err != nil {
+				log.Printf("error while fetching place photo: %v\n", err)
+				continue
+			}
+			if placePhoto != nil {
+				category.Photo = placePhoto.ImageUrl
+				placesUsedOfCategory = append(placesUsedOfCategory, place)
+				break
+			}
+		}
+
+		categories = append(categories, *category)
+	}
+
+	return categories, nil
+}
+
+type groupPlacesByCategoryResult struct {
+	category string
+	places   []places.Place
+}
+
+// groupPlacesByCategory は場所をカテゴリごとにグループ化する
+// 同じ場所が複数のカテゴリに含まれることがある
+func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]places.Place, 0)
+	for _, location := range placesToGroup {
+		for _, subCategory := range location.Types {
 			category := models.CategoryOfSubCategory(subCategory)
 			if category == nil {
 				continue
 			}
 
-			if _, ok := categoryPhotos[category.Name]; ok {
-				continue
+			if _, ok := locationsGroupByCategory[category.Name]; ok {
+				locationsGroupByCategory[category.Name] = []places.Place{}
 			}
 
-			photo, err := s.placesApi.FetchPlacePhoto(place, nil)
-			if err != nil {
-				continue
-			}
-
-			// 場所の写真を取得（取得できなかった場合はデフォルトの画像を利用）
-			categoryPhotos[category.Name] = category.Photo
-			if photo != nil {
-				categoryPhotos[category.Name] = photo.ImageUrl
-			}
+			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], location)
 		}
 	}
 
-	categories := make([]models.LocationCategory, 0)
-	for categoryName, categoryPhoto := range categoryPhotos {
-		category := models.GetCategoryOfName(categoryName)
-		if category == nil {
-			continue
-		}
-
-		category.Photo = categoryPhoto
-		categories = append(categories, *category)
+	var result []groupPlacesByCategoryResult
+	for category, placesOfCategory := range locationsGroupByCategory {
+		result = append(result, groupPlacesByCategoryResult{
+			category: category,
+			places:   placesOfCategory,
+		})
 	}
 
-	return categories, nil
+	return result
+}
+
+// indexOfCategory は places.Place.Types 中の`category`に対応するTypeのインデックスを返す
+func indexOfCategory(place places.Place, category models.LocationCategory) int {
+	for i, placeType := range place.Types {
+		c := models.CategoryOfSubCategory(placeType)
+		if c.Name == category.Name {
+			return i
+		}
+	}
+	return -1
 }
