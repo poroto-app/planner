@@ -8,9 +8,9 @@ import (
 func PlansFromDomainModel(plans *[]models.Plan) []*graphql.Plan {
 	graphqlPlans := make([]*graphql.Plan, len(*plans))
 
-	for _, plan := range *plans {
+	for i, plan := range *plans {
 		graphqlPlan := PlanFromDomainModel(plan)
-		graphqlPlans = append(graphqlPlans, &graphqlPlan)
+		graphqlPlans[i] = &graphqlPlan
 	}
 
 	return graphqlPlans
@@ -18,8 +18,8 @@ func PlansFromDomainModel(plans *[]models.Plan) []*graphql.Plan {
 
 func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 	places := make([]*graphql.Place, len(plan.Places))
-	for _, place := range plan.Places {
-		places = append(places, &graphql.Place{
+	for i, place := range plan.Places {
+		places[i] = &graphql.Place{
 			Name:   place.Name,
 			Photos: place.Photos,
 			Location: &graphql.GeoLocation{
@@ -27,7 +27,7 @@ func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 				Longitude: place.Location.Longitude,
 			},
 			EstimatedStayDuration: int(place.EstimatedStayDuration),
-		})
+		}
 	}
 	return graphql.Plan{
 		ID:            plan.Id,
