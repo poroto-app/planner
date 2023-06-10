@@ -34,6 +34,7 @@ func (s PlanService) SavePlanFromPlanCandidate(ctx context.Context, planCandidat
 	}
 
 	if planSaved != nil {
+		log.Printf("plan(%v) already exists. skip saving plan", planId)
 		return planSaved, nil
 	}
 
