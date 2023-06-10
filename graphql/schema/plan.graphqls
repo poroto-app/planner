@@ -29,6 +29,8 @@ type InterestCandidate {
 }
 
 extend type Query {
+    plan(id: String!): Plan
+
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
