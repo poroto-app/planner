@@ -50,7 +50,22 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
 func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
-	return nil, nil
+	service, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("could not save plan")
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*planSaved)
+	return &model.SavePlanFromCandidateOutput{
+		Plan: &graphqlPlan,
+	}, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.
