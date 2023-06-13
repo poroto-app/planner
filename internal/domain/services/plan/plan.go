@@ -57,7 +57,6 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	
 	var preferenceCategories []models.LocationCategory
 	if preferenceCategoryNames != nil {
 		for _, categoryName := range *preferenceCategoryNames {
@@ -175,6 +174,7 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
+				Id:                    place.PlaceID,
 				Name:                  place.Name,
 				Photos:                photos,
 				Thumbnail:             thumbnail,

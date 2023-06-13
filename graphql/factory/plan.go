@@ -12,6 +12,7 @@ func PlansFromDomainModel(plans *[]models.Plan) []*model.Plan {
 		places := make([]*model.Place, 0)
 		for _, place := range plan.Places {
 			places = append(places, &model.Place{
+				ID:     place.Id,
 				Name:   place.Name,
 				Photos: place.Photos,
 				Location: &model.GeoLocation{
