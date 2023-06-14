@@ -50,7 +50,7 @@ input CachedCreatedPlansInput {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
-    ChangePlacesOrderInPlan(input: ChangePlacesOrderInPlanInput!): ChangePlacesOrderInPlanOutput!
+    changePlacesOrderInPlan(input: ChangePlacesOrderInPlanInput!): ChangePlacesOrderInPlanOutput!
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
