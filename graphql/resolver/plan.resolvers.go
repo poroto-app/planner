@@ -48,6 +48,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	}, nil
 }
 
+// ChangePlacesOrderInPlan is the resolver for the ChangePlacesOrderInPlan field.
+func (r *mutationResolver) ChangePlacesOrderInPlan(ctx context.Context, input model.ChangePlacesOrderInPlanInput) (*model.ChangePlacesOrderInPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: ChangePlacesOrderInPlan - ChangePlacesOrderInPlan"))
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)
