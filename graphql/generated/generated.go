@@ -1259,10 +1259,6 @@ func (ec *executionContext) fieldContext_Mutation_createPlanByLocation(ctx conte
 	return fc, nil
 }
 
-
-func (ec *executionContext) _Place_id(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Place_id(ctx, field)
-
 func (ec *executionContext) _Mutation_savePlanFromCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_savePlanFromCandidate(ctx, field)
 	if err != nil {
@@ -1277,11 +1273,7 @@ func (ec *executionContext) _Mutation_savePlanFromCandidate(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-
-		return obj.ID, nil
-
 		return ec.resolvers.Mutation().SavePlanFromCandidate(rctx, fc.Args["input"].(model.SavePlanFromCandidateInput))
-
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1293,23 +1285,6 @@ func (ec *executionContext) _Mutation_savePlanFromCandidate(ctx context.Context,
 		}
 		return graphql.Null
 	}
-
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Place_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Place",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-
 	res := resTmp.(*model.SavePlanFromCandidateOutput)
 	fc.Result = res
 	return ec.marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx, field.Selections, res)
@@ -1340,7 +1315,50 @@ func (ec *executionContext) fieldContext_Mutation_savePlanFromCandidate(ctx cont
 		ec.Error(ctx, err)
 		return
 	}
+	return fc, nil
+}
 
+func (ec *executionContext) _Place_id(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
 	return fc, nil
 }
 
