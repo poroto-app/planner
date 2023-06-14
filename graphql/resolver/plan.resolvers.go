@@ -48,6 +48,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	}, nil
 }
 
+// SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
+func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
+	return nil, nil
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)

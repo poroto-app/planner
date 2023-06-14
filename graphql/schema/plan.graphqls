@@ -47,6 +47,7 @@ input CachedCreatedPlansInput {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -63,6 +64,15 @@ input CreatePlanByLocationInput {
 type CreatePlanByLocationOutput {
     session: String!
     plans: [Plan!]!
+}
+
+input SavePlanFromCandidateInput {
+    session: String!
+    planId: String!
+}
+
+type SavePlanFromCandidateOutput {
+    plan: Plan!
 }
 
 input MatchInterestsInput {

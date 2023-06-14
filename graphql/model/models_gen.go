@@ -58,3 +58,12 @@ type Plan struct {
 	TimeInMinutes int      `json:"timeInMinutes"`
 	Description   *string  `json:"description,omitempty"`
 }
+
+type SavePlanFromCandidateInput struct {
+	Session string `json:"session"`
+	PlanID  string `json:"planId"`
+}
+
+type SavePlanFromCandidateOutput struct {
+	Plan *Plan `json:"plan"`
+}
