@@ -24,9 +24,9 @@ func (p *PlanRepository) Save(plan *models.Plan) error {
 	return nil
 }
 
-func (p *PlanRepository) Find(planId *models.Plan) (*models.Plan, error) {
+func (p *PlanRepository) Find(planId string) (*models.Plan, error) {
 	for id, plan := range p.data {
-		if id == planId.Id {
+		if id == planId {
 			return plan, nil
 		}
 	}
