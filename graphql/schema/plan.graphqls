@@ -30,6 +30,8 @@ type InterestCandidate {
 }
 
 extend type Query {
+    plan(id: String!): Plan
+
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
@@ -49,6 +51,7 @@ input CachedCreatedPlansInput {
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
     ChangePlacesOrderInPlan(input: ChangePlacesOrderInPlanInput!): ChangePlacesOrderInPlanOutput!
+    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -73,6 +76,15 @@ input ChangePlacesOrderInPlanInput {
 }
 
 type ChangePlacesOrderInPlanOutput {
+    plan: Plan!
+}
+
+input SavePlanFromCandidateInput {
+    session: String!
+    planId: String!
+}
+
+type SavePlanFromCandidateOutput {
     plan: Plan!
 }
 
