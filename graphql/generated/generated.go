@@ -70,8 +70,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreatePlanByLocation func(childComplexity int, input model.CreatePlanByLocationInput) int
-		Ping                 func(childComplexity int, message string) int
+		CreatePlanByLocation  func(childComplexity int, input model.CreatePlanByLocationInput) int
+		Ping                  func(childComplexity int, message string) int
+		SavePlanFromCandidate func(childComplexity int, input model.SavePlanFromCandidateInput) int
 	}
 
 	Place struct {
@@ -95,11 +96,16 @@ type ComplexityRoot struct {
 		Plan               func(childComplexity int, id string) int
 		Version            func(childComplexity int) int
 	}
+
+	SavePlanFromCandidateOutput struct {
+		Plan func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	Ping(ctx context.Context, message string) (string, error)
 	CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error)
+	SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error)
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
@@ -217,6 +223,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Ping(childComplexity, args["message"].(string)), true
 
+	case "Mutation.savePlanFromCandidate":
+		if e.complexity.Mutation.SavePlanFromCandidate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_savePlanFromCandidate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SavePlanFromCandidate(childComplexity, args["input"].(model.SavePlanFromCandidateInput)), true
+
 	case "Place.estimatedStayDuration":
 		if e.complexity.Place.EstimatedStayDuration == nil {
 			break
@@ -323,6 +341,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Version(childComplexity), true
 
+	case "SavePlanFromCandidateOutput.plan":
+		if e.complexity.SavePlanFromCandidateOutput.Plan == nil {
+			break
+		}
+
+		return e.complexity.SavePlanFromCandidateOutput.Plan(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -334,6 +359,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCachedCreatedPlansInput,
 		ec.unmarshalInputCreatePlanByLocationInput,
 		ec.unmarshalInputMatchInterestsInput,
+		ec.unmarshalInputSavePlanFromCandidateInput,
 	)
 	first := true
 
@@ -445,6 +471,7 @@ input CachedCreatedPlansInput {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -461,6 +488,15 @@ input CreatePlanByLocationInput {
 type CreatePlanByLocationOutput {
     session: String!
     plans: [Plan!]!
+}
+
+input SavePlanFromCandidateInput {
+    session: String!
+    planId: String!
+}
+
+type SavePlanFromCandidateOutput {
+    plan: Plan!
 }
 
 input MatchInterestsInput {
@@ -513,6 +549,21 @@ func (ec *executionContext) field_Mutation_ping_args(ctx context.Context, rawArg
 		}
 	}
 	args["message"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_savePlanFromCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.SavePlanFromCandidateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1193,6 +1244,65 @@ func (ec *executionContext) fieldContext_Mutation_createPlanByLocation(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createPlanByLocation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_savePlanFromCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_savePlanFromCandidate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SavePlanFromCandidate(rctx, fc.Args["input"].(model.SavePlanFromCandidateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SavePlanFromCandidateOutput)
+	fc.Result = res
+	return ec.marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_savePlanFromCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "plan":
+				return ec.fieldContext_SavePlanFromCandidateOutput_plan(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SavePlanFromCandidateOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_savePlanFromCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -1960,6 +2070,62 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SavePlanFromCandidateOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.SavePlanFromCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SavePlanFromCandidateOutput_plan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plan, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SavePlanFromCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SavePlanFromCandidateOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
 	}
 	return fc, nil
@@ -3862,6 +4028,42 @@ func (ec *executionContext) unmarshalInputMatchInterestsInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context.Context, obj interface{}) (model.SavePlanFromCandidateInput, error) {
+	var it model.SavePlanFromCandidateInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"session", "planId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "session":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
+			it.Session, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "planId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+			it.PlanID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4074,6 +4276,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createPlanByLocation(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "savePlanFromCandidate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_savePlanFromCandidate(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -4312,6 +4523,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				return ec._Query___schema(ctx, field)
 			})
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var savePlanFromCandidateOutputImplementors = []string{"SavePlanFromCandidateOutput"}
+
+func (ec *executionContext) _SavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, obj *model.SavePlanFromCandidateOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, savePlanFromCandidateOutputImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SavePlanFromCandidateOutput")
+		case "plan":
+
+			out.Values[i] = ec._SavePlanFromCandidateOutput_plan(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4908,6 +5147,25 @@ func (ec *executionContext) marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgr
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx context.Context, v interface{}) (model.SavePlanFromCandidateInput, error) {
+	res, err := ec.unmarshalInputSavePlanFromCandidateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSavePlanFromCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.SavePlanFromCandidateOutput) graphql.Marshaler {
+	return ec._SavePlanFromCandidateOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.SavePlanFromCandidateOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SavePlanFromCandidateOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
