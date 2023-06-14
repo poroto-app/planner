@@ -68,6 +68,11 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 	}, nil
 }
 
+// Plan is the resolver for the plan field.
+func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
+	panic(fmt.Errorf("not implemented: Plan - plan"))
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)
