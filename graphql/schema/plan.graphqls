@@ -7,7 +7,6 @@ type Plan {
 }
 
 type Place {
-    id: String!
     name: String!
     location: GeoLocation!
     photos: [String!]!
