@@ -11,6 +11,15 @@ type CachedCreatedPlansInput struct {
 	Session string `json:"session"`
 }
 
+type ChangePlacesOrderInPlanInput struct {
+	Session string `json:"session"`
+	ID      string `json:"id"`
+}
+
+type ChangePlacesOrderInPlanOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type CreatePlanByLocationInput struct {
 	Latitude                      float64  `json:"latitude"`
 	Longitude                     float64  `json:"longitude"`
@@ -57,4 +66,13 @@ type Plan struct {
 	Places        []*Place `json:"places"`
 	TimeInMinutes int      `json:"timeInMinutes"`
 	Description   *string  `json:"description,omitempty"`
+}
+
+type SavePlanFromCandidateInput struct {
+	Session string `json:"session"`
+	PlanID  string `json:"planId"`
+}
+
+type SavePlanFromCandidateOutput struct {
+	Plan *Plan `json:"plan"`
 }

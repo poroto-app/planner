@@ -38,7 +38,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 	session := uuid.New().String()
 
-	if err := service.CachePlanCandidate(ctx, session, *plans, true); err != nil {
+	if err := service.CachePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -46,6 +46,36 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		Session: session,
 		Plans:   factory.PlansFromDomainModel(plans),
 	}, nil
+}
+
+// ChangePlacesOrderInPlan is the resolver for the ChangePlacesOrderInPlan field.
+func (r *mutationResolver) ChangePlacesOrderInPlan(ctx context.Context, input model.ChangePlacesOrderInPlanInput) (*model.ChangePlacesOrderInPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: ChangePlacesOrderInPlan - ChangePlacesOrderInPlan"))
+}
+
+// SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
+func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
+	service, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("could not save plan")
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*planSaved)
+	return &model.SavePlanFromCandidateOutput{
+		Plan: &graphqlPlan,
+	}, nil
+}
+
+// Plan is the resolver for the plan field.
+func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
+	panic(fmt.Errorf("not implemented: Plan - plan"))
 }
 
 // MatchInterests is the resolver for the matchInterests field.
