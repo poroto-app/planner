@@ -48,11 +48,6 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	}, nil
 }
 
-// ChangePlacesOrderInPlan is the resolver for the ChangePlacesOrderInPlan field.
-func (r *mutationResolver) ChangePlacesOrderInPlan(ctx context.Context, input model.ChangePlacesOrderInPlanInput) (*model.ChangePlacesOrderInPlanOutput, error) {
-	panic(fmt.Errorf("not implemented: ChangePlacesOrderInPlan - ChangePlacesOrderInPlan"))
-}
-
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
 func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
 	service, err := plan.NewPlanService(ctx)
