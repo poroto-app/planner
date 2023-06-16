@@ -27,7 +27,7 @@ func (s PlanService) SavePlanFromPlanCandidate(ctx context.Context, planCandidat
 	}
 
 	// 冪等性を保つために、既存のプランを取得してから保存する
-	planSaved, err := s.planRepository.Find(planId)
+	planSaved, err := s.planRepository.Find(ctx, planId)
 	if err != nil {
 		// ログに出力するが、エラーは返さない
 		log.Println(fmt.Errorf("error while finding plan(%v): %v", planId, err))
@@ -39,7 +39,7 @@ func (s PlanService) SavePlanFromPlanCandidate(ctx context.Context, planCandidat
 	}
 
 	// プランを保存
-	if err := s.planRepository.Save(planToSave); err != nil {
+	if err := s.planRepository.Save(ctx, planToSave); err != nil {
 		return nil, err
 	}
 

@@ -1,6 +1,10 @@
 package inmemory
 
-import "poroto.app/poroto/planner/internal/domain/models"
+import (
+	"context"
+
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
 type PlanRepository struct {
 	data map[string]*models.Plan
@@ -19,12 +23,12 @@ func NewPlanRepository() (*PlanRepository, error) {
 	return repository, nil
 }
 
-func (p *PlanRepository) Save(plan *models.Plan) error {
+func (p *PlanRepository) Save(_ context.Context, plan *models.Plan) error {
 	p.data[plan.Id] = plan
 	return nil
 }
 
-func (p *PlanRepository) Find(planId string) (*models.Plan, error) {
+func (p *PlanRepository) Find(_ context.Context, planId string) (*models.Plan, error) {
 	for id, plan := range p.data {
 		if id == planId {
 			return plan, nil
