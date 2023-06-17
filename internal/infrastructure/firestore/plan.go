@@ -38,7 +38,7 @@ func (p *PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 	return nil
 }
 
-func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
+func (p *PlanRepository) find(ctx context.Context, planId string) (*entity.PlanEntity, error) {
 	doc := p.doc(planId)
 	snapshot, err := doc.Get(ctx)
 	if err != nil {
@@ -54,7 +54,20 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 		return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 	}
 
-	plan := entity.FromPlanEntity(planEntity)
+	return &planEntity, nil
+}
+
+func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
+	planEntity, err := p.find(ctx, planId)
+	if err != nil {
+		return nil, err
+	}
+
+	if planEntity == nil {
+		return nil, nil
+	}
+
+	plan := entity.FromPlanEntity(*planEntity)
 	return &plan, nil
 }
 
