@@ -1,13 +1,19 @@
 package entity
 
-import "poroto.app/poroto/planner/internal/domain/models"
+import (
+	"time"
+
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
 type PlanEntity struct {
 	Id     string        `firestore:"id"`
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int `firestore:"time_in_minutes"`
+	TimeInMinutes int       `firestore:"time_in_minutes"`
+	CreatedAt     time.Time `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
