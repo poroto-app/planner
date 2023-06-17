@@ -4,9 +4,9 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-// PlanInternalCandidateEntity PlanCandidateEntityに含まれるPlan
+// PlanInCandidateEntity PlanCandidateEntityに含まれるPlan
 // MEMO: PlanEntityを用いると、CreatedAtとUpdatedAtが含まれてしまうため、別の構造体を利用している
-type PlanInternalCandidateEntity struct {
+type PlanInCandidateEntity struct {
 	Id     string        `firestore:"id"`
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
@@ -14,18 +14,18 @@ type PlanInternalCandidateEntity struct {
 	TimeInMinutes int `firestore:"time_in_minutes"`
 }
 
-func toPlanCandidateEntity(
+func toPlanInCandidateEntity(
 	id string,
 	name string,
 	places []models.Place,
 	timeInMinutes uint,
-) PlanInternalCandidateEntity {
+) PlanInCandidateEntity {
 	ps := make([]PlaceEntity, len(places))
 	for i, place := range places {
 		ps[i] = ToPlaceEntity(place)
 	}
 
-	return PlanInternalCandidateEntity{
+	return PlanInCandidateEntity{
 		Id:            id,
 		Name:          name,
 		Places:        ps,
@@ -33,7 +33,7 @@ func toPlanCandidateEntity(
 	}
 }
 
-func fromPlanInternalCandidateEntity(
+func fromPlanInCandidateEntity(
 	id string,
 	name string,
 	places []PlaceEntity,
