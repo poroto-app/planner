@@ -73,7 +73,7 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 
 // SortedByCreatedAt created_atで降順に並べたPlanを取得する
 // queryCursor(リストの最後の [models.Plan] のID)が指定されている場合は、そのcursor以降のPlanを取得する
-func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) ([]models.Plan, error) {
+func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error) {
 	collection := p.collection()
 	query := collection.OrderBy("created_at", firestore.Desc).OrderBy("id", firestore.Desc)
 	if queryCursor != nil {
@@ -106,7 +106,7 @@ func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *str
 		plans[i] = plan
 	}
 
-	return plans, nil
+	return &plans, nil
 }
 
 func (p *PlanRepository) collection() *firestore.CollectionRef {

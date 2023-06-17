@@ -12,5 +12,5 @@ func (s PlanService) FetchPlans(ctx context.Context, nextPageToken *string) (*[]
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plans: %v", err)
 	}
-	return &plans, nil
+	return plans, nil
 }
