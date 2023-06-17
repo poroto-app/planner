@@ -75,7 +75,22 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // Plan is the resolver for the plan field.
 func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
-	panic(fmt.Errorf("not implemented: Plan - plan"))
+	planService, err := plan.NewPlanService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+	}
+
+	p, err := planService.FetchPlan(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan: %v", err)
+	}
+
+	if p == nil {
+		return nil, nil
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*p)
+	return &graphqlPlan, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.
