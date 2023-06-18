@@ -14,14 +14,16 @@ import (
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 	"poroto.app/poroto/planner/internal/infrastructure/inmemory"
 )
 
 type PlanService struct {
-	placesApi               places.PlacesApi
-	planRepository          repository.PlanRepository
-	planCandidateRepository repository.PlanCandidateRepository
+	placesApi                  places.PlacesApi
+	planRepository             repository.PlanRepository
+	planCandidateRepository    repository.PlanCandidateRepository
+	openaiChatCompletionClient openai.ChatCompletionClient
 }
 
 func NewPlanService(ctx context.Context) (*PlanService, error) {
@@ -40,10 +42,16 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
+	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
+	}
+
 	return &PlanService{
-		placesApi:               *placesApi,
-		planRepository:          planRepository,
-		planCandidateRepository: planCandidateRepository,
+		placesApi:                  *placesApi,
+		planRepository:             planRepository,
+		planCandidateRepository:    planCandidateRepository,
+		openaiChatCompletionClient: *openaiChatCompletionClient,
 	}, err
 }
 
