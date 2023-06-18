@@ -8,4 +8,5 @@ type Place struct {
 	Thumbnail             *string     `json:"thumbnail"`
 	Photos                []string    `json:"photos"`
 	EstimatedStayDuration uint        `json:"estimated_stay_duration"`
+	Category              string      `json:"category"`
 }

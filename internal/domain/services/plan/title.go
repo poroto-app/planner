@@ -13,9 +13,7 @@ import (
 func (s PlanService) GeneratePlanTitle(places []models.Place) (title *string, err error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
-		// TODO: 場所の名前だけでなく、その場所の特徴も含める
-		// ex: スターバックスコーヒー（カフェ）
-		placeNames[i] = place.Name
+		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, place.Category)
 	}
 
 	response, err := s.openaiChatCompletionClient.Complete([]openai.ChatCompletionMessage{

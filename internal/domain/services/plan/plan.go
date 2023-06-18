@@ -195,6 +195,7 @@ func (s PlanService) CreatePlanByLocation(
 				Thumbnail:             thumbnail,
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
+				Category:              category.Name,
 			})
 			timeInPlan += timeInPlace
 			categoriesInPlan = append(categoriesInPlan, category.Name)
