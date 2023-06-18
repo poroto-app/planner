@@ -10,7 +10,7 @@ import (
 
 // GeneratePlanTitle プランのタイトルを生成する
 // タイトルが生成できなかった場合は、nilを返す
-func (s PlanService) GeneratePlanTitle(places []models.Place) (title *string, err error) {
+func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
 		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, place.Category)
@@ -36,6 +36,12 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (title *string, er
 
 	if len(response.Choices) == 0 {
 		return nil, fmt.Errorf("response.Choices is empty")
+	}
+
+	title := response.Choices[0].Message.Content
+	replaceCharacters := []string{"\n", "「", "」", "\""}
+	for _, character := range replaceCharacters {
+		title = strings.ReplaceAll(title, character, "")
 	}
 
 	return &response.Choices[0].Message.Content, nil
