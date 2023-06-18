@@ -204,9 +204,16 @@ func (s PlanService) CreatePlanByLocation(
 		if len(placesInPlan) == 0 {
 			continue
 		}
+
+		title, err := s.GeneratePlanTitle(placesInPlan)
+		if err != nil {
+			log.Printf("error while generating plan title: %v\n", err)
+			title = &placeRecommend.Name
+		}
+
 		plans = append(plans, models.Plan{
 			Id:            uuid.New().String(),
-			Name:          placeRecommend.Name,
+			Name:          *title,
 			Places:        placesInPlan,
 			TimeInMinutes: timeInPlan,
 		})

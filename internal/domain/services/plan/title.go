@@ -2,13 +2,22 @@ package plan
 
 import (
 	"fmt"
+	"strings"
 
+	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 )
 
 // GeneratePlanTitle プランのタイトルを生成する
 // タイトルが生成できなかった場合は、nilを返す
-func (s PlanService) GeneratePlanTitle() (title *string, err error) {
+func (s PlanService) GeneratePlanTitle(places []models.Place) (title *string, err error) {
+	placeNames := make([]string, len(places))
+	for i, place := range places {
+		// TODO: 場所の名前だけでなく、その場所の特徴も含める
+		// ex: スターバックスコーヒー（カフェ）
+		placeNames[i] = place.Name
+	}
+
 	response, err := s.openaiChatCompletionClient.Complete([]openai.ChatCompletionMessage{
 		{
 			Role: "system",
@@ -19,7 +28,7 @@ func (s PlanService) GeneratePlanTitle() (title *string, err error) {
 		},
 		{
 			Role:    "user",
-			Content: "ラーメン屋とゲームセンターを含むプラン",
+			Content: fmt.Sprintf("%sを含むプラン", strings.Join(placeNames, "と")),
 		},
 	})
 
