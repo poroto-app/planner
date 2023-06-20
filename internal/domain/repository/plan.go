@@ -1,8 +1,12 @@
 package repository
 
-import "poroto.app/poroto/planner/internal/domain/models"
+import (
+	"context"
+
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
 type PlanRepository interface {
-	Save(plan *models.Plan) error
-	Find(planId string) (*models.Plan, error)
+	Save(ctx context.Context, plan *models.Plan) error
+	Find(ctx context.Context, planId string) (*models.Plan, error)
 }
