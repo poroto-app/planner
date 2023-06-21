@@ -93,6 +93,11 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 	return &graphqlPlan, nil
 }
 
+// Plans is the resolver for the plans field.
+func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error) {
+	panic(fmt.Errorf("not implemented: Plans - plans"))
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)
