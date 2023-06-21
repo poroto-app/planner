@@ -8,5 +8,6 @@ import (
 
 type PlanRepository interface {
 	Save(ctx context.Context, plan *models.Plan) error
+	SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error)
 	Find(ctx context.Context, planId string) (*models.Plan, error)
 }
