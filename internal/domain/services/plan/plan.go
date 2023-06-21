@@ -14,13 +14,15 @@ import (
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
 type PlanService struct {
-	placesApi               places.PlacesApi
-	planRepository          repository.PlanRepository
-	planCandidateRepository repository.PlanCandidateRepository
+	placesApi                  places.PlacesApi
+	planRepository             repository.PlanRepository
+	planCandidateRepository    repository.PlanCandidateRepository
+	openaiChatCompletionClient openai.ChatCompletionClient
 }
 
 func NewPlanService(ctx context.Context) (*PlanService, error) {
@@ -39,10 +41,16 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
+	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
+	}
+
 	return &PlanService{
-		placesApi:               *placesApi,
-		planRepository:          planRepository,
-		planCandidateRepository: planCandidateRepository,
+		placesApi:                  *placesApi,
+		planRepository:             planRepository,
+		planCandidateRepository:    planCandidateRepository,
+		openaiChatCompletionClient: *openaiChatCompletionClient,
 	}, err
 }
 
@@ -186,6 +194,7 @@ func (s PlanService) CreatePlanByLocation(
 				Thumbnail:             thumbnail,
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
+				Category:              category.Name,
 			})
 			timeInPlan += timeInPlace
 			categoriesInPlan = append(categoriesInPlan, category.Name)
@@ -195,9 +204,16 @@ func (s PlanService) CreatePlanByLocation(
 		if len(placesInPlan) == 0 {
 			continue
 		}
+
+		title, err := s.GeneratePlanTitle(placesInPlan)
+		if err != nil {
+			log.Printf("error while generating plan title: %v\n", err)
+			title = &placeRecommend.Name
+		}
+
 		plans = append(plans, models.Plan{
 			Id:            uuid.New().String(),
-			Name:          placeRecommend.Name,
+			Name:          *title,
 			Places:        placesInPlan,
 			TimeInMinutes: timeInPlan,
 		})
