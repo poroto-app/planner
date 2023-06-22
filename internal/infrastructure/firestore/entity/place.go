@@ -10,6 +10,7 @@ type PlaceEntity struct {
 	Photos    []string          `firestore:"photos"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
 	EstimatedStayDuration int `firestore:"estimated_stay_duration"`
+	Order                 int `firestore:"order"`
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
@@ -20,6 +21,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		Thumbnail:             place.Thumbnail,
 		Photos:                place.Photos,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
+		Order:                 int(place.Order),
 	}
 }
 
@@ -31,5 +33,6 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		Thumbnail:             entity.Thumbnail,
 		Photos:                entity.Photos,
 		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
+		Order:                 uint(entity.Order),
 	}
 }

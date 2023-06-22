@@ -28,6 +28,7 @@ func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 				Longitude: place.Location.Longitude,
 			},
 			EstimatedStayDuration: int(place.EstimatedStayDuration),
+			Order:                 int(place.Order),
 		}
 	}
 	return graphql.Plan{
