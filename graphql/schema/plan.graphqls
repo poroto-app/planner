@@ -73,7 +73,7 @@ type CreatePlanByLocationOutput {
 
 input ChangePlacesOrderInPlanInput {
     session: String!
-    id: String!
+    id: [String!]!
 }
 
 type ChangePlacesOrderInPlanOutput {

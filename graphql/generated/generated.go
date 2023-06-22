@@ -535,7 +535,7 @@ type CreatePlanByLocationOutput {
 
 input ChangePlacesOrderInPlanInput {
     session: String!
-    id: String!
+    id: [String!]!
 }
 
 type ChangePlacesOrderInPlanOutput {
@@ -4222,7 +4222,7 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanInput(ctx conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			it.ID, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
