@@ -12,8 +12,9 @@ type CachedCreatedPlansInput struct {
 }
 
 type ChangePlacesOrderInPlanInput struct {
-	Session string   `json:"session"`
-	ID      []string `json:"id"`
+	Session   string   `json:"session"`
+	PlanID    string   `json:"planId"`
+	PlacesIds []string `json:"placesIds"`
 }
 
 type ChangePlacesOrderInPlanOutput struct {
