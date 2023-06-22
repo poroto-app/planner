@@ -189,6 +189,7 @@ func (s PlanService) CreatePlanByLocation(
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
+				Id:                    place.PlaceID,
 				Name:                  place.Name,
 				Photos:                photos,
 				Thumbnail:             thumbnail,
