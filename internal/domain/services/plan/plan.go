@@ -132,9 +132,9 @@ func (s PlanService) CreatePlanByLocation(
 		categoriesInPlan := make([]string, 0)
 		previousLocation := location
 		var timeInPlan uint = 0
+		var order uint = 0
 
 		for _, place := range placesWithInRange {
-			var order uint = 0
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
 				continue
