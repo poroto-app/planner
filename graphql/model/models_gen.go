@@ -60,6 +60,7 @@ type Place struct {
 	Location              *GeoLocation `json:"location"`
 	Photos                []string     `json:"photos"`
 	EstimatedStayDuration int          `json:"estimatedStayDuration"`
+	Order                 int          `json:"order"`
 }
 
 type Plan struct {

@@ -12,6 +12,7 @@ type Place {
     location: GeoLocation!
     photos: [String!]!
     estimatedStayDuration: Int!
+    order: Int!
 }
 
 type GeoLocation {

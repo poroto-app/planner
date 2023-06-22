@@ -85,6 +85,7 @@ type ComplexityRoot struct {
 		ID                    func(childComplexity int) int
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
+		Order                 func(childComplexity int) int
 		Photos                func(childComplexity int) int
 	}
 
@@ -291,6 +292,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Place.Name(childComplexity), true
 
+	case "Place.order":
+		if e.complexity.Place.Order == nil {
+			break
+		}
+
+		return e.complexity.Place.Order(childComplexity), true
+
 	case "Place.photos":
 		if e.complexity.Place.Photos == nil {
 			break
@@ -482,6 +490,7 @@ type Place {
     location: GeoLocation!
     photos: [String!]!
     estimatedStayDuration: Int!
+    order: Int!
 }
 
 type GeoLocation {
@@ -1742,6 +1751,50 @@ func (ec *executionContext) fieldContext_Place_estimatedStayDuration(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_order(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_order(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Order, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_order(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_id(ctx, field)
 	if err != nil {
@@ -1879,6 +1932,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_photos(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "order":
+				return ec.fieldContext_Place_order(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4743,6 +4798,13 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 		case "estimatedStayDuration":
 
 			out.Values[i] = ec._Place_estimatedStayDuration(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "order":
+
+			out.Values[i] = ec._Place_order(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
