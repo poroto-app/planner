@@ -134,6 +134,7 @@ func (s PlanService) CreatePlanByLocation(
 		var timeInPlan uint = 0
 
 		for _, place := range placesWithInRange {
+			var order uint = 0
 			// 既にプランに含まれるカテゴリの場所は無視する
 			if len(place.Types) == 0 {
 				continue
@@ -196,8 +197,10 @@ func (s PlanService) CreatePlanByLocation(
 				Location:              place.Location.ToGeoLocation(),
 				EstimatedStayDuration: category.EstimatedStayDuration,
 				Category:              category.Name,
+				Order:                 order,
 			})
 			timeInPlan += timeInPlace
+			order++
 			categoriesInPlan = append(categoriesInPlan, category.Name)
 			previousLocation = place.Location.ToGeoLocation()
 		}
