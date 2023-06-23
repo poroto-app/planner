@@ -12,7 +12,7 @@ type CachedCreatedPlansInput struct {
 }
 
 type ChangePlacesOrderInPlanInput struct {
-	Session   string   `json:"session"`
+	Session   *string  `json:"session,omitempty"`
 	PlanID    string   `json:"planId"`
 	PlacesIds []string `json:"placesIds"`
 }
