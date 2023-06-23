@@ -277,3 +277,47 @@ func (s PlanService) travelTimeBetween(
 	}
 	return timeInMinutes
 }
+
+func (s PlanService) ChangePlacesOrderInPlan(
+	ctx context.Context,
+	planId string,
+	idsRequested []string,
+) (*models.Plan, error) {
+	plan, err := s.FetchPlan(ctx, planId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan with ID[%s]: %v", planId, err)
+	}
+
+	if plan == nil {
+		return nil, nil
+	}
+
+	numOfPlaces := len(plan.Places)
+	if numOfPlaces != len(idsRequested) {
+		return nil, fmt.Errorf("not correct request order about the number of places: plan has [%d], request has [%d]", numOfPlaces, len(idsRequested))
+	}
+
+	for i, place := range plan.Places {
+		if place.Id == idsRequested[place.Order] {
+			continue
+		}
+		// TODO: トランザクション処理
+		for orderRequested, idRequested := range idsRequested {
+			if place.Id != idRequested {
+				continue
+			}
+			plan.Places[i].Order = uint(orderRequested)
+		}
+	}
+
+	// 順序に重複がないかをチェック
+	orderRearranged := make(map[int]string, numOfPlaces)
+	for _, place := range plan.Places {
+		orderRearranged[int(place.Order)] = place.Id
+	}
+	if numOfPlaces != len(orderRearranged) {
+		return nil, fmt.Errorf("not correct the order of rearranged places")
+	}
+
+	return plan, nil
+}
