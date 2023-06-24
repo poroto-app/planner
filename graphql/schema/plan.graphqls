@@ -51,7 +51,7 @@ input CachedCreatedPlansInput {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
-    changePlacesOrderInPlan(input: ChangePlacesOrderInPlanInput!): ChangePlacesOrderInPlanOutput!
+    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
@@ -71,12 +71,14 @@ type CreatePlanByLocationOutput {
     plans: [Plan!]!
 }
 
-input ChangePlacesOrderInPlanInput {
+input ChangePlacesOrderInPlanCandidateInput {
     session: String!
     id: String!
+    latitude: Float
+    longitude: Float
 }
 
-type ChangePlacesOrderInPlanOutput {
+type ChangePlacesOrderInPlanCandidateOutput {
     plan: Plan!
 }
 

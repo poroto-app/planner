@@ -49,7 +49,7 @@ type ComplexityRoot struct {
 		Plans                         func(childComplexity int) int
 	}
 
-	ChangePlacesOrderInPlanOutput struct {
+	ChangePlacesOrderInPlanCandidateOutput struct {
 		Plan func(childComplexity int) int
 	}
 
@@ -74,10 +74,10 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		ChangePlacesOrderInPlan func(childComplexity int, input model.ChangePlacesOrderInPlanInput) int
-		CreatePlanByLocation    func(childComplexity int, input model.CreatePlanByLocationInput) int
-		Ping                    func(childComplexity int, message string) int
-		SavePlanFromCandidate   func(childComplexity int, input model.SavePlanFromCandidateInput) int
+		ChangePlacesOrderInPlanCandidate func(childComplexity int, input model.ChangePlacesOrderInPlanCandidateInput) int
+		CreatePlanByLocation             func(childComplexity int, input model.CreatePlanByLocationInput) int
+		Ping                             func(childComplexity int, message string) int
+		SavePlanFromCandidate            func(childComplexity int, input model.SavePlanFromCandidateInput) int
 	}
 
 	Place struct {
@@ -111,7 +111,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	Ping(ctx context.Context, message string) (string, error)
 	CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error)
-	ChangePlacesOrderInPlan(ctx context.Context, input model.ChangePlacesOrderInPlanInput) (*model.ChangePlacesOrderInPlanOutput, error)
+	ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error)
 	SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error)
 }
 type QueryResolver interface {
@@ -151,12 +151,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CachedCreatedPlans.Plans(childComplexity), true
 
-	case "ChangePlacesOrderInPlanOutput.plan":
-		if e.complexity.ChangePlacesOrderInPlanOutput.Plan == nil {
+	case "ChangePlacesOrderInPlanCandidateOutput.plan":
+		if e.complexity.ChangePlacesOrderInPlanCandidateOutput.Plan == nil {
 			break
 		}
 
-		return e.complexity.ChangePlacesOrderInPlanOutput.Plan(childComplexity), true
+		return e.complexity.ChangePlacesOrderInPlanCandidateOutput.Plan(childComplexity), true
 
 	case "CreatePlanByLocationOutput.plans":
 		if e.complexity.CreatePlanByLocationOutput.Plans == nil {
@@ -214,17 +214,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LocationCategory.Photo(childComplexity), true
 
-	case "Mutation.changePlacesOrderInPlan":
-		if e.complexity.Mutation.ChangePlacesOrderInPlan == nil {
+	case "Mutation.changePlacesOrderInPlanCandidate":
+		if e.complexity.Mutation.ChangePlacesOrderInPlanCandidate == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_changePlacesOrderInPlan_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_changePlacesOrderInPlanCandidate_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ChangePlacesOrderInPlan(childComplexity, args["input"].(model.ChangePlacesOrderInPlanInput)), true
+		return e.complexity.Mutation.ChangePlacesOrderInPlanCandidate(childComplexity, args["input"].(model.ChangePlacesOrderInPlanCandidateInput)), true
 
 	case "Mutation.createPlanByLocation":
 		if e.complexity.Mutation.CreatePlanByLocation == nil {
@@ -396,7 +396,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCachedCreatedPlansInput,
-		ec.unmarshalInputChangePlacesOrderInPlanInput,
+		ec.unmarshalInputChangePlacesOrderInPlanCandidateInput,
 		ec.unmarshalInputCreatePlanByLocationInput,
 		ec.unmarshalInputMatchInterestsInput,
 		ec.unmarshalInputSavePlanFromCandidateInput,
@@ -513,7 +513,7 @@ input CachedCreatedPlansInput {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
-    changePlacesOrderInPlan(input: ChangePlacesOrderInPlanInput!): ChangePlacesOrderInPlanOutput!
+    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
@@ -533,12 +533,14 @@ type CreatePlanByLocationOutput {
     plans: [Plan!]!
 }
 
-input ChangePlacesOrderInPlanInput {
+input ChangePlacesOrderInPlanCandidateInput {
     session: String!
     id: String!
+    latitude: Float
+    longitude: Float
 }
 
-type ChangePlacesOrderInPlanOutput {
+type ChangePlacesOrderInPlanCandidateOutput {
     plan: Plan!
 }
 
@@ -574,13 +576,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_changePlacesOrderInPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_changePlacesOrderInPlanCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.ChangePlacesOrderInPlanInput
+	var arg0 model.ChangePlacesOrderInPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNChangePlacesOrderInPlanInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanInput(ctx, tmp)
+		arg0, err = ec.unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -844,8 +846,8 @@ func (ec *executionContext) fieldContext_CachedCreatedPlans_createdBasedOnCurren
 	return fc, nil
 }
 
-func (ec *executionContext) _ChangePlacesOrderInPlanOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.ChangePlacesOrderInPlanOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ChangePlacesOrderInPlanOutput_plan(ctx, field)
+func (ec *executionContext) _ChangePlacesOrderInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.ChangePlacesOrderInPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ChangePlacesOrderInPlanCandidateOutput_plan(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -875,9 +877,9 @@ func (ec *executionContext) _ChangePlacesOrderInPlanOutput_plan(ctx context.Cont
 	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "ChangePlacesOrderInPlanOutput",
+		Object:     "ChangePlacesOrderInPlanCandidateOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1388,8 +1390,8 @@ func (ec *executionContext) fieldContext_Mutation_createPlanByLocation(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_changePlacesOrderInPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_changePlacesOrderInPlan(ctx, field)
+func (ec *executionContext) _Mutation_changePlacesOrderInPlanCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changePlacesOrderInPlanCandidate(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1402,7 +1404,7 @@ func (ec *executionContext) _Mutation_changePlacesOrderInPlan(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangePlacesOrderInPlan(rctx, fc.Args["input"].(model.ChangePlacesOrderInPlanInput))
+		return ec.resolvers.Mutation().ChangePlacesOrderInPlanCandidate(rctx, fc.Args["input"].(model.ChangePlacesOrderInPlanCandidateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1414,12 +1416,12 @@ func (ec *executionContext) _Mutation_changePlacesOrderInPlan(ctx context.Contex
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.ChangePlacesOrderInPlanOutput)
+	res := resTmp.(*model.ChangePlacesOrderInPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNChangePlacesOrderInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanOutput(ctx, field.Selections, res)
+	return ec.marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_changePlacesOrderInPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_changePlacesOrderInPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -1428,9 +1430,9 @@ func (ec *executionContext) fieldContext_Mutation_changePlacesOrderInPlan(ctx co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "plan":
-				return ec.fieldContext_ChangePlacesOrderInPlanOutput_plan(ctx, field)
+				return ec.fieldContext_ChangePlacesOrderInPlanCandidateOutput_plan(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ChangePlacesOrderInPlanOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ChangePlacesOrderInPlanCandidateOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -1440,7 +1442,7 @@ func (ec *executionContext) fieldContext_Mutation_changePlacesOrderInPlan(ctx co
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_changePlacesOrderInPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_changePlacesOrderInPlanCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4196,14 +4198,14 @@ func (ec *executionContext) unmarshalInputCachedCreatedPlansInput(ctx context.Co
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanInput(ctx context.Context, obj interface{}) (model.ChangePlacesOrderInPlanInput, error) {
-	var it model.ChangePlacesOrderInPlanInput
+func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(ctx context.Context, obj interface{}) (model.ChangePlacesOrderInPlanCandidateInput, error) {
+	var it model.ChangePlacesOrderInPlanCandidateInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "id"}
+	fieldsInOrder := [...]string{"session", "id", "latitude", "longitude"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4223,6 +4225,22 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanInput(ctx conte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			it.Latitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			it.Longitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4404,19 +4422,19 @@ func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.Sel
 	return out
 }
 
-var changePlacesOrderInPlanOutputImplementors = []string{"ChangePlacesOrderInPlanOutput"}
+var changePlacesOrderInPlanCandidateOutputImplementors = []string{"ChangePlacesOrderInPlanCandidateOutput"}
 
-func (ec *executionContext) _ChangePlacesOrderInPlanOutput(ctx context.Context, sel ast.SelectionSet, obj *model.ChangePlacesOrderInPlanOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, changePlacesOrderInPlanOutputImplementors)
+func (ec *executionContext) _ChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, obj *model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, changePlacesOrderInPlanCandidateOutputImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("ChangePlacesOrderInPlanOutput")
+			out.Values[i] = graphql.MarshalString("ChangePlacesOrderInPlanCandidateOutput")
 		case "plan":
 
-			out.Values[i] = ec._ChangePlacesOrderInPlanOutput_plan(ctx, field, obj)
+			out.Values[i] = ec._ChangePlacesOrderInPlanCandidateOutput_plan(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -4609,10 +4627,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "changePlacesOrderInPlan":
+		case "changePlacesOrderInPlanCandidate":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_changePlacesOrderInPlan(ctx, field)
+				return ec._Mutation_changePlacesOrderInPlanCandidate(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {
@@ -5274,23 +5292,23 @@ func (ec *executionContext) unmarshalNCachedCreatedPlansInput2porotoᚗappᚋpor
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNChangePlacesOrderInPlanInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanInput(ctx context.Context, v interface{}) (model.ChangePlacesOrderInPlanInput, error) {
-	res, err := ec.unmarshalInputChangePlacesOrderInPlanInput(ctx, v)
+func (ec *executionContext) unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx context.Context, v interface{}) (model.ChangePlacesOrderInPlanCandidateInput, error) {
+	res, err := ec.unmarshalInputChangePlacesOrderInPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNChangePlacesOrderInPlanOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanOutput(ctx context.Context, sel ast.SelectionSet, v model.ChangePlacesOrderInPlanOutput) graphql.Marshaler {
-	return ec._ChangePlacesOrderInPlanOutput(ctx, sel, &v)
+func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
+	return ec._ChangePlacesOrderInPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNChangePlacesOrderInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanOutput(ctx context.Context, sel ast.SelectionSet, v *model.ChangePlacesOrderInPlanOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._ChangePlacesOrderInPlanOutput(ctx, sel, v)
+	return ec._ChangePlacesOrderInPlanCandidateOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx context.Context, v interface{}) (model.CreatePlanByLocationInput, error) {
@@ -5871,6 +5889,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
