@@ -535,7 +535,8 @@ type CreatePlanByLocationOutput {
 
 input ChangePlacesOrderInPlanCandidateInput {
     session: String!
-    id: String!
+    planId: String!
+    placeIds: [String!]!
     latitude: Float
     longitude: Float
 }
@@ -4205,7 +4206,7 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "id", "latitude", "longitude"}
+	fieldsInOrder := [...]string{"session", "planId", "placeIds", "latitude", "longitude"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4220,11 +4221,19 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(
 			if err != nil {
 				return it, err
 			}
-		case "id":
+		case "planId":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+			it.PlanID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "placeIds":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeIds"))
+			it.PlaceIds, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

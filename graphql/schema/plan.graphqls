@@ -73,7 +73,8 @@ type CreatePlanByLocationOutput {
 
 input ChangePlacesOrderInPlanCandidateInput {
     session: String!
-    id: String!
+    planId: String!
+    placeIds: [String!]!
     latitude: Float
     longitude: Float
 }
