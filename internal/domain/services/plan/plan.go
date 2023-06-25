@@ -160,11 +160,11 @@ func (s PlanService) CreatePlanByLocation(
 				break
 			}
 
-			if freeTime != nil && !s.filterWithFreeTime(
+			if freeTime != nil && !s.isOpeningWithIn(
 				ctx,
 				place,
 				time.Now(),
-				*freeTime,
+				time.Minute*time.Duration(*freeTime),
 			) {
 				continue
 			}
@@ -226,26 +226,25 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) filterWithFreeTime(
-	ctx context.Context,
-	place places.Place,
-	startTime time.Time,
-	freeTime int,
-) bool {
+// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
+func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, startTime time.Time, duration time.Duration) bool {
+	// 時刻フィルタリング用変数
+	endTime := startTime.Add(duration)
+	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
+
 	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
 		log.Printf("error while fetching place periods: %v\n", err)
 		return false
 	}
-	// 時刻フィルタリング用変数
-	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
-	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
 		weekday := startTime.Weekday()
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
+
+		// TODO: 変換処理の共通化 & テストを実装
 		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
 		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
 		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
@@ -254,6 +253,7 @@ func (s PlanService) filterWithFreeTime(
 			log.Println("error while converting period [string->int]")
 			continue
 		}
+
 		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
 		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
 
