@@ -160,13 +160,23 @@ func (s PlanService) CreatePlanByLocation(
 				break
 			}
 
-			if freeTime != nil && !s.isOpeningWithIn(
-				ctx,
-				place,
-				time.Now(),
-				time.Minute*time.Duration(*freeTime),
-			) {
-				continue
+			//　指定した時間内に店が閉まっている場合は無視する
+			if freeTime != nil {
+				isOpening, err := s.isOpeningWithIn(
+					ctx,
+					place,
+					time.Now(),
+					time.Minute*time.Duration(*freeTime),
+				)
+
+				if err != nil {
+					log.Printf("error while checking opening: %v\n", err)
+					continue
+				}
+
+				if !isOpening {
+					continue
+				}
 			}
 
 			thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
@@ -227,20 +237,19 @@ func (s PlanService) CreatePlanByLocation(
 }
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
-func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, startTime time.Time, duration time.Duration) bool {
+func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, startTime time.Time, duration time.Duration) (bool, error) {
 	// 時刻フィルタリング用変数
 	endTime := startTime.Add(duration)
 	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
-		log.Printf("error while fetching place periods: %v\n", err)
-		return false
+		return false, fmt.Errorf("error while fetching place periods: %v\n", err)
 	}
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
-		weekday := startTime.Weekday()
-		if placeOpeningPeriod.DayOfWeek != weekday.String() {
+		// startTime で指定された曜日のみを確認
+		if placeOpeningPeriod.DayOfWeek != startTime.Weekday().String() {
 			continue
 		}
 
@@ -250,8 +259,7 @@ func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, st
 		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
 		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
 		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
-			log.Println("error while converting period [string->int]")
-			continue
+			return false, fmt.Errorf("error while converting period [string->int]")
 		}
 
 		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
@@ -259,10 +267,11 @@ func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, st
 
 		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
 		if startTime.After(openingTime) && endTime.Before(closingTime) {
-			return true
+			return true, nil
 		}
 	}
-	return false
+
+	return false, fmt.Errorf("could not find opening period")
 }
 
 func (s PlanService) travelTimeBetween(
