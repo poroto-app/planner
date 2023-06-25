@@ -19,3 +19,7 @@ func (s PlanService) CachePlanCandidate(ctx context.Context, session string, pla
 func (s PlanService) FindPlanCandidate(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
 	return s.planCandidateRepository.Find(ctx, planCandidateId)
 }
+
+func (s PlanService) UpdatePlacesOrderPlanCandidate(ctx context.Context, planId string, planCandidate *models.PlanCandidate, placeIdsOrdered []string) (*models.Plan, error) {
+	return s.planCandidateRepository.UpdatePlacesOrder(ctx, planId, planCandidate, placeIdsOrdered)
+}
