@@ -137,6 +137,9 @@ func (s PlanService) createPlanFromLocation(
 	places []places.Place,
 	freeTime *int,
 ) (*models.Plan, error) {
+	// MEMO: Places APIで取得すると、飲食店が多く取得される
+	// TODO: おすすめする飲食店が決まったら、飲食店以外の場所を取得する
+
 	placesFilter := placefilter.NewPlacesFilter(places)
 
 	// 起点となる場所との距離順でソート
@@ -156,6 +159,8 @@ func (s PlanService) createPlanFromLocation(
 		1000,
 	).Places()
 
+	log.Printf("generate plan from %d places\n", len(placesWithInRange))
+
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
 	previousLocation := locationStart
@@ -164,6 +169,7 @@ func (s PlanService) createPlanFromLocation(
 	for _, place := range placesWithInRange {
 		// 既にプランに含まれるカテゴリの場所は無視する
 		if len(place.Types) == 0 {
+			log.Printf("place %s has no category\n", place.Name)
 			continue
 		}
 
@@ -177,6 +183,7 @@ func (s PlanService) createPlanFromLocation(
 			}
 		}
 		if categoryMain == nil {
+			log.Printf("place %s has no category\n", place.Name)
 			continue
 		}
 
@@ -195,12 +202,14 @@ func (s PlanService) createPlanFromLocation(
 		}
 		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
 		if isFoodPlace && array.HasIntersection(categoriesInPlan, categoriesFood) {
+			log.Printf("skip place %s because plan is already has food place\n", place.Name)
 			continue
 		}
 
 		// カフェを複数含めない
 		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
 		if isCafePlace && array.IsContain(categoriesInPlan, models.CategoryCafe.Name) {
+			log.Printf("skip place %s because plan is already has cafe place\n", place.Name)
 			continue
 		}
 
@@ -235,6 +244,7 @@ func (s PlanService) createPlanFromLocation(
 			}
 
 			if !isOpening {
+				log.Printf("skip place %s because it will be closed\n", place.Name)
 				continue
 			}
 		}
