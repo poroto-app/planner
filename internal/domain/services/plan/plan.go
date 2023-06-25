@@ -72,24 +72,24 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	var preferenceCategories []models.LocationCategory
+	var categoriesPreferred []models.LocationCategory
 	if preferenceCategoryNames != nil {
 		for _, categoryName := range *preferenceCategoryNames {
 			if category := models.GetCategoryOfName(categoryName); category != nil {
-				preferenceCategories = append(preferenceCategories, *category)
+				categoriesPreferred = append(categoriesPreferred, *category)
 			}
 		}
 	}
 
-	var categoryToFiler []models.LocationCategory
+	var categoriesToFilter []models.LocationCategory
 	if len(*preferenceCategoryNames) > 0 {
-		categoryToFiler = preferenceCategories
+		categoriesToFilter = categoriesPreferred
 	} else {
-		categoryToFiler = models.GetCategoryToFilter()
+		categoriesToFilter = models.GetCategoryToFilter()
 	}
 
 	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-	placesFilter = placesFilter.FilterByCategory(categoryToFiler)
+	placesFilter = placesFilter.FilterByCategory(categoriesToFilter)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFilter = placesFilter.FilterByOpeningNow()
