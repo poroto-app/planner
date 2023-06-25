@@ -125,6 +125,7 @@ func (s PlanService) CreatePlanByLocation(
 			return distanceI < distanceJ
 		})
 
+		//　起点となる場所から500m以内の場所を抽出
 		placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
 			placeRecommend.Location.ToGeoLocation(),
 			0,
@@ -149,6 +150,25 @@ func (s PlanService) CreatePlanByLocation(
 				continue
 			}
 
+			tripTime := s.travelTimeBetween(
+				previousLocation,
+				place.Location.ToGeoLocation(),
+				80.0,
+			)
+			timeInPlace := category.EstimatedStayDuration + tripTime
+			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
+				break
+			}
+
+			if freeTime != nil && !s.filterWithFreeTime(
+				ctx,
+				place,
+				time.Now(),
+				*freeTime,
+			) {
+				continue
+			}
+
 			thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
 				Width:  places.ImgThumbnailMaxWidth,
 				Height: places.ImgThumbnailMaxHeight,
@@ -170,25 +190,6 @@ func (s PlanService) CreatePlanByLocation(
 			photos := make([]string, 0)
 			for _, photo := range placePhotos {
 				photos = append(photos, photo.ImageUrl)
-			}
-
-			tripTime := s.travelTimeBetween(
-				previousLocation,
-				place.Location.ToGeoLocation(),
-				80.0,
-			)
-			timeInPlace := category.EstimatedStayDuration + tripTime
-			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
-				break
-			}
-
-			if freeTime != nil && !s.filterWithFreeTime(
-				ctx,
-				place,
-				time.Now(),
-				*freeTime,
-			) {
-				continue
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
