@@ -179,27 +179,10 @@ func (s PlanService) CreatePlanByLocation(
 				}
 			}
 
-			thumbnailPhoto, err := s.placesApi.FetchPlacePhoto(place, &places.ImageSize{
-				Width:  places.ImgThumbnailMaxWidth,
-				Height: places.ImgThumbnailMaxHeight,
-			})
-			if err != nil {
-				log.Printf("error while fetching place thumbnail: %v\n", err)
-				continue
-			}
-			var thumbnail *string
-			if thumbnailPhoto != nil {
-				thumbnail = &thumbnailPhoto.ImageUrl
-			}
-
-			placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, place)
+			thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
 			if err != nil {
 				log.Printf("error while fetching place photos: %v\n", err)
 				continue
-			}
-			photos := make([]string, 0)
-			for _, photo := range placePhotos {
-				photos = append(photos, photo.ImageUrl)
 			}
 
 			placesInPlan = append(placesInPlan, models.Place{
