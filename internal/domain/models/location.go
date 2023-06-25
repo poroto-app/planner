@@ -27,6 +27,10 @@ func (locationA GeoLocation) DistanceInMeter(locationB GeoLocation) float64 {
 	return distance
 }
 
+func (locationA GeoLocation) Equal(locationB GeoLocation) bool {
+	return locationA.Latitude == locationB.Latitude && locationA.Longitude == locationB.Longitude
+}
+
 func toRadian(degree float64) float64 {
 	return math.Pi * degree / 180
 }

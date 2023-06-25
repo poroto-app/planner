@@ -52,3 +52,51 @@ func TestDistanceInMeter(t *testing.T) {
 		})
 	}
 }
+
+func TestEqual(t *testing.T) {
+	cases := []struct {
+		name      string
+		locationA GeoLocation
+		locationB GeoLocation
+		expected  bool
+	}{
+		{
+			name: "Same location",
+			locationA: GeoLocation{
+				Latitude:  35.658581,
+				Longitude: 139.745433,
+			},
+			locationB: GeoLocation{
+				Latitude:  35.658581,
+				Longitude: 139.745433,
+			},
+			expected: true,
+		},
+		{
+			name: "Different location",
+			locationA: GeoLocation{
+				Latitude:  35.658581,
+				Longitude: 139.745433,
+			},
+			locationB: GeoLocation{
+				Latitude:  35.710063,
+				Longitude: 139.8107,
+			},
+			expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			resultAB := c.locationA.Equal(c.locationB)
+			if resultAB != c.expected {
+				t.Errorf("expected: %t\nactual: %t", c.expected, resultAB)
+			}
+
+			resultBA := c.locationB.Equal(c.locationA)
+			if resultBA != c.expected {
+				t.Errorf("expected: %t\nactual: %t", c.expected, resultBA)
+			}
+		})
+	}
+}
