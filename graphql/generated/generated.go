@@ -4284,7 +4284,6 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(
 			if err != nil {
 				return it, err
 			}
-
 		case "placeIds":
 			var err error
 
