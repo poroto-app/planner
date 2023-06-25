@@ -20,6 +20,7 @@ func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 	places := make([]*graphql.Place, len(plan.Places))
 	for i, place := range plan.Places {
 		places[i] = &graphql.Place{
+			ID:     place.Id,
 			Name:   place.Name,
 			Photos: place.Photos,
 			Location: &graphql.GeoLocation{
