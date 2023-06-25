@@ -251,6 +251,11 @@ func (s PlanService) createPlanFromLocation(
 			)
 		}
 
+		// 5時間を超えたら強制的に終了
+		if timeInPlan+timeInPlace > uint((time.Hour * 5).Minutes()) {
+			break
+		}
+
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 			break
 		}
