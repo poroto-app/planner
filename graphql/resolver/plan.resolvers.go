@@ -50,7 +50,21 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: ChangePlacesOrderInPlanCandidate - changePlacesOrderInPlanCandidate"))
+	service, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plan, err := service.ChangePlacesOrderInPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds)
+	if err != nil {
+		return nil, fmt.Errorf("could not change places order")
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*plan)
+	return &model.ChangePlacesOrderInPlanCandidateOutput{
+		Plan: &graphqlPlan,
+	}, nil
 }
 
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
