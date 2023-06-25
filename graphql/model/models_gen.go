@@ -12,8 +12,9 @@ type CachedCreatedPlansInput struct {
 }
 
 type ChangePlacesOrderInPlanInput struct {
-	Session string `json:"session"`
-	ID      string `json:"id"`
+	Session   string   `json:"session"`
+	PlanID    string   `json:"planId"`
+	PlacesIds []string `json:"placesIds"`
 }
 
 type ChangePlacesOrderInPlanOutput struct {
@@ -54,6 +55,7 @@ type MatchInterestsInput struct {
 }
 
 type Place struct {
+	ID                    string       `json:"id"`
 	Name                  string       `json:"name"`
 	Location              *GeoLocation `json:"location"`
 	Photos                []string     `json:"photos"`
