@@ -219,14 +219,37 @@ func (s PlanService) createPlanFromLocation(
 			continue
 		}
 
-		category := models.CategoryOfSubCategory(place.Types[0])
-
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		if category == nil || array.IsContain(categoriesInPlan, category.Name) {
+		categoryMain := models.CategoryOfSubCategory(place.Types[0])
+		if categoryMain == nil {
 			continue
 		}
 
-		timeInPlace := category.EstimatedStayDuration
+		var categoriesOfPlace []string
+		for _, placeType := range place.Types {
+			category := models.CategoryOfSubCategory(placeType)
+			if category != nil {
+				categoriesOfPlace = append(categoriesOfPlace, category.Name)
+			}
+		}
+
+		// 飲食店系は複数含めない
+		categoriesFood := []string{
+			models.CategoryRestaurant.Name,
+			models.CategoryMealTakeaway.Name,
+		}
+		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
+		if isFoodPlace && array.HasIntersection(categoriesInPlan, categoriesFood) {
+			continue
+		}
+
+		// カフェを複数含めない
+		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
+		if isCafePlace && array.IsContain(categoriesInPlan, models.CategoryCafe.Name) {
+			continue
+		}
+
+		timeInPlace := categoryMain.EstimatedStayDuration
 
 		// 開始地点から最初の場所までの移動時間はプランの時間に含めない
 		// TODO: Planの変数として、移動時間を持たせる
@@ -272,11 +295,12 @@ func (s PlanService) createPlanFromLocation(
 			Photos:                photos,
 			Thumbnail:             thumbnail,
 			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: category.EstimatedStayDuration,
-			Category:              category.Name,
+			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Category:              categoryMain.Name,
 		})
+
 		timeInPlan += timeInPlace
-		categoriesInPlan = append(categoriesInPlan, category.Name)
+		categoriesInPlan = append(categoriesInPlan, categoriesOfPlace...)
 		previousLocation = place.Location.ToGeoLocation()
 	}
 
