@@ -97,9 +97,9 @@ func (s PlanService) CreatePlanByLocation(
 
 	placesFilter = placesFilter.FilterByCategory(categoriesToFilter)
 
+	// 起点となる場所を決める
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
-
 	placesInNear := placesFilter.FilterWithinDistanceRange(locationStart, 0, 500).Places()
 	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
 	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
@@ -117,7 +117,6 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-
 	for _, placeRecommend := range placesRecommend {
 		// 起点となる場所との距離順でソート
 		placesSortedByDistance := placesFilter.Places()
@@ -128,11 +127,12 @@ func (s PlanService) CreatePlanByLocation(
 			return distanceI < distanceJ
 		})
 
-		//　起点となる場所から500m以内の場所を抽出
+		//　起点となる場所から1000m以内の場所を抽出
+		//　MEMO: 広めの場所を取得するが、時間の上限があるため、そこまで多くならないはず
 		placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
 			placeRecommend.Location.ToGeoLocation(),
 			0,
-			500,
+			1000,
 		).Places()
 
 		placesInPlan := make([]models.Place, 0)
