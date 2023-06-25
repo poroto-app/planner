@@ -168,7 +168,14 @@ func (s PlanService) createPlanFromLocation(
 		}
 
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		categoryMain := models.CategoryOfSubCategory(place.Types[0])
+		var categoryMain *models.LocationCategory
+		for _, placeType := range place.Types {
+			category := models.CategoryOfSubCategory(placeType)
+			if category != nil {
+				categoryMain = category
+				break
+			}
+		}
 		if categoryMain == nil {
 			continue
 		}
