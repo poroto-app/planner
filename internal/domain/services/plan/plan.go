@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"googlemaps.github.io/maps"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
@@ -60,20 +61,46 @@ func (s PlanService) CreatePlanByLocation(
 	preferenceCategoryNames *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
-	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  locationStart.Latitude,
-			Longitude: locationStart.Longitude,
-		},
-		Radius:   2000,
-		Language: "ja",
+	//// カテゴリでフィルタ
+	//var categoriesPreferred []models.LocationCategory
+	//if preferenceCategoryNames != nil {
+	//	for _, categoryName := range *preferenceCategoryNames {
+	//		if category := models.GetCategoryOfName(categoryName); category != nil {
+	//			categoriesPreferred = append(categoriesPreferred, *category)
+	//		}
+	//	}
+	//}
+	//
+	//var categoriesToFilter []models.LocationCategory
+	//if len(*preferenceCategoryNames) > 0 {
+	//	categoriesToFilter = categoriesPreferred
+	//} else {
+	//	categoriesToFilter = models.GetCategoryToFilter()
+	//}
+
+	placesSearched, err := s.fetchPlacesFromLocation(ctx, locationStart, []maps.PlaceType{
+		// Amusements
+		maps.PlaceTypeAmusementPark,
+		maps.PlaceTypeSpa,
+		//	Book
+		maps.PlaceTypeBookStore,
+		maps.PlaceTypeLibrary,
+		//	Cafe
+		maps.PlaceTypeCafe,
+		// Culture
+		maps.PlaceTypeArtGallery,
+		maps.PlaceTypeMuseum,
+		// Natural
+		maps.PlaceTypeAquarium,
+		maps.PlaceTypeZoo,
+		// Shopping
+		maps.PlaceTypeStore,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
 	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-
 	// 営業中の場所のみフィルタ
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFilter = placesFilter.FilterByOpeningNow()
@@ -137,7 +164,6 @@ func (s PlanService) createPlanFromLocation(
 	places []places.Place,
 	freeTime *int,
 ) (*models.Plan, error) {
-	// MEMO: Places APIで取得すると、飲食店が多く取得される
 	// TODO: おすすめする飲食店が決まったら、飲食店以外の場所を取得する
 
 	placesFilter := placefilter.NewPlacesFilter(places)
@@ -285,6 +311,58 @@ func (s PlanService) createPlanFromLocation(
 		Places:        placesInPlan,
 		TimeInMinutes: timeInPlan,
 	}, nil
+}
+
+func (s PlanService) fetchPlacesFromLocation(
+	ctx context.Context,
+	locationStart models.GeoLocation,
+	typesToSearch []maps.PlaceType,
+) ([]places.Place, error) {
+	var placesSearched []places.Place
+	if placesSearchedWithAllType, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+		Location: places.Location{
+			Latitude:  locationStart.Latitude,
+			Longitude: locationStart.Longitude,
+		},
+		Radius:   2000,
+		Language: "ja",
+	}); err != nil {
+		return nil, fmt.Errorf("error while fetching placesSearchedWithAllType: %v\n", err)
+	} else {
+		placesSearched = append(placesSearched, placesSearchedWithAllType...)
+	}
+
+	var placesTypesInSearchResult []string
+	for _, place := range placesSearched {
+		placesTypesInSearchResult = append(placesTypesInSearchResult, place.Types...)
+	}
+
+	// Places APIで取得すると、飲食店が多く取得されるため取得しない
+	for _, locationType := range typesToSearch {
+		//　検索結果に含まれるカテゴリの場所は検索しない
+		if array.IsContain(placesTypesInSearchResult, string(locationType)) {
+			log.Printf("skip search places with category: %s because it is already searched\n", locationType)
+			continue
+		}
+
+		log.Printf("search places with category: %s\n", locationType)
+		if placesSearchedWithAllType, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+			Location: places.Location{
+				Latitude:  locationStart.Latitude,
+				Longitude: locationStart.Longitude,
+			},
+			Radius:   2000,
+			Language: "ja",
+			Type:     &locationType,
+		}); err != nil {
+			log.Printf("error while fetching places with category %s: %v\n", locationType, err)
+			continue
+		} else {
+			placesSearched = append(placesSearched, placesSearchedWithAllType...)
+		}
+	}
+
+	return placesSearched, nil
 }
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する

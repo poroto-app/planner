@@ -57,7 +57,7 @@ type FindPlacesFromLocationRequest struct {
 	Location Location
 	Radius   uint
 	Language string
-	Type     *string
+	Type     *maps.PlaceType
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
@@ -71,7 +71,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 	}
 
 	if req.Type != nil {
-		nearBySearchRequest.Type = maps.PlaceType(*req.Type)
+		nearBySearchRequest.Type = *req.Type
 	}
 
 	placeSearchResults, err := r.nearBySearch(ctx, &nearBySearchRequest)
