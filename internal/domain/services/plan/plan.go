@@ -274,3 +274,30 @@ func (s PlanService) travelTimeBetween(
 	}
 	return timeInMinutes
 }
+
+func (s PlanService) ChangePlacesOrderInPlanCandidate(
+	ctx context.Context,
+	planId string,
+	planCandidateId string,
+	placeIdsOrdered []string,
+) (*models.Plan, error) {
+	planCandidate, err := s.FindPlanCandidate(ctx, planCandidateId)
+	if err != nil {
+		log.Println("error while finding plan candidate: ", err)
+		return nil, err
+	}
+
+	if planCandidate == nil {
+		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
+	}
+
+	plan, err := s.UpdatePlacesOrderPlanCandidate(ctx, planId, planCandidate, placeIdsOrdered)
+	if err != nil {
+		log.Println("error while Updating plan candidate: ", err)
+		return nil, err
+	}
+
+	// MOCK: 移動時間の再計算処理を実装（latitude, longitudeがnilでなければ使う）
+
+	return plan, nil
+}
