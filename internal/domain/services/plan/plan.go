@@ -58,6 +58,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	locationStart models.GeoLocation,
+	// TODO: 行かないと指定された場所を受け取る
 	preferenceCategoryNames *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
@@ -104,25 +105,7 @@ func (s PlanService) CreatePlanByLocation(
 	// 営業中の場所のみフィルタ
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFilter = placesFilter.FilterByOpeningNow()
-
-	// カテゴリでフィルタ
-	var categoriesPreferred []models.LocationCategory
-	if preferenceCategoryNames != nil {
-		for _, categoryName := range *preferenceCategoryNames {
-			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesPreferred = append(categoriesPreferred, *category)
-			}
-		}
-	}
-
-	var categoriesToFilter []models.LocationCategory
-	if len(*preferenceCategoryNames) > 0 {
-		categoriesToFilter = categoriesPreferred
-	} else {
-		categoriesToFilter = models.GetCategoryToFilter()
-	}
-
-	placesFilter = placesFilter.FilterByCategory(categoriesToFilter)
+	placesFilter = placesFilter.FilterByCategory(models.GetCategoryToFilter())
 
 	// 起点となる場所を決める
 	// TODO: 移動距離ではなく、移動時間でやる
