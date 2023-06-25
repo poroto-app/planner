@@ -130,58 +130,6 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
-func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, startTime time.Time, duration time.Duration) (bool, error) {
-	// 時刻フィルタリング用変数
-	endTime := startTime.Add(duration)
-	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
-
-	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
-	if err != nil {
-		return false, fmt.Errorf("error while fetching place periods: %v\n", err)
-	}
-
-	for _, placeOpeningPeriod := range placeOpeningPeriods {
-		// startTime で指定された曜日のみを確認
-		if placeOpeningPeriod.DayOfWeek != startTime.Weekday().String() {
-			continue
-		}
-
-		// TODO: 変換処理の共通化 & テストを実装
-		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
-		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
-		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
-		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
-		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
-			return false, fmt.Errorf("error while converting period [string->int]")
-		}
-
-		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
-		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
-
-		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
-		if startTime.After(openingTime) && endTime.Before(closingTime) {
-			return true, nil
-		}
-	}
-
-	// 開店時間が指定されていない場合は空いているとして扱う
-	return true, nil
-}
-
-func (s PlanService) travelTimeBetween(
-	locationDeparture models.GeoLocation,
-	locationDestination models.GeoLocation,
-	meterPerMinutes float64,
-) uint {
-	var timeInMinutes uint = 0
-	distance := locationDeparture.DistanceInMeter(locationDestination)
-	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = uint(distance / meterPerMinutes)
-	}
-	return timeInMinutes
-}
-
 func (s PlanService) createPlanFromLocation(
 	ctx context.Context,
 	locationStart models.GeoLocation,
@@ -320,4 +268,56 @@ func (s PlanService) createPlanFromLocation(
 		Places:        placesInPlan,
 		TimeInMinutes: timeInPlan,
 	}, nil
+}
+
+// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
+func (s PlanService) isOpeningWithIn(ctx context.Context, place places.Place, startTime time.Time, duration time.Duration) (bool, error) {
+	// 時刻フィルタリング用変数
+	endTime := startTime.Add(duration)
+	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
+
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
+	if err != nil {
+		return false, fmt.Errorf("error while fetching place periods: %v\n", err)
+	}
+
+	for _, placeOpeningPeriod := range placeOpeningPeriods {
+		// startTime で指定された曜日のみを確認
+		if placeOpeningPeriod.DayOfWeek != startTime.Weekday().String() {
+			continue
+		}
+
+		// TODO: 変換処理の共通化 & テストを実装
+		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
+		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
+		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
+		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
+		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
+			return false, fmt.Errorf("error while converting period [string->int]")
+		}
+
+		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
+		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
+
+		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
+		if startTime.After(openingTime) && endTime.Before(closingTime) {
+			return true, nil
+		}
+	}
+
+	// 開店時間が指定されていない場合は空いているとして扱う
+	return true, nil
+}
+
+func (s PlanService) travelTimeBetween(
+	locationDeparture models.GeoLocation,
+	locationDestination models.GeoLocation,
+	meterPerMinutes float64,
+) uint {
+	var timeInMinutes uint = 0
+	distance := locationDeparture.DistanceInMeter(locationDestination)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = uint(distance / meterPerMinutes)
+	}
+	return timeInMinutes
 }
