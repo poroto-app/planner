@@ -56,14 +56,14 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
-	location models.GeoLocation,
+	locationStart models.GeoLocation,
 	preferenceCategoryNames *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
-			Latitude:  location.Latitude,
-			Longitude: location.Longitude,
+			Latitude:  locationStart.Latitude,
+			Longitude: locationStart.Longitude,
 		},
 		Radius:   2000,
 		Language: "ja",
@@ -97,9 +97,9 @@ func (s PlanService) CreatePlanByLocation(
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 
-	placesInNear := placesFilter.FilterWithinDistanceRange(location, 0, 500).Places()
-	placesInMiddle := placesFilter.FilterWithinDistanceRange(location, 500, 1000).Places()
-	placesInFar := placesFilter.FilterWithinDistanceRange(location, 1000, 2000).Places()
+	placesInNear := placesFilter.FilterWithinDistanceRange(locationStart, 0, 500).Places()
+	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
+	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
 	if len(placesInNear) > 0 {
 		// TODO: 0 ~ 500mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInNear[0])
@@ -134,7 +134,7 @@ func (s PlanService) CreatePlanByLocation(
 
 		placesInPlan := make([]models.Place, 0)
 		categoriesInPlan := make([]string, 0)
-		previousLocation := location
+		previousLocation := locationStart
 		var timeInPlan uint = 0
 
 		for _, place := range placesWithInRange {
