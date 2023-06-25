@@ -57,17 +57,24 @@ type FindPlacesFromLocationRequest struct {
 	Location Location
 	Radius   uint
 	Language string
+	Type     *string
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
-	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
+	nearBySearchRequest := maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
 			Lng: req.Location.Longitude,
 		},
 		Radius:   req.Radius,
 		Language: req.Language,
-	})
+	}
+
+	if req.Type != nil {
+		nearBySearchRequest.Type = maps.PlaceType(*req.Type)
+	}
+
+	placeSearchResults, err := r.nearBySearch(ctx, &nearBySearchRequest)
 	if err != nil {
 		return nil, err
 	}
