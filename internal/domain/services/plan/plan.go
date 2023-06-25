@@ -72,6 +72,13 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
+	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+
+	// 営業中の場所のみフィルタ
+	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
+	placesFilter = placesFilter.FilterByOpeningNow()
+
+	// カテゴリでフィルタ
 	var categoriesPreferred []models.LocationCategory
 	if preferenceCategoryNames != nil {
 		for _, categoryName := range *preferenceCategoryNames {
@@ -88,11 +95,7 @@ func (s PlanService) CreatePlanByLocation(
 		categoriesToFilter = models.GetCategoryToFilter()
 	}
 
-	placesFilter := placefilter.NewPlacesFilter(placesSearched)
 	placesFilter = placesFilter.FilterByCategory(categoriesToFilter)
-
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFilter = placesFilter.FilterByOpeningNow()
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
