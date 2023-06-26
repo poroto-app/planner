@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
@@ -162,10 +161,16 @@ func (s PlanService) createPlanFromLocation(
 			continue
 		}
 
-		category := models.CategoryOfSubCategory(place.Types[0])
-
+		var categoryMain *models.LocationCategory
+		for _, placeType := range place.Types {
+			c := models.CategoryOfSubCategory(placeType)
+			if c != nil {
+				categoryMain = c
+				break
+			}
+		}
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		if category == nil || array.IsContain(categoriesInPlan, category.Name) {
+		if categoryMain == nil {
 			continue
 		}
 
@@ -174,7 +179,7 @@ func (s PlanService) createPlanFromLocation(
 			place.Location.ToGeoLocation(),
 			80.0,
 		)
-		timeInPlace := category.EstimatedStayDuration + tripTime
+		timeInPlace := categoryMain.EstimatedStayDuration + tripTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 			break
 		}
@@ -200,11 +205,11 @@ func (s PlanService) createPlanFromLocation(
 			Photos:                photos,
 			Thumbnail:             thumbnail,
 			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: category.EstimatedStayDuration,
-			Category:              category.Name,
+			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Category:              categoryMain.Name,
 		})
 		timeInPlan += timeInPlace
-		categoriesInPlan = append(categoriesInPlan, category.Name)
+		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
 	}
 
