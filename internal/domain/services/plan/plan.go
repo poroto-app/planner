@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
@@ -159,6 +160,30 @@ func (s PlanService) createPlanFromLocation(
 	for _, place := range placesWithInRange {
 		// 既にプランに含まれるカテゴリの場所は無視する
 		if len(place.Types) == 0 {
+			continue
+		}
+
+		var categoriesOfPlace []string
+		for _, placeType := range place.Types {
+			c := models.CategoryOfSubCategory(placeType)
+			if c != nil && !array.IsContain(categoriesOfPlace, c.Name) {
+				categoriesOfPlace = append(categoriesOfPlace, c.Name)
+			}
+		}
+
+		// 飲食店系は複数含めない
+		categoriesFood := []string{
+			models.CategoryRestaurant.Name,
+			models.CategoryMealTakeaway.Name,
+		}
+		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
+		if isFoodPlace && array.HasIntersection(categoriesInPlan, categoriesFood) {
+			continue
+		}
+
+		// カフェを複数含めない
+		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
+		if isCafePlace && array.IsContain(categoriesInPlan, models.CategoryCafe.Name) {
 			continue
 		}
 
