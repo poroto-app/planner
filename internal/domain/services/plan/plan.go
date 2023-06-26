@@ -56,14 +56,14 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
-	location models.GeoLocation,
+	locationStart models.GeoLocation,
 	categoryNamesPreferred *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
-			Latitude:  location.Latitude,
-			Longitude: location.Longitude,
+			Latitude:  locationStart.Latitude,
+			Longitude: locationStart.Longitude,
 		},
 		Radius:   2000,
 		Language: "ja",
@@ -97,9 +97,9 @@ func (s PlanService) CreatePlanByLocation(
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 
-	placesInNear := placesFilter.FilterWithinDistanceRange(location, 0, 500).Places()
-	placesInMiddle := placesFilter.FilterWithinDistanceRange(location, 500, 1000).Places()
-	placesInFar := placesFilter.FilterWithinDistanceRange(location, 1000, 2000).Places()
+	placesInNear := placesFilter.FilterWithinDistanceRange(locationStart, 0, 500).Places()
+	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
+	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
 	if len(placesInNear) > 0 {
 		placesRecommend = append(placesRecommend, placesInNear[0])
 	}
@@ -113,7 +113,7 @@ func (s PlanService) CreatePlanByLocation(
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanFromLocation(ctx, location, placeRecommend, placesFilter.Places(), freeTime)
+		plan, err := s.createPlanFromLocation(ctx, locationStart, placeRecommend, placesFilter.Places(), freeTime)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -126,7 +126,7 @@ func (s PlanService) CreatePlanByLocation(
 
 func (s PlanService) createPlanFromLocation(
 	ctx context.Context,
-	location models.GeoLocation,
+	locationStart models.GeoLocation,
 	placeStart places.Place,
 	places []places.Place,
 	freeTime *int,
@@ -150,7 +150,7 @@ func (s PlanService) createPlanFromLocation(
 
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
-	previousLocation := location
+	previousLocation := locationStart
 	var timeInPlan uint = 0
 
 	for _, place := range placesWithInRange {
