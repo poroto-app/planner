@@ -101,12 +101,15 @@ func (s PlanService) CreatePlanByLocation(
 	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
 	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
 	if len(placesInNear) > 0 {
+		// TODO: 0 ~ 500mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInNear[0])
 	}
 	if len(placesInMiddle) > 0 {
+		// TODO: 500 ~ 1000mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInMiddle[0])
 	}
 	if len(placesInFar) > 0 {
+		// TODO: 1000 ~ 2000mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
