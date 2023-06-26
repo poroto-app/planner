@@ -158,11 +158,6 @@ func (s PlanService) createPlanFromLocation(
 	var timeInPlan uint = 0
 
 	for _, place := range placesWithInRange {
-		// 既にプランに含まれるカテゴリの場所は無視する
-		if len(place.Types) == 0 {
-			continue
-		}
-
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
