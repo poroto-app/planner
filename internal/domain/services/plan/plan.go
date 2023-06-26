@@ -179,7 +179,7 @@ func (s PlanService) CreatePlanByLocation(
 				break
 			}
 
-			if freeTime != nil && !s.filterWithFreeTime(
+			if freeTime != nil && !s.isOpeningWithIn(
 				ctx,
 				place,
 				time.Now(),
@@ -223,11 +223,12 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) filterWithFreeTime(
+// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
+func (s PlanService) isOpeningWithIn(
 	ctx context.Context,
 	place places.Place,
 	startTime time.Time,
-	freeTime int,
+	duration int,
 ) bool {
 	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
@@ -235,7 +236,7 @@ func (s PlanService) filterWithFreeTime(
 		return false
 	}
 	// 時刻フィルタリング用変数
-	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
+	endTime := startTime.Add(time.Minute * time.Duration(duration))
 	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
