@@ -244,6 +244,8 @@ func (s PlanService) isOpeningWithIn(
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
+
+		// TODO: パース処理に関するテストを書く
 		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
 		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
 		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
@@ -252,6 +254,7 @@ func (s PlanService) isOpeningWithIn(
 			log.Println("error while converting period [string->int]")
 			continue
 		}
+
 		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
 		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
 
