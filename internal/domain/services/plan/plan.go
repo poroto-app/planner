@@ -113,97 +113,114 @@ func (s PlanService) CreatePlanByLocation(
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 
 	for _, placeRecommend := range placesRecommend {
-		// 起点となる場所との距離順でソート
-		placesSortedByDistance := placesFilter.Places()
-		sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
-			locationRecommend := placeRecommend.Location.ToGeoLocation()
-			distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
-			distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
-			return distanceI < distanceJ
-		})
-
-		placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
-			placeRecommend.Location.ToGeoLocation(),
-			0,
-			500,
-		).Places()
-
-		placesInPlan := make([]models.Place, 0)
-		categoriesInPlan := make([]string, 0)
-		previousLocation := location
-		var timeInPlan uint = 0
-
-		for _, place := range placesWithInRange {
-			// 既にプランに含まれるカテゴリの場所は無視する
-			if len(place.Types) == 0 {
-				continue
-			}
-
-			category := models.CategoryOfSubCategory(place.Types[0])
-
-			// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-			if category == nil || array.IsContain(categoriesInPlan, category.Name) {
-				continue
-			}
-
-			tripTime := s.travelTimeBetween(
-				previousLocation,
-				place.Location.ToGeoLocation(),
-				80.0,
-			)
-			timeInPlace := category.EstimatedStayDuration + tripTime
-			if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
-				break
-			}
-
-			if freeTime != nil && !s.isOpeningWithIn(
-				ctx,
-				place,
-				time.Now(),
-				time.Minute*time.Duration(*freeTime),
-			) {
-				continue
-			}
-
-			thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
-			if err != nil {
-				log.Printf("error while fetching place photos: %v\n", err)
-				continue
-			}
-
-			placesInPlan = append(placesInPlan, models.Place{
-				Id:                    place.PlaceID,
-				Name:                  place.Name,
-				Photos:                photos,
-				Thumbnail:             thumbnail,
-				Location:              place.Location.ToGeoLocation(),
-				EstimatedStayDuration: category.EstimatedStayDuration,
-				Category:              category.Name,
-			})
-			timeInPlan += timeInPlace
-			categoriesInPlan = append(categoriesInPlan, category.Name)
-			previousLocation = place.Location.ToGeoLocation()
-		}
-
-		if len(placesInPlan) == 0 {
+		plan, err := s.createPlanFromLocation(ctx, location, placeRecommend, placesFilter.Places(), freeTime)
+		if err != nil {
+			log.Println(err)
 			continue
 		}
-
-		title, err := s.GeneratePlanTitle(placesInPlan)
-		if err != nil {
-			log.Printf("error while generating plan title: %v\n", err)
-			title = &placeRecommend.Name
-		}
-
-		plans = append(plans, models.Plan{
-			Id:            uuid.New().String(),
-			Name:          *title,
-			Places:        placesInPlan,
-			TimeInMinutes: timeInPlan,
-		})
+		plans = append(plans, *plan)
 	}
 
 	return &plans, nil
+}
+
+func (s PlanService) createPlanFromLocation(
+	ctx context.Context,
+	location models.GeoLocation,
+	placeStart places.Place,
+	places []places.Place,
+	freeTime *int,
+) (*models.Plan, error) {
+	placesFilter := placefilter.NewPlacesFilter(places)
+
+	// 起点となる場所との距離順でソート
+	placesSortedByDistance := placesFilter.Places()
+	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
+		locationRecommend := placeStart.Location.ToGeoLocation()
+		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
+		distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
+		return distanceI < distanceJ
+	})
+
+	placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
+		placeStart.Location.ToGeoLocation(),
+		0,
+		500,
+	).Places()
+
+	placesInPlan := make([]models.Place, 0)
+	categoriesInPlan := make([]string, 0)
+	previousLocation := location
+	var timeInPlan uint = 0
+
+	for _, place := range placesWithInRange {
+		// 既にプランに含まれるカテゴリの場所は無視する
+		if len(place.Types) == 0 {
+			continue
+		}
+
+		category := models.CategoryOfSubCategory(place.Types[0])
+
+		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
+		if category == nil || array.IsContain(categoriesInPlan, category.Name) {
+			continue
+		}
+
+		tripTime := s.travelTimeBetween(
+			previousLocation,
+			place.Location.ToGeoLocation(),
+			80.0,
+		)
+		timeInPlace := category.EstimatedStayDuration + tripTime
+		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
+			break
+		}
+
+		if freeTime != nil && !s.isOpeningWithIn(
+			ctx,
+			place,
+			time.Now(),
+			time.Minute*time.Duration(*freeTime),
+		) {
+			continue
+		}
+
+		thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
+		if err != nil {
+			log.Printf("error while fetching place photos: %v\n", err)
+			continue
+		}
+
+		placesInPlan = append(placesInPlan, models.Place{
+			Id:                    place.PlaceID,
+			Name:                  place.Name,
+			Photos:                photos,
+			Thumbnail:             thumbnail,
+			Location:              place.Location.ToGeoLocation(),
+			EstimatedStayDuration: category.EstimatedStayDuration,
+			Category:              category.Name,
+		})
+		timeInPlan += timeInPlace
+		categoriesInPlan = append(categoriesInPlan, category.Name)
+		previousLocation = place.Location.ToGeoLocation()
+	}
+
+	if len(placesInPlan) == 0 {
+		return nil, fmt.Errorf("could not contain any places in plan")
+	}
+
+	title, err := s.GeneratePlanTitle(placesInPlan)
+	if err != nil {
+		log.Printf("error while generating plan title: %v\n", err)
+		title = &placeStart.Name
+	}
+
+	return &models.Plan{
+		Id:            uuid.New().String(),
+		Name:          *title,
+		Places:        placesInPlan,
+		TimeInMinutes: timeInPlan,
+	}, nil
 }
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
