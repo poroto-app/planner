@@ -178,12 +178,14 @@ func (s PlanService) createPlanFromLocation(
 		}
 		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
 		if isFoodPlace && array.HasIntersection(categoriesInPlan, categoriesFood) {
+			log.Printf("skip place %s because plan is already has food place\n", place.Name)
 			continue
 		}
 
 		// カフェを複数含めない
 		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
 		if isCafePlace && array.IsContain(categoriesInPlan, models.CategoryCafe.Name) {
+			log.Printf("skip place %s because plan is already has cafe place\n", place.Name)
 			continue
 		}
 
@@ -197,6 +199,7 @@ func (s PlanService) createPlanFromLocation(
 		}
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
 		if categoryMain == nil {
+			log.Printf("place %s has no category\n", place.Name)
 			continue
 		}
 
@@ -216,6 +219,7 @@ func (s PlanService) createPlanFromLocation(
 			time.Now(),
 			time.Minute*time.Duration(*freeTime),
 		) {
+			log.Printf("skip place %s because it will be closed\n", place.Name)
 			continue
 		}
 
