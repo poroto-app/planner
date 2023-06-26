@@ -183,7 +183,7 @@ func (s PlanService) CreatePlanByLocation(
 				ctx,
 				place,
 				time.Now(),
-				*freeTime,
+				time.Minute*time.Duration(*freeTime),
 			) {
 				continue
 			}
@@ -228,7 +228,7 @@ func (s PlanService) isOpeningWithIn(
 	ctx context.Context,
 	place places.Place,
 	startTime time.Time,
-	duration int,
+	duration time.Duration,
 ) bool {
 	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
@@ -236,7 +236,7 @@ func (s PlanService) isOpeningWithIn(
 		return false
 	}
 	// 時刻フィルタリング用変数
-	endTime := startTime.Add(time.Minute * time.Duration(duration))
+	endTime := startTime.Add(time.Minute * duration)
 	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
