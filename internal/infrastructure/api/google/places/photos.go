@@ -3,6 +3,8 @@ package places
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"net/url"
 	"path"
 
@@ -43,9 +45,31 @@ func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey 
 	return u.String(), nil
 }
 
+// fetchPublicImageUrl は、Place Photos API によって提供される公開可能なURLを取得する
+// imgUrlBuilder が生成するURLは、APIキーを含むため、この関数によってリダイレクト先のURLを取得する必要がある
+func fetchPublicImageUrl(photoUrl string) (*string, error) {
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	req, err := http.NewRequest("GET", photoUrl, nil)
+	if err != nil {
+		return nil, fmt.Errorf("error while creating request: %w", err)
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error while requesting: %w", err)
+	}
+
+	publicImageUrl := res.Header.Get("Location")
+	return &publicImageUrl, nil
+}
+
 // FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
 // imageSize が nilの場合は、最大1000x1000の画像を取得する
-// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
 	if len(place.photoReferences) == 0 {
 		return nil, nil
@@ -63,13 +87,17 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 		return nil, err
 	}
 
+	publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching public image url: %w", err)
+	}
+
 	return &PlacePhoto{
-		ImageUrl: imgUrl,
+		ImageUrl: *publicImageUrl,
 	}, nil
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-// TODO: ImageUrlにAPIキーが含まれないように、リダイレクト先のURLを取得して返す
 func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: place.PlaceID,
@@ -85,12 +113,24 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePh
 	for _, photo := range resp.Photos {
 		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
-			return nil, err
+			log.Printf("skipping photo because of error while building image url: %v", err)
+			continue
+		}
+
+		publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+		if err != nil {
+			log.Printf("skipping photo because of error while fetching public image url: %v", err)
+			continue
 		}
 
 		placePhotos = append(placePhotos, PlacePhoto{
-			ImageUrl: imgUrl,
+			ImageUrl: *publicImageUrl,
 		})
+	}
+
+	// すべての写真の取得に失敗した場合は、エラーを返す
+	if len(resp.Photos) > 0 && len(placePhotos) == 0 {
+		return nil, fmt.Errorf("could not fetch any photos")
 	}
 
 	return placePhotos, nil
