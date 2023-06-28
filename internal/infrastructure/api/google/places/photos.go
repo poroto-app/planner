@@ -3,6 +3,7 @@ package places
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -112,17 +113,24 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePh
 	for _, photo := range resp.Photos {
 		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
-			return nil, err
+			log.Printf("skipping photo because of error while building image url: %v", err)
+			continue
 		}
 
 		publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 		if err != nil {
-			return nil, fmt.Errorf("error while fetching public image url: %w", err)
+			log.Printf("skipping photo because of error while fetching public image url: %v", err)
+			continue
 		}
 
 		placePhotos = append(placePhotos, PlacePhoto{
 			ImageUrl: *publicImageUrl,
 		})
+	}
+
+	// すべての写真の取得に失敗した場合は、エラーを返す
+	if len(resp.Photos) > 0 && len(placePhotos) == 0 {
+		return nil, fmt.Errorf("could not fetch any photos")
 	}
 
 	return placePhotos, nil
