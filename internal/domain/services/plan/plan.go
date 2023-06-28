@@ -116,7 +116,7 @@ func (s PlanService) CreatePlanByLocation(
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanFromLocation(ctx, locationStart, placeRecommend, placesFilter.Places(), freeTime)
+		plan, err := s.createPlanByLocation(ctx, locationStart, placeRecommend, placesFilter.Places(), freeTime)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -127,7 +127,7 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) createPlanFromLocation(
+func (s PlanService) createPlanByLocation(
 	ctx context.Context,
 	locationStart models.GeoLocation,
 	placeStart places.Place,
