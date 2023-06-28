@@ -57,7 +57,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
-	preferenceCategoryNames *[]string,
+	categoryNamesPreferred *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
@@ -72,24 +72,24 @@ func (s PlanService) CreatePlanByLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	var preferenceCategories []models.LocationCategory
-	if preferenceCategoryNames != nil {
-		for _, categoryName := range *preferenceCategoryNames {
+	var categoriesPreferred []models.LocationCategory
+	if categoryNamesPreferred != nil {
+		for _, categoryName := range *categoryNamesPreferred {
 			if category := models.GetCategoryOfName(categoryName); category != nil {
-				preferenceCategories = append(preferenceCategories, *category)
+				categoriesPreferred = append(categoriesPreferred, *category)
 			}
 		}
 	}
 
-	var categoryToFiler []models.LocationCategory
-	if len(*preferenceCategoryNames) > 0 {
-		categoryToFiler = preferenceCategories
+	var categoriesToFiler []models.LocationCategory
+	if len(*categoryNamesPreferred) > 0 {
+		categoriesToFiler = categoriesPreferred
 	} else {
-		categoryToFiler = models.GetCategoryToFilter()
+		categoriesToFiler = models.GetCategoryToFilter()
 	}
 
 	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-	placesFilter = placesFilter.FilterByCategory(categoryToFiler)
+	placesFilter = placesFilter.FilterByCategory(categoriesToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFilter = placesFilter.FilterByOpeningNow()
@@ -179,11 +179,11 @@ func (s PlanService) CreatePlanByLocation(
 				break
 			}
 
-			if freeTime != nil && !s.filterWithFreeTime(
+			if freeTime != nil && !s.isOpeningWithIn(
 				ctx,
 				place,
 				time.Now(),
-				*freeTime,
+				time.Minute*time.Duration(*freeTime),
 			) {
 				continue
 			}
@@ -223,11 +223,12 @@ func (s PlanService) CreatePlanByLocation(
 	return &plans, nil
 }
 
-func (s PlanService) filterWithFreeTime(
+// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
+func (s PlanService) isOpeningWithIn(
 	ctx context.Context,
 	place places.Place,
 	startTime time.Time,
-	freeTime int,
+	duration time.Duration,
 ) bool {
 	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
 	if err != nil {
@@ -235,7 +236,7 @@ func (s PlanService) filterWithFreeTime(
 		return false
 	}
 	// 時刻フィルタリング用変数
-	endTime := startTime.Add(time.Minute * time.Duration(freeTime))
+	endTime := startTime.Add(time.Minute * duration)
 	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
 
 	for _, placeOpeningPeriod := range placeOpeningPeriods {
@@ -243,6 +244,8 @@ func (s PlanService) filterWithFreeTime(
 		if placeOpeningPeriod.DayOfWeek != weekday.String() {
 			continue
 		}
+
+		// TODO: パース処理に関するテストを書く
 		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
 		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
 		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
@@ -251,6 +254,7 @@ func (s PlanService) filterWithFreeTime(
 			log.Println("error while converting period [string->int]")
 			continue
 		}
+
 		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
 		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
 
