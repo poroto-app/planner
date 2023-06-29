@@ -57,6 +57,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	locationStart models.GeoLocation,
+	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	freeTime *int,
 ) (*[]models.Plan, error) {
@@ -157,15 +158,45 @@ func (s PlanService) createPlanByLocation(
 	var timeInPlan uint = 0
 
 	for _, place := range placesWithInRange {
-		// 既にプランに含まれるカテゴリの場所は無視する
-		if len(place.Types) == 0 {
+		var categoriesOfPlace []string
+		for _, placeType := range place.Types {
+			c := models.CategoryOfSubCategory(placeType)
+			if c != nil && !array.IsContain(categoriesOfPlace, c.Name) {
+				categoriesOfPlace = append(categoriesOfPlace, c.Name)
+			}
+		}
+
+		// 飲食店系は複数含めない
+		categoriesFood := []string{
+			models.CategoryRestaurant.Name,
+			models.CategoryMealTakeaway.Name,
+		}
+		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
+		isPlanContainsFoodPlace := array.HasIntersection(categoriesInPlan, categoriesFood)
+		if isFoodPlace && isPlanContainsFoodPlace {
+			log.Printf("skip place %s because plan is already has food place\n", place.Name)
 			continue
 		}
 
-		category := models.CategoryOfSubCategory(place.Types[0])
+		// カフェを複数含めない
+		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
+		isPlanContainsFoodPlace = array.IsContain(categoriesInPlan, models.CategoryCafe.Name)
+		if isCafePlace && isPlanContainsFoodPlace {
+			log.Printf("skip place %s because plan is already has cafe place\n", place.Name)
+			continue
+		}
 
+		var categoryMain *models.LocationCategory
+		for _, placeType := range place.Types {
+			c := models.CategoryOfSubCategory(placeType)
+			if c != nil {
+				categoryMain = c
+				break
+			}
+		}
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		if category == nil || array.IsContain(categoriesInPlan, category.Name) {
+		if categoryMain == nil {
+			log.Printf("place %s has no category\n", place.Name)
 			continue
 		}
 
@@ -174,7 +205,7 @@ func (s PlanService) createPlanByLocation(
 			place.Location.ToGeoLocation(),
 			80.0,
 		)
-		timeInPlace := category.EstimatedStayDuration + tripTime
+		timeInPlace := categoryMain.EstimatedStayDuration + tripTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 			break
 		}
@@ -185,6 +216,7 @@ func (s PlanService) createPlanByLocation(
 			time.Now(),
 			time.Minute*time.Duration(*freeTime),
 		) {
+			log.Printf("skip place %s because it will be closed\n", place.Name)
 			continue
 		}
 
@@ -200,11 +232,11 @@ func (s PlanService) createPlanByLocation(
 			Photos:                photos,
 			Thumbnail:             thumbnail,
 			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: category.EstimatedStayDuration,
-			Category:              category.Name,
+			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Category:              categoryMain.Name,
 		})
 		timeInPlan += timeInPlace
-		categoriesInPlan = append(categoriesInPlan, category.Name)
+		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
 	}
 
