@@ -76,8 +76,8 @@ input ChangePlacesOrderInPlanCandidateInput {
     session: String!
     planId: String!
     placeIds: [String!]!
-    latitude: Float
-    longitude: Float
+    currentLatitude: Float
+    currentLongitude: Float
 }
 
 type ChangePlacesOrderInPlanCandidateOutput {

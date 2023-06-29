@@ -12,11 +12,11 @@ type CachedCreatedPlansInput struct {
 }
 
 type ChangePlacesOrderInPlanCandidateInput struct {
-	Session   string   `json:"session"`
-	PlanID    string   `json:"planId"`
-	PlaceIds  []string `json:"placeIds"`
-	Latitude  *float64 `json:"latitude,omitempty"`
-	Longitude *float64 `json:"longitude,omitempty"`
+	Session          string   `json:"session"`
+	PlanID           string   `json:"planId"`
+	PlaceIds         []string `json:"placeIds"`
+	CurrentLatitude  *float64 `json:"currentLatitude,omitempty"`
+	CurrentLongitude *float64 `json:"currentLongitude,omitempty"`
 }
 
 type ChangePlacesOrderInPlanCandidateOutput struct {

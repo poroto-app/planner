@@ -546,8 +546,8 @@ input ChangePlacesOrderInPlanCandidateInput {
     session: String!
     planId: String!
     placeIds: [String!]!
-    latitude: Float
-    longitude: Float
+    currentLatitude: Float
+    currentLongitude: Float
 }
 
 type ChangePlacesOrderInPlanCandidateOutput {
@@ -4261,7 +4261,7 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "planId", "placeIds", "latitude", "longitude"}
+	fieldsInOrder := [...]string{"session", "planId", "placeIds", "currentLatitude", "currentLongitude"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4292,19 +4292,19 @@ func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(
 			if err != nil {
 				return it, err
 			}
-		case "latitude":
+		case "currentLatitude":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
-			it.Latitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentLatitude"))
+			it.CurrentLatitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "longitude":
+		case "currentLongitude":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
-			it.Longitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("currentLongitude"))
+			it.CurrentLongitude, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
