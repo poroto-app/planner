@@ -70,6 +70,7 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
 	}
 
+	// planCandidateの中から指定のplanを探索
 	var plan *models.Plan
 	for _, p := range planCandidate.Plans {
 		if p.Id == planId {
