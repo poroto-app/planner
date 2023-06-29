@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"cloud.google.com/go/firestore"
@@ -60,23 +61,31 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	return &planCandidate, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate *models.PlanCandidate, placeIdsOrdered []string) (*models.Plan, error) {
-	flagOfMatch := false
-	var plan models.Plan
-	for _, plan = range planCandidate.Plans {
-		if plan.Id == planId {
-			flagOfMatch = true
+func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
+	planCandidate, err := p.Find(ctx, planCandidateId)
+	if err != nil {
+		log.Println("error while finding plan candidate: ", err)
+		return nil, err
+	}
+
+	if planCandidate == nil {
+		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
+	}
+
+	var plan *models.Plan
+	for _, p := range planCandidate.Plans {
+		if p.Id == planId {
+			plan = &p
 			break
 		}
 	}
-
-	if !flagOfMatch {
+	if plan == nil {
 		return nil, fmt.Errorf("not found plan[%s] in plan candidate[%s]", planId, planCandidate.Id)
 	}
 
-	// MOCK: 並び替え・更新処理を実装
+	// MOCK：並び替え・更新処理を実装
 
-	return &plan, nil
+	return plan, nil
 }
 
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {

@@ -56,7 +56,7 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plan, err := service.ChangePlacesOrderInPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds)
+	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds)
 	if err != nil {
 		return nil, fmt.Errorf("could not change places order")
 	}

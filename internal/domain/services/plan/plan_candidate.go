@@ -20,6 +20,12 @@ func (s PlanService) FindPlanCandidate(ctx context.Context, planCandidateId stri
 	return s.planCandidateRepository.Find(ctx, planCandidateId)
 }
 
-func (s PlanService) UpdatePlacesOrderPlanCandidate(ctx context.Context, planId string, planCandidate *models.PlanCandidate, placeIdsOrdered []string) (*models.Plan, error) {
-	return s.planCandidateRepository.UpdatePlacesOrder(ctx, planId, planCandidate, placeIdsOrdered)
+func (s PlanService) ChangePlacesOrderPlanCandidate(
+	ctx context.Context,
+	planId string,
+	planCandidateId string,
+	placeIdsOrdered []string,
+) (*models.Plan, error) {
+	// TMOCK：移動時間の再計算処理を実装（latitude, longitudeがnilでなければ使う）
+	return s.planCandidateRepository.UpdatePlacesOrder(ctx, planId, planCandidateId, placeIdsOrdered)
 }
