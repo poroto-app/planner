@@ -1,6 +1,9 @@
 package models
 
-import "poroto.app/poroto/planner/internal/domain/array"
+import (
+	"googlemaps.github.io/maps"
+	"poroto.app/poroto/planner/internal/domain/array"
+)
 
 type LocationCategory struct {
 	Name                  string
@@ -16,11 +19,11 @@ var (
 		Name:        "amusements",
 		DisplayName: "遊び",
 		SubCategories: []string{
-			"amusement_park",
-			"bowling_alley",
-			"movie_theater",
-			"spa",
-			"stadium",
+			string(maps.PlaceTypeAmusementPark),
+			string(maps.PlaceTypeBowlingAlley),
+			string(maps.PlaceTypeMovieTheater),
+			string(maps.PlaceTypeSpa),
+			string(maps.PlaceTypeStadium),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
@@ -31,7 +34,7 @@ var (
 		Name:        "book_store",
 		DisplayName: "本屋",
 		SubCategories: []string{
-			"book_store",
+			string(maps.PlaceTypeBookStore),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
@@ -42,7 +45,7 @@ var (
 		Name:        "cafe",
 		DisplayName: "カフェ",
 		SubCategories: []string{
-			"cafe",
+			string(maps.PlaceTypeCafe),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
@@ -53,8 +56,8 @@ var (
 		Name:        "camp",
 		DisplayName: "キャンプ",
 		SubCategories: []string{
-			"campground",
-			"rv_park",
+			string(maps.PlaceTypeCampground),
+			string(maps.PlaceTypeRvPark),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
@@ -65,9 +68,8 @@ var (
 		Name:        "cultural_facility",
 		DisplayName: "芸術や文化に触れる",
 		SubCategories: []string{
-			"art_gallery",
-			"museum",
-			"tourist_attraction",
+			string(maps.PlaceTypeArtGallery),
+			string(maps.PlaceTypeMuseum),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
@@ -78,8 +80,8 @@ var (
 		Name:        "natural_facility",
 		DisplayName: "動物を見に行こう",
 		SubCategories: []string{
-			"aquarium",
-			"zoo",
+			string(maps.PlaceTypeAquarium),
+			string(maps.PlaceTypeZoo),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
@@ -90,7 +92,7 @@ var (
 		Name:        "park",
 		DisplayName: "公園でゆったり",
 		SubCategories: []string{
-			"park",
+			string(maps.PlaceTypePark),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/fbff00/ffffff/300x500.png?text=park",
@@ -101,10 +103,9 @@ var (
 		Name:        "restaurant",
 		DisplayName: "ご飯",
 		SubCategories: []string{
-			"bakery",
-			"bar",
-			"food",
-			"restaurant",
+			string(maps.PlaceTypeBakery),
+			string(maps.PlaceTypeBar),
+			string(maps.PlaceTypeRestaurant),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
@@ -112,9 +113,11 @@ var (
 	}
 
 	CategoryLibrary = LocationCategory{
-		Name:                  "library",
-		DisplayName:           "図書館",
-		SubCategories:         []string{"library"},
+		Name:        "library",
+		DisplayName: "図書館",
+		SubCategories: []string{
+			string(maps.PlaceTypeLibrary),
+		},
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
 		EstimatedStayDuration: 30,
 	}
@@ -123,7 +126,7 @@ var (
 		Name:        "meal_takeaway",
 		DisplayName: "テイクアウト",
 		SubCategories: []string{
-			"meal_takeaway",
+			string(maps.PlaceTypeMealTakeaway),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/1d7187/ffffff/300x500.png?text=quick%0Aservice%0Arestaurant",
@@ -134,14 +137,14 @@ var (
 		Name:        "shopping",
 		DisplayName: "ショッピング",
 		SubCategories: []string{
-			"clothing_store",
-			"department_store",
-			"furniture_store",
-			"hardware_store",
-			"home_goods_store",
-			"movie_rental",
-			"shoe_store",
-			"store",
+			string(maps.PlaceTypeClothingStore),
+			string(maps.PlaceTypeDepartmentStore),
+			string(maps.PlaceTypeFurnitureStore),
+			string(maps.PlaceTypeHardwareStore),
+			string(maps.PlaceTypeHomeGoodsStore),
+			string(maps.PlaceTypeMovieRental),
+			string(maps.PlaceTypeShoeStore),
+			string(maps.PlaceTypeStore),
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
