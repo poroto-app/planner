@@ -172,14 +172,16 @@ func (s PlanService) createPlanFromLocation(
 			models.CategoryMealTakeaway.Name,
 		}
 		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
-		if isFoodPlace && array.HasIntersection(categoriesInPlan, categoriesFood) {
+		isPlanContainsFoodPlace := array.HasIntersection(categoriesInPlan, categoriesFood)
+		if isFoodPlace && isPlanContainsFoodPlace {
 			log.Printf("skip place %s because plan is already has food place\n", place.Name)
 			continue
 		}
 
 		// カフェを複数含めない
 		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
-		if isCafePlace && array.IsContain(categoriesInPlan, models.CategoryCafe.Name) {
+		isPlanContainsFoodPlace = array.IsContain(categoriesInPlan, models.CategoryCafe.Name)
+		if isCafePlace && isPlanContainsFoodPlace {
 			log.Printf("skip place %s because plan is already has cafe place\n", place.Name)
 			continue
 		}
