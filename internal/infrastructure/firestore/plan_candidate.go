@@ -3,7 +3,6 @@ package firestore
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"cloud.google.com/go/firestore"
@@ -64,8 +63,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		log.Println("error while finding plan candidate: ", err)
-		return nil, err
+		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
 	}
 
 	if planCandidate == nil {
