@@ -57,10 +57,10 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 	}
 
 	var currentLocation *model.GeoLocation
-	if input.Latitude != nil && input.Longitude != nil {
+	if input.CurrentLatitude != nil && input.CurrentLongitude != nil {
 		currentLocation = &model.GeoLocation{
-			Latitude:  *input.Latitude,
-			Longitude: *input.Longitude,
+			Latitude:  *input.CurrentLatitude,
+			Longitude: *input.CurrentLongitude,
 		}
 	}
 	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
