@@ -56,7 +56,14 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds)
+	var currentLocation *model.GeoLocation
+	if input.Latitude != nil && input.Longitude != nil {
+		currentLocation = &model.GeoLocation{
+			Latitude:  *input.Latitude,
+			Longitude: *input.Longitude,
+		}
+	}
+	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
 	if err != nil {
 		return nil, fmt.Errorf("could not change places order")
 	}

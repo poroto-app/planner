@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -25,7 +26,8 @@ func (s PlanService) ChangePlacesOrderPlanCandidate(
 	planId string,
 	planCandidateId string,
 	placeIdsOrdered []string,
+	currentLocation *model.GeoLocation,
 ) (*models.Plan, error) {
-	// TMOCK：移動時間の再計算処理を実装（latitude, longitudeがnilでなければ使う）
+	// MOCK：移動時間の再計算処理を実装（latitude, longitudeがnilでなければ使う）
 	return s.planCandidateRepository.UpdatePlacesOrder(ctx, planId, planCandidateId, placeIdsOrdered)
 }
