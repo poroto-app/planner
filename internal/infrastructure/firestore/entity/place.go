@@ -3,7 +3,7 @@ package entity
 import "poroto.app/poroto/planner/internal/domain/models"
 
 type PlaceEntity struct {
-	Id        string            `json:"id"`
+	Id        string            `firestore:"id"`
 	Name      string            `firestore:"name"`
 	Location  GeoLocationEntity `firestore:"location"`
 	Thumbnail *string           `firestore:"thumbnail"`
