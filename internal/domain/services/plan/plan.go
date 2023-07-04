@@ -227,7 +227,8 @@ func (s PlanService) createPlanByLocation(
 		}
 
 		placesInPlan = append(placesInPlan, models.Place{
-			Id:                    place.PlaceID,
+			Id:                    uuid.New().String(),
+			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
 			Photos:                photos,
 			Thumbnail:             thumbnail,
