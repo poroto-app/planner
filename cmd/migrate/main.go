@@ -58,7 +58,7 @@ func main() {
 				return fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 			}
 
-			for i, _ := range planEntity.Places {
+			for i := 0; i < len(planEntity.Places); i++ {
 				planEntity.Places[i].Id = uuid.New().String()
 			}
 
@@ -76,4 +76,8 @@ func main() {
 
 		return nil
 	})
+
+	if err != nil {
+		log.Fatalf("error while updating plans: %v", err)
+	}
 }
