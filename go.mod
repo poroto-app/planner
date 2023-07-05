@@ -13,7 +13,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.6
 	google.golang.org/api v0.129.0
 	google.golang.org/grpc v1.56.1
-	googlemaps.github.io/maps v1.4.0
+	googlemaps.github.io/maps v1.5.0
 )
 
 require (
