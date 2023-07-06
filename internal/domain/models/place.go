@@ -4,6 +4,7 @@ package models
 // Thumbnail サムネイル用の低画質な写真
 type Place struct {
 	Id                    string      `json:"id"`
+	GooglePlaceId         *string     `json:"google_place_id"`
 	Name                  string      `json:"name"`
 	Location              GeoLocation `json:"location"`
 	Thumbnail             *string     `json:"thumbnail"`
