@@ -5,7 +5,11 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func PlaceFromDomainModel(place models.Place) *graphql.Place {
+func PlaceFromDomainModel(place *models.Place) *graphql.Place {
+	if place == nil {
+		return nil
+	}
+
 	return &graphql.Place{
 		ID:     place.Id,
 		Name:   place.Name,
