@@ -558,7 +558,7 @@ type Place {
 }
 
 type Transition {
-    from: Place!
+    from: Place
     to: Place!
     duration: Int!
 }
@@ -2617,14 +2617,11 @@ func (ec *executionContext) _Transition_from(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
+	return ec.marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5423,9 +5420,6 @@ func (ec *executionContext) _Transition(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("Transition")
 		case "from":
 			out.Values[i] = ec._Transition_from(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "to":
 			out.Values[i] = ec._Transition_to(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6510,6 +6504,13 @@ func (ec *executionContext) unmarshalOMatchInterestsInput2ᚖporotoᚗappᚋporo
 	}
 	res, err := ec.unmarshalInputMatchInterestsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Place(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Plan) graphql.Marshaler {

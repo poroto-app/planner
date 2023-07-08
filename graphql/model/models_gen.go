@@ -83,7 +83,7 @@ type SavePlanFromCandidateOutput struct {
 }
 
 type Transition struct {
-	From     *Place `json:"from"`
+	From     *Place `json:"from,omitempty"`
 	To       *Place `json:"to"`
 	Duration int    `json:"duration"`
 }

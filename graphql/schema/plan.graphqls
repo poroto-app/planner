@@ -16,7 +16,7 @@ type Place {
 }
 
 type Transition {
-    from: Place!
+    from: Place
     to: Place!
     duration: Int!
 }
