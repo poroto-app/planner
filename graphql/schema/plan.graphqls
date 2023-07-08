@@ -4,6 +4,7 @@ type Plan {
     places: [Place!]!
     timeInMinutes: Int!
     description: String
+    transitions: [Transition!]!
 }
 
 type Place {
@@ -12,6 +13,12 @@ type Place {
     location: GeoLocation!
     photos: [String!]!
     estimatedStayDuration: Int!
+}
+
+type Transition {
+    from: Place!
+    to: Place!
+    duration: Int!
 }
 
 type GeoLocation {

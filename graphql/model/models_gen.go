@@ -65,11 +65,12 @@ type Place struct {
 }
 
 type Plan struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Places        []*Place `json:"places"`
-	TimeInMinutes int      `json:"timeInMinutes"`
-	Description   *string  `json:"description,omitempty"`
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Places        []*Place      `json:"places"`
+	TimeInMinutes int           `json:"timeInMinutes"`
+	Description   *string       `json:"description,omitempty"`
+	Transitions   []*Transition `json:"transitions"`
 }
 
 type SavePlanFromCandidateInput struct {
@@ -79,4 +80,10 @@ type SavePlanFromCandidateInput struct {
 
 type SavePlanFromCandidateOutput struct {
 	Plan *Plan `json:"plan"`
+}
+
+type Transition struct {
+	From     *Place `json:"from"`
+	To       *Place `json:"to"`
+	Duration int    `json:"duration"`
 }
