@@ -265,6 +265,7 @@ func (s PlanService) createPlanByLocation(
 		Name:          *title,
 		Places:        placesInPlan,
 		TimeInMinutes: timeInPlan,
+		Transitions:   transitions,
 	}, nil
 }
 
