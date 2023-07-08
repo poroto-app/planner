@@ -25,22 +25,24 @@ func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 	}
 
 	transitions := make([]*graphql.Transition, len(plan.Transitions))
-	for _, place := range plan.Places {
-		nextPlace, duration, err := plan.GetTransition(place.Id)
-		if err != nil {
-			log.Println("error while getting transition: ", err)
+	for i, t := range plan.Transitions {
+		placeFrom := plan.GetPlace(t.FromPlaceId)
+		if placeFrom == nil {
+			log.Printf("could not find place %s in plan", t.FromPlaceId)
 			continue
 		}
 
-		if nextPlace == nil {
+		placeTo := plan.GetPlace(t.ToPlaceId)
+		if placeTo == nil {
+			log.Printf("could not find place %s in plan", t.ToPlaceId)
 			continue
 		}
 
-		transitions = append(transitions, &graphql.Transition{
-			From:     PlaceFromDomainModel(place),
-			To:       PlaceFromDomainModel(*nextPlace),
-			Duration: int(duration),
-		})
+		transitions[i] = &graphql.Transition{
+			From:     PlaceFromDomainModel(*placeFrom),
+			To:       PlaceFromDomainModel(*placeTo),
+			Duration: int(t.Duration),
+		}
 	}
 
 	return graphql.Plan{
