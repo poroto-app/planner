@@ -154,6 +154,7 @@ func (s PlanService) createPlanByLocation(
 
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
+	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
@@ -239,6 +240,14 @@ func (s PlanService) createPlanByLocation(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
+
+		if len(placesInPlan) >= 2 {
+			transitions = append(transitions, models.Transition{
+				FromPlaceId: placesInPlan[len(placesInPlan)-2].Id,
+				ToPlaceId:   placesInPlan[len(placesInPlan)-1].Id,
+				Duration:    tripTime,
+			})
+		}
 	}
 
 	if len(placesInPlan) == 0 {
