@@ -30,7 +30,7 @@ func PlanFromDomainModel(plan models.Plan) graphql.Plan {
 		if t.FromPlaceId != nil {
 			placeFrom = plan.GetPlace(*t.FromPlaceId)
 			if placeFrom == nil {
-				log.Printf("could not find place %s in plan", t.FromPlaceId)
+				log.Printf("could not find place %s in plan", *t.FromPlaceId)
 				continue
 			}
 		}
