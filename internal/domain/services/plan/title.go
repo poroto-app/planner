@@ -72,7 +72,9 @@ func replaceMessageContent(choices []openai.ChatCompletionChoice) []openai.ChatC
 func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []openai.ChatCompletionChoice {
 	filteredChoices := make([]openai.ChatCompletionChoice, 0)
 	for _, choice := range choices {
-		if len(choice.Message.Content) <= length {
+		// MEMO: len(string) で得られるのはバイト数であり、文字数ではない
+		messageLength := utf8.RuneCountInString(choice.Content)
+		if messageLength <= length {
 			filteredChoices = append(filteredChoices, choice)
 		}
 	}
