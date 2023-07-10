@@ -54,7 +54,7 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		title = strings.ReplaceAll(title, character, "")
 	}
 
-	return &response.Choices[0].Message.Content, nil
+	return &title, nil
 }
 
 func filterByMessageLength(messages []openai.ChatCompletionChoice, length int) []openai.ChatCompletionMessage {
