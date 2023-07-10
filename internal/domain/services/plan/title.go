@@ -3,6 +3,7 @@ package plan
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
@@ -51,13 +52,21 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
 
-	title := choices[indexOfMaxMessageLength(choices)].Content
-	replaceCharacters := []string{"\n", "「", "」", "'", "’", "\"", "”", "：", ":"}
-	for _, character := range replaceCharacters {
-		title = strings.ReplaceAll(title, character, "")
-	}
+	title := choices[indexOfMaxMessageLength(choices)].Message.Content
 
 	return &title, nil
+}
+
+// replaceMessageContent メッセージの内容から不要な文字を削除する
+func replaceMessageContent(choices []openai.ChatCompletionChoice) []openai.ChatCompletionChoice {
+	deleteCharacters := []string{"\n", "「", "」", "'", "’", "\"", "”", "：", ":"}
+	for i, choice := range choices {
+		for _, replaceCharacter := range deleteCharacters {
+			choices[i].Message.Content = strings.ReplaceAll(choice.Message.Content, replaceCharacter, "")
+		}
+	}
+
+	return choices
 }
 
 func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []openai.ChatCompletionChoice {
