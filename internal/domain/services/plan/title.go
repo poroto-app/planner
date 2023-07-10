@@ -16,7 +16,7 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, place.Category)
 	}
 
-	nGenerate := 3
+	nGenerate := 5
 	response, err := s.openaiChatCompletionClient.Complete(openai.ChatCompletionRequest{
 		Model: openai.ModelGPT3Turbo,
 		Messages: []openai.ChatCompletionMessage{
