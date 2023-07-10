@@ -36,7 +36,6 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		},
 		N: &nGenerate,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -45,32 +44,39 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
 
-	choices := replaceMessageContent(response.Choices)
+	choices := make([]openai.ChatCompletionMessage, len(response.Choices))
+	for i, choice := range response.Choices {
+		choices[i] = choice.Message
+	}
+
+	choices = replaceMessageContent(choices)
 
 	choices = filterByMessageLength(choices, 30)
 	if len(choices) == 0 {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
 
-	title := choices[indexOfMaxMessageLength(choices)].Message.Content
+	title := choices[indexOfMaxMessageLength(choices)].Content
 
 	return &title, nil
 }
 
 // replaceMessageContent メッセージの内容から不要な文字を削除する
-func replaceMessageContent(choices []openai.ChatCompletionChoice) []openai.ChatCompletionChoice {
+func replaceMessageContent(choices []openai.ChatCompletionMessage) []openai.ChatCompletionMessage {
 	deleteCharacters := []string{"\n", "「", "」", "'", "’", "\"", "”", "：", ":"}
 	for i, choice := range choices {
-		for _, replaceCharacter := range deleteCharacters {
-			choices[i].Message.Content = strings.ReplaceAll(choice.Message.Content, replaceCharacter, "")
+		content := choice.Content
+		for _, deleteCharacter := range deleteCharacters {
+			content = strings.ReplaceAll(content, deleteCharacter, "")
 		}
+		choices[i].Content = content
 	}
 
 	return choices
 }
 
-func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []openai.ChatCompletionChoice {
-	filteredChoices := make([]openai.ChatCompletionChoice, 0)
+func filterByMessageLength(choices []openai.ChatCompletionMessage, length int) []openai.ChatCompletionMessage {
+	filteredChoices := make([]openai.ChatCompletionMessage, 0)
 	for _, choice := range choices {
 		// MEMO: len(string) で得られるのはバイト数であり、文字数ではない
 		messageLength := utf8.RuneCountInString(choice.Content)
@@ -81,12 +87,12 @@ func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []
 	return filteredChoices
 }
 
-func indexOfMaxMessageLength(choices []openai.ChatCompletionChoice) int {
+func indexOfMaxMessageLength(choices []openai.ChatCompletionMessage) int {
 	maxLength := 0
 	indexOfMaxLength := 0
 	for i, choice := range choices {
 		// MEMO: len(string) で得られるのはバイト数であり、文字数ではない
-		messageLength := utf8.RuneCountInString(choice.Message.Content)
+		messageLength := utf8.RuneCountInString(choice.Content)
 		if messageLength > maxLength {
 			maxLength = messageLength
 			indexOfMaxLength = i
