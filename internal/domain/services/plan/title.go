@@ -44,7 +44,7 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
 
-	choices := filterByMessageLength(response.Choices, 15)
+	choices := filterByMessageLength(response.Choices, 30)
 	if len(choices) == 0 {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
