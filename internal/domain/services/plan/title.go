@@ -49,7 +49,7 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 	}
 
 	title := choices[indexOfMaxMessageLength(choices)].Content
-	replaceCharacters := []string{"\n", "「", "」", "\""}
+	replaceCharacters := []string{"\n", "「", "」", "'", "’", "\"", "”", "：", ":"}
 	for _, character := range replaceCharacters {
 		title = strings.ReplaceAll(title, character, "")
 	}
