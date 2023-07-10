@@ -44,7 +44,9 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
 
-	choices := filterByMessageLength(response.Choices, 30)
+	choices := replaceMessageContent(response.Choices)
+
+	choices = filterByMessageLength(choices, 30)
 	if len(choices) == 0 {
 		return nil, fmt.Errorf("response.Choices is empty")
 	}
@@ -58,17 +60,17 @@ func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
 	return &title, nil
 }
 
-func filterByMessageLength(messages []openai.ChatCompletionChoice, length int) []openai.ChatCompletionMessage {
-	filteredMessages := make([]openai.ChatCompletionMessage, 0)
-	for _, message := range messages {
-		if len(message.Message.Content) <= length {
-			filteredMessages = append(filteredMessages, message.Message)
+func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []openai.ChatCompletionChoice {
+	filteredChoices := make([]openai.ChatCompletionChoice, 0)
+	for _, choice := range choices {
+		if len(choice.Message.Content) <= length {
+			filteredChoices = append(filteredChoices, choice)
 		}
 	}
-	return filteredMessages
+	return filteredChoices
 }
 
-func indexOfMaxMessageLength(messages []openai.ChatCompletionMessage) int {
+func indexOfMaxMessageLength(choices []openai.ChatCompletionChoice) int {
 	maxLength := 0
 	indexOfMaxLength := 0
 	for i, message := range messages {
