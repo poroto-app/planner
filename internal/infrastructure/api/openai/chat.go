@@ -28,9 +28,14 @@ func NewChatCompletionClient() (*ChatCompletionClient, error) {
 SEE: https://platform.openai.com/docs/api-reference/chat
 */
 
+const (
+	ModelGPT3Turbo = "gpt-3.5-turbo"
+)
+
 type ChatCompletionRequest struct {
 	Model    string                  `json:"model"`
 	Messages []ChatCompletionMessage `json:"messages"`
+	N        *int                    `json:"n,omitempty"`
 }
 
 type ChatCompletionMessage struct {
@@ -50,11 +55,8 @@ type ChatCompletionChoice struct {
 	Message ChatCompletionMessage `json:"message"`
 }
 
-func (c *ChatCompletionClient) Complete(messages []ChatCompletionMessage) (*ChatCompletionResponse, error) {
-	body := ChatCompletionRequest{
-		Model:    "gpt-3.5-turbo",
-		Messages: messages,
-	}
+func (c *ChatCompletionClient) Complete(request ChatCompletionRequest) (*ChatCompletionResponse, error) {
+	body := request
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(body); err != nil {
