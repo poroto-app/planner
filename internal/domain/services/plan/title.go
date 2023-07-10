@@ -73,9 +73,11 @@ func filterByMessageLength(choices []openai.ChatCompletionChoice, length int) []
 func indexOfMaxMessageLength(choices []openai.ChatCompletionChoice) int {
 	maxLength := 0
 	indexOfMaxLength := 0
-	for i, message := range messages {
-		if len(message.Content) > maxLength {
-			maxLength = len(message.Content)
+	for i, choice := range choices {
+		// MEMO: len(string) で得られるのはバイト数であり、文字数ではない
+		messageLength := utf8.RuneCountInString(choice.Message.Content)
+		if messageLength > maxLength {
+			maxLength = messageLength
 			indexOfMaxLength = i
 		}
 	}
