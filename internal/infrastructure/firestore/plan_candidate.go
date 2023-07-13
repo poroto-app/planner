@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"cloud.google.com/go/firestore"
@@ -61,11 +62,46 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 }
 
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
+
+	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		snapshot, err := tx.Get(p.doc(planCandidateId))
+		if err != nil {
+			return fmt.Errorf("error while getting snapshots: %v", err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+
+		// firestore上では順序id配列を上書き
+		for i, pie := range planCandidateEntity.Plans {
+			if pie.Id == planId {
+				planCandidateEntity.Plans[i].PlaceIdsOrdered = placeIdsOrdered
+			}
+		}
+
+		if err := tx.Update(snapshot.Ref, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidateEntity.Plans,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while saving plan: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Fatalf("error while updating place ids ordered in plan candidate: %v", err)
+	}
+
+	// 返り値用（読み出しの際に自動でPlaceの順序が反映される）
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
 	}
-
 	if planCandidate == nil {
 		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
 	}
@@ -81,8 +117,6 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	if plan == nil {
 		return nil, fmt.Errorf("not found plan[%s] in plan candidate[%s]", planId, planCandidate.Id)
 	}
-
-	// MOCK：並び替え・更新処理を実装
 
 	return plan, nil
 }
