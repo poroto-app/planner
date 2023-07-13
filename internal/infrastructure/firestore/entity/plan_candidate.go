@@ -40,6 +40,7 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 			plan.Name,
 			plan.Places,
 			plan.TimeInMinutes,
+			plan.PlaceIdsOrdered,
 		)
 	}
 

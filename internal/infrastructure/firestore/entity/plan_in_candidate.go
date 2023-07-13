@@ -11,7 +11,8 @@ type PlanInCandidateEntity struct {
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int `firestore:"time_in_minutes"`
+	TimeInMinutes   int      `firestore:"time_in_minutes"`
+	PlaceIdsOrdered []string `firestore:"place_ids_ordered"`
 }
 
 func toPlanInCandidateEntity(
@@ -21,15 +22,19 @@ func toPlanInCandidateEntity(
 	timeInMinutes uint,
 ) PlanInCandidateEntity {
 	ps := make([]PlaceEntity, len(places))
+	placeIdsOrdered := make([]string, len(places))
+
 	for i, place := range places {
 		ps[i] = ToPlaceEntity(place)
+		placeIdsOrdered[i] = place.Id
 	}
 
 	return PlanInCandidateEntity{
-		Id:            id,
-		Name:          name,
-		Places:        ps,
-		TimeInMinutes: int(timeInMinutes),
+		Id:              id,
+		Name:            name,
+		Places:          ps,
+		TimeInMinutes:   int(timeInMinutes),
+		PlaceIdsOrdered: placeIdsOrdered,
 	}
 }
 
@@ -38,11 +43,13 @@ func fromPlanInCandidateEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
+	placeIdsOrdered []string,
 ) models.Plan {
 	return fromPlanEntity(
 		id,
 		name,
 		places,
 		timeInMinutes,
+		placeIdsOrdered,
 	)
 }
