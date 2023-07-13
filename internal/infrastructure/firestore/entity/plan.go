@@ -11,22 +11,27 @@ type PlanEntity struct {
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int       `firestore:"time_in_minutes"`
-	CreatedAt     time.Time `firestore:"created_at,omitempty,serverTimestamp"`
-	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
+	TimeInMinutes   int       `firestore:"time_in_minutes"`
+	CreatedAt       time.Time `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt       time.Time `firestore:"updated_at,omitempty"`
+	PlaceIdsOrdered []string  `firestore:"place_ids_ordered"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
 	places := make([]PlaceEntity, len(plan.Places))
+	placeIdsOrdered := make([]string, len(places))
+
 	for i, place := range plan.Places {
 		places[i] = ToPlaceEntity(place)
+		placeIdsOrdered[i] = place.Id
 	}
 
 	return PlanEntity{
-		Id:            plan.Id,
-		Name:          plan.Name,
-		Places:        places,
-		TimeInMinutes: int(plan.TimeInMinutes),
+		Id:              plan.Id,
+		Name:            plan.Name,
+		Places:          places,
+		TimeInMinutes:   int(plan.TimeInMinutes),
+		PlaceIdsOrdered: placeIdsOrdered,
 	}
 }
 
@@ -36,6 +41,7 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		entity.Name,
 		entity.Places,
 		entity.TimeInMinutes,
+		entity.PlaceIdsOrdered,
 	)
 }
 
@@ -44,10 +50,16 @@ func fromPlanEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
+	placeIdsOrdered []string,
 ) models.Plan {
+	// entityからドメインmodelに変換する際に順序を反映
 	ps := make([]models.Place, len(places))
-	for i, place := range places {
-		ps[i] = FromPlaceEntity(place)
+	for i, placeIdOrdered := range placeIdsOrdered {
+		for _, place := range places {
+			if place.Id == placeIdOrdered {
+				ps[i] = FromPlaceEntity(place)
+			}
+		}
 	}
 
 	return models.Plan{
