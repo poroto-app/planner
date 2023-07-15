@@ -81,6 +81,7 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 			}
 		}
 
+		// TODO：一つのPlanをコレクションとして管理し，更新対象をplaceIdsOrderedのみに絞る
 		if err := tx.Update(snapshot.Ref, []firestore.Update{
 			{
 				Path:  "plans",
