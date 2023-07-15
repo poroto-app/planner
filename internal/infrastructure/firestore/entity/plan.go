@@ -52,7 +52,8 @@ func fromPlanEntity(
 	timeInMinutes int,
 	placeIdsOrdered []string,
 ) models.Plan {
-	// entityからドメインmodelに変換する際に順序を反映
+	// placeIdsOrdered：プレイスの順序を指定するプレイスのID配列
+	// データベースモデルからドメインモデルに変換する際にプレイスの順序を並び替える
 	ps := make([]models.Place, len(places))
 	for i, placeIdOrdered := range placeIdsOrdered {
 		for _, place := range places {
