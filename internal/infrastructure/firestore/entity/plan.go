@@ -10,11 +10,12 @@ type PlanEntity struct {
 	Id     string        `firestore:"id"`
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
+	// Updateの範囲を減らすため，Placesの順番をID配列の順で管理している
+	PlaceIdsOrdered []string `firestore:"place_ids_ordered"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes   int       `firestore:"time_in_minutes"`
-	CreatedAt       time.Time `firestore:"created_at,omitempty,serverTimestamp"`
-	UpdatedAt       time.Time `firestore:"updated_at,omitempty"`
-	PlaceIdsOrdered []string  `firestore:"place_ids_ordered"`
+	TimeInMinutes int       `firestore:"time_in_minutes"`
+	CreatedAt     time.Time `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
