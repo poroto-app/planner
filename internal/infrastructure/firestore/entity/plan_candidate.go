@@ -21,6 +21,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 			plan.Name,
 			plan.Places,
 			plan.TimeInMinutes,
+			plan.Transitions,
 		)
 	}
 
@@ -40,6 +41,7 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 			plan.Name,
 			plan.Places,
 			plan.TimeInMinutes,
+			plan.Transitions,
 		)
 	}
 

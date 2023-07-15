@@ -8,7 +8,7 @@ type TransitionsEntity struct {
 	duration int     `firestore:"duration"`
 }
 
-func ToTransitionsEntities(transitions []models.Transition) []TransitionsEntity {
+func ToTransitionsEntities(transitions []models.Transition) *[]TransitionsEntity {
 	ts := make([]TransitionsEntity, len(transitions))
 	for i, transition := range transitions {
 		ts[i] = TransitionsEntity{
@@ -17,12 +17,16 @@ func ToTransitionsEntities(transitions []models.Transition) []TransitionsEntity 
 			duration: int(transition.Duration),
 		}
 	}
-	return ts
+	return &ts
 }
 
-func FromTransitionEntities(entities []TransitionsEntity) []models.Transition {
-	ts := make([]models.Transition, len(entities))
-	for i, entity := range entities {
+func FromTransitionEntities(entities *[]TransitionsEntity) []models.Transition {
+	if entities == nil {
+		return []models.Transition{}
+	}
+
+	ts := make([]models.Transition, len(*entities))
+	for i, entity := range *entities {
 		ts[i] = models.Transition{
 			FromPlaceId: entity.from,
 			ToPlaceId:   entity.to,
