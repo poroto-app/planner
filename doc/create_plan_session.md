@@ -8,6 +8,8 @@ sequenceDiagram
     poroto->>planner:　現在地を送信
     planner->>DB: 現在地をsession_idと紐付けて保存
     # この状態で現在地が保存されるため、リロードしても問題ない
+    planner->>Places API: 現在地周辺の場所を取得
+    planner->>DB: 取得した場所一覧の情報を保存
     planner->>poroto: 現在地に基づいて場所のカテゴリを提案
     poroto->>planner: 選択したカテゴリや時間をもとにプランを作成
     planner->>DB: カテゴリや時間を保存
@@ -23,6 +25,8 @@ sequenceDiagram
     poroto->>planner:　指定した場所を送信
     planner->>DB: 位置情報をsession_idと紐付けて保存
     # この状態で現在地が保存されるため、リロードしても問題ない
+    planner->>Places API: 現在地周辺の場所を取得
+    planner->>DB: 取得した場所一覧の情報を保存
     planner->>poroto: 位置情報に基づいて場所のカテゴリを提案
     poroto->>planner: 選択したカテゴリや時間をもとにプランを作成
     planner->>DB: カテゴリや時間を保存
