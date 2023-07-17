@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
-	github.com/vektah/gqlparser/v2 v2.5.6
+	github.com/vektah/gqlparser/v2 v2.5.7
 	google.golang.org/api v0.131.0
 	google.golang.org/grpc v1.56.2
 	googlemaps.github.io/maps v1.5.0
