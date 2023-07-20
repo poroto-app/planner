@@ -60,6 +60,7 @@ func (s PlanService) CreatePlanByLocation(
 	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	freeTime *int,
+	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
@@ -117,7 +118,14 @@ func (s PlanService) CreatePlanByLocation(
 	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
 
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanByLocation(ctx, locationStart, placeRecommend, placesFilter.Places(), freeTime)
+		plan, err := s.createPlanByLocation(
+			ctx,
+			locationStart,
+			placeRecommend,
+			placesFilter.Places(),
+			freeTime,
+			createBasedOnCurrentLocation,
+		)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -134,6 +142,7 @@ func (s PlanService) createPlanByLocation(
 	placeStart places.Place,
 	places []places.Place,
 	freeTime *int,
+	createBasedOnCurrentLocation bool,
 ) (*models.Plan, error) {
 	placesFilter := placefilter.NewPlacesFilter(places)
 
@@ -154,6 +163,7 @@ func (s PlanService) createPlanByLocation(
 
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
+	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
@@ -239,6 +249,7 @@ func (s PlanService) createPlanByLocation(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
+		transitions = s.addTransition(placesInPlan, transitions, tripTime, createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
@@ -256,6 +267,7 @@ func (s PlanService) createPlanByLocation(
 		Name:          *title,
 		Places:        placesInPlan,
 		TimeInMinutes: timeInPlan,
+		Transitions:   transitions,
 	}, nil
 }
 

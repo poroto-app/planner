@@ -24,6 +24,12 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
+	// TODO: 必須パラメータにする
+	createBasedOnCurrentLocation := false
+	if input.CreatedBasedOnCurrentLocation != nil {
+		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
+	}
+
 	plans, err := service.CreatePlanByLocation(
 		ctx,
 		models.GeoLocation{
@@ -31,7 +37,9 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			Longitude: input.Longitude,
 		},
 		&input.Categories,
-		input.FreeTime)
+		input.FreeTime,
+		createBasedOnCurrentLocation,
+	)
 	if err != nil {
 		log.Println(err)
 	}
