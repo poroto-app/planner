@@ -327,7 +327,7 @@ func (s PlanService) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
-	return s.createPlanByLocation(
+	planCreated, err := s.createPlanByLocation(
 		ctx,
 		placeStart.Location.ToGeoLocation(),
 		*placeStart,
@@ -336,6 +336,15 @@ func (s PlanService) CreatePlanFromPlace(
 		nil,
 		planCandidate.CreatedBasedOnCurrentLocation,
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, planCreated); err != nil {
+		return nil, err
+	}
+
+	return planCreated, nil
 }
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
