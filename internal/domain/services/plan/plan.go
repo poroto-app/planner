@@ -268,7 +268,7 @@ func (s PlanService) createPlanByLocation(
 			placesInPlan[i].Photos = photos
 		}
 	}
-	log.Printf("fetching place photos took %v\n", time.Now().Sub(performanceTimer))
+	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
 	title, err := s.GeneratePlanTitle(placesInPlan)
 	if err != nil {
