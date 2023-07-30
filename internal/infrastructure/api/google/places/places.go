@@ -37,7 +37,7 @@ type Place struct {
 	Name            string   `firestore:"name"`
 	Types           []string `firestore:"types"`
 	Location        Location `firestore:"location"`
-	photoReferences []string `firestore:"photo_references"`
+	PhotoReferences []string `firestore:"photo_references"`
 	OpenNow         bool     `firestore:"open_now"`
 	Rating          float32  `firestore:"rating"`
 }
@@ -90,7 +90,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 				Longitude: place.Geometry.Location.Lng,
 			},
 			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
-			photoReferences: photoReferences,
+			PhotoReferences: photoReferences,
 			Rating:          place.Rating,
 		})
 	}
