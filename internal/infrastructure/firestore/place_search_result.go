@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/option"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -19,7 +20,7 @@ type PlaceSearchResultRepository struct {
 }
 
 func NewPlaceSearchResultRepository(ctx context.Context) (*PlaceSearchResultRepository, error) {
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"))
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), option.WithCredentialsFile("secrets/google-credential.json"))
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
