@@ -16,12 +16,7 @@ type PlanCandidateEntity struct {
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
 	plans := make([]PlanInCandidateEntity, len(planCandidate.Plans))
 	for i, plan := range planCandidate.Plans {
-		plans[i] = toPlanInCandidateEntity(
-			plan.Id,
-			plan.Name,
-			plan.Places,
-			plan.TimeInMinutes,
-		)
+		plans[i] = ToPlanInCandidateEntity(plan)
 	}
 
 	return PlanCandidateEntity{

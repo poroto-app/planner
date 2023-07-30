@@ -14,22 +14,17 @@ type PlanInCandidateEntity struct {
 	TimeInMinutes int `firestore:"time_in_minutes"`
 }
 
-func toPlanInCandidateEntity(
-	id string,
-	name string,
-	places []models.Place,
-	timeInMinutes uint,
-) PlanInCandidateEntity {
-	ps := make([]PlaceEntity, len(places))
-	for i, place := range places {
+func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
+	ps := make([]PlaceEntity, len(plan.Places))
+	for i, place := range plan.Places {
 		ps[i] = ToPlaceEntity(place)
 	}
 
 	return PlanInCandidateEntity{
-		Id:            id,
-		Name:          name,
+		Id:            plan.Id,
+		Name:          plan.Name,
 		Places:        ps,
-		TimeInMinutes: int(timeInMinutes),
+		TimeInMinutes: int(plan.TimeInMinutes),
 	}
 }
 
