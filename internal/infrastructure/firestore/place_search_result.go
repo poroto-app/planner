@@ -7,6 +7,8 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -48,6 +50,9 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	doc := p.doc(planCandidateId)
 	snapshot, err := doc.Get(ctx)
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("error while finding place search result: %v", err)
 	}
 
