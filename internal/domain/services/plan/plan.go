@@ -63,22 +63,43 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
+	createPlanSessionId string,
 	locationStart models.GeoLocation,
 	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
-	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  locationStart.Latitude,
-			Longitude: locationStart.Longitude,
-		},
-		Radius:   2000,
-		Language: "ja",
-	})
+	// 付近の場所を検索
+	var placesSearched []places.Place
+
+	//　キャッシュがあれば利用する
+	placesCached, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		log.Printf("error while fetching places from cache: %v\n", err)
+	} else if placesCached != nil {
+		log.Printf("use cached places[%v]\n", createPlanSessionId)
+		placesSearched = placesCached
+	}
+
+	if placesSearched == nil {
+		placesSearched, err = s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+			Location: places.Location{
+				Latitude:  locationStart.Latitude,
+				Longitude: locationStart.Longitude,
+			},
+			Radius:   2000,
+			Language: "ja",
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		}
+
+		if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
+			log.Printf("error while saving places to cache: %v\n", err)
+		}
+		log.Printf("save places to cache[%v]\n", createPlanSessionId)
 	}
 
 	var categoriesPreferred []models.LocationCategory

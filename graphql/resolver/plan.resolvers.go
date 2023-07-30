@@ -30,8 +30,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
 	}
 
+	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
+	session := uuid.New().String()
 	plans, err := service.CreatePlanByLocation(
 		ctx,
+		session,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
@@ -43,8 +46,6 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	if err != nil {
 		log.Println(err)
 	}
-
-	session := uuid.New().String()
 
 	if err := service.CachePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
 		log.Println("error while caching plan candidate: ", err)
