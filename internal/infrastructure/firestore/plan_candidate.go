@@ -60,6 +60,47 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	return &planCandidate, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) AddPlan(
+	ctx context.Context,
+	planCandidateId string,
+	plan *models.Plan,
+) (*models.PlanCandidate, error) {
+	var planCandidate models.PlanCandidate
+	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId)
+		docRef, err := tx.Get(doc)
+		if err != nil {
+			return err
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = docRef.DataTo(&planCandidateEntity); err != nil {
+			return err
+		}
+
+		planEntity := entity.ToPlanInCandidateEntity(*plan)
+		planCandidateEntity.Plans = append(planCandidateEntity.Plans, planEntity)
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidate.Plans,
+			},
+		}); err != nil {
+			return err
+		}
+
+		planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity)
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while adding plan to plan candidate: %v", err)
+	}
+
+	return &planCandidate, nil
+}
+
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
