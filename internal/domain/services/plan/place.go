@@ -74,6 +74,7 @@ func (s PlanService) FetchCandidatePlaces(
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
 			Thumbnail:             &thumbnailUrl,
+			Photos:                []string{thumbnailUrl},
 		})
 
 		if len(places) >= 10 {
