@@ -66,10 +66,6 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return placeSearchResultEntity.Places, nil
 }
 
-func (p PlaceSearchResultRepository) collection() *firestore.CollectionRef {
-	return p.client.Collection(collectionPlaceSearchResults)
-}
-
 func (p PlaceSearchResultRepository) doc(planCandidateId string) *firestore.DocumentRef {
 	return p.client.Collection(collectionPlaceSearchResults).Doc(planCandidateId)
 }
