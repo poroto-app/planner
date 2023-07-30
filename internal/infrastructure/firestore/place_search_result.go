@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
@@ -36,6 +37,7 @@ func (p PlaceSearchResultRepository) Save(ctx context.Context, planCandidateId s
 	placeSearchResultEntity := entity.PlaceSearchResultEntity{
 		PlanCandidateId: planCandidateId,
 		Places:          places,
+		UpdatedAt:       time.Now(),
 	}
 
 	doc := p.doc(planCandidateId)
