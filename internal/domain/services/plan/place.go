@@ -3,6 +3,7 @@ package plan
 import (
 	"context"
 	"log"
+	"sort"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -24,8 +25,13 @@ func (s PlanService) FetchCandidatePlaces(
 		return nil, err
 	}
 
-	places := make([]*models.Place, 0, len(placesSearched))
-	for _, place := range placesSearched {
+	placesSortedByRating := placesSearched
+	sort.Slice(placesSortedByRating, func(i, j int) bool {
+		return placesSortedByRating[i].Rating > placesSortedByRating[j].Rating
+	})
+
+	places := make([]*models.Place, 0, len(placesSortedByRating))
+	for _, place := range placesSortedByRating {
 		if planCandidate.HasPlace(place.PlaceID) {
 			continue
 		}
@@ -69,6 +75,10 @@ func (s PlanService) FetchCandidatePlaces(
 			Category:              categoryMain.Name,
 			Thumbnail:             &thumbnailUrl,
 		})
+
+		if len(places) >= 10 {
+			break
+		}
 	}
 
 	return places, nil
