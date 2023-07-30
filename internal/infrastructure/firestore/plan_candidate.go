@@ -84,7 +84,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 		if err := tx.Update(doc, []firestore.Update{
 			{
 				Path:  "plans",
-				Value: planCandidate.Plans,
+				Value: planCandidateEntity.Plans,
 			},
 		}); err != nil {
 			return err
