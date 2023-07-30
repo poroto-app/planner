@@ -2,6 +2,14 @@
 
 package model
 
+type AvailablePlacesForPlan struct {
+	Places []*Place `json:"places"`
+}
+
+type AvailablePlacesForPlanInput struct {
+	Session string `json:"session"`
+}
+
 type CachedCreatedPlans struct {
 	Plans                         []*Plan `json:"plans,omitempty"`
 	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`

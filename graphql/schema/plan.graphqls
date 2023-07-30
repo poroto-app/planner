@@ -45,6 +45,9 @@ extend type Query {
 
     # キャッシュされたプラン一覧を取得する
     cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
 }
 
 type CachedCreatedPlans {
@@ -55,6 +58,14 @@ type CachedCreatedPlans {
 input CachedCreatedPlansInput {
     # CreatePlanByLocationOutputのsession
     session: String!
+}
+
+input AvailablePlacesForPlanInput {
+    session: String!
+}
+
+type AvailablePlacesForPlan {
+    places: [Place!]!
 }
 
 extend type Mutation {

@@ -196,3 +196,8 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
 	}, nil
 }
+
+// AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
+func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
+	panic(fmt.Errorf("not implemented: AvailablePlacesForPlan - availablePlacesForPlan"))
+}
