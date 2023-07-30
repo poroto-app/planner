@@ -230,7 +230,7 @@ func (s PlanService) createPlanByLocation(
 			continue
 		}
 
-		thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
+		thumbnail, photos, err := s.fetchPlacePhotos(ctx, place.PlaceID)
 		if err != nil {
 			log.Printf("error while fetching place photos: %v\n", err)
 			continue
