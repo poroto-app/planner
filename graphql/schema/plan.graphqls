@@ -70,6 +70,7 @@ type AvailablePlacesForPlan {
 
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
@@ -88,6 +89,16 @@ input CreatePlanByLocationInput {
 type CreatePlanByLocationOutput {
     session: String!
     plans: [Plan!]!
+}
+
+input CreatePlanByPlaceInput {
+    session: String!
+    placeId: String!
+}
+
+type CreatePlanByPlaceOutput {
+    session: String!
+    plan: Plan!
 }
 
 input ChangePlacesOrderInPlanCandidateInput {

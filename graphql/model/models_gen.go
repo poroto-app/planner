@@ -44,6 +44,16 @@ type CreatePlanByLocationOutput struct {
 	Plans   []*Plan `json:"plans"`
 }
 
+type CreatePlanByPlaceInput struct {
+	Session string `json:"session"`
+	PlaceID string `json:"placeId"`
+}
+
+type CreatePlanByPlaceOutput struct {
+	Session string `json:"session"`
+	Plan    *Plan  `json:"plan"`
+}
+
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
