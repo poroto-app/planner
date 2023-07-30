@@ -223,5 +223,24 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	panic(fmt.Errorf("not implemented: AvailablePlacesForPlan - availablePlacesForPlan"))
+	s, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println("error while initializing places api: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session)
+	if err != nil {
+		log.Println("error while fetching candidate places: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlaces := make([]*model.Place, len(availablePlaces))
+	for i, place := range availablePlaces {
+		graphqlPlaces[i] = factory.PlaceFromDomainModel(place)
+	}
+
+	return &model.AvailablePlacesForPlan{
+		Places: graphqlPlaces,
+	}, nil
 }
