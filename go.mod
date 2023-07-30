@@ -12,7 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/vektah/gqlparser/v2 v2.5.8
 	google.golang.org/api v0.132.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 	googlemaps.github.io/maps v1.5.0
 )
 
