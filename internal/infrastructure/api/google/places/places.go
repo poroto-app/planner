@@ -33,17 +33,17 @@ func NewPlacesApi() (*PlacesApi, error) {
 }
 
 type Place struct {
-	PlaceID         string
-	Name            string
-	Types           []string
-	Location        Location
-	photoReferences []string
-	OpenNow         bool
+	PlaceID         string   `firestore:"place_id"`
+	Name            string   `firestore:"name"`
+	Types           []string `firestore:"types"`
+	Location        Location `firestore:"location"`
+	photoReferences []string `firestore:"photo_references"`
+	OpenNow         bool     `firestore:"open_now"`
 }
 
 type Location struct {
-	Latitude  float64
-	Longitude float64
+	Latitude  float64 `firestore:"latitude"`
+	Longitude float64 `firestore:"longitude"`
 }
 
 func (r Location) ToGeoLocation() models.GeoLocation {
