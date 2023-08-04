@@ -5,7 +5,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
 	placesApi "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
@@ -67,7 +66,8 @@ func (s PlanService) FetchCandidatePlaces(
 		thumbnailUrl := thumbnail.ImageUrl
 
 		places = append(places, &models.Place{
-			Id:                    uuid.New().String(),
+			// TODO: Google Places APIで取得されるIDと対応関係のあるIDを別で保存する
+			Id:                    place.PlaceID,
 			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
 			Location:              place.Location.ToGeoLocation(),
