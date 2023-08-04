@@ -28,6 +28,7 @@ func (s PlanService) CategoriesNearLocation(
 	}
 
 	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+	placesFilter = placesFilter.FilterIgnoreCategory()
 	placesFilter = placesFilter.FilterByCategory(models.GetCategoryToFilter())
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
