@@ -11,9 +11,10 @@ type PlanEntity struct {
 	Name   string        `firestore:"name"`
 	Places []PlaceEntity `firestore:"places"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int       `firestore:"time_in_minutes"`
-	CreatedAt     time.Time `firestore:"created_at,omitempty,serverTimestamp"`
-	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
+	TimeInMinutes int                  `firestore:"time_in_minutes"`
+	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
+	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time            `firestore:"updated_at,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
@@ -27,6 +28,7 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		Name:          plan.Name,
 		Places:        places,
 		TimeInMinutes: int(plan.TimeInMinutes),
+		Transitions:   ToTransitionsEntities(plan.Transitions),
 	}
 }
 
@@ -36,6 +38,7 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		entity.Name,
 		entity.Places,
 		entity.TimeInMinutes,
+		entity.Transitions,
 	)
 }
 
@@ -44,6 +47,7 @@ func fromPlanEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
+	transitions *[]TransitionsEntity,
 ) models.Plan {
 	ps := make([]models.Place, len(places))
 	for i, place := range places {
@@ -55,5 +59,6 @@ func fromPlanEntity(
 		Name:          name,
 		Places:        ps,
 		TimeInMinutes: uint(timeInMinutes),
+		Transitions:   FromTransitionEntities(transitions),
 	}
 }
