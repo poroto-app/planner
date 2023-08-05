@@ -232,6 +232,7 @@ func (s PlanService) createPlanByLocation(
 
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
+			Name:                  place.Name,
 			GooglePlaceId:         &place.PlaceID,
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
