@@ -59,7 +59,26 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // CreatePlanByPlace is the resolver for the createPlanByPlace field.
 func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
-	panic(fmt.Errorf("not implemented: CreatePlanByPlace - createPlanByPlace"))
+	service, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCreated, err := service.CreatePlanFromPlace(
+		ctx,
+		input.Session,
+		input.PlaceID,
+	)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*planCreated)
+	return &model.CreatePlanByPlaceOutput{
+		Plan: &graphqlPlan,
+	}, nil
 }
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
