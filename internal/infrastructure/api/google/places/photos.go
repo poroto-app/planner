@@ -98,9 +98,9 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]PlacePhoto, error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-		PlaceID: place.PlaceID,
+		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
 			maps.PlaceDetailsFieldMaskPhotos,
 		},
