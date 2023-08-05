@@ -116,23 +116,37 @@ func (s PlanService) CreatePlanByLocation(
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
-	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-
+	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
+	performanceTimer := time.Now()
+	chPlans := make(chan *models.Plan, len(placesRecommend))
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanByLocation(
-			ctx,
-			locationStart,
-			placeRecommend,
-			placesFilter.Places(),
-			freeTime,
-			createBasedOnCurrentLocation,
-		)
-		if err != nil {
-			log.Println(err)
+		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
+			plan, err := s.createPlanByLocation(
+				ctx,
+				locationStart,
+				placeRecommend,
+				placesFilter.Places(),
+				freeTime,
+				createBasedOnCurrentLocation,
+			)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			chPlans <- plan
+		}(ctx, placeRecommend, chPlans)
+	}
+
+	plans := make([]models.Plan, 0)
+	for i := 0; i < len(placesRecommend); i++ {
+		plan := <-chPlans
+		if plan == nil {
 			continue
 		}
+
 		plans = append(plans, *plan)
 	}
+	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
 
 	return &plans, nil
 }
