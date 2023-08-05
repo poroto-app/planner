@@ -9,6 +9,10 @@ import (
 	placesApi "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+const (
+	maxAddablePlaces = 10
+)
+
 // FetchCandidatePlaces はプランの候補となる場所を取得する
 func (s PlanService) FetchCandidatePlaces(
 	ctx context.Context,
@@ -77,7 +81,7 @@ func (s PlanService) FetchCandidatePlaces(
 			Photos:                []string{thumbnailUrl},
 		})
 
-		if len(places) >= 10 {
+		if len(places) >= maxAddablePlaces {
 			break
 		}
 	}
