@@ -251,25 +251,7 @@ func (s PlanService) createPlanByLocation(
 
 	// 場所の画像を取得
 	performanceTimer := time.Now()
-	for i, place := range placesInPlan {
-		if place.GooglePlaceId == nil {
-			continue
-		}
-
-		thumbnail, photos, err := s.fetchPlacePhotos(ctx, *place.GooglePlaceId)
-		if err != nil {
-			log.Printf("error while fetching place photos: %v\n", err)
-			continue
-		}
-
-		if thumbnail != nil {
-			placesInPlan[i].Thumbnail = thumbnail
-		}
-
-		if photos != nil {
-			placesInPlan[i].Photos = photos
-		}
-	}
+	placesInPlan = s.fetchPlacesPhotos(ctx, placesInPlan)
 	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
 	title, err := s.GeneratePlanTitle(placesInPlan)
