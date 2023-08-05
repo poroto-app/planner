@@ -119,6 +119,7 @@ func (s PlanService) CreatePlanByLocation(
 	}
 
 	placesFilter := placefilter.NewPlacesFilter(placesSearched)
+	placesFilter = placesFilter.FilterIgnoreCategory()
 	placesFilter = placesFilter.FilterByCategory(categoriesToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
@@ -143,23 +144,37 @@ func (s PlanService) CreatePlanByLocation(
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
-	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-
+	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
+	performanceTimer := time.Now()
+	chPlans := make(chan *models.Plan, len(placesRecommend))
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanByLocation(
-			ctx,
-			locationStart,
-			placeRecommend,
-			placesFilter.Places(),
-			freeTime,
-			createBasedOnCurrentLocation,
-		)
-		if err != nil {
-			log.Println(err)
+		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
+			plan, err := s.createPlanByLocation(
+				ctx,
+				locationStart,
+				placeRecommend,
+				placesFilter.Places(),
+				freeTime,
+				createBasedOnCurrentLocation,
+			)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			chPlans <- plan
+		}(ctx, placeRecommend, chPlans)
+	}
+
+	plans := make([]models.Plan, 0)
+	for i := 0; i < len(placesRecommend); i++ {
+		plan := <-chPlans
+		if plan == nil {
 			continue
 		}
+
 		plans = append(plans, *plan)
 	}
+	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
 
 	return &plans, nil
 }
@@ -258,18 +273,10 @@ func (s PlanService) createPlanByLocation(
 			continue
 		}
 
-		thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
-		if err != nil {
-			log.Printf("error while fetching place photos: %v\n", err)
-			continue
-		}
-
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
-			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
-			Photos:                photos,
-			Thumbnail:             thumbnail,
+			GooglePlaceId:         &place.PlaceID,
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
@@ -283,6 +290,11 @@ func (s PlanService) createPlanByLocation(
 	if len(placesInPlan) == 0 {
 		return nil, fmt.Errorf("could not contain any places in plan")
 	}
+
+	// 場所の画像を取得
+	performanceTimer := time.Now()
+	placesInPlan = s.fetchPlacesPhotos(ctx, placesInPlan)
+	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
 	title, err := s.GeneratePlanTitle(placesInPlan)
 	if err != nil {

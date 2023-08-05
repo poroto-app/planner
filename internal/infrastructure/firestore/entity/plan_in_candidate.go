@@ -7,9 +7,10 @@ import (
 // PlanInCandidateEntity PlanCandidateEntityに含まれるPlan
 // MEMO: PlanEntityを用いると、CreatedAtとUpdatedAtが含まれてしまうため、別の構造体を利用している
 type PlanInCandidateEntity struct {
-	Id     string        `firestore:"id"`
-	Name   string        `firestore:"name"`
-	Places []PlaceEntity `firestore:"places"`
+	Id          string               `firestore:"id"`
+	Name        string               `firestore:"name"`
+	Places      []PlaceEntity        `firestore:"places"`
+	Transitions *[]TransitionsEntity `firestore:"transitions,omitempty"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
 	TimeInMinutes int `firestore:"time_in_minutes"`
 }
@@ -25,6 +26,7 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 		Name:          plan.Name,
 		Places:        ps,
 		TimeInMinutes: int(plan.TimeInMinutes),
+		Transitions:   ToTransitionsEntities(plan.Transitions),
 	}
 }
 
@@ -33,11 +35,13 @@ func fromPlanInCandidateEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
+	transitions *[]TransitionsEntity,
 ) models.Plan {
 	return fromPlanEntity(
 		id,
 		name,
 		places,
 		timeInMinutes,
+		transitions,
 	)
 }
