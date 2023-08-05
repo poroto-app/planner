@@ -45,6 +45,9 @@ extend type Query {
 
     # キャッシュされたプラン一覧を取得する
     cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
 }
 
 type CachedCreatedPlans {
@@ -57,8 +60,17 @@ input CachedCreatedPlansInput {
     session: String!
 }
 
+input AvailablePlacesForPlanInput {
+    session: String!
+}
+
+type AvailablePlacesForPlan {
+    places: [Place!]!
+}
+
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
@@ -77,6 +89,16 @@ input CreatePlanByLocationInput {
 type CreatePlanByLocationOutput {
     session: String!
     plans: [Plan!]!
+}
+
+input CreatePlanByPlaceInput {
+    session: String!
+    placeId: String!
+}
+
+type CreatePlanByPlaceOutput {
+    session: String!
+    plan: Plan!
 }
 
 input ChangePlacesOrderInPlanCandidateInput {

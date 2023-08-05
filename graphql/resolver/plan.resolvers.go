@@ -57,6 +57,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	}, nil
 }
 
+// CreatePlanByPlace is the resolver for the createPlanByPlace field.
+func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
+	panic(fmt.Errorf("not implemented: CreatePlanByPlace - createPlanByPlace"))
+}
+
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
 	service, err := plan.NewPlanService(ctx)
@@ -195,4 +200,9 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans),
 		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
 	}, nil
+}
+
+// AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
+func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
+	panic(fmt.Errorf("not implemented: AvailablePlacesForPlan - availablePlacesForPlan"))
 }
