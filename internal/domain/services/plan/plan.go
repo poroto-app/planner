@@ -13,6 +13,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -275,12 +276,10 @@ func (s PlanService) createPlanByLocation(
 			continue
 		}
 
-		// MEMO: 値コピーでないと参照が変化してしまう
-		googlePlaceId := place.PlaceID
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
 			Name:                  place.Name,
-			GooglePlaceId:         &googlePlaceId,
+			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
