@@ -275,10 +275,12 @@ func (s PlanService) createPlanByLocation(
 			continue
 		}
 
+		// MEMO: 値コピーでないと参照が変化してしまう
+		googlePlaceId := place.PlaceID
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
 			Name:                  place.Name,
-			GooglePlaceId:         &place.PlaceID,
+			GooglePlaceId:         &googlePlaceId,
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
