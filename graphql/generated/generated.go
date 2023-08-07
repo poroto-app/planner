@@ -691,6 +691,7 @@ extend type Query {
 input PlansByLocationInput {
     latitude: Float!
     longitude: Float!
+    limit: Int
     pageKey: String
 }
 
@@ -5405,7 +5406,7 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "pageKey"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "limit", "pageKey"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5430,6 +5431,15 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 				return it, err
 			}
 			it.Longitude = data
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
 		case "pageKey":
 			var err error
 

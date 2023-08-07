@@ -55,6 +55,7 @@ extend type Query {
 input PlansByLocationInput {
     latitude: Float!
     longitude: Float!
+    limit: Int
     pageKey: String
 }
 

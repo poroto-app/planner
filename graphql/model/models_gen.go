@@ -94,6 +94,7 @@ type Plan struct {
 type PlansByLocationInput struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
+	Limit     *int    `json:"limit,omitempty"`
 	PageKey   *string `json:"pageKey,omitempty"`
 }
 
