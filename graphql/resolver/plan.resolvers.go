@@ -178,6 +178,7 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
+		input.Limit,
 		input.PageKey,
 	)
 	if err != nil {
