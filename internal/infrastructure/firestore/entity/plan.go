@@ -7,9 +7,10 @@ import (
 )
 
 type PlanEntity struct {
-	Id     string        `firestore:"id"`
-	Name   string        `firestore:"name"`
-	Places []PlaceEntity `firestore:"places"`
+	Id      string        `firestore:"id"`
+	Name    string        `firestore:"name"`
+	Places  []PlaceEntity `firestore:"places"`
+	GeoHash *string       `firestore:"geohash,omitempty"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
 	TimeInMinutes int                  `firestore:"time_in_minutes"`
 	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
@@ -23,10 +24,17 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		places[i] = ToPlaceEntity(place)
 	}
 
+	var geohash *string
+	if len(plan.Places) > 0 {
+		value := plan.Places[0].Location.GeoHash()
+		geohash = &value
+	}
+
 	return PlanEntity{
 		Id:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
+		GeoHash:       geohash,
 		TimeInMinutes: int(plan.TimeInMinutes),
 		Transitions:   ToTransitionsEntities(plan.Transitions),
 	}
