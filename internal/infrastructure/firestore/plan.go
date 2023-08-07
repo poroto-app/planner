@@ -109,6 +109,45 @@ func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *str
 	return &plans, nil
 }
 
+// SortedByLocation location で指定した地点を含む20kmのGeoHashに含まれるプランを取得する
+// TODO: 現在地から近い順に取得できるようにする
+// TODO: レビュー等の指標に基づいて取得できるようにする
+func (p *PlanRepository) SortedByLocation(ctx context.Context, geoLocation models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
+	collection := p.collection()
+
+	// 20km圏内のPlanを取得する
+	// SEE: https://en.wikipedia.org/wiki/Geohash#Digits_and_precision_in_km
+	geohash := geoLocation.GeoHash()
+	query := collection.Where("geohash", ">=", geohash[:4]).Where("geohash", "<=", geohash[:4]+"\uf8ff")
+
+	query = query.OrderBy("geohash", firestore.Desc)
+
+	if queryCursor != nil {
+		query = query.StartAfter(*queryCursor)
+	}
+
+	query = query.Limit(limit)
+	snapshots, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, nil, fmt.Errorf("error while getting plans: %v", err)
+	}
+
+	var nextQueryCursor *string
+	plans := make([]models.Plan, len(snapshots))
+	for i, snapshot := range snapshots {
+		var planEntity entity.PlanEntity
+		if err = snapshot.DataTo(&planEntity); err != nil {
+			return nil, nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+
+		plan := entity.FromPlanEntity(planEntity)
+		plans[i] = plan
+		nextQueryCursor = planEntity.GeoHash
+	}
+
+	return &plans, nextQueryCursor, nil
+}
+
 func (p *PlanRepository) collection() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlans)
 }
