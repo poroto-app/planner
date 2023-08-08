@@ -156,6 +156,15 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	return plan, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) Delete(ctx context.Context, planCandidateId string) error {
+	_, err := p.doc(planCandidateId).Delete(ctx)
+	if err != nil {
+		return fmt.Errorf("error while deleting plan candidate: %v", err)
+	}
+
+	return nil
+}
+
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates)
 }
