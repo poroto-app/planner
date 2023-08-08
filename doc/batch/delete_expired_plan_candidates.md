@@ -18,3 +18,11 @@
 - Firestore
   - `plan_candidates` コレクション
   - `plan_search_results` コレクション
+
+## ユーザー影響
+
+### プラン候補を表示できなくなる
+
+削除されたプラン候補は表示できなくなる。  
+ユーザーがプラン候補のURLを持っていた場合や共有していた場合には、404エラーが表示される。  
+[削除までには１週間の猶予](https://github.com/poroto-app/planner/blob/develop/internal/domain/services/plan/plan_candidate.go#L16)があるため、この影響は許容される。
