@@ -16,6 +16,11 @@ func (s Service) DeleteExpiredPlanCandidates(ctx context.Context, expiresAt time
 		return fmt.Errorf("error while finding expired plan candidates: %v", err)
 	}
 
+	if len(*expiredPlanCandidates) == 0 {
+		log.Println("No expired plan candidates found")
+		return nil
+	}
+
 	log.Printf("Found %d expired plan candidates\n", len(*expiredPlanCandidates))
 
 	planCandidateIds := make([]string, len(*expiredPlanCandidates))
@@ -24,16 +29,18 @@ func (s Service) DeleteExpiredPlanCandidates(ctx context.Context, expiresAt time
 	}
 
 	// 検索結果のキャッシュを削除
-	log.Printf("Deleting %d expired place search results\n", len(planCandidateIds))
+	log.Printf("Deleting expired place search results\n")
 	if err := s.placeSearchResultRepository.DeleteAll(ctx, planCandidateIds); err != nil {
 		return fmt.Errorf("error while deleting expired place search results: %v", err)
 	}
+	log.Printf("Deleted expired place search results\n")
 
 	// プラン候補を削除
 	log.Printf("Deleting %d expired plan candidates\n", len(planCandidateIds))
 	if err := s.planCandidateRepository.DeleteAll(ctx, planCandidateIds); err != nil {
 		return fmt.Errorf("error while deleting expired plan candidates: %v", err)
 	}
+	log.Printf("Deleted %d expired plan candidates\n", len(planCandidateIds))
 
 	return nil
 }
