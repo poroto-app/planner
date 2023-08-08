@@ -13,3 +13,8 @@
 
 有効期限切れのプラン候補を削除することにより、不要なデータを削除する。
 
+## 影響範囲
+
+- Firestore
+  - `plan_candidates` コレクション
+  - `plan_search_results` コレクション
