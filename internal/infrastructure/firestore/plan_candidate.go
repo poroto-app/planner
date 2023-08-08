@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
@@ -58,6 +59,33 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 
 	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
 	return &planCandidate, nil
+}
+
+func (p *PlanCandidateFirestoreRepository) FindExpired(ctx context.Context) (*[]models.PlanCandidate, error) {
+	var planCandidates []models.PlanCandidate
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		query := p.collection().Where("expires_at", "<=", time.Now())
+		snapshots, err := tx.Documents(query).GetAll()
+		if err != nil {
+			return fmt.Errorf("error while getting all plan candidates: %v", err)
+		}
+
+		for _, snapshot := range snapshots {
+			var planCandidateEntity entity.PlanCandidateEntity
+			if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+			}
+
+			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
+			planCandidates = append(planCandidates, planCandidate)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("error while finding expired plan candidates: %v", err)
+	}
+
+	return &planCandidates, nil
 }
 
 func (p *PlanCandidateFirestoreRepository) AddPlan(
