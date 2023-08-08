@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 )
 
 // DeleteExpiredPlanCandidates は期限切れのプラン候補を削除する
 // それに伴いプラン候補に紐づくデータ（検索結果のキャッシュ等）も削除する
-func (s Service) DeleteExpiredPlanCandidates(ctx context.Context) error {
+func (s Service) DeleteExpiredPlanCandidates(ctx context.Context, expiresAt time.Time) error {
 	log.Println("Fetching expired plan candidates")
-	expiredPlanCandidates, err := s.planCandidateRepository.FindExpired(ctx)
+	expiredPlanCandidates, err := s.planCandidateRepository.FindExpiredBefore(ctx, expiresAt)
 	if err != nil {
 		return fmt.Errorf("error while finding expired plan candidates: %v", err)
 	}

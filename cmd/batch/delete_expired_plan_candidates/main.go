@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 )
@@ -17,7 +18,7 @@ func main() {
 		log.Fatalf("error while initializing plan candidate service: %v", err)
 	}
 
-	if err := service.DeleteExpiredPlanCandidates(ctx); err != nil {
+	if err := service.DeleteExpiredPlanCandidates(ctx, time.Now()); err != nil {
 		log.Fatalf("error while deleting expired plan candidates: %v", err)
 	}
 

@@ -61,10 +61,10 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	return &planCandidate, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) FindExpired(ctx context.Context) (*[]models.PlanCandidate, error) {
+func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]models.PlanCandidate, error) {
 	var planCandidates []models.PlanCandidate
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		query := p.collection().Where("expires_at", "<=", time.Now())
+		query := p.collection().Where("expires_at", "<=", expiresAt)
 		snapshots, err := tx.Documents(query).GetAll()
 		if err != nil {
 			return fmt.Errorf("error while getting all plan candidates: %v", err)
