@@ -12,5 +12,5 @@ type PlanCandidateRepository interface {
 	FindExpired(ctx context.Context) (*[]models.PlanCandidate, error)
 	AddPlan(ctx context.Context, planCandidateId string, plan *models.Plan) (*models.PlanCandidate, error)
 	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error)
-	Delete(ctx context.Context, planCandidateId string) error
+	DeleteAll(ctx context.Context, planCandidateIds []string) error
 }

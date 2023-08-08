@@ -156,10 +156,17 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	return plan, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) Delete(ctx context.Context, planCandidateId string) error {
-	_, err := p.doc(planCandidateId).Delete(ctx)
-	if err != nil {
-		return fmt.Errorf("error while deleting plan candidate: %v", err)
+func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		for _, planCandidateId := range planCandidateIds {
+			doc := p.doc(planCandidateId)
+			if err := tx.Delete(doc); err != nil {
+				return fmt.Errorf("error while deleting plan candidate[%s]: %v", planCandidateId, err)
+			}
+		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while deleting plan candidates: %v", err)
 	}
 
 	return nil
