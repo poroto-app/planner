@@ -44,17 +44,12 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 				"planCandidate3": {{PlaceID: "place3"}},
 			},
 			expectedPlanCandidates: map[string]models.PlanCandidate{
-				"planCandidate2": {
-					Id:        "planCandidate2",
-					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-				},
 				"planCandidate3": {
 					Id:        "planCandidate3",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
 			expectedPlaceSearchResults: map[string][]places.Place{
-				"planCandidate2": {{PlaceID: "place2"}},
 				"planCandidate3": {{PlaceID: "place3"}},
 			},
 		},

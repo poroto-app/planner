@@ -30,7 +30,7 @@ func (p PlanRepository) Find(ctx context.Context, planCandidateId string) (*mode
 func (p PlanRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]models.PlanCandidate, error) {
 	var values []models.PlanCandidate
 	for _, value := range p.Data {
-		if value.ExpiresAt.Before(expiresAt) {
+		if !value.ExpiresAt.After(expiresAt) {
 			values = append(values, value)
 		}
 	}
