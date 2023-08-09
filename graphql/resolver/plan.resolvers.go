@@ -164,6 +164,11 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 	return factory.PlansFromDomainModel(plans), nil
 }
 
+// PlansByLocation is the resolver for the plansByLocation field.
+func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
+	panic(fmt.Errorf("not implemented: PlansByLocation - plansByLocation"))
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)
