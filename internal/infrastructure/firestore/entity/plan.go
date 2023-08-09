@@ -6,11 +6,14 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+// PlanEntity は保存されたプランを示す
+// GeoHash はプランの最初の場所のGeoHashを示す（プランは小さい範囲で作られるため、どこをとってもあまり変わらない）
+// TimeInMinutes MEMO: Firestoreではuintをサポートしていないため，intにしている
 type PlanEntity struct {
-	Id     string        `firestore:"id"`
-	Name   string        `firestore:"name"`
-	Places []PlaceEntity `firestore:"places"`
-	// MEMO: Firestoreではuintをサポートしていないため，intにしている
+	Id            string               `firestore:"id"`
+	Name          string               `firestore:"name"`
+	Places        []PlaceEntity        `firestore:"places"`
+	GeoHash       *string              `firestore:"geohash,omitempty"`
 	TimeInMinutes int                  `firestore:"time_in_minutes"`
 	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
 	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
@@ -23,10 +26,17 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		places[i] = ToPlaceEntity(place)
 	}
 
+	var geohash *string
+	if len(plan.Places) > 0 {
+		value := plan.Places[0].Location.GeoHash()
+		geohash = &value
+	}
+
 	return PlanEntity{
 		Id:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
+		GeoHash:       geohash,
 		TimeInMinutes: int(plan.TimeInMinutes),
 		Transitions:   ToTransitionsEntities(plan.Transitions),
 	}
