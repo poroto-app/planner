@@ -24,19 +24,28 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
+	// TODO: 必須パラメータにする
+	createBasedOnCurrentLocation := false
+	if input.CreatedBasedOnCurrentLocation != nil {
+		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
+	}
+
+	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
+	session := uuid.New().String()
 	plans, err := service.CreatePlanByLocation(
 		ctx,
+		session,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
 		&input.Categories,
-		input.FreeTime)
+		input.FreeTime,
+		createBasedOnCurrentLocation,
+	)
 	if err != nil {
 		log.Println(err)
 	}
-
-	session := uuid.New().String()
 
 	if err := service.CachePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
 		log.Println("error while caching plan candidate: ", err)
@@ -45,6 +54,30 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	return &model.CreatePlanByLocationOutput{
 		Session: session,
 		Plans:   factory.PlansFromDomainModel(plans),
+	}, nil
+}
+
+// CreatePlanByPlace is the resolver for the createPlanByPlace field.
+func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
+	service, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCreated, err := service.CreatePlanFromPlace(
+		ctx,
+		input.Session,
+		input.PlaceID,
+	)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlan := factory.PlanFromDomainModel(*planCreated)
+	return &model.CreatePlanByPlaceOutput{
+		Plan: &graphqlPlan,
 	}, nil
 }
 
@@ -131,6 +164,34 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 	return factory.PlansFromDomainModel(plans), nil
 }
 
+// PlansByLocation is the resolver for the plansByLocation field.
+func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
+	planService, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Printf("error while initializing plan service: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plans, nextPageToken, err := planService.FetchPlansByLocation(
+		ctx,
+		models.GeoLocation{
+			Latitude:  input.Latitude,
+			Longitude: input.Longitude,
+		},
+		input.Limit,
+		input.PageKey,
+	)
+	if err != nil {
+		log.Printf("error while fetching plans by location: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.PlansByLocationOutput{
+		Plans:   factory.PlansFromDomainModel(plans),
+		PageKey: nextPageToken,
+	}, nil
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	planService, err := plan.NewPlanService(ctx)
@@ -185,5 +246,29 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	return &model.CachedCreatedPlans{
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans),
 		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
+	}, nil
+}
+
+// AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
+func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
+	s, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Println("error while initializing places api: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session)
+	if err != nil {
+		log.Println("error while fetching candidate places: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlaces := make([]*model.Place, len(availablePlaces))
+	for i, place := range availablePlaces {
+		graphqlPlaces[i] = factory.PlaceFromDomainModel(place)
+	}
+
+	return &model.AvailablePlacesForPlan{
+		Places: graphqlPlaces,
 	}, nil
 }

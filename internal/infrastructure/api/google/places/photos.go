@@ -71,7 +71,7 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 // FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
 // imageSize が nilの場合は、最大1000x1000の画像を取得する
 func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
-	if len(place.photoReferences) == 0 {
+	if len(place.PhotoReferences) == 0 {
 		return nil, nil
 	}
 
@@ -82,7 +82,7 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 		}
 	}
 
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.photoReferences[0], r.apiKey)
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.PhotoReferences[0], r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -98,9 +98,9 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, place Place) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]PlacePhoto, error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-		PlaceID: place.PlaceID,
+		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
 			maps.PlaceDetailsFieldMaskPhotos,
 		},

@@ -1,6 +1,10 @@
 package models
 
-import "math"
+import (
+	"math"
+
+	"github.com/mmcloughlin/geohash"
+)
 
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
@@ -9,7 +13,10 @@ type GeoLocation struct {
 
 // DistanceInMeter 2点間距離(メートル)
 // SEE: https://www.geodatasource.com/developers/go
-func (locationA GeoLocation) DistanceInMeter(locationB GeoLocation) float64 {
+func (g GeoLocation) DistanceInMeter(another GeoLocation) float64 {
+	locationA := g
+	locationB := another
+
 	radianLatitudeA := toRadian(locationA.Latitude)
 	radianLatitudeB := toRadian(locationB.Latitude)
 	radianTheta := toRadian(locationA.Longitude - locationB.Longitude)
@@ -25,6 +32,10 @@ func (locationA GeoLocation) DistanceInMeter(locationB GeoLocation) float64 {
 	distance = toKilometers(distance) * 1000
 
 	return distance
+}
+
+func (g GeoLocation) GeoHash() string {
+	return geohash.Encode(g.Latitude, g.Longitude)
 }
 
 func toRadian(degree float64) float64 {

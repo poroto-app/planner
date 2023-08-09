@@ -5,12 +5,13 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func (f PlacesFilter) FilterWithinDistanceRange(
+func FilterWithinDistanceRange(
+	placesToFilter []places.Place,
 	currentLocation models.GeoLocation,
 	startInMeter float64,
 	endInMeter float64,
-) PlacesFilter {
-	return f.FilterPlaces(func(place places.Place) bool {
+) []places.Place {
+	return FilterPlaces(placesToFilter, func(place places.Place) bool {
 		distance := currentLocation.DistanceInMeter(place.Location.ToGeoLocation())
 		return startInMeter <= distance && distance < endInMeter
 	})

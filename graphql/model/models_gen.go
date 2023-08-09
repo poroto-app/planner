@@ -2,6 +2,14 @@
 
 package model
 
+type AvailablePlacesForPlan struct {
+	Places []*Place `json:"places"`
+}
+
+type AvailablePlacesForPlanInput struct {
+	Session string `json:"session"`
+}
+
 type CachedCreatedPlans struct {
 	Plans                         []*Plan `json:"plans,omitempty"`
 	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
@@ -36,6 +44,16 @@ type CreatePlanByLocationOutput struct {
 	Plans   []*Plan `json:"plans"`
 }
 
+type CreatePlanByPlaceInput struct {
+	Session string `json:"session"`
+	PlaceID string `json:"placeId"`
+}
+
+type CreatePlanByPlaceOutput struct {
+	Session string `json:"session"`
+	Plan    *Plan  `json:"plan"`
+}
+
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -65,11 +83,24 @@ type Place struct {
 }
 
 type Plan struct {
-	ID            string   `json:"id"`
-	Name          string   `json:"name"`
-	Places        []*Place `json:"places"`
-	TimeInMinutes int      `json:"timeInMinutes"`
-	Description   *string  `json:"description,omitempty"`
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Places        []*Place      `json:"places"`
+	TimeInMinutes int           `json:"timeInMinutes"`
+	Description   *string       `json:"description,omitempty"`
+	Transitions   []*Transition `json:"transitions"`
+}
+
+type PlansByLocationInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Limit     *int    `json:"limit,omitempty"`
+	PageKey   *string `json:"pageKey,omitempty"`
+}
+
+type PlansByLocationOutput struct {
+	Plans   []*Plan `json:"plans"`
+	PageKey *string `json:"pageKey,omitempty"`
 }
 
 type SavePlanFromCandidateInput struct {
@@ -79,4 +110,10 @@ type SavePlanFromCandidateInput struct {
 
 type SavePlanFromCandidateOutput struct {
 	Plan *Plan `json:"plan"`
+}
+
+type Transition struct {
+	From     *Place `json:"from,omitempty"`
+	To       *Place `json:"to"`
+	Duration int    `json:"duration"`
 }

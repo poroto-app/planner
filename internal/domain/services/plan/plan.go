@@ -13,16 +13,18 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
 type PlanService struct {
-	placesApi                  places.PlacesApi
-	planRepository             repository.PlanRepository
-	planCandidateRepository    repository.PlanCandidateRepository
-	openaiChatCompletionClient openai.ChatCompletionClient
+	placesApi                   places.PlacesApi
+	planRepository              repository.PlanRepository
+	planCandidateRepository     repository.PlanCandidateRepository
+	placeSearchResultRepository repository.PlaceSearchResultRepository
+	openaiChatCompletionClient  openai.ChatCompletionClient
 }
 
 func NewPlanService(ctx context.Context) (*PlanService, error) {
@@ -41,36 +43,64 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
+	placeSearchResultRepository, err := firestore.NewPlaceSearchResultRepository(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
 	}
 
 	return &PlanService{
-		placesApi:                  *placesApi,
-		planRepository:             planRepository,
-		planCandidateRepository:    planCandidateRepository,
-		openaiChatCompletionClient: *openaiChatCompletionClient,
+		placesApi:                   *placesApi,
+		planRepository:              planRepository,
+		planCandidateRepository:     planCandidateRepository,
+		placeSearchResultRepository: placeSearchResultRepository,
+		openaiChatCompletionClient:  *openaiChatCompletionClient,
 	}, err
 }
 
 func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
+	createPlanSessionId string,
 	locationStart models.GeoLocation,
 	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	freeTime *int,
+	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
-	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  locationStart.Latitude,
-			Longitude: locationStart.Longitude,
-		},
-		Radius:   2000,
-		Language: "ja",
-	})
+	// 付近の場所を検索
+	var placesSearched []places.Place
+
+	//　キャッシュがあれば利用する
+	placesCached, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		log.Printf("error while fetching places from cache: %v\n", err)
+	} else if placesCached != nil {
+		log.Printf("use cached places[%v]\n", createPlanSessionId)
+		placesSearched = placesCached
+	}
+
+	if placesSearched == nil {
+		placesSearched, err = s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
+			Location: places.Location{
+				Latitude:  locationStart.Latitude,
+				Longitude: locationStart.Longitude,
+			},
+			Radius:   2000,
+			Language: "ja",
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("error while fetching places: %v\n", err)
+		}
+
+		if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
+			log.Printf("error while saving places to cache: %v\n", err)
+		}
+		log.Printf("save places to cache[%v]\n", createPlanSessionId)
 	}
 
 	var categoriesPreferred []models.LocationCategory
@@ -89,18 +119,20 @@ func (s PlanService) CreatePlanByLocation(
 		categoriesToFiler = models.GetCategoryToFilter()
 	}
 
-	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-	placesFilter = placesFilter.FilterByCategory(categoriesToFiler)
+	placesFiltered := placesSearched
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFilter = placesFilter.FilterByOpeningNow()
+	// 現在開店している場所だけを表示する
+	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 
-	placesInNear := placesFilter.FilterWithinDistanceRange(locationStart, 0, 500).Places()
-	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
-	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
+	placesInNear := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 0, 500)
+	placesInMiddle := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 500, 1000)
+	placesInFar := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 1000, 2000)
 	if len(placesInNear) > 0 {
 		// TODO: 0 ~ 500mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInNear[0])
@@ -114,16 +146,37 @@ func (s PlanService) CreatePlanByLocation(
 		placesRecommend = append(placesRecommend, placesInFar[0])
 	}
 
-	plans := make([]models.Plan, 0) // MEMO: 空配列の時のjsonのレスポンスがnullにならないように宣言
-
+	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
+	performanceTimer := time.Now()
+	chPlans := make(chan *models.Plan, len(placesRecommend))
 	for _, placeRecommend := range placesRecommend {
-		plan, err := s.createPlanByLocation(ctx, locationStart, placeRecommend, placesFilter.Places(), freeTime)
-		if err != nil {
-			log.Println(err)
+		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
+			plan, err := s.createPlanByLocation(
+				ctx,
+				locationStart,
+				placeRecommend,
+				placesFiltered,
+				freeTime,
+				createBasedOnCurrentLocation,
+			)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			chPlans <- plan
+		}(ctx, placeRecommend, chPlans)
+	}
+
+	plans := make([]models.Plan, 0)
+	for i := 0; i < len(placesRecommend); i++ {
+		plan := <-chPlans
+		if plan == nil {
 			continue
 		}
+
 		plans = append(plans, *plan)
 	}
+	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
 
 	return &plans, nil
 }
@@ -134,11 +187,10 @@ func (s PlanService) createPlanByLocation(
 	placeStart places.Place,
 	places []places.Place,
 	freeTime *int,
+	createBasedOnCurrentLocation bool,
 ) (*models.Plan, error) {
-	placesFilter := placefilter.NewPlacesFilter(places)
-
 	// 起点となる場所との距離順でソート
-	placesSortedByDistance := placesFilter.Places()
+	placesSortedByDistance := places
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 		locationRecommend := placeStart.Location.ToGeoLocation()
 		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
@@ -146,14 +198,16 @@ func (s PlanService) createPlanByLocation(
 		return distanceI < distanceJ
 	})
 
-	placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
+	placesWithInRange := placefilter.FilterWithinDistanceRange(
+		placesSortedByDistance,
 		placeStart.Location.ToGeoLocation(),
 		0,
 		500,
-	).Places()
+	)
 
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
+	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
@@ -210,6 +264,7 @@ func (s PlanService) createPlanByLocation(
 			break
 		}
 
+		// 予定の時間内に閉まってしまう場合はスキップ
 		if freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
@@ -220,18 +275,10 @@ func (s PlanService) createPlanByLocation(
 			continue
 		}
 
-		thumbnail, photos, err := s.fetchPlacePhotos(ctx, place)
-		if err != nil {
-			log.Printf("error while fetching place photos: %v\n", err)
-			continue
-		}
-
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
-			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
-			Photos:                photos,
-			Thumbnail:             thumbnail,
+			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
@@ -239,11 +286,17 @@ func (s PlanService) createPlanByLocation(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
+		transitions = s.addTransition(placesInPlan, transitions, tripTime, createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
 		return nil, fmt.Errorf("could not contain any places in plan")
 	}
+
+	// 場所の画像を取得
+	performanceTimer := time.Now()
+	placesInPlan = s.fetchPlacesPhotos(ctx, placesInPlan)
+	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
 	title, err := s.GeneratePlanTitle(placesInPlan)
 	if err != nil {
@@ -256,7 +309,56 @@ func (s PlanService) createPlanByLocation(
 		Name:          *title,
 		Places:        placesInPlan,
 		TimeInMinutes: timeInPlan,
+		Transitions:   transitions,
 	}, nil
+}
+
+func (s PlanService) CreatePlanFromPlace(
+	ctx context.Context,
+	createPlanSessionId string,
+	placeId string,
+) (*models.Plan, error) {
+	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan candidate")
+	}
+
+	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
+	placesSearched, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
+	if err != nil {
+		return nil, err
+	}
+
+	var placeStart *places.Place
+	for _, place := range placesSearched {
+		if place.PlaceID == placeId {
+			placeStart = &place
+			break
+		}
+	}
+
+	if placeStart == nil {
+		return nil, fmt.Errorf("place not found")
+	}
+
+	planCreated, err := s.createPlanByLocation(
+		ctx,
+		placeStart.Location.ToGeoLocation(),
+		*placeStart,
+		placesSearched,
+		// TODO: freeTimeの項目を保存し、それを反映させる
+		nil,
+		planCandidate.CreatedBasedOnCurrentLocation,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, planCreated); err != nil {
+		return nil, err
+	}
+
+	return planCreated, nil
 }
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
