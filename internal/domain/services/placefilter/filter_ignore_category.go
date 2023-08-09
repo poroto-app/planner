@@ -7,8 +7,8 @@ import (
 )
 
 // FilterIgnoreCategory ignore categoryを除外する
-func (f PlacesFilter) FilterIgnoreCategory() PlacesFilter {
-	return f.FilterPlaces(func(place places.Place) bool {
+func FilterIgnoreCategory(placesToFilter []places.Place) []places.Place {
+	return FilterPlaces(placesToFilter, func(place places.Place) bool {
 		for _, category := range place.Types {
 			if array.IsContain(models.CategoryIgnore.SubCategories, category) {
 				return false

@@ -6,13 +6,13 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func (f PlacesFilter) FilterByCategory(categories []models.LocationCategory) PlacesFilter {
+func FilterByCategory(placesToFilter []places.Place, categories []models.LocationCategory) []places.Place {
 	var subCategories []string
 	for _, category := range categories {
 		subCategories = append(subCategories, category.SubCategories...)
 	}
 
-	return f.FilterPlaces(func(place places.Place) bool {
+	return FilterPlaces(placesToFilter, func(place places.Place) bool {
 		for _, category := range place.Types {
 			if array.IsContain(subCategories, category) {
 				return true
