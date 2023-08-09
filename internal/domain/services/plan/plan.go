@@ -13,6 +13,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -123,6 +124,7 @@ func (s PlanService) CreatePlanByLocation(
 	placesFilter = placesFilter.FilterByCategory(categoriesToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
+	// 現在開店している場所だけを表示する
 	placesFilter = placesFilter.FilterByOpeningNow()
 
 	// TODO: 移動距離ではなく、移動時間でやる
@@ -263,6 +265,7 @@ func (s PlanService) createPlanByLocation(
 			break
 		}
 
+		// 予定の時間内に閉まってしまう場合はスキップ
 		if freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
@@ -276,7 +279,7 @@ func (s PlanService) createPlanByLocation(
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
 			Name:                  place.Name,
-			GooglePlaceId:         &place.PlaceID,
+			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
