@@ -150,6 +150,85 @@ var (
 		Photo:                 "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
 		EstimatedStayDuration: 60,
 	}
+
+	CategoryIgnore = LocationCategory{
+		Name: "ignore",
+		SubCategories: []string{
+			string(maps.PlaceTypeAccounting),
+
+			string(maps.PlaceTypeAtm),
+
+			string(maps.PlaceTypeBank),
+
+			string(maps.PlaceTypeBeautySalon),
+			string(maps.PlaceTypeBicycleStore),
+
+			string(maps.PlaceTypeBusStation),
+
+			string(maps.PlaceTypeCarDealer),
+			string(maps.PlaceTypeCarRental),
+			string(maps.PlaceTypeCarRepair),
+			string(maps.PlaceTypeCarWash),
+			string(maps.PlaceTypeCasino),
+			string(maps.PlaceTypeCemetery),
+			string(maps.PlaceTypeChurch),
+			string(maps.PlaceTypeCityHall),
+
+			string(maps.PlaceTypeCourthouse),
+			string(maps.PlaceTypeDentist),
+			string(maps.PlaceTypeDoctor),
+			string(maps.PlaceTypeElectrician),
+			string(maps.PlaceTypeEmbassy),
+			string(maps.PlaceTypeFireStation),
+
+			string(maps.PlaceTypeFuneralHome),
+			string(maps.PlaceTypeGasStation),
+			string(maps.PlaceTypeGym),
+			string(maps.PlaceTypeHairCare),
+
+			string(maps.PlaceTypeHinduTemple),
+
+			string(maps.PlaceTypeHospital),
+			string(maps.PlaceTypeInsuranceAgency),
+			string(maps.PlaceTypeJewelryStore),
+			string(maps.PlaceTypeLaundry),
+			string(maps.PlaceTypeLawyer),
+
+			string(maps.PlaceTypeLocalGovernmentOffice),
+			string(maps.PlaceTypeLocksmith),
+			string(maps.PlaceTypeLodging),
+
+			string(maps.PlaceTypeMosque),
+
+			string(maps.PlaceTypeMovingCompany),
+
+			string(maps.PlaceTypeNightClub),
+			string(maps.PlaceTypePainter),
+			string(maps.PlaceTypePark),
+			string(maps.PlaceTypeParking),
+			string(maps.PlaceTypePharmacy),
+			string(maps.PlaceTypePhysiotherapist),
+			string(maps.PlaceTypePlumber),
+			string(maps.PlaceTypePolice),
+			string(maps.PlaceTypePostOffice),
+			string(maps.PlaceTypeRealEstateAgency),
+
+			string(maps.PlaceTypeRoofingContractor),
+			string(maps.PlaceTypeRvPark),
+			string(maps.PlaceTypeSchool),
+			string(maps.PlaceTypeShoeStore),
+
+			string(maps.PlaceTypeStorage),
+
+			string(maps.PlaceTypeSynagogue),
+			string(maps.PlaceTypeTaxiStand),
+
+			string(maps.PlaceTypeTravelAgency),
+
+			string(maps.PlaceTypeUniversity),
+			string(maps.PlaceTypeVeterinaryCare),
+		},
+	}
 )
 
 func GetCategoryToFilter() []LocationCategory {

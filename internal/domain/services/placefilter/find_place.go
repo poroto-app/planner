@@ -2,8 +2,8 @@ package placefilter
 
 import "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 
-func (f PlacesFilter) Find(findFunc func(place places.Place) bool) *places.Place {
-	for _, place := range f.placesToFilter {
+func Find(placesToSearch []places.Place, findFunc func(place places.Place) bool) *places.Place {
+	for _, place := range placesToSearch {
 		if findFunc(place) {
 			copy := place
 			return &copy
@@ -12,8 +12,8 @@ func (f PlacesFilter) Find(findFunc func(place places.Place) bool) *places.Place
 	return nil
 }
 
-func (f PlacesFilter) FindById(placeId string) *places.Place {
-	return f.Find(func(place places.Place) bool {
+func FindById(placesToSearch []places.Place, placeId string) *places.Place {
+	return Find(placesToSearch, func(place places.Place) bool {
 		return place.PlaceID == placeId
 	})
 }
