@@ -92,8 +92,8 @@ extend type Mutation {
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
-    # ユーザーの興味をOptionalなパラメータとして渡す
-    categories: [String!]
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
     freeTime: Int
     # 現在地から作成されたプランか
     # TODO: 必須パラメータにする
