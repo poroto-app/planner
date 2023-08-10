@@ -121,7 +121,7 @@ func (s PlanService) CreatePlanByLocation(
 
 	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesToFiler)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesToFiler, true)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	// 現在開店している場所だけを表示する
