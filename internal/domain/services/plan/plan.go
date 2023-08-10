@@ -66,8 +66,8 @@ func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
 	locationStart models.GeoLocation,
-	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
+	categoryNamesDisliked *[]string,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
