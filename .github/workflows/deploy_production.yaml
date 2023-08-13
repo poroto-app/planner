@@ -1,0 +1,13 @@
+name: deploy-staging
+run-name: Deploy Production by @${{ github.actor }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy-staging:
+    name: Deploy Production
+    uses: ./.github/workflows/workflow_deploy_cloud_functions.yaml
+    with:
+      environment: production
+    secrets: inherit
