@@ -1,11 +1,11 @@
-name: deploy-staging
+name: deploy-production
 run-name: Deploy Production by @${{ github.actor }}
 on:
   push:
     branches:
       - main
 jobs:
-  deploy-staging:
+  deploy-production:
     name: Deploy Production
     uses: ./.github/workflows/workflow_deploy_cloud_functions.yaml
     with:
