@@ -23,7 +23,12 @@ type PlanCandidateFirestoreRepository struct {
 }
 
 func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRepository, error) {
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), option.WithCredentialsFile("secrets/google-credential.json"))
+	var options []option.ClientOption
+	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
+		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
+	}
+
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
