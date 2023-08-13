@@ -3,4 +3,4 @@ run-name: Build by @${{ github.actor }}
 on: [push]
 jobs:
   build:
-    uses: ./.github/workflows/build_workflow.yaml
+    uses: ./.github/workflows/workflow_build.yaml
