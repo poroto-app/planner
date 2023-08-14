@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -145,49 +144,6 @@ func (s Service) createPlan(
 		TimeInMinutes: timeInPlan,
 		Transitions:   transitions,
 	}, nil
-}
-
-// isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
-func (s Service) isOpeningWithIn(
-	ctx context.Context,
-	place places.Place,
-	startTime time.Time,
-	duration time.Duration,
-) bool {
-	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
-	if err != nil {
-		log.Printf("error while fetching place periods: %v\n", err)
-		return false
-	}
-	// 時刻フィルタリング用変数
-	endTime := startTime.Add(time.Minute * duration)
-	today := time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
-
-	for _, placeOpeningPeriod := range placeOpeningPeriods {
-		weekday := startTime.Weekday()
-		if placeOpeningPeriod.DayOfWeek != weekday.String() {
-			continue
-		}
-
-		// TODO: パース処理に関するテストを書く
-		openingPeriodHour, opHourErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[:2])
-		openingPeriodMinute, opMinuteErr := strconv.Atoi(placeOpeningPeriod.OpeningTime[2:])
-		closingPeriodHour, clHourErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[:2])
-		closingPeriodMinute, clMinuteErr := strconv.Atoi(placeOpeningPeriod.ClosingTime[2:])
-		if opHourErr != nil || opMinuteErr != nil || clHourErr != nil || clMinuteErr != nil {
-			log.Println("error while converting period [string->int]")
-			continue
-		}
-
-		openingTime := today.Add(time.Hour*time.Duration(openingPeriodHour) + time.Minute*time.Duration(openingPeriodMinute))
-		closingTime := today.Add(time.Hour*time.Duration(closingPeriodHour) + time.Minute*time.Duration(closingPeriodMinute))
-
-		// 開店時刻 < 開始時刻 && 終了時刻 < 閉店時刻 の判断
-		if startTime.After(openingTime) && endTime.Before(closingTime) {
-			return true
-		}
-	}
-	return false
 }
 
 func (s Service) travelTimeBetween(
