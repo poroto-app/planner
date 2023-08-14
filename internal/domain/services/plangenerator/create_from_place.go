@@ -36,7 +36,7 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
-	planCreated, err := s.createPlanByLocation(
+	planCreated, err := s.createPlan(
 		ctx,
 		placeStart.Location.ToGeoLocation(),
 		*placeStart,
