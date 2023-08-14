@@ -17,10 +17,6 @@ func (s PlanService) CachePlanCandidate(ctx context.Context, session string, pla
 	})
 }
 
-func (s PlanService) FindPlanCandidate(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
-	return s.planCandidateRepository.Find(ctx, planCandidateId)
-}
-
 func (s PlanService) ChangePlacesOrderPlanCandidate(
 	ctx context.Context,
 	planId string,

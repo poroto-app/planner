@@ -14,6 +14,7 @@ import (
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
@@ -197,13 +198,13 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planCandidateService, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing plan candidate service: ", err)
 		return nil, err
 	}
 
-	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
+	planCandidate, err := planCandidateService.FindPlanCandidate(ctx, input.Session)
 	if err != nil {
 		log.Println("error while finding plan candidate: ", err)
 		return nil, err
