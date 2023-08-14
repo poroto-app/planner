@@ -25,6 +25,12 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
+	planCandidateService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Printf("error while initializing plan candidate service: %v", err)
+		return nil, fmt.Errorf("internal server error: %v", err)
+	}
+
 	// TODO: 必須パラメータにする
 	createBasedOnCurrentLocation := false
 	if input.CreatedBasedOnCurrentLocation != nil {
@@ -48,7 +54,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	if err := service.CachePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
