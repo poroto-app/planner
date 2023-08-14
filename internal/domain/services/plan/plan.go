@@ -13,8 +13,8 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/plangenerator"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
-	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
@@ -23,7 +23,7 @@ type PlanService struct {
 	planRepository              repository.PlanRepository
 	planCandidateRepository     repository.PlanCandidateRepository
 	placeSearchResultRepository repository.PlaceSearchResultRepository
-	openaiChatCompletionClient  openai.ChatCompletionClient
+	planGeneratorService        plangenerator.Service
 }
 
 func NewPlanService(ctx context.Context) (*PlanService, error) {
@@ -47,9 +47,9 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
-	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
+	planGeneratorService, err := plangenerator.NewService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
+		return nil, fmt.Errorf("error while initializing plan generator service: %v", err)
 	}
 
 	return &PlanService{
@@ -57,7 +57,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		planRepository:              planRepository,
 		planCandidateRepository:     planCandidateRepository,
 		placeSearchResultRepository: placeSearchResultRepository,
-		openaiChatCompletionClient:  *openaiChatCompletionClient,
+		planGeneratorService:        *planGeneratorService,
 	}, err
 }
 
@@ -296,7 +296,7 @@ func (s PlanService) createPlanByLocation(
 	placesInPlan = s.fetchPlacesPhotos(ctx, placesInPlan)
 	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
-	title, err := s.GeneratePlanTitle(placesInPlan)
+	title, err := s.planGeneratorService.GeneratePlanTitle(placesInPlan)
 	if err != nil {
 		log.Printf("error while generating plan title: %v\n", err)
 		title = &placeStart.Name
