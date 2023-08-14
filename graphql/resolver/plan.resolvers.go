@@ -232,9 +232,9 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := plan.NewPlanService(ctx)
+	s, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 

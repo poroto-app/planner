@@ -5,17 +5,14 @@ import (
 	"fmt"
 
 	"poroto.app/poroto/planner/internal/domain/repository"
-	"poroto.app/poroto/planner/internal/domain/services/plangenerator"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
 type PlanService struct {
-	placesApi                   places.PlacesApi
-	planRepository              repository.PlanRepository
-	planCandidateRepository     repository.PlanCandidateRepository
-	placeSearchResultRepository repository.PlaceSearchResultRepository
-	planGeneratorService        plangenerator.Service
+	placesApi               places.PlacesApi
+	planRepository          repository.PlanRepository
+	planCandidateRepository repository.PlanCandidateRepository
 }
 
 func NewPlanService(ctx context.Context) (*PlanService, error) {
@@ -34,21 +31,9 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
-	placeSearchResultRepository, err := firestore.NewPlaceSearchResultRepository(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	planGeneratorService, err := plangenerator.NewService(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error while initializing plan generator service: %v", err)
-	}
-
 	return &PlanService{
-		placesApi:                   *placesApi,
-		planRepository:              planRepository,
-		planCandidateRepository:     planCandidateRepository,
-		placeSearchResultRepository: placeSearchResultRepository,
-		planGeneratorService:        *planGeneratorService,
+		placesApi:               *placesApi,
+		planRepository:          planRepository,
+		planCandidateRepository: planCandidateRepository,
 	}, err
 }
