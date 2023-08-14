@@ -1,4 +1,4 @@
-package plan
+package plangenerator
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // fetchPlacePhotos は，指定された場所の写真を取得する
-func (s PlanService) fetchPlacePhotos(ctx context.Context, placeId string) (thumbnailUrl *string, photoUrls []string, err error) {
+func (s Service) fetchPlacePhotos(ctx context.Context, placeId string) (thumbnailUrl *string, photoUrls []string, err error) {
 	placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, placeId)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error while fetching place photos: %v\n", err)
@@ -25,8 +25,8 @@ func (s PlanService) fetchPlacePhotos(ctx context.Context, placeId string) (thum
 	return thumbnailUrl, photoUrls, nil
 }
 
-// fetchPlacesPhotos は，指定された場所の写真を一括で取得する
-func (s PlanService) fetchPlacesPhotos(ctx context.Context, places []models.Place) []models.Place {
+// FetchPlacesPhotos は，指定された場所の写真を一括で取得する
+func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) []models.Place {
 	if len(places) == 0 {
 		return places
 	}
