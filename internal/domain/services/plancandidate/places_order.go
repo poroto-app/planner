@@ -1,4 +1,4 @@
-package plan
+package plancandidate
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s PlanService) ChangePlacesOrderPlanCandidate(
+func (s Service) ChangePlacesOrderPlanCandidate(
 	ctx context.Context,
 	planId string,
 	planCandidateId string,
