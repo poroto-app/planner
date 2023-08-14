@@ -15,14 +15,15 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
+	"poroto.app/poroto/planner/internal/domain/services/plangenerator"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
-	// TODO: エラー時は処理を停止させる
-	service, err := plan.NewPlanService(ctx)
+	planGeneratorService, err := plangenerator.NewService(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Printf("error while initializing plan generator service: %v\n", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	planCandidateService, err := plancandidate.NewService(ctx)
@@ -39,7 +40,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
 	session := uuid.New().String()
-	plans, err := service.CreatePlanByLocation(
+	plans, err := planGeneratorService.CreatePlanByLocation(
 		ctx,
 		session,
 		models.GeoLocation{
@@ -66,13 +67,13 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // CreatePlanByPlace is the resolver for the createPlanByPlace field.
 func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
-	service, err := plan.NewPlanService(ctx)
+	planGeneratorService, err := plangenerator.NewService(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Printf("error while initializing plan generator service: %v\n", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCreated, err := service.CreatePlanFromPlace(
+	planCreated, err := planGeneratorService.CreatePlanFromPlace(
 		ctx,
 		input.Session,
 		input.PlaceID,
