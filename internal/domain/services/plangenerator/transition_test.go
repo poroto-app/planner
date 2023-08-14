@@ -1,4 +1,4 @@
-package plan
+package plangenerator
 
 import (
 	"testing"
@@ -119,9 +119,9 @@ func TestAddTransition(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		s := PlanService{}
+		s := Service{}
 		t.Run(c.name, func(t *testing.T) {
-			result := s.addTransition(
+			result := s.AddTransition(
 				c.placesInPlan,
 				c.transitions,
 				c.duration,

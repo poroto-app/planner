@@ -1,8 +1,10 @@
-package plan
+package plangenerator
 
-import "poroto.app/poroto/planner/internal/domain/models"
+import (
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
-func (s PlanService) addTransition(
+func (s Service) AddTransition(
 	placesInPlan []models.Place,
 	transitions []models.Transition,
 	duration uint,
