@@ -90,9 +90,9 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	service, err := plan.NewPlanService(ctx)
+	planCandidateService, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		log.Println(fmt.Errorf("error while initizalizing PlanCandidateService: %v", err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -103,12 +103,13 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 			Longitude: *input.CurrentLongitude,
 		}
 	}
-	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
+
+	planUpdated, err := planCandidateService.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
 	if err != nil {
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*plan)
+	graphqlPlan := factory.PlanFromDomainModel(*planUpdated)
 	return &model.ChangePlacesOrderInPlanCandidateOutput{
 		Plan: &graphqlPlan,
 	}, nil
