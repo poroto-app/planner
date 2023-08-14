@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/models/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
