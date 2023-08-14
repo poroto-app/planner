@@ -167,12 +167,12 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planCandidateService, err := plancandidate.NewService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+		return nil, fmt.Errorf("error while initializing plan candidate service: %v", err)
 	}
 
-	categoriesSearched, err := planService.CategoriesNearLocation(
+	categoriesSearched, err := planCandidateService.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
