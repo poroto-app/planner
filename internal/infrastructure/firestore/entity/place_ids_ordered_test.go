@@ -19,7 +19,7 @@ func TestFromPlanEntity(t *testing.T) {
 		expected        models.Plan
 	}{
 		{
-			name:     "test01",
+			name:     "順序入替（２）",
 			planId:   "I01",
 			planName: "N01",
 			places: []PlaceEntity{
@@ -29,28 +29,16 @@ func TestFromPlanEntity(t *testing.T) {
 				{
 					Id: "2",
 				},
-				{
-					Id: "3",
-				},
-				{
-					Id: "4",
-				},
 			},
 			timeInMinutes:   30,
-			placeIdsOrdered: []string{"3", "2", "4", "1"},
+			placeIdsOrdered: []string{"2", "1"},
 			transitions:     &[]TransitionsEntity{},
 			expected: models.Plan{
 				Id:   "I01",
 				Name: "N01",
 				Places: []models.Place{
 					{
-						Id: "3",
-					},
-					{
 						Id: "2",
-					},
-					{
-						Id: "4",
 					},
 					{
 						Id: "1",
@@ -61,7 +49,7 @@ func TestFromPlanEntity(t *testing.T) {
 			},
 		},
 		{
-			name:     "test02",
+			name:     "順序入替（４）",
 			planId:   "I02",
 			planName: "N02",
 			places: []PlaceEntity{
