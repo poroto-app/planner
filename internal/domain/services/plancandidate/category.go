@@ -1,4 +1,4 @@
-package plan
+package plancandidate
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func (s PlanService) CategoriesNearLocation(
+func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 ) ([]models.LocationCategory, error) {

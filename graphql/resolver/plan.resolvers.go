@@ -202,12 +202,13 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	planService, err := plan.NewPlanService(ctx)
+	service, err := plancandidate.NewService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
-	categoriesSearched, err := planService.CategoriesNearLocation(
+	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
@@ -226,6 +227,7 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 			Photo:       categorySearched.Photo,
 		})
 	}
+
 	return &model.InterestCandidate{
 		Categories: categories,
 	}, nil
