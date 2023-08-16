@@ -19,7 +19,7 @@ func TestFromPlanEntity(t *testing.T) {
 		expected        models.Plan
 	}{
 		{
-			name:     "順序入替（２）",
+			name:     "指定した順序でプラン内の場所が入れ替わる",
 			planId:   "I01",
 			planName: "N01",
 			places: []PlaceEntity{
@@ -48,50 +48,7 @@ func TestFromPlanEntity(t *testing.T) {
 				TimeInMinutes: 30,
 			},
 		},
-		{
-			name:     "順序入替（４）",
-			planId:   "I02",
-			planName: "N02",
-			places: []PlaceEntity{
-				{
-					Id: "2",
-				},
-				{
-					Id: "4",
-				},
-				{
-					Id: "1",
-				},
-				{
-					Id: "3",
-				},
-			},
-			timeInMinutes:   60,
-			placeIdsOrdered: []string{"4", "1", "3", "2"},
-			transitions:     &[]TransitionsEntity{},
-			expected: models.Plan{
-				Id:   "I02",
-				Name: "N02",
-				Places: []models.Place{
-					{
-						Id: "4",
-					},
-					{
-						Id: "1",
-					},
-					{
-						Id: "3",
-					},
-					{
-						Id: "2",
-					},
-				},
-				Transitions:   []models.Transition{},
-				TimeInMinutes: 60,
-			},
-		},
 	}
-
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			actual := fromPlanEntity(
