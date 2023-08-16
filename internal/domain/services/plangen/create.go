@@ -88,12 +88,8 @@ func (s Service) CreatePlan(
 			continue
 		}
 
-		tripTime := s.travelTimeBetween(
-			previousLocation,
-			place.Location.ToGeoLocation(),
-			80.0,
-		)
-		timeInPlace := categoryMain.EstimatedStayDuration + tripTime
+		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
+		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
 			break
 		}
@@ -120,7 +116,7 @@ func (s Service) CreatePlan(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
-		transitions = s.AddTransition(placesInPlan, transitions, tripTime, createBasedOnCurrentLocation)
+		transitions = s.AddTransition(placesInPlan, transitions, travelTime, createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
@@ -145,17 +141,4 @@ func (s Service) CreatePlan(
 		TimeInMinutes: timeInPlan,
 		Transitions:   transitions,
 	}, nil
-}
-
-func (s Service) travelTimeBetween(
-	locationDeparture models.GeoLocation,
-	locationDestination models.GeoLocation,
-	meterPerMinutes float64,
-) uint {
-	var timeInMinutes uint = 0
-	distance := locationDeparture.DistanceInMeter(locationDestination)
-	if distance > 0.0 && meterPerMinutes > 0.0 {
-		timeInMinutes = uint(distance / meterPerMinutes)
-	}
-	return timeInMinutes
 }
