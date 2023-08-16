@@ -66,8 +66,8 @@ func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
 	locationStart models.GeoLocation,
-	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
+	categoryNamesDisliked *[]string,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
@@ -103,25 +103,20 @@ func (s PlanService) CreatePlanByLocation(
 		log.Printf("save places to cache[%v]\n", createPlanSessionId)
 	}
 
-	var categoriesPreferred []models.LocationCategory
-	if categoryNamesPreferred != nil {
-		for _, categoryName := range *categoryNamesPreferred {
-			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesPreferred = append(categoriesPreferred, *category)
-			}
-		}
-	}
-
-	var categoriesToFiler []models.LocationCategory
-	if len(*categoryNamesPreferred) > 0 {
-		categoriesToFiler = categoriesPreferred
-	} else {
-		categoriesToFiler = models.GetCategoryToFilter()
-	}
-
 	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesToFiler)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+
+	// 除外されたカテゴリがある場合はそのカテゴリを除外する
+	if categoryNamesDisliked != nil {
+		var categoriesDisliked []models.LocationCategory
+		for _, categoryName := range *categoryNamesDisliked {
+			if category := models.GetCategoryOfName(categoryName); category != nil {
+				categoriesDisliked = append(categoriesDisliked, *category)
+			}
+		}
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+	}
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	// 現在開店している場所だけを表示する
