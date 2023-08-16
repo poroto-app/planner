@@ -66,6 +66,21 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return placeSearchResultEntity.Places, nil
 }
 
+func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		for _, planCandidateId := range planCandidateIds {
+			doc := p.doc(planCandidateId)
+			if err := tx.Delete(doc); err != nil {
+				return fmt.Errorf("error while deleting place search result: %v", err)
+			}
+		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while deleting place search results: %v", err)
+	}
+	return nil
+}
+
 func (p PlaceSearchResultRepository) doc(planCandidateId string) *firestore.DocumentRef {
 	return p.client.Collection(collectionPlaceSearchResults).Doc(planCandidateId)
 }
