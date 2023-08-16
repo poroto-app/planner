@@ -68,13 +68,13 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // CreatePlanByPlace is the resolver for the createPlanByPlace field.
 func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
-	service, err := plan.NewPlanService(ctx)
+	planGenService, err := plangen.NewService(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Println("error while initializing plan generator service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCreated, err := service.CreatePlanFromPlace(
+	planCreated, err := planGenService.CreatePlanFromPlace(
 		ctx,
 		input.Session,
 		input.PlaceID,
