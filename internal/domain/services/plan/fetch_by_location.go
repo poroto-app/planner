@@ -10,7 +10,7 @@ const (
 	defaultLimit = 10
 )
 
-func (s PlanService) FetchPlansByLocation(
+func (s Service) FetchPlansByLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 	limit *int,

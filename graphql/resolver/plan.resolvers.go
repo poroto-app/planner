@@ -119,7 +119,7 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
 func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
-	service, err := plan.NewPlanService(ctx)
+	service, err := plan.NewService(ctx)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -139,7 +139,7 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // Plan is the resolver for the plan field.
 func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planService, err := plan.NewService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
@@ -159,7 +159,7 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 
 // Plans is the resolver for the plans field.
 func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error) {
-	service, err := plan.NewPlanService(ctx)
+	service, err := plan.NewService(ctx)
 	if err != nil {
 		log.Println("error while initializing places api: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -176,7 +176,7 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 
 // PlansByLocation is the resolver for the plansByLocation field.
 func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planService, err := plan.NewService(ctx)
 	if err != nil {
 		log.Printf("error while initializing plan service: %v", err)
 		return nil, fmt.Errorf("internal server error")
