@@ -49,3 +49,5 @@ jobs:
       # SEE: https://github.com/google-github-actions/deploy-appengine#authorization
       - name: Deploy an App Engine app
         uses: google-github-actions/deploy-appengine@v1
+        with:
+          deliverables: ${{ inputs.environment == 'production' && 'app.yaml' || format('app-{0}.yaml', inputs.environment) }}
