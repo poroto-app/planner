@@ -39,7 +39,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
-		&input.Categories,
+		&input.CategoriesPreferred,
 		input.FreeTime,
 		createBasedOnCurrentLocation,
 	)
