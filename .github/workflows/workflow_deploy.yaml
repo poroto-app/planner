@@ -14,7 +14,7 @@ on:
         required: true
 jobs:
   build:
-    uses: ./.github/workflows/build_workflow.yaml
+    uses: ./.github/workflows/workflow_build.yaml
   deploy-cloud-functions-batch-delete-expired-plan-candidates:
     needs: build
     name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
