@@ -100,7 +100,7 @@ func (s Service) CreatePlanByLocation(
 	chPlans := make(chan *models.Plan, len(placesRecommend))
 	for _, placeRecommend := range placesRecommend {
 		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
-			plan, err := s.CreatePlan(
+			plan, err := s.createPlan(
 				ctx,
 				locationStart,
 				placeRecommend,

@@ -15,7 +15,7 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func (s Service) CreatePlan(
+func (s Service) createPlan(
 	ctx context.Context,
 	locationStart models.GeoLocation,
 	placeStart places.Place,
