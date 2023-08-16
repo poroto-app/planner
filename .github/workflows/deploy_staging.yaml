@@ -1,0 +1,13 @@
+name: deploy-staging
+run-name: Deploy Staging by @${{ github.actor }}
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  deploy-staging:
+    name: Deploy Staging
+    uses: ./.github/workflows/workflow_deploy.yaml
+    with:
+      environment: staging
+    secrets: inherit
