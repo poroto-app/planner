@@ -19,14 +19,14 @@ jobs:
     needs: build
     name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/decrypt_secrets
         with:
           google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
           gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          environment: ${{ github.event.inputs.environment }}
+          environment: ${{ inputs.environment }}
       - name: Deploy Cloud Functions
         uses: ./.github/actions/deploy_cloud_functions
         with:
@@ -38,14 +38,16 @@ jobs:
     needs: build
     name: GAE Deploy
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/decrypt_secrets
         with:
           google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
           gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          environment: ${{ github.event.inputs.environment }}
+          environment: ${{ inputs.environment }}
       # SEE: https://github.com/google-github-actions/deploy-appengine#authorization
       - name: Deploy an App Engine app
         uses: google-github-actions/deploy-appengine@v1
+        with:
+          deliverables: ${{ inputs.environment == 'production' && 'app.yaml' || format('app-{0}.yaml', inputs.environment) }}
