@@ -281,7 +281,7 @@ func (s PlanService) createPlanByLocation(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
-		transitions = s.addTransition(placesInPlan, transitions, tripTime, createBasedOnCurrentLocation)
+		transitions = s.planGeneratorService.AddTransition(placesInPlan, transitions, tripTime, createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
