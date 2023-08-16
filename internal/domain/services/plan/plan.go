@@ -295,7 +295,7 @@ func (s PlanService) createPlanByLocation(
 
 	// 場所の画像を取得
 	performanceTimer := time.Now()
-	placesInPlan = s.fetchPlacesPhotos(ctx, placesInPlan)
+	placesInPlan = s.planGeneratorService.FetchPlacesPhotos(ctx, placesInPlan)
 	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
 	title, err := s.planGeneratorService.GeneratePlanTitle(placesInPlan)
