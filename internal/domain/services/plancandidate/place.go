@@ -1,4 +1,4 @@
-package plan
+package plancandidate
 
 import (
 	"context"
@@ -15,7 +15,7 @@ const (
 )
 
 // FetchCandidatePlaces はプランの候補となる場所を取得する
-func (s PlanService) FetchCandidatePlaces(
+func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
 	createPlanSessionId string,
 ) ([]*models.Place, error) {
