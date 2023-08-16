@@ -53,7 +53,7 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		entity.Name,
 		entity.Places,
 		entity.TimeInMinutes,
-		entity.PlaceIdsOrdered,
+		//	entity.PlaceIdsOrdered,
 		entity.Transitions,
 	)
 }
@@ -63,24 +63,22 @@ func fromPlanEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
-	placeIdsOrdered []string,
+	//placeIdsOrdered []string,
 	transitions *[]TransitionsEntity,
 ) models.Plan {
+	// TODO：以下のコメントを参考に順序入れ替え処理を実装
 	// placeIdsOrdered：プレイスの順序を指定するプレイスのID配列
 	// データベースモデルからドメインモデルに変換する際にプレイスの順序を並び替える
-	placesOrdered := make([]models.Place, len(places))
-	for i, placeIdOrdered := range placeIdsOrdered {
-		for _, place := range places {
-			if place.Id == placeIdOrdered {
-				placesOrdered[i] = FromPlaceEntity(place)
-			}
-		}
+
+	placesOfDomain := make([]models.Place, len(places))
+	for i, place := range places {
+		placesOfDomain[i] = FromPlaceEntity(place)
 	}
 
 	return models.Plan{
 		Id:            id,
 		Name:          name,
-		Places:        placesOrdered,
+		Places:        placesOfDomain,
 		TimeInMinutes: uint(timeInMinutes),
 		Transitions:   FromTransitionEntities(transitions),
 	}
