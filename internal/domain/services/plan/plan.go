@@ -7,12 +7,12 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
-type PlanService struct {
+type Service struct {
 	planRepository          repository.PlanRepository
 	planCandidateRepository repository.PlanCandidateRepository
 }
 
-func NewPlanService(ctx context.Context) (*PlanService, error) {
+func NewService(ctx context.Context) (*Service, error) {
 	planRepository, err := firestore.NewPlanRepository(ctx)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func NewPlanService(ctx context.Context) (*PlanService, error) {
 		return nil, err
 	}
 
-	return &PlanService{
+	return &Service{
 		planRepository:          planRepository,
 		planCandidateRepository: planCandidateRepository,
 	}, err
