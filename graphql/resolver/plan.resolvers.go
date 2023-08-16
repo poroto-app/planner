@@ -233,10 +233,10 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planService, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
-		return nil, err
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
