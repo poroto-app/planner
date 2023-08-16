@@ -13,6 +13,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -65,8 +66,8 @@ func (s PlanService) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
 	locationStart models.GeoLocation,
-	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
+	categoryNamesDisliked *[]string,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
@@ -102,35 +103,31 @@ func (s PlanService) CreatePlanByLocation(
 		log.Printf("save places to cache[%v]\n", createPlanSessionId)
 	}
 
-	var categoriesPreferred []models.LocationCategory
-	if categoryNamesPreferred != nil {
-		for _, categoryName := range *categoryNamesPreferred {
+	placesFiltered := placesSearched
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+
+	// 除外されたカテゴリがある場合はそのカテゴリを除外する
+	if categoryNamesDisliked != nil {
+		var categoriesDisliked []models.LocationCategory
+		for _, categoryName := range *categoryNamesDisliked {
 			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesPreferred = append(categoriesPreferred, *category)
+				categoriesDisliked = append(categoriesDisliked, *category)
 			}
 		}
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
 	}
-
-	var categoriesToFiler []models.LocationCategory
-	if len(*categoryNamesPreferred) > 0 {
-		categoriesToFiler = categoriesPreferred
-	} else {
-		categoriesToFiler = models.GetCategoryToFilter()
-	}
-
-	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-	placesFilter = placesFilter.FilterIgnoreCategory()
-	placesFilter = placesFilter.FilterByCategory(categoriesToFiler)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFilter = placesFilter.FilterByOpeningNow()
+	// 現在開店している場所だけを表示する
+	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 
-	placesInNear := placesFilter.FilterWithinDistanceRange(locationStart, 0, 500).Places()
-	placesInMiddle := placesFilter.FilterWithinDistanceRange(locationStart, 500, 1000).Places()
-	placesInFar := placesFilter.FilterWithinDistanceRange(locationStart, 1000, 2000).Places()
+	placesInNear := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 0, 500)
+	placesInMiddle := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 500, 1000)
+	placesInFar := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 1000, 2000)
 	if len(placesInNear) > 0 {
 		// TODO: 0 ~ 500mで最もレビューの高い場所を選ぶ
 		placesRecommend = append(placesRecommend, placesInNear[0])
@@ -153,7 +150,7 @@ func (s PlanService) CreatePlanByLocation(
 				ctx,
 				locationStart,
 				placeRecommend,
-				placesFilter.Places(),
+				placesFiltered,
 				freeTime,
 				createBasedOnCurrentLocation,
 			)
@@ -187,10 +184,8 @@ func (s PlanService) createPlanByLocation(
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
 ) (*models.Plan, error) {
-	placesFilter := placefilter.NewPlacesFilter(places)
-
 	// 起点となる場所との距離順でソート
-	placesSortedByDistance := placesFilter.Places()
+	placesSortedByDistance := places
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 		locationRecommend := placeStart.Location.ToGeoLocation()
 		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
@@ -198,11 +193,12 @@ func (s PlanService) createPlanByLocation(
 		return distanceI < distanceJ
 	})
 
-	placesWithInRange := placefilter.NewPlacesFilter(placesSortedByDistance).FilterWithinDistanceRange(
+	placesWithInRange := placefilter.FilterWithinDistanceRange(
+		placesSortedByDistance,
 		placeStart.Location.ToGeoLocation(),
 		0,
 		500,
-	).Places()
+	)
 
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
@@ -263,6 +259,7 @@ func (s PlanService) createPlanByLocation(
 			break
 		}
 
+		// 予定の時間内に閉まってしまう場合はスキップ
 		if freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
@@ -276,7 +273,7 @@ func (s PlanService) createPlanByLocation(
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
 			Name:                  place.Name,
-			GooglePlaceId:         &place.PlaceID,
+			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,

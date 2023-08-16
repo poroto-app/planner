@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	placesApi "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
@@ -28,7 +29,11 @@ func (s PlanService) FetchCandidatePlaces(
 		return nil, err
 	}
 
-	placesSortedByRating := placesSearched
+	placesFiltered := placesSearched
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+
+	placesSortedByRating := placesFiltered
 	sort.Slice(placesSortedByRating, func(i, j int) bool {
 		return placesSortedByRating[i].Rating > placesSortedByRating[j].Rating
 	})

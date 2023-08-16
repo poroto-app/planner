@@ -41,6 +41,8 @@ extend type Query {
 
     plans(pageKey: String): [Plan!]!
 
+    plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
+
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
@@ -48,6 +50,18 @@ extend type Query {
 
     # プランを作成可能な他の場所を取得する
     availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+}
+
+input PlansByLocationInput {
+    latitude: Float!
+    longitude: Float!
+    limit: Int
+    pageKey: String
+}
+
+type PlansByLocationOutput {
+    plans: [Plan!]!
+    pageKey: String
 }
 
 type CachedCreatedPlans {
@@ -78,8 +92,8 @@ extend type Mutation {
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
-    # ユーザーの興味をOptionalなパラメータとして渡す
-    categories: [String!]
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
     freeTime: Int
     # 現在地から作成されたプランか
     # TODO: 必須パラメータにする

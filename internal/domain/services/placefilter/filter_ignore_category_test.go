@@ -55,10 +55,9 @@ func TestFilterIgnoreCategory(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			placesFilter := NewPlacesFilter(c.placesToFilter)
-			actual := placesFilter.FilterIgnoreCategory()
-			if !reflect.DeepEqual(c.expected, actual.Places()) {
-				t.Errorf("expected: %v\nactual: %v", c.expected, actual.Places())
+			actual := FilterIgnoreCategory(c.placesToFilter)
+			if !reflect.DeepEqual(c.expected, actual) {
+				t.Errorf("expected: %v\nactual: %v", c.expected, actual)
 			}
 		})
 	}

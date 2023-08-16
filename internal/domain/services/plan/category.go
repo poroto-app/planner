@@ -27,15 +27,15 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	placesFilter := placefilter.NewPlacesFilter(placesSearched)
-	placesFilter = placesFilter.FilterIgnoreCategory()
-	placesFilter = placesFilter.FilterByCategory(models.GetCategoryToFilter())
+	placesFiltered := placesSearched
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFilter = placesFilter.FilterByOpeningNow()
+	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 
 	// 場所をカテゴリごとにグループ化し、対応する場所の少ないカテゴリから順に写真を取得する
-	placeCategoryGroups := groupPlacesByCategory(placesFilter.Places())
+	placeCategoryGroups := groupPlacesByCategory(placesFiltered)
 	sort.Slice(placeCategoryGroups, func(i, j int) bool {
 		return len(placeCategoryGroups[i].places) < len(placeCategoryGroups[j].places)
 	})
@@ -50,11 +50,9 @@ func (s PlanService) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.NewPlacesFilter(
-			categoryPlaces.places,
-		).FilterPlaces(func(place places.Place) bool {
-			return placefilter.NewPlacesFilter(placesUsedOfCategory).FindById(place.PlaceID) == nil
-		}).Places()
+		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place places.Place) bool {
+			return placefilter.FindById(placesUsedOfCategory, place.PlaceID) == nil
+		})
 
 		// カテゴリと関連の強い場所から順に写真を取得する
 		placesSortedByCategoryIndex := placesNotUsedInOtherCategory

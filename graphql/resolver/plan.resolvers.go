@@ -39,7 +39,8 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
-		&input.Categories,
+		&input.CategoriesPreferred,
+		&input.CategoriesDisliked,
 		input.FreeTime,
 		createBasedOnCurrentLocation,
 	)
@@ -162,6 +163,34 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 	}
 
 	return factory.PlansFromDomainModel(plans), nil
+}
+
+// PlansByLocation is the resolver for the plansByLocation field.
+func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
+	planService, err := plan.NewPlanService(ctx)
+	if err != nil {
+		log.Printf("error while initializing plan service: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plans, nextPageToken, err := planService.FetchPlansByLocation(
+		ctx,
+		models.GeoLocation{
+			Latitude:  input.Latitude,
+			Longitude: input.Longitude,
+		},
+		input.Limit,
+		input.PageKey,
+	)
+	if err != nil {
+		log.Printf("error while fetching plans by location: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.PlansByLocationOutput{
+		Plans:   factory.PlansFromDomainModel(plans),
+		PageKey: nextPageToken,
+	}, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.

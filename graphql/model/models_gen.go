@@ -34,7 +34,8 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 type CreatePlanByLocationInput struct {
 	Latitude                      float64  `json:"latitude"`
 	Longitude                     float64  `json:"longitude"`
-	Categories                    []string `json:"categories,omitempty"`
+	CategoriesPreferred           []string `json:"categoriesPreferred,omitempty"`
+	CategoriesDisliked            []string `json:"categoriesDisliked,omitempty"`
 	FreeTime                      *int     `json:"freeTime,omitempty"`
 	CreatedBasedOnCurrentLocation *bool    `json:"createdBasedOnCurrentLocation,omitempty"`
 }
@@ -89,6 +90,18 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
+}
+
+type PlansByLocationInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Limit     *int    `json:"limit,omitempty"`
+	PageKey   *string `json:"pageKey,omitempty"`
+}
+
+type PlansByLocationOutput struct {
+	Plans   []*Plan `json:"plans"`
+	PageKey *string `json:"pageKey,omitempty"`
 }
 
 type SavePlanFromCandidateInput struct {
