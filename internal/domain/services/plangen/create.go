@@ -104,7 +104,7 @@ func (s Service) createPlan(
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
-		if freeTime != nil && !s.isOpeningWithIn(
+		if shouldOpenWhileTraveling && freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
 			time.Now(),
