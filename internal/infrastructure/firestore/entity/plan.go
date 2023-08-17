@@ -10,15 +10,14 @@ import (
 // GeoHash はプランの最初の場所のGeoHashを示す（プランは小さい範囲で作られるため、どこをとってもあまり変わらない）
 // TimeInMinutes MEMO: Firestoreではuintをサポートしていないため，intにしている
 type PlanEntity struct {
-	Id              string               `firestore:"id"`
-	Name            string               `firestore:"name"`
-	Places          []PlaceEntity        `firestore:"places"`
-	GeoHash         *string              `firestore:"geohash,omitempty"`
-	PlaceIdsOrdered []string             `firestore:"place_ids_ordered"`
-	TimeInMinutes   int                  `firestore:"time_in_minutes"`
-	Transitions     *[]TransitionsEntity `firestore:"transitions,omitempty"`
-	CreatedAt       time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
-	UpdatedAt       time.Time            `firestore:"updated_at,omitempty"`
+	Id            string               `firestore:"id"`
+	Name          string               `firestore:"name"`
+	Places        []PlaceEntity        `firestore:"places"`
+	GeoHash       *string              `firestore:"geohash,omitempty"`
+	TimeInMinutes int                  `firestore:"time_in_minutes"`
+	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
+	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time            `firestore:"updated_at,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
@@ -37,13 +36,12 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 	}
 
 	return PlanEntity{
-		Id:              plan.Id,
-		Name:            plan.Name,
-		Places:          places,
-		GeoHash:         geohash,
-		TimeInMinutes:   int(plan.TimeInMinutes),
-		Transitions:     ToTransitionsEntities(plan.Transitions),
-		PlaceIdsOrdered: placeIdsOrdered,
+		Id:            plan.Id,
+		Name:          plan.Name,
+		Places:        places,
+		GeoHash:       geohash,
+		TimeInMinutes: int(plan.TimeInMinutes),
+		Transitions:   ToTransitionsEntities(plan.Transitions),
 	}
 }
 
@@ -53,7 +51,6 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		entity.Name,
 		entity.Places,
 		entity.TimeInMinutes,
-		//	entity.PlaceIdsOrdered,
 		entity.Transitions,
 	)
 }
@@ -63,7 +60,6 @@ func fromPlanEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
-	//placeIdsOrdered []string,
 	transitions *[]TransitionsEntity,
 ) models.Plan {
 	// TODO：以下のコメントを参考に順序入れ替え処理を実装
