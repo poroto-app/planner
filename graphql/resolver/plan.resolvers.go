@@ -14,6 +14,7 @@ import (
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
@@ -22,6 +23,12 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	service, err := plan.NewPlanService(ctx)
 	if err != nil {
 		log.Println(err)
+	}
+
+	planCandidateService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	// TODO: 必須パラメータにする
@@ -48,7 +55,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	if err := service.CachePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -84,7 +91,7 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	service, err := plan.NewPlanService(ctx)
+	service, err := plancandidate.NewService(ctx)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -97,12 +104,13 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 			Longitude: *input.CurrentLongitude,
 		}
 	}
-	plan, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
+
+	planUpdated, err := service.ChangePlacesOrderPlanCandidate(ctx, input.PlanID, input.Session, input.PlaceIds, currentLocation)
 	if err != nil {
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*plan)
+	graphqlPlan := factory.PlanFromDomainModel(*planUpdated)
 	return &model.ChangePlacesOrderInPlanCandidateOutput{
 		Plan: &graphqlPlan,
 	}, nil
@@ -195,12 +203,13 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	planService, err := plan.NewPlanService(ctx)
+	service, err := plancandidate.NewService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
-	categoriesSearched, err := planService.CategoriesNearLocation(
+	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
@@ -219,6 +228,7 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 			Photo:       categorySearched.Photo,
 		})
 	}
+
 	return &model.InterestCandidate{
 		Categories: categories,
 	}, nil
@@ -226,10 +236,10 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := plan.NewPlanService(ctx)
+	planService, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
-		return nil, err
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
@@ -252,9 +262,9 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := plan.NewPlanService(ctx)
+	s, err := plancandidate.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
