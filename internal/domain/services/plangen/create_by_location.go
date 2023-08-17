@@ -100,8 +100,8 @@ func (s Service) CreatePlanByLocation(
 				freeTime,
 				createBasedOnCurrentLocation,
 				// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-				// 現状、位置情報から作成した場合は現在地から作成しているため、今から作成した場合に閉まってしまうお店は含めない
-				true,
+				// 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				createBasedOnCurrentLocation,
 			)
 			if err != nil {
 				log.Println(err)
