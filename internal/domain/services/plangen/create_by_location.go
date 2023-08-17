@@ -105,7 +105,8 @@ func (s Service) CreatePlanByLocation(
 				createBasedOnCurrentLocation,
 			)
 			if err != nil {
-				log.Println(err)
+				log.Printf("error while creating plan: %v\n", err)
+				chPlan <- nil
 				return
 			}
 			chPlans <- plan
