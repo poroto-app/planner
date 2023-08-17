@@ -728,8 +728,8 @@ extend type Mutation {
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
-    categoriesPreferred: [String!]
-    categoriesDisliked: [String!]
+    # ユーザーの興味をOptionalなパラメータとして渡す
+    categories: [String!]
     freeTime: Int
     # 現在地から作成されたプランか
     # TODO: 必須パラメータにする
@@ -5265,7 +5265,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "categories", "freeTime", "createdBasedOnCurrentLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5290,24 +5290,15 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 				return it, err
 			}
 			it.Longitude = data
-		case "categoriesPreferred":
+		case "categories":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesPreferred"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categories"))
 			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.CategoriesPreferred = data
-		case "categoriesDisliked":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesDisliked"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CategoriesDisliked = data
+			it.Categories = data
 		case "freeTime":
 			var err error
 

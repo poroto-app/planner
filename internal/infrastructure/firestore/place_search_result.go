@@ -23,12 +23,7 @@ type PlaceSearchResultRepository struct {
 }
 
 func NewPlaceSearchResultRepository(ctx context.Context) (*PlaceSearchResultRepository, error) {
-	var options []option.ClientOption
-	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
-		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
-	}
-
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), option.WithCredentialsFile("secrets/google-credential.json"))
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}

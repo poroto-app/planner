@@ -2,12 +2,12 @@
 
 ## 概要
 
-| 項目 | 内容                                     |
-|------|----------------------------------------|
-| バッチ名 | delete_expired_plan_candidates         |
-| 実行場所 | Cloud Functions(Github Actionsによりデプロイ) |
-| 実行時間 | TODO                                   |
-| 実行間隔 | TODO                                   |
+| 項目 | 内容 |
+|------|------|
+| バッチ名 | delete_expired_plan_candidates |
+| 実行場所 | TODO |
+| 実行時間 | TODO |
+| 実行間隔 | TODO |
 
 ## 実行目的
 

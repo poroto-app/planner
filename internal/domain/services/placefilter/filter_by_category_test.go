@@ -10,23 +10,23 @@ import (
 
 func TestFuncFilterByCategory(t *testing.T) {
 	cases := []struct {
-		name                   string
-		includeGivenCategories bool
-		placesToFilter         []places.Place
-		categories             []models.LocationCategory
-		expected               []places.Place
+		name           string
+		placesToFilter []places.Place
+		categories     []models.LocationCategory
+		expected       []places.Place
 	}{
 		{
-			name:                   "should filter places by category and include given categories",
-			includeGivenCategories: true,
+			name: "should filter places by category",
 			placesToFilter: []places.Place{
 				{
-					PlaceID: "Place_1",
-					Types:   []string{"museum"},
+					Name: "Museo Nacional de Bellas Artes",
+					Types: []string{
+						"museum",
+					},
 				},
 				{
-					PlaceID: "Place_2",
-					Types:   []string{"atm"},
+					Name:  "ATM",
+					Types: []string{"atm"},
 				},
 			},
 			categories: []models.LocationCategory{
@@ -37,36 +37,10 @@ func TestFuncFilterByCategory(t *testing.T) {
 			},
 			expected: []places.Place{
 				{
-					PlaceID: "Place_1",
-					Types:   []string{"museum"},
-				},
-			},
-		},
-		{
-			name:                   "should filter places by category and exclude given categories",
-			includeGivenCategories: false,
-			placesToFilter: []places.Place{
-				{
-					PlaceID: "Place_1",
+					Name: "Museo Nacional de Bellas Artes",
 					Types: []string{
 						"museum",
 					},
-				},
-				{
-					PlaceID: "Place_2",
-					Types:   []string{"atm"},
-				},
-			},
-			categories: []models.LocationCategory{
-				{
-					Name:          "atm",
-					SubCategories: []string{"atm"},
-				},
-			},
-			expected: []places.Place{
-				{
-					PlaceID: "Place_1",
-					Types:   []string{"museum"},
 				},
 			},
 		},
@@ -74,7 +48,7 @@ func TestFuncFilterByCategory(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			actual := FilterByCategory(c.placesToFilter, c.categories, c.includeGivenCategories)
+			actual := FilterByCategory(c.placesToFilter, c.categories)
 			if !reflect.DeepEqual(c.expected, actual) {
 				t.Errorf("expected: %v\nactual: %v", c.expected, actual)
 			}
