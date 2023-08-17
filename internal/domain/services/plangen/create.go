@@ -33,7 +33,7 @@ func (s Service) createPlan(
 	}
 
 	// 起点となる場所との距離順でソート
-	placesSortedByDistance := places
+	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 		locationRecommend := placeStart.Location.ToGeoLocation()
 		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
