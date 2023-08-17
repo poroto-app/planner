@@ -39,6 +39,10 @@ func (s Service) createPlan(
 		500,
 	)
 
+	// 場所のカテゴリによるフィルタリング
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
