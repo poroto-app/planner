@@ -68,10 +68,6 @@ func (s Service) CreatePlanByLocation(
 		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
 	}
 
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	// 現在開店している場所だけを表示する
-	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
 
@@ -102,6 +98,8 @@ func (s Service) CreatePlanByLocation(
 				placeRecommend,
 				placesFiltered,
 				freeTime,
+				createBasedOnCurrentLocation,
+				// 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
 				createBasedOnCurrentLocation,
 			)
 			if err != nil {
