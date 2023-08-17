@@ -62,7 +62,6 @@ func fromPlanEntity(
 	timeInMinutes int,
 	transitions *[]TransitionsEntity,
 ) models.Plan {
-	// TODO：以下のコメントを参考に順序入れ替え処理を実装
 	// placeIdsOrdered：プレイスの順序を指定するプレイスのID配列
 	// データベースモデルからドメインモデルに変換する際にプレイスの順序を並び替える
 
