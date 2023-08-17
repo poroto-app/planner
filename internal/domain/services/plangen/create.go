@@ -31,6 +31,14 @@ func (s Service) createPlan(
 		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 	}
 
+	// 開始地点となる場所から500m圏内の場所に絞る
+	placesFiltered = placefilter.FilterWithinDistanceRange(
+		placesFiltered,
+		placeStart.Location.ToGeoLocation(),
+		0,
+		500,
+	)
+
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
@@ -40,20 +48,13 @@ func (s Service) createPlan(
 		return distanceI < distanceJ
 	})
 
-	placesWithInRange := placefilter.FilterWithinDistanceRange(
-		placesSortedByDistance,
-		placeStart.Location.ToGeoLocation(),
-		0,
-		500,
-	)
-
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
 	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
-	for _, place := range placesWithInRange {
+	for _, place := range placesSortedByDistance {
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
