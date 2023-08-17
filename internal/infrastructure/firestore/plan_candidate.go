@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
@@ -22,7 +23,12 @@ type PlanCandidateFirestoreRepository struct {
 }
 
 func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRepository, error) {
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), option.WithCredentialsFile("secrets/google-credential.json"))
+	var options []option.ClientOption
+	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
+		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
+	}
+
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
@@ -58,6 +64,33 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 
 	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
 	return &planCandidate, nil
+}
+
+func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]models.PlanCandidate, error) {
+	var planCandidates []models.PlanCandidate
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		query := p.collection().Where("expires_at", "<=", expiresAt)
+		snapshots, err := tx.Documents(query).GetAll()
+		if err != nil {
+			return fmt.Errorf("error while getting all plan candidates: %v", err)
+		}
+
+		for _, snapshot := range snapshots {
+			var planCandidateEntity entity.PlanCandidateEntity
+			if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+			}
+
+			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
+			planCandidates = append(planCandidates, planCandidate)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("error while finding expired plan candidates: %v", err)
+	}
+
+	return &planCandidates, nil
 }
 
 func (p *PlanCandidateFirestoreRepository) AddPlan(
@@ -126,6 +159,22 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	// MOCK：並び替え・更新処理を実装
 
 	return plan, nil
+}
+
+func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		for _, planCandidateId := range planCandidateIds {
+			doc := p.doc(planCandidateId)
+			if err := tx.Delete(doc); err != nil {
+				return fmt.Errorf("error while deleting plan candidate[%s]: %v", planCandidateId, err)
+			}
+		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while deleting plan candidates: %v", err)
+	}
+
+	return nil
 }
 
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {

@@ -1,6 +1,10 @@
 name: build
 run-name: Build by @${{ github.actor }}
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - main
+      - develop
 jobs:
   build:
-    uses: ./.github/workflows/build_workflow.yaml
+    uses: ./.github/workflows/workflow_build.yaml

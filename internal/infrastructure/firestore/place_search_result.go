@@ -23,7 +23,12 @@ type PlaceSearchResultRepository struct {
 }
 
 func NewPlaceSearchResultRepository(ctx context.Context) (*PlaceSearchResultRepository, error) {
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), option.WithCredentialsFile("secrets/google-credential.json"))
+	var options []option.ClientOption
+	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
+		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
+	}
+
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
@@ -64,6 +69,21 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	}
 
 	return placeSearchResultEntity.Places, nil
+}
+
+func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		for _, planCandidateId := range planCandidateIds {
+			doc := p.doc(planCandidateId)
+			if err := tx.Delete(doc); err != nil {
+				return fmt.Errorf("error while deleting place search result: %v", err)
+			}
+		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while deleting place search results: %v", err)
+	}
+	return nil
 }
 
 func (p PlaceSearchResultRepository) doc(planCandidateId string) *firestore.DocumentRef {
