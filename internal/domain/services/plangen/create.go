@@ -15,6 +15,7 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+// createPlan
 func (s Service) createPlan(
 	ctx context.Context,
 	locationStart models.GeoLocation,
@@ -22,7 +23,15 @@ func (s Service) createPlan(
 	places []places.Place,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
+	shouldOpenWhileTraveling bool,
 ) (*models.Plan, error) {
+	placesFiltered := places
+
+	// 現在、開いている場所のみに絞る
+	if shouldOpenWhileTraveling {
+		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
+	}
+
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := places
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
