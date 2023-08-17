@@ -31,7 +31,7 @@ func (s Service) FetchCandidatePlaces(
 
 	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter())
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	placesSortedByRating := placesFiltered
 	sort.Slice(placesSortedByRating, func(i, j int) bool {

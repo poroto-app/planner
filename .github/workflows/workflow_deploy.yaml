@@ -1,0 +1,53 @@
+name: deploy
+run-name: Deploy by @${{ github.actor }}
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        description: deployment environment
+        required: true
+    secrets:
+      GOOGLE_CREDENTIALS:
+        required: true
+      GH_PERSONAL_ACCESS_TOKEN:
+        required: true
+jobs:
+  build:
+    uses: ./.github/workflows/workflow_build.yaml
+  deploy-cloud-functions-batch-delete-expired-plan-candidates:
+    needs: build
+    name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/decrypt_secrets
+        with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          environment: ${{ inputs.environment }}
+      - name: Deploy Cloud Functions
+        uses: ./.github/actions/deploy_cloud_functions
+        with:
+          function_name: 'delete-expired-plan-candidates'
+          entry_point: 'DeleteExpiredPlanCandidates'
+          runtime: 'go120'
+          description: 'batch task to delete expired plan candidates'
+  deploy-gae:
+    needs: build
+    name: GAE Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/decrypt_secrets
+        with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          environment: ${{ inputs.environment }}
+      # SEE: https://github.com/google-github-actions/deploy-appengine#authorization
+      - name: Deploy an App Engine app
+        uses: google-github-actions/deploy-appengine@v1
+        with:
+          deliverables: ${{ inputs.environment == 'production' && 'app.yaml' || format('app-{0}.yaml', inputs.environment) }}
