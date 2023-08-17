@@ -1,0 +1,13 @@
+name: deploy-production
+run-name: Deploy Production by @${{ github.actor }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy-production:
+    name: Deploy Production
+    uses: ./.github/workflows/workflow_deploy.yaml
+    with:
+      environment: production
+    secrets: inherit
