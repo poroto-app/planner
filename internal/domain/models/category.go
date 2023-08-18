@@ -5,10 +5,13 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 )
 
+// LocationCategory は場所の大まかなカテゴリを示す
+// TODO: Photo は nilable にする
 type LocationCategory struct {
 	Name                  string
 	DisplayName           string
 	SubCategories         []string
+	DefaultPhoto          string
 	Photo                 string
 	EstimatedStayDuration uint
 }
@@ -27,6 +30,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/3d4070/ffffff/300x500.png?text=amusement",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_amusement_park_17oe.svg",
 		EstimatedStayDuration: 90,
 	}
 
@@ -38,6 +42,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/80ddff/ffffff/300x500.png?text=book",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_books_re_8gea.svg",
 		EstimatedStayDuration: 30,
 	}
 
@@ -49,6 +54,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/ff9620/ffffff/300x500.png?text=cafe",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_coffee_re_x35h.svg",
 		EstimatedStayDuration: 60,
 	}
 
@@ -61,6 +67,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/40ff20/ffffff/300x500.png?text=camp",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_camping_noc8.svg",
 		EstimatedStayDuration: 300,
 	}
 
@@ -73,6 +80,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/8f8f8f/ffffff/300x500.png?text=cultural%0Afacility",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_art_lover_re_fn8g.svg",
 		EstimatedStayDuration: 90,
 	}
 
@@ -85,6 +93,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/00ffbf/ffffff/300x500.png?text=natural%0Afacility",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_fish_bowl_uu88.svg",
 		EstimatedStayDuration: 120,
 	}
 
@@ -96,6 +105,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/fbff00/ffffff/300x500.png?text=park",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_a_day_at_the_park_re_9kxj.svg",
 		EstimatedStayDuration: 30,
 	}
 
@@ -109,6 +119,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=restaurant",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_breakfast_psiw.svg",
 		EstimatedStayDuration: 60,
 	}
 
@@ -119,6 +130,7 @@ var (
 			string(maps.PlaceTypeLibrary),
 		},
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
 		EstimatedStayDuration: 30,
 	}
 
@@ -130,6 +142,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/1d7187/ffffff/300x500.png?text=quick%0Aservice%0Arestaurant",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pizza_sharing_wxop.svg",
 		EstimatedStayDuration: 30,
 	}
 
@@ -148,6 +161,7 @@ var (
 		},
 		// TODO: implement me!
 		Photo:                 "https://placehold.jp/70dbff/ffffff/300x500.png?text=shopping",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
 		EstimatedStayDuration: 60,
 	}
 
