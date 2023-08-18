@@ -54,7 +54,11 @@ func (s Service) selectBasePlace(
 	// 選択された場所から遠い場所を選択する
 	placesSelected = selectByDistanceFromPlaces(places, placesSelected)
 
-	return placesSelected[:maxBasePlaceCount]
+	if len(placesSelected) > maxBasePlaceCount {
+		return placesSelected[:maxBasePlaceCount]
+	}
+
+	return placesSelected
 }
 
 // selectByReview は，レビューの高い順に場所を選択する
