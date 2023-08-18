@@ -93,6 +93,11 @@ func selectByReview(
 			}
 		}
 
+		// 既に選択された場所から500m以内の場所は選択しない(プランの内容が重複する可能性が高いため)
+		if isNearFromPlaces(place, placesSelected, 500) {
+			continue
+		}
+
 		placesSelected = append(placesSelected, place)
 		if len(placesSelected) == maxBasePlaceCount {
 			break
@@ -165,4 +170,21 @@ func categoriesOfPlace(place api.Place) []models.LocationCategory {
 		}
 	}
 	return categories
+}
+
+// isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
+func isNearFromPlaces(
+	placeBase api.Place,
+	placesCompare []api.Place,
+	distance int,
+) bool {
+	for _, placeCompare := range placesCompare {
+		locationOfPlaceBase := placeBase.Location.ToGeoLocation()
+		locationOfPlaceCompare := placeCompare.Location.ToGeoLocation()
+		distanceFromSelectedPlace := locationOfPlaceCompare.DistanceInMeter(locationOfPlaceBase)
+		if int(distanceFromSelectedPlace) < distance {
+			return true
+		}
+	}
+	return false
 }
