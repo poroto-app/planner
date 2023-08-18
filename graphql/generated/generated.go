@@ -77,9 +77,10 @@ type ComplexityRoot struct {
 	}
 
 	LocationCategory struct {
-		DisplayName func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Photo       func(childComplexity int) int
+		DefaultPhotoURL func(childComplexity int) int
+		DisplayName     func(childComplexity int) int
+		Name            func(childComplexity int) int
+		Photo           func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -241,6 +242,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InterestCandidate.Categories(childComplexity), true
+
+	case "LocationCategory.defaultPhotoUrl":
+		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
+			break
+		}
+
+		return e.complexity.LocationCategory.DefaultPhotoURL(childComplexity), true
 
 	case "LocationCategory.displayName":
 		if e.complexity.LocationCategory.DisplayName == nil {
@@ -665,7 +673,9 @@ type GeoLocation {
 type LocationCategory {
     name: String!
     displayName: String!
+    # TODO: nullableにする
     photo: String!
+    defaultPhotoUrl: String!
 }
 
 type InterestCandidate {
@@ -1563,6 +1573,8 @@ func (ec *executionContext) fieldContext_InterestCandidate_categories(ctx contex
 				return ec.fieldContext_LocationCategory_displayName(ctx, field)
 			case "photo":
 				return ec.fieldContext_LocationCategory_photo(ctx, field)
+			case "defaultPhotoUrl":
+				return ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LocationCategory", field.Name)
 		},
@@ -1690,6 +1702,50 @@ func (ec *executionContext) _LocationCategory_photo(ctx context.Context, field g
 }
 
 func (ec *executionContext) fieldContext_LocationCategory_photo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.LocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultPhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LocationCategory",
 		Field:      field,
@@ -5823,6 +5879,11 @@ func (ec *executionContext) _LocationCategory(ctx context.Context, sel ast.Selec
 			}
 		case "photo":
 			out.Values[i] = ec._LocationCategory_photo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultPhotoUrl":
+			out.Values[i] = ec._LocationCategory_defaultPhotoUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

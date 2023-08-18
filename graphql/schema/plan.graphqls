@@ -29,7 +29,9 @@ type GeoLocation {
 type LocationCategory {
     name: String!
     displayName: String!
+    # TODO: nullableにする
     photo: String!
+    defaultPhotoUrl: String!
 }
 
 type InterestCandidate {
