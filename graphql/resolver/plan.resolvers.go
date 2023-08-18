@@ -229,9 +229,10 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		}
 
 		categories = append(categories, &model.LocationCategory{
-			Name:        categorySearched.Name,
-			DisplayName: categorySearched.DisplayName,
-			Photo:       categorySearched.Photo,
+			Name:            categorySearched.Name,
+			DisplayName:     categorySearched.DisplayName,
+			Photo:           categorySearched.Photo,
+			DefaultPhotoURL: categorySearched.DefaultPhoto,
 		})
 	}
 
