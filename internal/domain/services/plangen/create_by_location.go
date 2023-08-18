@@ -68,28 +68,19 @@ func (s Service) CreatePlanByLocation(
 		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
 	}
 
+	placesRecommend := s.selectBasePlace(
+		placesFiltered,
+		categoryNamesPreferred,
+		categoryNamesDisliked,
+		createBasedOnCurrentLocation,
+	)
+	for _, place := range placesRecommend {
+		log.Printf("place recommended: %s\n", place.Name)
+	}
+
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	// 現在開店している場所だけを表示する
 	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-
-	// TODO: 移動距離ではなく、移動時間でやる
-	var placesRecommend []places.Place
-
-	placesInNear := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 0, 500)
-	placesInMiddle := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 500, 1000)
-	placesInFar := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 1000, 2000)
-	if len(placesInNear) > 0 {
-		// TODO: 0 ~ 500mで最もレビューの高い場所を選ぶ
-		placesRecommend = append(placesRecommend, placesInNear[0])
-	}
-	if len(placesInMiddle) > 0 {
-		// TODO: 500 ~ 1000mで最もレビューの高い場所を選ぶ
-		placesRecommend = append(placesRecommend, placesInMiddle[0])
-	}
-	if len(placesInFar) > 0 {
-		// TODO: 1000 ~ 2000mで最もレビューの高い場所を選ぶ
-		placesRecommend = append(placesRecommend, placesInFar[0])
-	}
 
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	performanceTimer := time.Now()
