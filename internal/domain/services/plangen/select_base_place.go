@@ -77,14 +77,22 @@ func selectByReview(
 
 		// 既に選択された場所と異なるカテゴリの場所が選択されるようにする
 		if len(categoriesPreferred) > 0 {
+			isAlreadyHaveSameCategory := false
 			for _, placeSelected := range placesSelected {
 				if isSameCategoryPlace(place, placeSelected) {
-					continue
+					isAlreadyHaveSameCategory = true
+					break
 				}
+			}
+			if isAlreadyHaveSameCategory {
+				continue
 			}
 		}
 
 		placesSelected = append(placesSelected, place)
+		if len(placesSelected) == maxBasePlaceCount {
+			break
+		}
 	}
 
 	return placesSelected
