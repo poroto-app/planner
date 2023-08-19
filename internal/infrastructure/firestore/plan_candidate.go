@@ -16,6 +16,7 @@ import (
 
 const (
 	collectionPlanCandidates = "plan_candidates"
+	collectionMetaData       = "meta_data"
 )
 
 type PlanCandidateFirestoreRepository struct {
@@ -43,6 +44,12 @@ func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandida
 	if _, err := doc.Set(ctx, entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
 		return fmt.Errorf("error while saving plan candidate: %v", err)
 	}
+
+	docMetaData := p.docMetaDataV1(planCandidate.Id)
+	if _, err := docMetaData.Set(ctx, entity.ToPlanCandidateMetaDataV1Entity(planCandidate.MetaData)); err != nil {
+		return fmt.Errorf("error while saving plan candidate meta data: %v", err)
+	}
+
 	return nil
 }
 
@@ -62,7 +69,23 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
+	docMetaData := p.docMetaDataV1(planCandidateId)
+	snapshotMetaData, err := docMetaData.Get(ctx)
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
+	}
+
+	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+	}
+
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
+
 	return &planCandidate, nil
 }
 
@@ -81,7 +104,8 @@ func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context
 				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 			}
 
-			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity)
+			// この関数は削除でのみもちいるため、メタデータの取得はできていなくても良い
+			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, entity.PlanCandidateMetaDataV1Entity{})
 			planCandidates = append(planCandidates, planCandidate)
 		}
 
@@ -123,7 +147,18 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 			return err
 		}
 
-		planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity)
+		docMetaData := p.docMetaDataV1(planCandidateId)
+		docMetaDataRef, err := tx.Get(docMetaData)
+		if err != nil {
+			return err
+		}
+
+		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+		if err = docMetaDataRef.DataTo(&planCandidateMetaDataEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		}
+
+		planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
 
 		return nil
 	})
@@ -183,4 +218,8 @@ func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef
 
 func (p *PlanCandidateFirestoreRepository) doc(id string) *firestore.DocumentRef {
 	return p.collection().Doc(id)
+}
+
+func (p *PlanCandidateFirestoreRepository) docMetaDataV1(id string) *firestore.DocumentRef {
+	return p.doc(id).Collection(collectionMetaData).Doc("v1")
 }

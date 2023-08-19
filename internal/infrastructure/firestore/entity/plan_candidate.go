@@ -25,7 +25,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity) models.PlanCandidate {
 	plans := make([]models.Plan, len(entity.Plans))
 	for i, plan := range entity.Plans {
 		plans[i] = fromPlanInCandidateEntity(
@@ -40,6 +40,7 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 	return models.PlanCandidate{
 		Id:        entity.Id,
 		Plans:     plans,
+		MetaData:  FromPlanCandidateMetaDataV1Entity(metaData),
 		ExpiresAt: entity.ExpiresAt,
 	}
 }
