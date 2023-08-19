@@ -6,6 +6,7 @@ type PlanCandidate struct {
 	Id                            string
 	Plans                         []Plan
 	CreatedBasedOnCurrentLocation bool
+	MetaData                      PlanCandidateMetaData
 	ExpiresAt                     time.Time
 }
 
