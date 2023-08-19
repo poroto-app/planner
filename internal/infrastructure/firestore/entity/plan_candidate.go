@@ -7,10 +7,9 @@ import (
 )
 
 type PlanCandidateEntity struct {
-	Id                            string                  `firestore:"id"`
-	Plans                         []PlanInCandidateEntity `firestore:"plans"`
-	CreatedBasedOnCurrentLocation bool                    `firestore:"created_based_on_current_location"`
-	ExpiresAt                     time.Time               `firestore:"expires_at"`
+	Id        string                  `firestore:"id"`
+	Plans     []PlanInCandidateEntity `firestore:"plans"`
+	ExpiresAt time.Time               `firestore:"expires_at"`
 }
 
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
@@ -20,10 +19,9 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 
 	return PlanCandidateEntity{
-		Id:                            planCandidate.Id,
-		Plans:                         plans,
-		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
-		ExpiresAt:                     planCandidate.ExpiresAt,
+		Id:        planCandidate.Id,
+		Plans:     plans,
+		ExpiresAt: planCandidate.ExpiresAt,
 	}
 }
 
@@ -40,9 +38,8 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 	}
 
 	return models.PlanCandidate{
-		Id:                            entity.Id,
-		Plans:                         plans,
-		CreatedBasedOnCurrentLocation: entity.CreatedBasedOnCurrentLocation,
-		ExpiresAt:                     entity.ExpiresAt,
+		Id:        entity.Id,
+		Plans:     plans,
+		ExpiresAt: entity.ExpiresAt,
 	}
 }

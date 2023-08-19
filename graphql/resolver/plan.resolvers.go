@@ -56,7 +56,8 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
+	// TODO: ServiceではPlanではなくPlanCandidateを生成するようにし、保存まで行う
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -257,7 +258,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 	return &model.CachedCreatedPlans{
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans),
-		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
+		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 	}, nil
 }
 
