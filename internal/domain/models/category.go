@@ -174,6 +174,7 @@ var (
 			string(maps.PlaceTypeChurch),
 			string(maps.PlaceTypeCityHall),
 
+			string(maps.PlaceTypeConvenienceStore),
 			string(maps.PlaceTypeCourthouse),
 			string(maps.PlaceTypeDentist),
 			string(maps.PlaceTypeDoctor),
