@@ -38,15 +38,17 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
 	}
 
+	locationStart := models.GeoLocation{
+		Latitude:  input.Latitude,
+		Longitude: input.Longitude,
+	}
+
 	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
 	session := uuid.New().String()
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
 		session,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
-		},
+		locationStart,
 		&input.CategoriesPreferred,
 		&input.CategoriesDisliked,
 		input.FreeTime,
@@ -56,8 +58,37 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
+	var categoriesPreferred, categoriesDisliked *[]models.LocationCategory
+	if input.CategoriesPreferred != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesPreferred {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesPreferred = &categories
+	}
+
+	if input.CategoriesDisliked != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesDisliked {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesDisliked = &categories
+	}
+
 	// TODO: ServiceではPlanではなくPlanCandidateを生成するようにし、保存まで行う
-	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans); err != nil {
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, models.PlanCandidateMetaData{
+		CategoriesPreferred:           categoriesPreferred,
+		CategoriesRejected:            categoriesDisliked,
+		FreeTime:                      input.FreeTime,
+		CreatedBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		LocationStart:                 &locationStart,
+	}); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
