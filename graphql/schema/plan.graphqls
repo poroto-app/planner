@@ -45,6 +45,7 @@ extend type Query {
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
