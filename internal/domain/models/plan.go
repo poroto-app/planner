@@ -22,31 +22,31 @@ func (p Plan) GetPlace(placeId string) *Place {
 func (p Plan) RecreateTransition(startLocation *GeoLocation) []Transition {
 	var firstFromPlaceId *string
 	var firstFromPlaceLocation *GeoLocation
-	var firstToPlaceId int
+	var firstToPlaceIndex int
 
 	// 現在位置から作成されたプラン or 場所指定で作成されたプラン
 	if startLocation != nil {
 		firstFromPlaceId = nil
 		firstFromPlaceLocation = startLocation
-		firstToPlaceId = 0
+		firstToPlaceIndex = 0
 	} else {
 		firstFromPlaceId = &p.Places[0].Id
 		firstFromPlaceLocation = &p.Places[0].Location
-		firstToPlaceId = 1
+		firstToPlaceIndex = 1
 	}
-	transitions := make([]Transition, len(p.Places)-firstToPlaceId)
+	transitions := make([]Transition, len(p.Places)-firstToPlaceIndex)
 
 	transitions[0] = Transition{
 		FromPlaceId: firstFromPlaceId,
-		ToPlaceId:   p.Places[firstToPlaceId].Id,
-		Duration:    firstFromPlaceLocation.TravelTimeTo(p.Places[firstToPlaceId].Location, 80.0),
+		ToPlaceId:   p.Places[firstToPlaceIndex].Id,
+		Duration:    firstFromPlaceLocation.TravelTimeTo(p.Places[firstToPlaceIndex].Location, 80.0),
 	}
 
-	for i := 0; i < len(p.Places)-firstToPlaceId-1; i++ {
+	for i := 0; i < len(p.Places)-firstToPlaceIndex-1; i++ {
 		transitions[i+1] = Transition{
-			FromPlaceId: &p.Places[firstToPlaceId+i].Id,
-			ToPlaceId:   p.Places[firstToPlaceId+i+1].Id,
-			Duration:    p.Places[firstToPlaceId+i].Location.TravelTimeTo(p.Places[firstToPlaceId+i+1].Location, 80.0),
+			FromPlaceId: &p.Places[firstToPlaceIndex+i].Id,
+			ToPlaceId:   p.Places[firstToPlaceIndex+i+1].Id,
+			Duration:    p.Places[firstToPlaceIndex+i].Location.TravelTimeTo(p.Places[firstToPlaceIndex+i+1].Location, 80.0),
 		}
 	}
 
