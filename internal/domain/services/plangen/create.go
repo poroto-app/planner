@@ -112,6 +112,7 @@ func (s Service) createPlan(
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
+			Categories:            models.GetCategoriesFromSubCategories(place.Types),
 		})
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
