@@ -33,6 +33,7 @@ type LocationCategory {
 }
 
 type InterestCandidate {
+    session: String!
     categories: [LocationCategory!]!
 }
 
@@ -94,6 +95,7 @@ extend type Mutation {
 }
 
 input CreatePlanByLocationInput {
+    session: String
     latitude: Float!
     longitude: Float!
     categoriesPreferred: [String!]
