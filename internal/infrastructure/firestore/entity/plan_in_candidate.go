@@ -18,16 +18,20 @@ type PlanInCandidateEntity struct {
 
 func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 	ps := make([]PlaceEntity, len(plan.Places))
+	placeIdsOrdered := make([]string, len(plan.Places))
+
 	for i, place := range plan.Places {
 		ps[i] = ToPlaceEntity(place)
+		placeIdsOrdered[i] = place.Id
 	}
 
 	return PlanInCandidateEntity{
-		Id:            plan.Id,
-		Name:          plan.Name,
-		Places:        ps,
-		TimeInMinutes: int(plan.TimeInMinutes),
-		Transitions:   ToTransitionsEntities(plan.Transitions),
+		Id:              plan.Id,
+		Name:            plan.Name,
+		Places:          ps,
+		PlaceIdsOrdered: placeIdsOrdered,
+		TimeInMinutes:   int(plan.TimeInMinutes),
+		Transitions:     ToTransitionsEntities(plan.Transitions),
 	}
 }
 
