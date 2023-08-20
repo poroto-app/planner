@@ -58,18 +58,15 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			photoReferences = append(photoReferences, photo.PhotoReference)
 		}
 
-		places = append(places, Place{
-			PlaceID: place.PlaceID,
-			Name:    place.Name,
-			Types:   place.Types,
-			Location: Location{
-				Latitude:  place.Geometry.Location.Lat,
-				Longitude: place.Geometry.Location.Lng,
-			},
-			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
-			PhotoReferences: photoReferences,
-			Rating:          place.Rating,
-		})
+		places = append(places, createPlace(
+			place.PlaceID,
+			place.Name,
+			place.Types,
+			place.Geometry,
+			photoReferences,
+			place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
+			place.Rating,
+		))
 	}
 
 	return places, nil
