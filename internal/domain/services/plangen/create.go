@@ -40,7 +40,6 @@ func (s Service) createPlan(
 	)
 
 	placesInPlan := make([]models.Place, 0)
-	categoriesInPlan := make([]string, 0)
 	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
@@ -54,23 +53,12 @@ func (s Service) createPlan(
 			}
 		}
 
-		// 飲食店系は複数含めない
-		categoriesFood := []string{
-			models.CategoryRestaurant.Name,
-			models.CategoryMealTakeaway.Name,
-		}
-		isFoodPlace := array.HasIntersection(categoriesOfPlace, categoriesFood)
-		isPlanContainsFoodPlace := array.HasIntersection(categoriesInPlan, categoriesFood)
-		if isFoodPlace && isPlanContainsFoodPlace {
-			log.Printf("skip place %s because plan is already has food place\n", place.Name)
-			continue
-		}
-
-		// カフェを複数含めない
-		isCafePlace := array.IsContain(categoriesOfPlace, models.CategoryCafe.Name)
-		isPlanContainsFoodPlace = array.IsContain(categoriesInPlan, models.CategoryCafe.Name)
-		if isCafePlace && isPlanContainsFoodPlace {
-			log.Printf("skip place %s because plan is already has cafe place\n", place.Name)
+		// 飲食店やカフェは複数回含めない
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, []models.LocationCategory{
+			models.CategoryRestaurant,
+			models.CategoryMealTakeaway,
+			models.CategoryCafe,
+		}) {
 			continue
 		}
 
@@ -115,7 +103,6 @@ func (s Service) createPlan(
 			Categories:            models.GetCategoriesFromSubCategories(place.Types),
 		})
 		timeInPlan += timeInPlace
-		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
 		transitions = s.AddTransition(placesInPlan, transitions, travelTime, createBasedOnCurrentLocation)
 	}
