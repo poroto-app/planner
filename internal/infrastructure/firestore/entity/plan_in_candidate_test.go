@@ -26,7 +26,6 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 						Id: "02",
 					},
 				},
-				TimeInMinutes: 30,
 				PlaceIdsOrdered: []string{
 					"02",
 					"01",
