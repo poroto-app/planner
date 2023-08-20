@@ -40,13 +40,23 @@ func fromPlanInCandidateEntity(
 	name string,
 	places []PlaceEntity,
 	timeInMinutes int,
+	placeIdsOrdered []string,
 	transitions *[]TransitionsEntity,
 ) models.Plan {
-	return fromPlanEntity(
-		id,
-		name,
-		places,
-		timeInMinutes,
-		transitions,
-	)
+	placesOrdered := make([]models.Place, len(places))
+	for i, placeIdOrdered := range placeIdsOrdered {
+		for _, place := range places {
+			if place.Id == placeIdOrdered {
+				placesOrdered[i] = FromPlaceEntity(place)
+			}
+		}
+	}
+
+	return models.Plan{
+		Id:            id,
+		Name:          name,
+		Places:        placesOrdered,
+		TimeInMinutes: uint(timeInMinutes),
+		Transitions:   FromTransitionEntities(transitions),
+	}
 }
