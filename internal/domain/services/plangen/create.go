@@ -39,6 +39,9 @@ func (s Service) createPlan(
 		500,
 	)
 
+	// 会社はプランに含まれないようにする
+	placesFiltered = placefilter.FilterCompany(placesFiltered)
+
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
