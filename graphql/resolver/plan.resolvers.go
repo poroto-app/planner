@@ -210,12 +210,15 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	createPlanSessionId := uuid.New().String()
+
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
+		createPlanSessionId,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error while searching categories: %v", err)
@@ -231,6 +234,7 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	}
 
 	return &model.InterestCandidate{
+		Session:    createPlanSessionId,
 		Categories: categories,
 	}, nil
 }
