@@ -5,7 +5,7 @@ import (
 )
 
 func FilterPlaces(placesToFilter []places.Place, filterFunc func(place places.Place) bool) []places.Place {
-	var values []places.Place
+	values := make([]places.Place, 0)
 	for _, place := range placesToFilter {
 		if filterFunc(place) {
 			values = append(values, place)
