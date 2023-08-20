@@ -30,6 +30,7 @@ func (s Service) CategoriesNearLocation(
 	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+	placesFiltered = placefilter.FilterCompany(placesFiltered)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
