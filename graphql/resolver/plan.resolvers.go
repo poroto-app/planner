@@ -38,8 +38,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
 	}
 
-	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
 	session := uuid.New().String()
+	if input.Session != nil {
+		session = *input.Session
+	}
+
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
 		session,
