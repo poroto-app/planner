@@ -12,7 +12,8 @@ type PlanInCandidateEntity struct {
 	Places      []PlaceEntity        `firestore:"places"`
 	Transitions *[]TransitionsEntity `firestore:"transitions,omitempty"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int `firestore:"time_in_minutes"`
+	TimeInMinutes   int      `firestore:"time_in_minutes"`
+	PlaceIdsOrdered []string `firestore:"place_ids_ordered"`
 }
 
 func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
