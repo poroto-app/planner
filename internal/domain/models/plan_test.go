@@ -88,18 +88,6 @@ func TestRecreateTransition(t *testing.T) {
 						},
 					},
 				},
-				Transitions: []Transition{
-					{
-						FromPlaceId: nil,
-						ToPlaceId:   "01",
-						Duration:    30,
-					},
-					{
-						FromPlaceId: toStrPointer("01"),
-						ToPlaceId:   "02",
-						Duration:    5,
-					},
-				},
 			},
 			expected: []Transition{
 				{
@@ -137,14 +125,6 @@ func TestRecreateTransition(t *testing.T) {
 						},
 					},
 				},
-				Transitions: []Transition{
-					{
-						FromPlaceId: toStrPointer("01"),
-						ToPlaceId:   "02",
-						Duration:    30,
-					},
-				},
-				TimeInMinutes: 100,
 			},
 			expected: []Transition{
 				{
