@@ -18,7 +18,7 @@ func (p Plan) GetPlace(placeId string) *Place {
 	return nil
 }
 
-// 移動情報を更新する（プラン内の場所の順番入れ替えなどの後に用いる）
+// RecreateTransition　は移動情報を更新する（プラン内の場所の順番入れ替えなどの後に用いる）
 // startLocation は現在地の座標を表す
 func (p Plan) RecreateTransition(startLocation *GeoLocation) []Transition {
 	transitions := make([]Transition, 0)
