@@ -3,7 +3,9 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"googlemaps.github.io/maps"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -15,6 +17,9 @@ func (s Service) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
 	locationStart models.GeoLocation,
+	// locationStart に対応する場所のID
+	// これが指定されると、対応する場所を起点としてプランを作成する
+	googlePlaceId *string,
 	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	categoryNamesDisliked *[]string,
@@ -74,6 +79,22 @@ func (s Service) CreatePlanByLocation(
 
 	// TODO: 移動距離ではなく、移動時間でやる
 	var placesRecommend []places.Place
+
+	if googlePlaceId != nil {
+		// TODO: キャッシュする
+		place, err := s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
+			PlaceId:  *googlePlaceId,
+			Language: "ja",
+		})
+		if err != nil {
+			log.Printf("error while fetching place: %v\n", err)
+		}
+
+		// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
+		if place != nil && array.IsContain(place.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
+			placesRecommend = append(placesRecommend, *place)
+		}
+	}
 
 	placesInNear := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 0, 500)
 	placesInMiddle := placefilter.FilterWithinDistanceRange(placesFiltered, locationStart, 500, 1000)
