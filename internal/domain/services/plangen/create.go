@@ -59,6 +59,7 @@ func (s Service) createPlan(
 			models.CategoryMealTakeaway,
 			models.CategoryCafe,
 		}) {
+			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Name)
 			continue
 		}
 
