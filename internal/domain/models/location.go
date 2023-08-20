@@ -38,6 +38,18 @@ func (g GeoLocation) GeoHash() string {
 	return geohash.Encode(g.Latitude, g.Longitude)
 }
 
+func (g GeoLocation) TravelTimeTo(
+	destination GeoLocation,
+	meterPerMinutes float64,
+) uint {
+	var timeInMinutes uint = 0
+	distance := g.DistanceInMeter(destination)
+	if distance > 0.0 && meterPerMinutes > 0.0 {
+		timeInMinutes = uint(distance / meterPerMinutes)
+	}
+	return timeInMinutes
+}
+
 func toRadian(degree float64) float64 {
 	return math.Pi * degree / 180
 }

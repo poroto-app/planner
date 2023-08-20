@@ -8,7 +8,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s PlanService) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
+func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
 	// プラン候補から対応するプランを取得
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {

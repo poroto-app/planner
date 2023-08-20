@@ -1,4 +1,4 @@
-package plan
+package plangen
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 // GeneratePlanTitle プランのタイトルを生成する
 // タイトルが生成できなかった場合は、nilを返す
-func (s PlanService) GeneratePlanTitle(places []models.Place) (*string, error) {
+func (s Service) GeneratePlanTitle(places []models.Place) (*string, error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
 		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, place.Category)

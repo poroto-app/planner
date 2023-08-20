@@ -6,7 +6,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s PlanService) FetchPlan(ctx context.Context, planId string) (*models.Plan, error) {
+func (s Service) FetchPlan(ctx context.Context, planId string) (*models.Plan, error) {
 	plan, err := s.planRepository.Find(ctx, planId)
 	if err != nil {
 		return nil, err
