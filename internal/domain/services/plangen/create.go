@@ -143,3 +143,19 @@ func (s Service) createPlan(
 		Transitions:   transitions,
 	}, nil
 }
+
+func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []models.LocationCategory) bool {
+	var categoriesInPlan []models.LocationCategory
+	for _, place := range placesInPlan {
+		categoriesInPlan = append(categoriesInPlan, place.Categories...)
+	}
+
+	for _, category := range categories {
+		for _, categoryInPlan := range categoriesInPlan {
+			if categoryInPlan.Name == category.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
