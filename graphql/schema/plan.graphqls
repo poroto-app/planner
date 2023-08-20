@@ -92,6 +92,7 @@ extend type Mutation {
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
+    googlePlaceId: String
     categoriesPreferred: [String!]
     categoriesDisliked: [String!]
     freeTime: Int

@@ -728,6 +728,7 @@ extend type Mutation {
 input CreatePlanByLocationInput {
     latitude: Float!
     longitude: Float!
+    googlePlaceId: String
     categoriesPreferred: [String!]
     categoriesDisliked: [String!]
     freeTime: Int
@@ -5265,7 +5266,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "googlePlaceId", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5290,6 +5291,15 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 				return it, err
 			}
 			it.Longitude = data
+		case "googlePlaceId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("googlePlaceId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GooglePlaceID = data
 		case "categoriesPreferred":
 			var err error
 

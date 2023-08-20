@@ -34,6 +34,7 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 type CreatePlanByLocationInput struct {
 	Latitude                      float64  `json:"latitude"`
 	Longitude                     float64  `json:"longitude"`
+	GooglePlaceID                 *string  `json:"googlePlaceId,omitempty"`
 	CategoriesPreferred           []string `json:"categoriesPreferred,omitempty"`
 	CategoriesDisliked            []string `json:"categoriesDisliked,omitempty"`
 	FreeTime                      *int     `json:"freeTime,omitempty"`
