@@ -49,7 +49,39 @@ func (s Service) createPlan(
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
-	for _, place := range placesWithInRange {
+	for i, place := range placesWithInRange {
+		var categoryMain *models.LocationCategory
+		for _, placeType := range place.Types {
+			c := models.CategoryOfSubCategory(placeType)
+			if c != nil {
+				categoryMain = c
+				break
+			}
+		}
+
+		// 開始位置と開始場所が同じ場合は必ず含める
+		// TODO: 開始位置と開始場所が同じ場所は、場所を含めるかのチェックを飛ばすようにして、追加の処理は共通化する
+		if i == 0 && locationStart.Equal(placeStart.Location.ToGeoLocation()) {
+			if categoryMain == nil {
+				categoryMain = &models.CategoryOther
+			}
+			placesInPlan = append(placesInPlan, models.Place{
+				Id:                    uuid.New().String(),
+				Name:                  place.Name,
+				GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+				Location:              place.Location.ToGeoLocation(),
+				EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+				Category:              categoryMain.Name,
+			})
+
+			timeInPlan += categoryMain.EstimatedStayDuration
+			if categoryMain.Name != models.CategoryOther.Name {
+				categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
+			}
+			previousLocation = place.Location.ToGeoLocation()
+			continue
+		}
+
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
@@ -78,14 +110,6 @@ func (s Service) createPlan(
 			continue
 		}
 
-		var categoryMain *models.LocationCategory
-		for _, placeType := range place.Types {
-			c := models.CategoryOfSubCategory(placeType)
-			if c != nil {
-				categoryMain = c
-				break
-			}
-		}
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
 		if categoryMain == nil {
 			log.Printf("place %s has no category\n", place.Name)
@@ -126,7 +150,7 @@ func (s Service) createPlan(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
-		transitions = s.AddTransition(placesInPlan, transitions, travelTime, createBasedOnCurrentLocation)
+		transitions = s.AddTransition(placesInPlan, transitions, travelTime, !createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {

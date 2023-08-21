@@ -83,7 +83,6 @@ func (s Service) CreatePlanByLocation(
 	if googlePlaceId != nil {
 		// TODO: 場所を指定された場合はプラン候補の最初に表示されるようにする
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
-		// TODO: 駅などの場所が弾かれないようにする
 		place, found, err := s.findOrFetchPlaceById(ctx, placesSearched, *googlePlaceId)
 		if err != nil {
 			log.Printf("error while fetching place: %v\n", err)
