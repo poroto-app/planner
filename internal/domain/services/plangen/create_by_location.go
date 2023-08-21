@@ -165,7 +165,7 @@ func (s Service) findOrFetchPlaceById(
 		}
 	}
 
-	if place == nil {
+	if place != nil {
 		return place, true, nil
 	}
 
