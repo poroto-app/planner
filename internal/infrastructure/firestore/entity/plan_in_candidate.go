@@ -46,32 +46,25 @@ func fromPlanInCandidateEntity(
 	timeInMinutes int,
 	transitions *[]TransitionsEntity,
 ) (models.Plan, error) {
-	// firestoreに保存されているID配列が場所一覧のIDと整合性がない場合
-	// 初期の順番でドメインモデルに変換し，エラーを警告
-	if !validatePlanInCandidateEntity(places, placeIdsOrdered) {
-		placesNotOrdered := make([]models.Place, len(places))
-		for i, place := range places {
-			placesNotOrdered[i] = FromPlaceEntity(place)
-		}
-
-		return models.Plan{
-			Id:            id,
-			Name:          name,
-			Places:        placesNotOrdered,
-			TimeInMinutes: uint(timeInMinutes),
-			Transitions:   FromTransitionEntities(transitions),
-		}, fmt.Errorf("placeIdsOrdered are incorrect ids")
-	}
-
-	// firestoreに保存されているID配列が場所一覧のIDと整合性がある場合
-	// 指定された順番でドメインモデルに変換
 	placesOrdered := make([]models.Place, len(places))
-	for i, placeIdOrdered := range placeIdsOrdered {
-		for _, place := range places {
-			if place.Id == placeIdOrdered {
-				placesOrdered[i] = FromPlaceEntity(place)
+	var errMsg error
+
+	if !validatePlanInCandidateEntity(places, placeIdsOrdered) {
+		// 整合性がない場合，初期の順番でドメインモデルに変換し，エラーを警告
+		for i, place := range places {
+			placesOrdered[i] = FromPlaceEntity(place)
+		}
+		errMsg = fmt.Errorf("placeIdsOrdered are incorrect ids")
+	} else {
+		// 整合性がある場合，指定された順番でドメインモデルに変換
+		for i, placeIdOrdered := range placeIdsOrdered {
+			for _, place := range places {
+				if place.Id == placeIdOrdered {
+					placesOrdered[i] = FromPlaceEntity(place)
+				}
 			}
 		}
+		errMsg = nil
 	}
 
 	return models.Plan{
@@ -80,7 +73,7 @@ func fromPlanInCandidateEntity(
 		Places:        placesOrdered,
 		TimeInMinutes: uint(timeInMinutes),
 		Transitions:   FromTransitionEntities(transitions),
-	}, nil
+	}, errMsg
 }
 
 // validatePlanInCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
