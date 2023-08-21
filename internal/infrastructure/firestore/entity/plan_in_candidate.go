@@ -7,12 +7,12 @@ import (
 )
 
 // PlanInCandidateEntity PlanCandidateEntityに含まれるPlan
+// PlaceIdsOrdered は Places の順番を管理する（Places配列を書き換えて更新すると、更新の量が多くなるため）
 // MEMO: PlanEntityを用いると、CreatedAtとUpdatedAtが含まれてしまうため、別の構造体を利用している
 type PlanInCandidateEntity struct {
-	Id     string        `firestore:"id"`
-	Name   string        `firestore:"name"`
-	Places []PlaceEntity `firestore:"places"`
-	// PlaceIdsOrdered は Places の順番を管理する（Places配列を書き換えて更新すると、更新の量が多くなるため）
+	Id              string               `firestore:"id"`
+	Name            string               `firestore:"name"`
+	Places          []PlaceEntity        `firestore:"places"`
 	PlaceIdsOrdered []string             `firestore:"place_ids_ordered"`
 	Transitions     *[]TransitionsEntity `firestore:"transitions,omitempty"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
