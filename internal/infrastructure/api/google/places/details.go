@@ -27,6 +27,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 		PlaceID:  req.PlaceId,
 		Language: req.Language,
 		Fields: []maps.PlaceDetailsFieldMask{
+			maps.PlaceDetailsFieldMaskPlaceID,
 			maps.PlaceDetailsFieldMaskName,
 			maps.PlaceDetailsFieldMaskTypes,
 			maps.PlaceDetailsFieldMaskGeometryLocation,
