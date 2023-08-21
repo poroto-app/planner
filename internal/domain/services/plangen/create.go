@@ -26,9 +26,25 @@ func (s Service) createPlan(
 	places []places.Place,
 	freeTime *int,
 	createBasedOnCurrentLocation bool,
+	shouldOpenWhileTraveling bool,
 ) (*models.Plan, error) {
+	placesFiltered := places
+
+	// 現在、開いている場所のみに絞る
+	if shouldOpenWhileTraveling {
+		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
+	}
+
+	// 開始地点となる場所から500m圏内の場所に絞る
+	placesFiltered = placefilter.FilterWithinDistanceRange(
+		placesFiltered,
+		placeStart.Location.ToGeoLocation(),
+		0,
+		500,
+	)
+
 	// 起点となる場所との距離順でソート
-	placesSortedByDistance := places
+	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
 		locationRecommend := placeStart.Location.ToGeoLocation()
 		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
@@ -36,20 +52,13 @@ func (s Service) createPlan(
 		return distanceI < distanceJ
 	})
 
-	placesWithInRange := placefilter.FilterWithinDistanceRange(
-		placesSortedByDistance,
-		placeStart.Location.ToGeoLocation(),
-		0,
-		500,
-	)
-
 	placesInPlan := make([]models.Place, 0)
 	categoriesInPlan := make([]string, 0)
 	transitions := make([]models.Transition, 0)
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
-	for _, place := range placesWithInRange {
+	for _, place := range placesSortedByDistance {
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
@@ -105,7 +114,7 @@ func (s Service) createPlan(
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
-		if freeTime != nil && !s.isOpeningWithIn(
+		if shouldOpenWhileTraveling && freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
 			time.Now(),
