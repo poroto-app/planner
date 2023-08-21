@@ -8,9 +8,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"poroto.app/poroto/planner/internal/domain/services/user"
 
 	"poroto.app/poroto/planner/graphql/model"
+	"poroto.app/poroto/planner/internal/domain/services/user"
 )
 
 // FirebaseUser is the resolver for the firebaseUser field.
