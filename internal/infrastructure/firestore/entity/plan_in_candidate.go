@@ -86,9 +86,6 @@ func validatePlanInCandidateEntity(places []PlaceEntity, placeIdsOrdered []strin
 			}
 		}
 	}
-	// ID配列内に重複がある or 場所一覧に含まれない場所を示すIDが存在 するとfalse
-	if len(placeIncluded) != len(places) {
-		return false
-	}
-	return true
+	// ID配列内に重複がない and 順序指定ID配列のIDが正当なものである 場合　Trueを返す
+	return len(placeIncluded) == len(places)
 }
