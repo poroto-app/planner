@@ -19,3 +19,15 @@ func TestStrPinter(t *testing.T) {
 		t.Errorf("StrPointer(%v) = %v, want %v", object.value, *result, "test")
 	}
 }
+
+func TestStrOmitEmpty(t *testing.T) {
+	result := StrOmitEmpty("test")
+	if *result != "test" {
+		t.Errorf("StrOmitEmpty(%v) = %v, want %v", "test", result, "test")
+	}
+
+	result = StrOmitEmpty("")
+	if result != nil {
+		t.Errorf("StrOmitEmpty(%v) = %v, want %v", "", result, nil)
+	}
+}
