@@ -151,6 +151,13 @@ var (
 		EstimatedStayDuration: 60,
 	}
 
+	CategoryOther = LocationCategory{
+		Name:                  "other",
+		DisplayName:           "その他",
+		SubCategories:         []string{},
+		EstimatedStayDuration: 0,
+	}
+
 	CategoryIgnore = LocationCategory{
 		Name: "ignore",
 		SubCategories: []string{
