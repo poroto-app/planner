@@ -62,7 +62,7 @@ func TestRecreateTransition(t *testing.T) {
 		expected []Transition
 	}{
 		{
-			name: "現在位置から作成されたプランが順序入れ替えされた後の移動情報の再構成",
+			name: "現在位置から作成されたプランの移動情報の再構成",
 			start: &GeoLocation{
 				Latitude:  35.1706431,
 				Longitude: 136.8816945,
@@ -72,7 +72,7 @@ func TestRecreateTransition(t *testing.T) {
 				Name: "「名古屋駅」-「名古屋市科学館」-「名古屋市科学館」",
 				Places: []Place{
 					{
-						Id:   "02",
+						Id:   "01",
 						Name: "名古屋市科学館",
 						Location: GeoLocation{
 							Latitude:  35.165077,
@@ -80,7 +80,7 @@ func TestRecreateTransition(t *testing.T) {
 						},
 					},
 					{
-						Id:   "01",
+						Id:   "02",
 						Name: "名古屋市博物館",
 						Location: GeoLocation{
 							Latitude:  35.163926,
@@ -92,24 +92,24 @@ func TestRecreateTransition(t *testing.T) {
 			expected: []Transition{
 				{
 					FromPlaceId: nil,
-					ToPlaceId:   "02",
+					ToPlaceId:   "01",
 					Duration:    21,
 				},
 				{
-					FromPlaceId: toStrPointer("02"),
-					ToPlaceId:   "01",
+					FromPlaceId: toStrPointer("01"),
+					ToPlaceId:   "02",
 					Duration:    2,
 				},
 			},
 		},
 		{
-			name: "指定された場所から作成されたプランが順序入れ替えされた後の移動情報の再構成",
+			name: "指定された場所から作成されたプランの移動情報の再構成",
 			plan: Plan{
 				Id:   "B",
 				Name: "「東京タワー」-「東京スカイツリー」",
 				Places: []Place{
 					{
-						Id:   "02",
+						Id:   "01",
 						Name: "東京タワー",
 						Location: GeoLocation{
 							Latitude:  35.658581,
@@ -117,7 +117,7 @@ func TestRecreateTransition(t *testing.T) {
 						},
 					},
 					{
-						Id:   "01",
+						Id:   "02",
 						Name: "東京スカイツリー",
 						Location: GeoLocation{
 							Latitude:  35.710063,
@@ -128,8 +128,8 @@ func TestRecreateTransition(t *testing.T) {
 			},
 			expected: []Transition{
 				{
-					FromPlaceId: toStrPointer("02"),
-					ToPlaceId:   "01",
+					FromPlaceId: toStrPointer("01"),
+					ToPlaceId:   "02",
 					Duration:    102,
 				},
 			},
