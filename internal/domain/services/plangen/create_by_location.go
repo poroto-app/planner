@@ -81,19 +81,22 @@ func (s Service) CreatePlanByLocation(
 	var placesRecommend []places.Place
 
 	if googlePlaceId != nil {
-		// TODO: キャッシュする
-		place, err := s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
-			PlaceId:  *googlePlaceId,
-			Language: "ja",
-		})
+		place, found, err := s.findOrFetchPlaceById(ctx, placesSearched, *googlePlaceId)
 		if err != nil {
 			log.Printf("error while fetching place: %v\n", err)
+		}
+
+		// TODO: キャッシュする
+		if !found {
+
 		}
 
 		// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 		if place != nil && array.IsContain(place.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
 			placesRecommend = append(placesRecommend, *place)
-			placesFiltered = append(placesFiltered, *place)
+			if !found {
+				placesFiltered = append(placesFiltered, *place)
+			}
 		}
 	}
 
@@ -146,4 +149,33 @@ func (s Service) CreatePlanByLocation(
 	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
 
 	return &plans, nil
+}
+
+// findOrFetchPlaceById は、googlePlaceId に対応する場所を
+// placesSearched から探し、なければAPIを使って取得する
+func (s Service) findOrFetchPlaceById(
+	ctx context.Context,
+	placesSearched []places.Place,
+	googlePlaceId string,
+) (place *places.Place, found bool, err error) {
+	for _, placeSearched := range placesSearched {
+		if placeSearched.PlaceID == googlePlaceId {
+			place = &placeSearched
+			break
+		}
+	}
+
+	if place == nil {
+		return place, true, nil
+	}
+
+	place, err = s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
+		PlaceId:  googlePlaceId,
+		Language: "ja",
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("error while fetching place: %v\n", err)
+	}
+
+	return place, false, nil
 }
