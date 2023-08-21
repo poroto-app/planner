@@ -150,7 +150,7 @@ func (s Service) createPlan(
 		timeInPlan += timeInPlace
 		categoriesInPlan = append(categoriesInPlan, categoryMain.Name)
 		previousLocation = place.Location.ToGeoLocation()
-		transitions = s.AddTransition(placesInPlan, transitions, travelTime, !createBasedOnCurrentLocation)
+		transitions = s.AddTransition(placesInPlan, transitions, travelTime, createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
