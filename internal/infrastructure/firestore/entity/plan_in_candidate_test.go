@@ -48,8 +48,8 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 				c.entity.Id,
 				c.entity.Name,
 				c.entity.Places,
-				c.entity.TimeInMinutes,
 				c.entity.PlaceIdsOrdered,
+				c.entity.TimeInMinutes,
 				c.entity.Transitions,
 			)
 			if diff := cmp.Diff(c.expected, result.Places); diff != "" {

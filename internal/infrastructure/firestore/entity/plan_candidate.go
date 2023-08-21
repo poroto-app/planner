@@ -34,8 +34,8 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 			plan.Id,
 			plan.Name,
 			plan.Places,
-			plan.TimeInMinutes,
 			plan.PlaceIdsOrdered,
+			plan.TimeInMinutes,
 			plan.Transitions,
 		)
 	}
