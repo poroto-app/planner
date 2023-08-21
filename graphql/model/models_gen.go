@@ -55,6 +55,11 @@ type CreatePlanByPlaceOutput struct {
 	Plan    *Plan  `json:"plan"`
 }
 
+type FirebaseUserInput struct {
+	FirebaseUserID    string `json:"firebaseUserId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+}
+
 type GeoLocation struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -117,4 +122,10 @@ type Transition struct {
 	From     *Place `json:"from,omitempty"`
 	To       *Place `json:"to"`
 	Duration int    `json:"duration"`
+}
+
+type User struct {
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	PhotoURL *string `json:"photoUrl,omitempty"`
 }
