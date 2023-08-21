@@ -7,11 +7,29 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"log"
+	"poroto.app/poroto/planner/internal/domain/services/user"
 
 	"poroto.app/poroto/planner/graphql/model"
 )
 
 // FirebaseUser is the resolver for the firebaseUser field.
 func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: FirebaseUser - firebaseUser"))
+	service, err := user.NewService(ctx)
+	if err != nil {
+		log.Printf("error while initializing user service: %v\n", err)
+		return nil, fmt.Errorf("internal error")
+	}
+
+	u, err := service.FindOrCreateFirebaseUser(ctx, input.FirebaseUserID, input.FirebaseAuthToken)
+	if err != nil {
+		log.Printf("error while finding or creating firebase user: %v\n", err)
+		return nil, fmt.Errorf("internal error")
+	}
+
+	return &model.User{
+		ID:       u.Id,
+		Name:     u.Name,
+		PhotoURL: u.PhotoUrl,
+	}, nil
 }
