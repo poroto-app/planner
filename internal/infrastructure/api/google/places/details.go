@@ -2,22 +2,12 @@ package places
 
 import (
 	"context"
-	"fmt"
 	"googlemaps.github.io/maps"
 )
 
 type FetchPlaceRequest struct {
 	PlaceId  string
 	Language string
-}
-
-func (r PlacesApi) placeDetails(ctx context.Context, req *maps.PlaceDetailsRequest) (*maps.PlaceDetailsResult, error) {
-	response, err := r.mapsClient.PlaceDetails(ctx, req)
-	if err != nil {
-		return nil, fmt.Errorf("error while requesting place details: %w", err)
-	}
-
-	return &response, nil
 }
 
 // FetchPlace は IDを指定することで、対応する場所の情報を取得する
