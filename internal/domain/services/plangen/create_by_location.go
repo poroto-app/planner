@@ -81,7 +81,6 @@ func (s Service) CreatePlanByLocation(
 	var placesRecommend []places.Place
 
 	if googlePlaceId != nil {
-		// TODO: 場所を指定された場合はプラン候補の最初に表示されるようにする
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
 		place, found, err := s.findOrFetchPlaceById(ctx, placesSearched, *googlePlaceId)
 		if err != nil {
@@ -146,6 +145,16 @@ func (s Service) CreatePlanByLocation(
 		plans = append(plans, *plan)
 	}
 	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
+
+	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
+	if googlePlaceId != nil {
+		for i, plan := range plans {
+			if plan.Places[0].Id == *googlePlaceId {
+				plans[0], plans[i] = plans[i], plans[0]
+				break
+			}
+		}
+	}
 
 	return &plans, nil
 }
