@@ -27,3 +27,25 @@ func NewFirebaseAuth(ctx context.Context) (*FirebaseAuth, error) {
 		client: client,
 	}, nil
 }
+
+// Verify firebaseUid と tokenId　から取得されるユーザーが同一であるかを確認する。
+func (f *FirebaseAuth) Verify(
+	ctx context.Context,
+	firebaseUid string,
+	tokenId string,
+) (bool, error) {
+	token, err := f.client.VerifyIDToken(ctx, tokenId)
+	if err != nil {
+		return false, fmt.Errorf("error while verifying firebase token: %v", err)
+	}
+
+	if token.UID != firebaseUid {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (f *FirebaseAuth) GetUser(ctx context.Context, firebaseUid string) (*auth.UserRecord, error) {
+	return f.client.GetUser(ctx, firebaseUid)
+}
