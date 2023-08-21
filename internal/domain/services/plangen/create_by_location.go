@@ -90,9 +90,6 @@ func (s Service) CreatePlanByLocation(
 		}
 
 		// TODO: キャッシュする
-		if !found {
-
-		}
 
 		// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 		if place != nil && array.IsContain(place.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
