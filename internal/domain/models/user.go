@@ -4,5 +4,6 @@ type User struct {
 	Id          string
 	FirebaseUID string
 	Name        string
-	PhotoUrl    string
+	Email       *string
+	PhotoUrl    *string
 }
