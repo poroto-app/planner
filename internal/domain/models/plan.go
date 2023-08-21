@@ -30,29 +30,18 @@ func (p Plan) RecreateTransition(startLocation *GeoLocation) []Transition {
 			ToPlaceId:   p.Places[0].Id,
 			Duration:    startLocation.TravelTimeTo(p.Places[0].Location, 80.0),
 		})
-
-		for i, place := range p.Places {
-			if i >= len(p.Places)-1 {
-				break
-			}
-
-			transitions = append(transitions, Transition{
-				FromPlaceId: &p.Places[i].Id,
-				ToPlaceId:   p.Places[i+1].Id,
-				Duration:    place.Location.TravelTimeTo(p.Places[i+1].Location, 80.0),
-			})
-		}
-	} else {
-		for i, place := range p.Places {
-			if i >= len(p.Places)-1 {
-				break
-			}
-			transitions = append(transitions, Transition{
-				FromPlaceId: &p.Places[i].Id,
-				ToPlaceId:   p.Places[i+1].Id,
-				Duration:    place.Location.TravelTimeTo(p.Places[i+1].Location, 80.0),
-			})
-		}
 	}
+
+	for i, place := range p.Places {
+		if i >= len(p.Places)-1 {
+			break
+		}
+		transitions = append(transitions, Transition{
+			FromPlaceId: &p.Places[i].Id,
+			ToPlaceId:   p.Places[i+1].Id,
+			Duration:    place.Location.TravelTimeTo(p.Places[i+1].Location, 80.0),
+		})
+	}
+
 	return transitions
 }
