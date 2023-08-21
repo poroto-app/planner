@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"log"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -44,7 +45,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result := fromPlanInCandidateEntity(
+			result, err := fromPlanInCandidateEntity(
 				c.entity.Id,
 				c.entity.Name,
 				c.entity.Places,
@@ -52,6 +53,9 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 				c.entity.TimeInMinutes,
 				c.entity.Transitions,
 			)
+			if err != nil {
+				log.Printf("Error occur while in converting Entity to Domain model: [%v]", err)
+			}
 			if diff := cmp.Diff(c.expected, result.Places); diff != "" {
 				t.Errorf("expected %v, but got %v", c.expected, result)
 			}

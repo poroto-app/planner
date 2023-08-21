@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"log"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -29,8 +30,9 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 
 func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 	plans := make([]models.Plan, len(entity.Plans))
+	var err error
 	for i, plan := range entity.Plans {
-		plans[i] = fromPlanInCandidateEntity(
+		plans[i], err = fromPlanInCandidateEntity(
 			plan.Id,
 			plan.Name,
 			plan.Places,
@@ -38,6 +40,9 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 			plan.TimeInMinutes,
 			plan.Transitions,
 		)
+		if err != nil {
+			log.Printf("Error occur while in converting Entity to Domain model: [%v]", err)
+		}
 	}
 
 	return models.PlanCandidate{
