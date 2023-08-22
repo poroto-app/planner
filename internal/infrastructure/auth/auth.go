@@ -2,7 +2,11 @@ package auth
 
 import (
 	"context"
+	"os"
+
 	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/option"
+
 	"fmt"
 
 	firebase "firebase.google.com/go/v4"
@@ -13,7 +17,12 @@ type FirebaseAuth struct {
 }
 
 func NewFirebaseAuth(ctx context.Context) (*FirebaseAuth, error) {
-	app, err := firebase.NewApp(ctx, nil)
+	var options []option.ClientOption
+	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
+		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
+	}
+
+	app, err := firebase.NewApp(ctx, nil, options...)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firebase app: %v", err)
 	}
