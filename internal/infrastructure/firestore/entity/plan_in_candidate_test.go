@@ -76,7 +76,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			expected: models.Plan{},
 		},
 		{
-			name: "プラン作成時から場所一覧の順序が並び替えられたケース",
+			name: "正常な場合はプラン作成時から場所一覧の順序が並び替えられたプランを返す",
 			entity: PlanInCandidateEntity{
 				Id:   "correct",
 				Name: "プラン候補A",
@@ -123,6 +123,109 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			if err != nil {
 				log.Printf("error occur while in converting entity to domain model: [%v]", err)
 			}
+			if diff := cmp.Diff(c.expected, result); diff != "" {
+				t.Errorf("expected %v, but got %v", c.expected, result)
+			}
+		})
+	}
+}
+
+func TestValidatePlanInCandidateEntity(t *testing.T) {
+	cases := []struct {
+		name            string
+		entity          []PlaceEntity
+		placeIdsOrdered []string
+		expected        bool
+	}{
+		{
+			name: "順序指定ID配列に重複がある場合は false",
+			entity: []PlaceEntity{
+				{
+					Id: "01",
+				},
+				{
+					Id: "02",
+				},
+			},
+			placeIdsOrdered: []string{
+				"01",
+				"01",
+			},
+			expected: false,
+		},
+		{
+			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は false",
+			entity: []PlaceEntity{
+				{
+					Id: "01",
+				},
+				{
+					Id: "02",
+				},
+			},
+			placeIdsOrdered: []string{
+				"10",
+				"20",
+			},
+			expected: false,
+		},
+		{
+			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は false",
+			entity: []PlaceEntity{
+				{
+					Id: "01",
+				},
+				{
+					Id: "02",
+				},
+			},
+			placeIdsOrdered: []string{
+				"10",
+				"20",
+			},
+			expected: false,
+		},
+		{
+			name: "順序指定ID配列と場所一覧の数が合わない場合は false",
+			entity: []PlaceEntity{
+				{
+					Id: "01",
+				},
+				{
+					Id: "02",
+				},
+			},
+			placeIdsOrdered: []string{
+				"01",
+				"02",
+				"03",
+			},
+			expected: false,
+		},
+		{
+			name: "正常な場合は true",
+			entity: []PlaceEntity{
+				{
+					Id: "01",
+				},
+				{
+					Id: "02",
+				},
+			},
+			placeIdsOrdered: []string{
+				"02",
+				"01",
+			},
+			expected: true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := validatePlanInCandidateEntity(
+				c.entity,
+				c.placeIdsOrdered,
+			)
 			if diff := cmp.Diff(c.expected, result); diff != "" {
 				t.Errorf("expected %v, but got %v", c.expected, result)
 			}
