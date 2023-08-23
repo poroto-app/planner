@@ -72,6 +72,12 @@ func fromPlanInCandidateEntity(
 
 // validatePlanInCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
 func validatePlanInCandidateEntity(places []PlaceEntity, placeIdsOrdered []string) bool {
+	// 順序指定ID配列の数が正しいかどうか　を確認
+	if len(places) != len(placeIdsOrdered) {
+		return false
+	}
+
+	// 順序指定ID配列の中に重複がないか，実在するPlace.Idに一致するか　を確認
 	placeIncluded := make(map[string]PlaceEntity)
 	for _, placeIdOrdered := range placeIdsOrdered {
 		for _, place := range places {
@@ -80,6 +86,7 @@ func validatePlanInCandidateEntity(places []PlaceEntity, placeIdsOrdered []strin
 			}
 		}
 	}
+
 	// ID配列内に重複がない and 順序指定ID配列のIDが正当なものである 場合　Trueを返す
 	return len(placeIncluded) == len(places)
 }

@@ -12,7 +12,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 	cases := []struct {
 		name     string
 		entity   PlanInCandidateEntity
-		expected []models.Place
+		expected models.Plan
 	}{
 		{
 			name: "順序指定ID配列に重複がある場合は場所一覧をプラン作成時の順序でドメインモデルを作成",
@@ -32,14 +32,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"01",
 				},
 			},
-			expected: []models.Place{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
-			},
+			expected: models.Plan{},
 		},
 		{
 			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合はプラン作成時の順序でドメインモデルを作成",
@@ -59,17 +52,10 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"20",
 				},
 			},
-			expected: []models.Place{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
-			},
+			expected: models.Plan{},
 		},
 		{
-			name: "順序指定ID配列と場所一覧の数が合わない場合はプラン作成時の順序でドメインモデルを作成",
+			name: "順序指定ID配列と場所一覧の数が合わない場合は空のプランを返す",
 			entity: PlanInCandidateEntity{
 				Id:   "over_ids",
 				Name: "プラン候補A",
@@ -87,14 +73,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"03",
 				},
 			},
-			expected: []models.Place{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
-			},
+			expected: models.Plan{},
 		},
 		{
 			name: "プラン作成時から場所一覧の順序が並び替えられたケース",
@@ -114,13 +93,19 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"01",
 				},
 			},
-			expected: []models.Place{
-				{
-					Id: "02",
+			expected: models.Plan{
+				Id:   "correct",
+				Name: "プラン候補A",
+				Places: []models.Place{
+					{
+						Id: "02",
+					},
+					{
+						Id: "01",
+					},
 				},
-				{
-					Id: "01",
-				},
+				Transitions:   []models.Transition{},
+				TimeInMinutes: 0,
 			},
 		},
 	}
@@ -138,7 +123,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			if err != nil {
 				log.Printf("error occur while in converting entity to domain model: [%v]", err)
 			}
-			if diff := cmp.Diff(c.expected, result.Places); diff != "" {
+			if diff := cmp.Diff(c.expected, result); diff != "" {
 				t.Errorf("expected %v, but got %v", c.expected, result)
 			}
 		})
