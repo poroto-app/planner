@@ -47,24 +47,18 @@ func fromPlanInCandidateEntity(
 	transitions *[]TransitionsEntity,
 ) (models.Plan, error) {
 	placesOrdered := make([]models.Place, len(places))
-	var errMsg error
 
 	if !validatePlanInCandidateEntity(places, placeIdsOrdered) {
-		// 整合性がない場合，初期の順番でドメインモデルに変換し，エラーを警告
-		for i, place := range places {
-			placesOrdered[i] = FromPlaceEntity(place)
-		}
-		errMsg = fmt.Errorf("place_ids_ordered are incorrect ids")
-	} else {
-		// 整合性がある場合，指定された順番でドメインモデルに変換
-		for i, placeIdOrdered := range placeIdsOrdered {
-			for _, place := range places {
-				if place.Id == placeIdOrdered {
-					placesOrdered[i] = FromPlaceEntity(place)
-				}
+		return models.Plan{}, fmt.Errorf("the property of placeIdsOrdered is invalid")
+	}
+
+	// 整合性がある場合，指定された順番でドメインモデルに変換
+	for i, placeIdOrdered := range placeIdsOrdered {
+		for _, place := range places {
+			if place.Id == placeIdOrdered {
+				placesOrdered[i] = FromPlaceEntity(place)
 			}
 		}
-		errMsg = nil
 	}
 
 	return models.Plan{
@@ -73,7 +67,7 @@ func fromPlanInCandidateEntity(
 		Places:        placesOrdered,
 		TimeInMinutes: uint(timeInMinutes),
 		Transitions:   FromTransitionEntities(transitions),
-	}, errMsg
+	}, nil
 }
 
 // validatePlanInCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
