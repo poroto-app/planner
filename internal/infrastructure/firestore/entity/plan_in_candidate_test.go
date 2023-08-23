@@ -15,7 +15,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 		expected models.Plan
 	}{
 		{
-			name: "順序指定ID配列に重複がある場合は場所一覧をプラン作成時の順序でドメインモデルを作成",
+			name: "順序指定ID配列に重複がある場合は空のプランを返す",
 			entity: PlanInCandidateEntity{
 				Id:   "duplication",
 				Name: "プラン候補A",
@@ -35,7 +35,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			expected: models.Plan{},
 		},
 		{
-			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合はプラン作成時の順序でドメインモデルを作成",
+			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は空のプランを返す",
 			entity: PlanInCandidateEntity{
 				Id:   "inconsistent",
 				Name: "プラン候補A",
