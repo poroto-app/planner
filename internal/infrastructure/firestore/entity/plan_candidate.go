@@ -41,7 +41,7 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 			plan.Transitions,
 		)
 		if err != nil {
-			log.Printf("Error occur while in converting Entity to Domain model: [%v]", err)
+			log.Printf("error occur while in converting entity to domain model: [%v]", err)
 		}
 	}
 

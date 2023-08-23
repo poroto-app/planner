@@ -136,7 +136,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 				c.entity.Transitions,
 			)
 			if err != nil {
-				log.Printf("Error occur while in converting Entity to Domain model: [%v]", err)
+				log.Printf("error occur while in converting entity to domain model: [%v]", err)
 			}
 			if diff := cmp.Diff(c.expected, result.Places); diff != "" {
 				t.Errorf("expected %v, but got %v", c.expected, result)

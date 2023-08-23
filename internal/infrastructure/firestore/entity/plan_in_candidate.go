@@ -54,7 +54,7 @@ func fromPlanInCandidateEntity(
 		for i, place := range places {
 			placesOrdered[i] = FromPlaceEntity(place)
 		}
-		errMsg = fmt.Errorf("placeIdsOrdered are incorrect ids")
+		errMsg = fmt.Errorf("place_ids_ordered are incorrect ids")
 	} else {
 		// 整合性がある場合，指定された順番でドメインモデルに変換
 		for i, placeIdOrdered := range placeIdsOrdered {
