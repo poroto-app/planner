@@ -1,12 +1,16 @@
 package firestore
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
+	"log"
+	"os"
+
+	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	"os"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -40,18 +44,19 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 		collection := u.collection()
 
 		// 同じFirebaseUIDのユーザーが存在するかどうかを確認する
+		log.Printf("[%s] Start checking if the user with same firebase id already exists\n", user.Id)
 		alreadyExistsFirebaseUser := false
-		docIter := collection.Where("firebase_uid", "==", user.FirebaseUID).Documents(ctx)
+		firebaseUserQuery := collection.Where("firebase_uid", "==", user.FirebaseUID)
+		docIter := tx.Documents(firebaseUserQuery)
 		for {
 			doc, err := docIter.Next()
 			if err == iterator.Done {
+				// 検索結果なし
 				break
-			}
-			if err != nil {
+			} else if err != nil {
 				return fmt.Errorf("error while iterating documents: %v", err)
-			}
-
-			if doc.Exists() {
+			} else if doc.Exists() {
+				// すでに同じFirebaseUIDのデータが存在する
 				alreadyExistsFirebaseUser = true
 				break
 			}
@@ -62,17 +67,18 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 		}
 
 		// 同じIDのユーザーが存在するかどうかを確認する
+		log.Printf("[%s] Start checking if the user with same id already exists\n", user.Id)
 		doc := u.doc(user.Id)
 		snapshot, err := tx.Get(doc)
-		if err != nil {
+		if err != nil && status.Code(err) != codes.NotFound {
 			return fmt.Errorf("error while getting user: %v", err)
-		}
-
-		if snapshot.Exists() {
+		} else if snapshot.Exists() {
 			return fmt.Errorf("user already exists")
 		}
 
-		if _, err := doc.Set(ctx, entity.FromUser(user)); err != nil {
+		// ユーザーデータ書き込み
+		log.Printf("[%s] Start saving user\n", user.Id)
+		if err := tx.Set(doc, entity.FromUser(user)); err != nil {
 			return fmt.Errorf("error while saving user: %v", err)
 		}
 
@@ -85,16 +91,19 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 }
 
 func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error) {
+	log.Printf("Start finding user by firebase uid: %s\n", firebaseUID)
 	docIter := u.collection().Where("firebase_uid", "==", firebaseUID).Documents(ctx)
 	for {
 		doc, err := docIter.Next()
 		if err == iterator.Done {
+			log.Printf("User not found by firebase uid: %s\n", firebaseUID)
 			break
 		}
 		if err != nil {
 			return nil, fmt.Errorf("error while iterating documents: %v", err)
 		}
 
+		log.Printf("User found by firebase uid: %s\n", firebaseUID)
 		if doc.Exists() {
 			var userEntity entity.UserEntity
 			if err := doc.DataTo(&userEntity); err != nil {
