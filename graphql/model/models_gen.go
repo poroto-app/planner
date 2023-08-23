@@ -32,6 +32,7 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 }
 
 type CreatePlanByLocationInput struct {
+	Session                       *string  `json:"session,omitempty"`
 	Latitude                      float64  `json:"latitude"`
 	Longitude                     float64  `json:"longitude"`
 	CategoriesPreferred           []string `json:"categoriesPreferred,omitempty"`
@@ -61,6 +62,7 @@ type GeoLocation struct {
 }
 
 type InterestCandidate struct {
+	Session    string              `json:"session"`
 	Categories []*LocationCategory `json:"categories"`
 }
 
