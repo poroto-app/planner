@@ -15,6 +15,10 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+const (
+	defaultMaxPlanDuration = 180
+)
+
 func (s Service) createPlan(
 	ctx context.Context,
 	locationStart models.GeoLocation,
@@ -41,6 +45,10 @@ func (s Service) createPlan(
 
 	// 会社はプランに含まれないようにする
 	placesFiltered = placefilter.FilterCompany(placesFiltered)
+	
+	// 場所のカテゴリによるフィルタリング
+	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
@@ -100,9 +108,15 @@ func (s Service) createPlan(
 			continue
 		}
 
+		// 予定の時間内に収まらない場合はスキップ
 		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
 		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
+			break
+		}
+
+		// 予定の時間を指定しない場合、3時間を超えたら終了
+		if freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
 			break
 		}
 

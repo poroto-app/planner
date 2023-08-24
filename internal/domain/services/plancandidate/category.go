@@ -14,6 +14,7 @@ import (
 func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
+	createPlanSessionId string,
 ) ([]models.LocationCategory, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
@@ -25,6 +26,10 @@ func (s Service) CategoriesNearLocation(
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
+	}
+
+	if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
+		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
 	}
 
 	placesFiltered := placesSearched
