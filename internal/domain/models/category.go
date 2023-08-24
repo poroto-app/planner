@@ -280,3 +280,17 @@ func CategoryOfSubCategory(subCategory string) *LocationCategory {
 
 	return nil
 }
+
+// GetCategoriesFromSubCategories subCategories に対応する LocationCategory を重複が無いように返す
+func GetCategoriesFromSubCategories(subCategories []string) []LocationCategory {
+	categoryNames := make([]string, 0)
+	categories := make([]LocationCategory, 0)
+	for _, subCategory := range subCategories {
+		category := CategoryOfSubCategory(subCategory)
+		if category != nil && !array.IsContain(categoryNames, category.Name) {
+			categories = append(categories, *category)
+			categoryNames = append(categoryNames, category.Name)
+		}
+	}
+	return categories
+}

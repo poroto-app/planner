@@ -82,6 +82,7 @@ func (s Service) FetchCandidatePlaces(
 			Location:              place.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
+			Categories:            models.GetCategoriesFromSubCategories(place.Types),
 			Thumbnail:             &thumbnailUrl,
 			Photos:                []string{thumbnailUrl},
 		})
