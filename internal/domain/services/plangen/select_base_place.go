@@ -45,7 +45,7 @@ func (s Service) selectBasePlace(
 	}
 
 	// カテゴリごとにレビューの高い場所から選択する
-	placesSelected := selectByReview(places, categoriesPreferred)
+	placesSelected := selectByReview(places)
 	if len(placesSelected) == maxBasePlaceCount {
 		return placesSelected
 	}
@@ -62,10 +62,7 @@ func (s Service) selectBasePlace(
 
 // selectByReview は，レビューの高い順に場所を選択する
 // categoriesPreferred が指定される場合は、同じカテゴリの場所が含まれないように選択する
-func selectByReview(
-	places []api.Place,
-	categoriesPreferred []models.LocationCategory,
-) []api.Place {
+func selectByReview(places []api.Place) []api.Place {
 	// レビューの高い順にソート
 	sort.SliceStable(places, func(i, j int) bool {
 		return places[i].Rating > places[j].Rating
@@ -79,17 +76,15 @@ func selectByReview(
 		}
 
 		// 既に選択された場所と異なるカテゴリの場所が選択されるようにする
-		if len(categoriesPreferred) > 0 {
-			isAlreadyHaveSameCategory := false
-			for _, placeSelected := range placesSelected {
-				if isSameCategoryPlace(place, placeSelected) {
-					isAlreadyHaveSameCategory = true
-					break
-				}
+		isAlreadyHaveSameCategory := false
+		for _, placeSelected := range placesSelected {
+			if isSameCategoryPlace(place, placeSelected) {
+				isAlreadyHaveSameCategory = true
+				break
 			}
-			if isAlreadyHaveSameCategory {
-				continue
-			}
+		}
+		if isAlreadyHaveSameCategory {
+			continue
 		}
 
 		// 既に選択された場所から500m以内の場所は選択しない(プランの内容が重複する可能性が高いため)
