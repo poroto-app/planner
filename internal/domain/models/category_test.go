@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"reflect"
 	"testing"
 )
@@ -62,6 +63,34 @@ func TestCategoryOfSubCategory(t *testing.T) {
 			resultCategory := CategoryOfSubCategory(c.subCategory)
 			if !reflect.DeepEqual(*resultCategory, c.expected) {
 				t.Errorf("expected: %v\nactual: %v", *resultCategory, c.expected)
+			}
+		})
+	}
+}
+
+func TestGetCategoriesFromSubCategories(t *testing.T) {
+	cases := []struct {
+		name          string
+		subCategories []string
+		expected      []LocationCategory
+	}{
+		{
+			name:          "categories belong to CategoryCafe and CategoryShopping",
+			subCategories: []string{"cafe", "shoe_store"},
+			expected:      []LocationCategory{CategoryCafe, CategoryShopping},
+		},
+		{
+			name:          "should not return duplicated categories",
+			subCategories: []string{"cafe", "cafe"},
+			expected:      []LocationCategory{CategoryCafe},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			resultCategories := GetCategoriesFromSubCategories(c.subCategories)
+			if diff := cmp.Diff(resultCategories, c.expected); diff != "" {
+				t.Errorf("resultCategories differs: (-got +want)\n%s", diff)
 			}
 		})
 	}
