@@ -67,9 +67,10 @@ type InterestCandidate struct {
 }
 
 type LocationCategory struct {
-	Name        string `json:"name"`
-	DisplayName string `json:"displayName"`
-	Photo       string `json:"photo"`
+	Name            string `json:"name"`
+	DisplayName     string `json:"displayName"`
+	Photo           string `json:"photo"`
+	DefaultPhotoURL string `json:"defaultPhotoUrl"`
 }
 
 type MatchInterestsInput struct {
