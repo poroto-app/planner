@@ -229,10 +229,16 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	var categories = []*model.LocationCategory{}
 	for _, categorySearched := range categoriesSearched {
+		// TODO: DELETE ME
+		if categorySearched.Photo == "" {
+			categorySearched.Photo = fmt.Sprintf("https://placehold.jp/3d4070/ffffff/300x500.png?text=%s", categorySearched.Name)
+		}
+
 		categories = append(categories, &model.LocationCategory{
-			Name:        categorySearched.Name,
-			DisplayName: categorySearched.DisplayName,
-			Photo:       categorySearched.Photo,
+			Name:            categorySearched.Name,
+			DisplayName:     categorySearched.DisplayName,
+			Photo:           categorySearched.Photo,
+			DefaultPhotoURL: categorySearched.DefaultPhoto,
 		})
 	}
 
