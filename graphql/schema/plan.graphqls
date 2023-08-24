@@ -35,9 +35,12 @@ type LocationCategory {
 }
 
 type InterestCandidate {
+    session: String!
     categories: [LocationCategory!]!
 }
 
+
+# TODO: PlanCandidateのQueryとPlanのQueryを分ける
 extend type Query {
     plan(id: String!): Plan
 
@@ -45,6 +48,7 @@ extend type Query {
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
@@ -84,6 +88,7 @@ type AvailablePlacesForPlan {
     places: [Place!]!
 }
 
+# TODO: PlanCandidateのMutationとPlanのMutationを分ける
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
@@ -92,6 +97,7 @@ extend type Mutation {
 }
 
 input CreatePlanByLocationInput {
+    session: String
     latitude: Float!
     longitude: Float!
     categoriesPreferred: [String!]
