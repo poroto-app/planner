@@ -1,4 +1,4 @@
-package plan
+package plancandidate
 
 import (
 	"context"
@@ -11,9 +11,10 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func (s PlanService) CategoriesNearLocation(
+func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
+	createPlanSessionId string,
 ) ([]models.LocationCategory, error) {
 	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
 		Location: places.Location{
@@ -27,9 +28,14 @@ func (s PlanService) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
+	if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
+		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
+	}
+
 	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+	placesFiltered = placefilter.FilterCompany(placesFiltered)
 
 	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
 	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)

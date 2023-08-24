@@ -74,12 +74,14 @@ type ComplexityRoot struct {
 
 	InterestCandidate struct {
 		Categories func(childComplexity int) int
+		Session    func(childComplexity int) int
 	}
 
 	LocationCategory struct {
-		DisplayName func(childComplexity int) int
-		Name        func(childComplexity int) int
-		Photo       func(childComplexity int) int
+		DefaultPhotoURL func(childComplexity int) int
+		DisplayName     func(childComplexity int) int
+		Name            func(childComplexity int) int
+		Photo           func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -241,6 +243,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.InterestCandidate.Categories(childComplexity), true
+
+	case "InterestCandidate.session":
+		if e.complexity.InterestCandidate.Session == nil {
+			break
+		}
+
+		return e.complexity.InterestCandidate.Session(childComplexity), true
+
+	case "LocationCategory.defaultPhotoUrl":
+		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
+			break
+		}
+
+		return e.complexity.LocationCategory.DefaultPhotoURL(childComplexity), true
 
 	case "LocationCategory.displayName":
 		if e.complexity.LocationCategory.DisplayName == nil {
@@ -665,13 +681,18 @@ type GeoLocation {
 type LocationCategory {
     name: String!
     displayName: String!
+    # TODO: nullableにする
     photo: String!
+    defaultPhotoUrl: String!
 }
 
 type InterestCandidate {
+    session: String!
     categories: [LocationCategory!]!
 }
 
+
+# TODO: PlanCandidateのQueryとPlanのQueryを分ける
 extend type Query {
     plan(id: String!): Plan
 
@@ -679,6 +700,7 @@ extend type Query {
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
     # キャッシュされたプラン一覧を取得する
@@ -718,6 +740,7 @@ type AvailablePlacesForPlan {
     places: [Place!]!
 }
 
+# TODO: PlanCandidateのMutationとPlanのMutationを分ける
 extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
@@ -726,8 +749,10 @@ extend type Mutation {
 }
 
 input CreatePlanByLocationInput {
+    session: String
     latitude: Float!
     longitude: Float!
+    googlePlaceId: String
     categoriesPreferred: [String!]
     categoriesDisliked: [String!]
     freeTime: Int
@@ -1518,6 +1543,50 @@ func (ec *executionContext) fieldContext_GeoLocation_longitude(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _InterestCandidate_session(ctx context.Context, field graphql.CollectedField, obj *model.InterestCandidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InterestCandidate_session(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Session, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InterestCandidate_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InterestCandidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _InterestCandidate_categories(ctx context.Context, field graphql.CollectedField, obj *model.InterestCandidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_InterestCandidate_categories(ctx, field)
 	if err != nil {
@@ -1563,6 +1632,8 @@ func (ec *executionContext) fieldContext_InterestCandidate_categories(ctx contex
 				return ec.fieldContext_LocationCategory_displayName(ctx, field)
 			case "photo":
 				return ec.fieldContext_LocationCategory_photo(ctx, field)
+			case "defaultPhotoUrl":
+				return ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LocationCategory", field.Name)
 		},
@@ -1690,6 +1761,50 @@ func (ec *executionContext) _LocationCategory_photo(ctx context.Context, field g
 }
 
 func (ec *executionContext) fieldContext_LocationCategory_photo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.LocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultPhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LocationCategory",
 		Field:      field,
@@ -2882,6 +2997,8 @@ func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "session":
+				return ec.fieldContext_InterestCandidate_session(ctx, field)
 			case "categories":
 				return ec.fieldContext_InterestCandidate_categories(ctx, field)
 			}
@@ -5265,13 +5382,22 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
+	fieldsInOrder := [...]string{"session", "latitude", "longitude", "googlePlaceId", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "session":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Session = data
 		case "latitude":
 			var err error
 
@@ -5290,6 +5416,15 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 				return it, err
 			}
 			it.Longitude = data
+		case "googlePlaceId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("googlePlaceId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GooglePlaceID = data
 		case "categoriesPreferred":
 			var err error
 
@@ -5772,6 +5907,11 @@ func (ec *executionContext) _InterestCandidate(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("InterestCandidate")
+		case "session":
+			out.Values[i] = ec._InterestCandidate_session(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "categories":
 			out.Values[i] = ec._InterestCandidate_categories(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5823,6 +5963,11 @@ func (ec *executionContext) _LocationCategory(ctx context.Context, sel ast.Selec
 			}
 		case "photo":
 			out.Values[i] = ec._LocationCategory_photo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultPhotoUrl":
+			out.Values[i] = ec._LocationCategory_defaultPhotoUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

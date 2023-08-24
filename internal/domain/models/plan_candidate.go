@@ -3,10 +3,10 @@ package models
 import "time"
 
 type PlanCandidate struct {
-	Id                            string
-	Plans                         []Plan
-	CreatedBasedOnCurrentLocation bool
-	ExpiresAt                     time.Time
+	Id        string
+	Plans     []Plan
+	MetaData  PlanCandidateMetaData
+	ExpiresAt time.Time
 }
 
 func (p PlanCandidate) HasPlace(googlePlaceId string) bool {
