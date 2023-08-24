@@ -43,6 +43,9 @@ func (s Service) createPlan(
 		500,
 	)
 
+	// 会社はプランに含まれないようにする
+	placesFiltered = placefilter.FilterCompany(placesFiltered)
+	
 	// 場所のカテゴリによるフィルタリング
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
