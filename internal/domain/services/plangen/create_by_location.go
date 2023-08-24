@@ -78,10 +78,6 @@ func (s Service) CreatePlanByLocation(
 		log.Printf("place recommended: %s\n", place.Name)
 	}
 
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	// 現在開店している場所だけを表示する
-	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	performanceTimer := time.Now()
 	chPlans := make(chan *models.Plan, len(placesRecommend))
@@ -94,9 +90,12 @@ func (s Service) CreatePlanByLocation(
 				placesFiltered,
 				freeTime,
 				createBasedOnCurrentLocation,
+				// 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				createBasedOnCurrentLocation,
 			)
 			if err != nil {
-				log.Println(err)
+				log.Printf("error while creating plan: %v\n", err)
+				chPlan <- nil
 				return
 			}
 			chPlans <- plan
