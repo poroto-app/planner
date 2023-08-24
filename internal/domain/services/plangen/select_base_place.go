@@ -12,7 +12,6 @@ const (
 )
 
 // selectBasePlace は，プランの起点となる場所を選択する
-// baseLocation: プランを作成する基準となる場所(現在地など)
 func (s Service) selectBasePlace(
 	places []api.Place,
 	categoryNamesPreferred *[]string,
