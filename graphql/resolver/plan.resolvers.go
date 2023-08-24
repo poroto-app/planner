@@ -87,9 +87,14 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planCreated)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planCreated)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.CreatePlanByPlaceOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -114,9 +119,14 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planUpdated)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planUpdated)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.ChangePlacesOrderInPlanCandidateOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -134,9 +144,14 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 		return nil, fmt.Errorf("could not save plan")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planSaved)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planSaved)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.SavePlanFromCandidateOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -156,8 +171,13 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 		return nil, nil
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*p)
-	return &graphqlPlan, nil
+	graphqlPlan, err := factory.PlanFromDomainModel(*p)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return graphqlPlan, nil
 }
 
 // Plans is the resolver for the plans field.
