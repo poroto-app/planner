@@ -45,11 +45,11 @@ func fromPlanInCandidateEntity(
 	placeIdsOrdered []string,
 	timeInMinutes int,
 	transitions *[]TransitionsEntity,
-) (models.Plan, error) {
+) (*models.Plan, error) {
 	placesOrdered := make([]models.Place, len(places))
 
 	if !validatePlanInCandidateEntity(places, placeIdsOrdered) {
-		return models.Plan{}, fmt.Errorf("the property of placeIdsOrdered is invalid")
+		return nil, fmt.Errorf("the property of placeIdsOrdered is invalid")
 	}
 
 	// 整合性がある場合，指定された順番でドメインモデルに変換
@@ -61,7 +61,7 @@ func fromPlanInCandidateEntity(
 		}
 	}
 
-	return models.Plan{
+	return &models.Plan{
 		Id:            id,
 		Name:          name,
 		Places:        placesOrdered,

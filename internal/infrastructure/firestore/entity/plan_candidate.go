@@ -45,7 +45,7 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity) models.PlanCandidate {
 		}
 
 		// エラーを含むプランが存在した場合，正常なプランだけを返す
-		plans = append(plans, plan)
+		plans = append(plans, *plan)
 	}
 
 	return models.PlanCandidate{

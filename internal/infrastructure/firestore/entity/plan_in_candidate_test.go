@@ -12,7 +12,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 	cases := []struct {
 		name     string
 		entity   PlanInCandidateEntity
-		expected models.Plan
+		expected *models.Plan
 	}{
 		{
 			name: "順序指定ID配列に重複がある場合は空のプランを返す",
@@ -32,7 +32,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"01",
 				},
 			},
-			expected: models.Plan{},
+			expected: nil,
 		},
 		{
 			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は空のプランを返す",
@@ -52,7 +52,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"20",
 				},
 			},
-			expected: models.Plan{},
+			expected: nil,
 		},
 		{
 			name: "順序指定ID配列と場所一覧の数が合わない場合は空のプランを返す",
@@ -73,7 +73,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"03",
 				},
 			},
-			expected: models.Plan{},
+			expected: nil,
 		},
 		{
 			name: "正常な場合はプラン作成時から場所一覧の順序が並び替えられたプランを返す",
@@ -93,7 +93,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 					"01",
 				},
 			},
-			expected: models.Plan{
+			expected: &models.Plan{
 				Id:   "correct",
 				Name: "プラン候補A",
 				Places: []models.Place{
