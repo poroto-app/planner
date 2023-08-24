@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"log"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -26,15 +27,23 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 }
 
 func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity) models.PlanCandidate {
-	plans := make([]models.Plan, len(entity.Plans))
-	for i, plan := range entity.Plans {
-		plans[i] = fromPlanInCandidateEntity(
-			plan.Id,
-			plan.Name,
-			plan.Places,
-			plan.TimeInMinutes,
-			plan.Transitions,
+	plans := make([]models.Plan, 0)
+	for _, planEntity := range entity.Plans {
+		plan, err := fromPlanInCandidateEntity(
+			planEntity.Id,
+			planEntity.Name,
+			planEntity.Places,
+			planEntity.PlaceIdsOrdered,
+			planEntity.TimeInMinutes,
+			planEntity.Transitions,
 		)
+		if err != nil {
+			log.Printf("error occur while in converting entity to domain model: [%v]", err)
+			continue
+		}
+
+		// エラーを含むプランが存在した場合，正常なプランだけを返す
+		plans = append(plans, *plan)
 	}
 
 	return models.PlanCandidate{

@@ -43,8 +43,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		Longitude: input.Longitude,
 	}
 
-	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
 	session := uuid.New().String()
+	if input.Session != nil {
+		session = *input.Session
+	}
+
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
 		session,
@@ -242,12 +245,15 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	createPlanSessionId := uuid.New().String()
+
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
+		createPlanSessionId,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error while searching categories: %v", err)
@@ -255,14 +261,21 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	var categories = []*model.LocationCategory{}
 	for _, categorySearched := range categoriesSearched {
+		// TODO: DELETE ME
+		if categorySearched.Photo == "" {
+			categorySearched.Photo = fmt.Sprintf("https://placehold.jp/3d4070/ffffff/300x500.png?text=%s", categorySearched.Name)
+		}
+
 		categories = append(categories, &model.LocationCategory{
-			Name:        categorySearched.Name,
-			DisplayName: categorySearched.DisplayName,
-			Photo:       categorySearched.Photo,
+			Name:            categorySearched.Name,
+			DisplayName:     categorySearched.DisplayName,
+			Photo:           categorySearched.Photo,
+			DefaultPhotoURL: categorySearched.DefaultPhoto,
 		})
 	}
 
 	return &model.InterestCandidate{
+		Session:    createPlanSessionId,
 		Categories: categories,
 	}, nil
 }
