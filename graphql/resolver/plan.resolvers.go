@@ -38,6 +38,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
 	}
 
+	locationStart := models.GeoLocation{
+		Latitude:  input.Latitude,
+		Longitude: input.Longitude,
+	}
+
 	session := uuid.New().String()
 	if input.Session != nil {
 		session = *input.Session
@@ -46,10 +51,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
 		session,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
-		},
+		locationStart,
 		&input.CategoriesPreferred,
 		&input.CategoriesDisliked,
 		input.FreeTime,
@@ -59,7 +61,37 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
+	var categoriesPreferred, categoriesDisliked *[]models.LocationCategory
+	if input.CategoriesPreferred != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesPreferred {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesPreferred = &categories
+	}
+
+	if input.CategoriesDisliked != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesDisliked {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesDisliked = &categories
+	}
+
+	// TODO: ServiceではPlanではなくPlanCandidateを生成するようにし、保存まで行う
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, models.PlanCandidateMetaData{
+		CategoriesPreferred:           categoriesPreferred,
+		CategoriesRejected:            categoriesDisliked,
+		FreeTime:                      input.FreeTime,
+		CreatedBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		LocationStart:                 &locationStart,
+	}); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -290,7 +322,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 	return &model.CachedCreatedPlans{
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans),
-		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
+		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 	}, nil
 }
 
