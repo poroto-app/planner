@@ -34,16 +34,6 @@ func (s Service) selectBasePlace(
 		places = placefilter.FilterByOpeningNow(places)
 	}
 
-	var categoriesPreferred []models.LocationCategory
-	if categoryNamesPreferred != nil {
-		for _, categoryName := range *categoryNamesPreferred {
-			category := models.GetCategoryOfName(categoryName)
-			if category != nil {
-				categoriesPreferred = append(categoriesPreferred, *category)
-			}
-		}
-	}
-
 	// カテゴリごとにレビューの高い場所から選択する
 	placesSelected := selectByReview(places)
 	if len(placesSelected) == maxBasePlaceCount {
