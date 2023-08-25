@@ -20,7 +20,6 @@ func (s Service) CreatePlanByLocation(
 	// locationStart に対応する場所のID
 	// これが指定されると、対応する場所を起点としてプランを作成する
 	googlePlaceId *string,
-	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
 	categoryNamesPreferred *[]string,
 	categoryNamesDisliked *[]string,
 	freeTime *int,
