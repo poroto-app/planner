@@ -38,15 +38,20 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
 	}
 
-	// TODO: sessionIDをリクエストに含めるようにする（二重で作成されないようにするため）
+	locationStart := models.GeoLocation{
+		Latitude:  input.Latitude,
+		Longitude: input.Longitude,
+	}
+
 	session := uuid.New().String()
+	if input.Session != nil {
+		session = *input.Session
+	}
+
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
 		session,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
-		},
+		locationStart,
 		input.GooglePlaceID,
 		&input.CategoriesPreferred,
 		&input.CategoriesDisliked,
@@ -57,7 +62,37 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		log.Println(err)
 	}
 
-	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, *input.CreatedBasedOnCurrentLocation); err != nil {
+	var categoriesPreferred, categoriesDisliked *[]models.LocationCategory
+	if input.CategoriesPreferred != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesPreferred {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesPreferred = &categories
+	}
+
+	if input.CategoriesDisliked != nil {
+		var categories []models.LocationCategory
+		for _, categoryName := range input.CategoriesDisliked {
+			category := models.GetCategoryOfName(categoryName)
+			if category != nil {
+				categories = append(categories, *category)
+			}
+		}
+		categoriesDisliked = &categories
+	}
+
+	// TODO: ServiceではPlanではなくPlanCandidateを生成するようにし、保存まで行う
+	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, models.PlanCandidateMetaData{
+		CategoriesPreferred:           categoriesPreferred,
+		CategoriesRejected:            categoriesDisliked,
+		FreeTime:                      input.FreeTime,
+		CreatedBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		LocationStart:                 &locationStart,
+	}); err != nil {
 		log.Println("error while caching plan candidate: ", err)
 	}
 
@@ -85,9 +120,14 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planCreated)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planCreated)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.CreatePlanByPlaceOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -112,9 +152,14 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planUpdated)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planUpdated)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.ChangePlacesOrderInPlanCandidateOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -132,9 +177,14 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 		return nil, fmt.Errorf("could not save plan")
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*planSaved)
+	graphqlPlan, err := factory.PlanFromDomainModel(*planSaved)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	return &model.SavePlanFromCandidateOutput{
-		Plan: &graphqlPlan,
+		Plan: graphqlPlan,
 	}, nil
 }
 
@@ -154,8 +204,13 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 		return nil, nil
 	}
 
-	graphqlPlan := factory.PlanFromDomainModel(*p)
-	return &graphqlPlan, nil
+	graphqlPlan, err := factory.PlanFromDomainModel(*p)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return graphqlPlan, nil
 }
 
 // Plans is the resolver for the plans field.
@@ -211,12 +266,15 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	createPlanSessionId := uuid.New().String()
+
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
 		models.GeoLocation{
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
+		createPlanSessionId,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error while searching categories: %v", err)
@@ -224,14 +282,21 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	var categories = []*model.LocationCategory{}
 	for _, categorySearched := range categoriesSearched {
+		// TODO: DELETE ME
+		if categorySearched.Photo == "" {
+			categorySearched.Photo = fmt.Sprintf("https://placehold.jp/3d4070/ffffff/300x500.png?text=%s", categorySearched.Name)
+		}
+
 		categories = append(categories, &model.LocationCategory{
-			Name:        categorySearched.Name,
-			DisplayName: categorySearched.DisplayName,
-			Photo:       categorySearched.Photo,
+			Name:            categorySearched.Name,
+			DisplayName:     categorySearched.DisplayName,
+			Photo:           categorySearched.Photo,
+			DefaultPhotoURL: categorySearched.DefaultPhoto,
 		})
 	}
 
 	return &model.InterestCandidate{
+		Session:    createPlanSessionId,
 		Categories: categories,
 	}, nil
 }
@@ -258,7 +323,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 	return &model.CachedCreatedPlans{
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans),
-		CreatedBasedOnCurrentLocation: planCandidate.CreatedBasedOnCurrentLocation,
+		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 	}, nil
 }
 

@@ -43,7 +43,9 @@ func (s Service) CreatePlanFromPlace(
 		placesSearched,
 		// TODO: freeTimeの項目を保存し、それを反映させる
 		nil,
-		planCandidate.CreatedBasedOnCurrentLocation,
+		planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+		// 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+		false,
 	)
 	if err != nil {
 		return nil, err

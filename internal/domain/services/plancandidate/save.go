@@ -11,12 +11,12 @@ func (s Service) SavePlanCandidate(
 	ctx context.Context,
 	session string,
 	plans []models.Plan,
-	createdBasedOnCurrentLocation bool,
+	meta models.PlanCandidateMetaData,
 ) error {
 	return s.planCandidateRepository.Save(ctx, &models.PlanCandidate{
-		Id:                            session,
-		Plans:                         plans,
-		CreatedBasedOnCurrentLocation: createdBasedOnCurrentLocation,
-		ExpiresAt:                     time.Now().Add(7 * 24 * time.Hour),
+		Id:        session,
+		Plans:     plans,
+		MetaData:  meta,
+		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	})
 }
