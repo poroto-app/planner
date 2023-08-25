@@ -21,8 +21,9 @@ func (s Service) CategoriesNearLocation(
 			Latitude:  location.Latitude,
 			Longitude: location.Longitude,
 		},
-		Radius:   2000,
-		Language: "ja",
+		Radius:      2000,
+		Language:    "ja",
+		SearchCount: 3,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)

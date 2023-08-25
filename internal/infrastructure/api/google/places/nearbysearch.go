@@ -8,9 +8,15 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchRequest) ([]maps.PlacesSearchResult, error) {
-	var placeSearchResults []maps.PlacesSearchResult
+// nearBySearch Places API Nearby Search
+// https://developers.google.com/maps/documentation/places/web-service/search-nearby
+// pageCount は 1 以上の整数で、ページング処理を行う回数を指定する。
+func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchRequest, pagesCount int) ([]maps.PlacesSearchResult, error) {
+	if pagesCount < 1 {
+		pagesCount = 1
+	}
 
+	var placeSearchResults []maps.PlacesSearchResult
 	pageToken := ""
 	for i := 0; i < 3; i++ {
 		if pageToken == "" {

@@ -39,8 +39,9 @@ func (s Service) CreatePlanByLocation(
 				Latitude:  locationStart.Latitude,
 				Longitude: locationStart.Longitude,
 			},
-			Radius:   2000,
-			Language: "ja",
+			Radius:      2000,
+			Language:    "ja",
+			SearchCount: 3,
 		})
 
 		if err != nil {
