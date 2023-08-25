@@ -141,11 +141,20 @@ func (s Service) CreatePlanByLocation(
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if googlePlaceId != nil {
 		for i, plan := range plans {
-			if plan.Places[0].Id == *googlePlaceId {
+			if len(plan.Places) == 0 {
+				continue
+			}
+
+			firstPlace := plan.Places[0]
+			if firstPlace.GooglePlaceId != nil && *firstPlace.GooglePlaceId == *googlePlaceId {
 				plans[0], plans[i] = plans[i], plans[0]
 				break
 			}
 		}
+	}
+
+	for _, plan := range plans {
+		log.Printf("plan: %s\n", plan.Name)
 	}
 
 	return &plans, nil
