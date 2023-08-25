@@ -139,6 +139,7 @@ var (
 			string(maps.PlaceTypeHomeGoodsStore),
 			string(maps.PlaceTypeMovieRental),
 			string(maps.PlaceTypeShoeStore),
+			string(maps.PlaceTypeShoppingMall),
 			string(maps.PlaceTypeStore),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
