@@ -64,36 +64,27 @@ func (s Service) createPlan(
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
-	for i, place := range placesSortedByDistance {
-		var categoryMain *models.LocationCategory
-		for _, placeType := range place.Types {
-			c := models.CategoryOfSubCategory(placeType)
-			if c != nil {
-				categoryMain = c
-				break
-			}
+	// 指定された場所を基準としてプランを作成するときは必ず含める
+	if locationStart.Equal(placeStart.Location.ToGeoLocation()) {
+		categoryMain := categoryMainOfPlace(placeStart)
+		if categoryMain == nil {
+			categoryMain = &models.CategoryOther
 		}
 
-		// 開始位置と開始場所が同じ場合は必ず含める
-		// TODO: 開始位置と開始場所が同じ場所は、場所を含めるかのチェックを飛ばすようにして、追加の処理は共通化する
-		if i == 0 && locationStart.Equal(placeStart.Location.ToGeoLocation()) {
-			if categoryMain == nil {
-				categoryMain = &models.CategoryOther
-			}
-			placesInPlan = append(placesInPlan, models.Place{
-				Id:                    uuid.New().String(),
-				Name:                  place.Name,
-				GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-				Location:              place.Location.ToGeoLocation(),
-				EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-				Category:              categoryMain.Name,
-			})
+		placesInPlan = append(placesInPlan, models.Place{
+			Id:                    uuid.New().String(),
+			Name:                  placeStart.Name,
+			GooglePlaceId:         utils.StrPointer(placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:              placeStart.Location.ToGeoLocation(),
+			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Category:              categoryMain.Name,
+		})
 
-			timeInPlan += categoryMain.EstimatedStayDuration
-			previousLocation = place.Location.ToGeoLocation()
-			continue
-		}
+		timeInPlan += categoryMain.EstimatedStayDuration
+		previousLocation = placeStart.Location.ToGeoLocation()
+	}
 
+	for _, place := range placesSortedByDistance {
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
@@ -113,6 +104,7 @@ func (s Service) createPlan(
 		}
 
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
+		categoryMain := categoryMainOfPlace(place)
 		if categoryMain == nil {
 			log.Printf("place %s has no category\n", place.Name)
 			continue
@@ -193,4 +185,16 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 		}
 	}
 	return false
+}
+
+func categoryMainOfPlace(place places.Place) *models.LocationCategory {
+	var categoryMain *models.LocationCategory
+	for _, placeType := range place.Types {
+		c := models.CategoryOfSubCategory(placeType)
+		if c != nil {
+			categoryMain = c
+			break
+		}
+	}
+	return categoryMain
 }
