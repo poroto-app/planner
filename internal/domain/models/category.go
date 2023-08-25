@@ -99,6 +99,7 @@ var (
 		Name:        "restaurant",
 		DisplayName: "ご飯",
 		SubCategories: []string{
+			string(maps.PlaceDetailsFieldMaskServesVegetarianFood),
 			string(maps.PlaceTypeBakery),
 			string(maps.PlaceTypeBar),
 			string(maps.PlaceTypeRestaurant),
