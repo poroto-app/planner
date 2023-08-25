@@ -43,9 +43,12 @@ func (s Service) createPlan(
 		500,
 	)
 
+	// 重複した場所を削除
+	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
+
 	// 会社はプランに含まれないようにする
 	placesFiltered = placefilter.FilterCompany(placesFiltered)
-	
+
 	// 場所のカテゴリによるフィルタリング
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
