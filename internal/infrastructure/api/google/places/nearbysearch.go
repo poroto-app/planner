@@ -18,7 +18,7 @@ func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchReque
 
 	var placeSearchResults []maps.PlacesSearchResult
 	pageToken := ""
-	for i := 0; i < 3; i++ {
+	for i := 0; i < pagesCount; i++ {
 		if pageToken == "" {
 			res, err := r.neaBySearchOnce(ctx, req)
 			if err != nil {
