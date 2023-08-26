@@ -125,23 +125,19 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	var planCandidate models.PlanCandidate
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		doc := p.doc(planCandidateId)
-		docRef, err := tx.Get(doc)
+		_, err := tx.Get(doc)
 		if err != nil {
-			return err
-		}
-
-		var planCandidateEntity entity.PlanCandidateEntity
-		if err = docRef.DataTo(&planCandidateEntity); err != nil {
-			return err
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
 		}
 
 		planEntity := entity.ToPlanInCandidateEntity(*plan)
-		planCandidateEntity.Plans = append(planCandidateEntity.Plans, planEntity)
-
 		if err := tx.Update(doc, []firestore.Update{
 			{
 				Path:  "plans",
-				Value: planCandidateEntity.Plans,
+				Value: firestore.ArrayUnion(planEntity),
 			},
 		}); err != nil {
 			return err
