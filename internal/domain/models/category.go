@@ -29,7 +29,7 @@ var (
 			string(maps.PlaceTypeStadium),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_amusement_park_17oe.svg",
-		EstimatedStayDuration: 90,
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryBookStore = LocationCategory{
@@ -39,7 +39,7 @@ var (
 			string(maps.PlaceTypeBookStore),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_books_re_8gea.svg",
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 10,
 	}
 
 	CategoryCafe = LocationCategory{
@@ -49,7 +49,7 @@ var (
 			string(maps.PlaceTypeCafe),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_coffee_re_x35h.svg",
-		EstimatedStayDuration: 60,
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryCamp = LocationCategory{
@@ -60,7 +60,7 @@ var (
 			string(maps.PlaceTypeRvPark),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_camping_noc8.svg",
-		EstimatedStayDuration: 300,
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryCulture = LocationCategory{
@@ -71,7 +71,7 @@ var (
 			string(maps.PlaceTypeMuseum),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_art_lover_re_fn8g.svg",
-		EstimatedStayDuration: 90,
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryNatural = LocationCategory{
@@ -82,7 +82,7 @@ var (
 			string(maps.PlaceTypeZoo),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_fish_bowl_uu88.svg",
-		EstimatedStayDuration: 120,
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryPark = LocationCategory{
@@ -92,7 +92,7 @@ var (
 			string(maps.PlaceTypePark),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_a_day_at_the_park_re_9kxj.svg",
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 10,
 	}
 
 	CategoryRestaurant = LocationCategory{
@@ -104,7 +104,7 @@ var (
 			string(maps.PlaceTypeRestaurant),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_breakfast_psiw.svg",
-		EstimatedStayDuration: 60,
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryLibrary = LocationCategory{
@@ -115,7 +115,7 @@ var (
 		},
 		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryMealTakeaway = LocationCategory{
@@ -125,7 +125,7 @@ var (
 			string(maps.PlaceTypeMealTakeaway),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pizza_sharing_wxop.svg",
-		EstimatedStayDuration: 30,
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryShopping = LocationCategory{
@@ -142,7 +142,7 @@ var (
 			string(maps.PlaceTypeStore),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
-		EstimatedStayDuration: 60,
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryIgnore = LocationCategory{
