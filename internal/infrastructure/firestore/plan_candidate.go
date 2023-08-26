@@ -147,24 +147,35 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 			return err
 		}
 
-		docMetaData := p.docMetaDataV1(planCandidateId)
-		docMetaDataRef, err := tx.Get(docMetaData)
-		if err != nil {
-			return err
-		}
-
-		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = docMetaDataRef.DataTo(&planCandidateMetaDataEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
-		}
-
-		planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
-
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while adding plan to plan candidate: %v", err)
 	}
+
+	docMetaData := p.docMetaDataV1(planCandidateId)
+	snapshotMetaData, err := docMetaData.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
+	}
+
+	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+	}
+
+	docPlanCandidate := p.doc(planCandidateId)
+	snapshotPlanCandidate, err := docPlanCandidate.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
+	}
+
+	var planCandidateEntity entity.PlanCandidateEntity
+	if err = snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+	}
+
+	planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
 
 	return &planCandidate, nil
 }
