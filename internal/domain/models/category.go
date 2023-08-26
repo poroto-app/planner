@@ -113,7 +113,6 @@ var (
 		SubCategories: []string{
 			string(maps.PlaceTypeLibrary),
 		},
-		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
 		EstimatedStayDuration: 30,
 	}
