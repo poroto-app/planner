@@ -35,12 +35,12 @@ func (s Service) createPlan(
 		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 	}
 
-	// 開始地点となる場所から500m圏内の場所に絞る
+	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
 		placeStart.Location.ToGeoLocation(),
 		0,
-		500,
+		1500,
 	)
 
 	// 会社はプランに含まれないようにする
