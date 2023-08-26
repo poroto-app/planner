@@ -6,13 +6,12 @@ import (
 )
 
 // LocationCategory は場所の大まかなカテゴリを示す
-// TODO: Photo は nilable にする
 type LocationCategory struct {
 	Name                  string
 	DisplayName           string
 	SubCategories         []string
 	DefaultPhoto          string
-	Photo                 string
+	Photo                 *string
 	EstimatedStayDuration uint
 }
 
