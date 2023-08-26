@@ -33,13 +33,14 @@ func NewPlacesApi() (*PlacesApi, error) {
 }
 
 type Place struct {
-	PlaceID         string   `firestore:"place_id"`
-	Name            string   `firestore:"name"`
-	Types           []string `firestore:"types"`
-	Location        Location `firestore:"location"`
-	PhotoReferences []string `firestore:"photo_references"`
-	OpenNow         bool     `firestore:"open_now"`
-	Rating          float32  `firestore:"rating"`
+	PlaceID          string   `firestore:"place_id"`
+	Name             string   `firestore:"name"`
+	Types            []string `firestore:"types"`
+	Location         Location `firestore:"location"`
+	PhotoReferences  []string `firestore:"photo_references"`
+	OpenNow          bool     `firestore:"open_now"`
+	Rating           float32  `firestore:"rating"`
+	UserRatingsTotal int      `firestore:"user_ratings_total"`
 }
 
 type Location struct {
@@ -89,9 +90,10 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 				Latitude:  place.Geometry.Location.Lat,
 				Longitude: place.Geometry.Location.Lng,
 			},
-			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
-			PhotoReferences: photoReferences,
-			Rating:          place.Rating,
+			OpenNow:          place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
+			PhotoReferences:  photoReferences,
+			Rating:           place.Rating,
+			UserRatingsTotal: place.UserRatingsTotal,
 		})
 	}
 
