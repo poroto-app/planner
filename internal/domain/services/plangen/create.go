@@ -74,11 +74,12 @@ func (s Service) createPlan(
 		}
 
 		// 飲食店やカフェは複数回含めない
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, []models.LocationCategory{
+		categoriesFood := []models.LocationCategory{
 			models.CategoryRestaurant,
 			models.CategoryMealTakeaway,
 			models.CategoryCafe,
-		}) {
+		}
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Types, categoriesFood) {
 			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Name)
 			continue
 		}
@@ -167,6 +168,18 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 	for _, category := range categories {
 		for _, categoryInPlan := range categoriesInPlan {
 			if categoryInPlan.Name == category.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
+	categoriesOfPlace := models.GetCategoriesFromSubCategories(placeTypes)
+	for _, category := range categories {
+		for _, categoryOfPlace := range categoriesOfPlace {
+			if categoryOfPlace.Name == category.Name {
 				return true
 			}
 		}
