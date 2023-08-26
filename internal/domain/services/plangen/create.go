@@ -102,12 +102,14 @@ func (s Service) createPlan(
 		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
 		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
-		// 予定の時間を指定しない場合、3時間を超えたら終了
+		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
 		if freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
