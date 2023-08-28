@@ -3,7 +3,9 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"googlemaps.github.io/maps"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -15,7 +17,9 @@ func (s Service) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
 	locationStart models.GeoLocation,
-	// TODO: ユーザーに却下された場所を引数にする（プランを作成時により多くの場所を取得した場合、YESと答えたカテゴリの場所からしかプランを作成できなくなるため）
+	// locationStart に対応する場所のID
+	// これが指定されると、対応する場所を起点としてプランを作成する
+	googlePlaceId *string,
 	categoryNamesPreferred *[]string,
 	categoryNamesDisliked *[]string,
 	freeTime *int,
@@ -68,12 +72,33 @@ func (s Service) CreatePlanByLocation(
 		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
 	}
 
-	placesRecommend := s.selectBasePlace(
+	// プラン作成の基準となる場所を選択
+	var placesRecommend []places.Place
+
+	if googlePlaceId != nil {
+		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
+		place, found, err := s.findOrFetchPlaceById(ctx, placesSearched, *googlePlaceId)
+		if err != nil {
+			log.Printf("error while fetching place: %v\n", err)
+		}
+
+		// TODO: キャッシュする
+
+		// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
+		if place != nil && array.IsContain(place.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
+			placesRecommend = append(placesRecommend, *place)
+			if !found {
+				placesFiltered = append(placesFiltered, *place)
+			}
+		}
+	}
+
+	placesRecommend = append(placesRecommend, s.selectBasePlace(
 		placesFiltered,
 		categoryNamesPreferred,
 		categoryNamesDisliked,
 		createBasedOnCurrentLocation,
-	)
+	)...)
 	for _, place := range placesRecommend {
 		log.Printf("place recommended: %s\n", place.Name)
 	}
@@ -113,5 +138,53 @@ func (s Service) CreatePlanByLocation(
 	}
 	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
 
+	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
+	if googlePlaceId != nil {
+		for i, plan := range plans {
+			if len(plan.Places) == 0 {
+				continue
+			}
+
+			firstPlace := plan.Places[0]
+			if firstPlace.GooglePlaceId != nil && *firstPlace.GooglePlaceId == *googlePlaceId {
+				plans[0], plans[i] = plans[i], plans[0]
+				break
+			}
+		}
+	}
+
+	for _, plan := range plans {
+		log.Printf("plan: %s\n", plan.Name)
+	}
+
 	return &plans, nil
+}
+
+// findOrFetchPlaceById は、googlePlaceId に対応する場所を
+// placesSearched から探し、なければAPIを使って取得する
+func (s Service) findOrFetchPlaceById(
+	ctx context.Context,
+	placesSearched []places.Place,
+	googlePlaceId string,
+) (place *places.Place, found bool, err error) {
+	for _, placeSearched := range placesSearched {
+		if placeSearched.PlaceID == googlePlaceId {
+			place = &placeSearched
+			break
+		}
+	}
+
+	if place != nil {
+		return place, true, nil
+	}
+
+	place, err = s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
+		PlaceId:  googlePlaceId,
+		Language: "ja",
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("error while fetching place: %v\n", err)
+	}
+
+	return place, false, nil
 }

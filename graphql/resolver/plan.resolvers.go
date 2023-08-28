@@ -52,6 +52,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		ctx,
 		session,
 		locationStart,
+		input.GooglePlaceID,
 		&input.CategoriesPreferred,
 		&input.CategoriesDisliked,
 		input.FreeTime,

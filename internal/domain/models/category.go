@@ -98,6 +98,7 @@ var (
 		Name:        "restaurant",
 		DisplayName: "ご飯",
 		SubCategories: []string{
+			"food",
 			string(maps.PlaceTypeBakery),
 			string(maps.PlaceTypeBar),
 			string(maps.PlaceTypeRestaurant),
@@ -141,6 +142,13 @@ var (
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
 		EstimatedStayDuration: 20,
+	}
+
+	CategoryOther = LocationCategory{
+		Name:                  "other",
+		DisplayName:           "その他",
+		SubCategories:         []string{},
+		EstimatedStayDuration: 0,
 	}
 
 	CategoryIgnore = LocationCategory{
