@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"poroto.app/poroto/planner/internal/domain/services/user"
 
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/graphql/factory"
@@ -17,6 +16,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
+	"poroto.app/poroto/planner/internal/domain/services/user"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
