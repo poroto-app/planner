@@ -45,35 +45,17 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 }
 
 func FromPlanEntity(entity PlanEntity) models.Plan {
-	return fromPlanEntity(
-		entity.Id,
-		entity.Name,
-		entity.Places,
-		entity.TimeInMinutes,
-		entity.Transitions,
-		entity.AuthorId,
-	)
-}
-
-func fromPlanEntity(
-	id string,
-	name string,
-	places []PlaceEntity,
-	timeInMinutes int,
-	transitions *[]TransitionsEntity,
-	authorId *string,
-) models.Plan {
-	ps := make([]models.Place, len(places))
-	for i, place := range places {
+	ps := make([]models.Place, len(entity.Places))
+	for i, place := range entity.Places {
 		ps[i] = FromPlaceEntity(place)
 	}
 
 	return models.Plan{
-		Id:            id,
-		Name:          name,
+		Id:            entity.Id,
+		Name:          entity.Name,
 		Places:        ps,
-		TimeInMinutes: uint(timeInMinutes),
-		Transitions:   FromTransitionEntities(transitions),
-		AuthorId:      authorId,
+		TimeInMinutes: uint(entity.TimeInMinutes),
+		Transitions:   FromTransitionEntities(entity.Transitions),
+		AuthorId:      entity.AuthorId,
 	}
 }
