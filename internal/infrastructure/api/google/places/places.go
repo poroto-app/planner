@@ -3,9 +3,8 @@ package places
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"googlemaps.github.io/maps"
+	"os"
 )
 
 type PlacesApi struct {
@@ -32,12 +31,19 @@ func NewPlacesApi() (*PlacesApi, error) {
 }
 
 type FindPlacesFromLocationRequest struct {
-	Location Location
-	Radius   uint
-	Language string
+	Location    Location
+	Radius      uint
+	Language    string
+	Type        *maps.PlaceType
+	SearchCount int
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
+	var placeType maps.PlaceType
+	if req.Type != nil {
+		placeType = *req.Type
+	}
+
 	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
@@ -45,7 +51,8 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 		},
 		Radius:   req.Radius,
 		Language: req.Language,
-	})
+		Type:     placeType,
+	}, req.SearchCount)
 	if err != nil {
 		return nil, err
 	}

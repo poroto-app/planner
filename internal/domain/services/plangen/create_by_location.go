@@ -38,14 +38,7 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	if placesSearched == nil {
-		placesSearched, err = s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-			Location: places.Location{
-				Latitude:  locationStart.Latitude,
-				Longitude: locationStart.Longitude,
-			},
-			Radius:   2000,
-			Language: "ja",
-		})
+		placesSearched, err = s.SearchNearbyPlaces(ctx, locationStart)
 
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching places: %v\n", err)

@@ -6,13 +6,13 @@ import (
 )
 
 type Place struct {
-	PlaceID         string   `firestore:"place_id"`
-	Name            string   `firestore:"name"`
-	Types           []string `firestore:"types"`
-	Location        Location `firestore:"location"`
-	PhotoReferences []string `firestore:"photo_references"`
-	OpenNow         bool     `firestore:"open_now"`
-	Rating          float32  `firestore:"rating"`
+	PlaceID          string   `firestore:"place_id"`
+	Name             string   `firestore:"name"`
+	Types            []string `firestore:"types"`
+	Location         Location `firestore:"location"`
+	PhotoReferences  []string `firestore:"photo_references"`
+	OpenNow          bool     `firestore:"open_now"`
+	Rating           float32  `firestore:"rating"`
 	UserRatingsTotal int      `firestore:"user_ratings_total"`
 }
 
@@ -39,12 +39,12 @@ func createPlace(
 	userRatingsTotal int,
 ) Place {
 	return Place{
-		PlaceID:         placeID,
-		Name:            name,
-		Types:           types,
-		PhotoReferences: photoReferences,
-		OpenNow:         openNow,
-		Rating:          rating,
+		PlaceID:          placeID,
+		Name:             name,
+		Types:            types,
+		PhotoReferences:  photoReferences,
+		OpenNow:          openNow,
+		Rating:           rating,
 		UserRatingsTotal: userRatingsTotal,
 		Location: Location{
 			Latitude:  geometry.Location.Lat,

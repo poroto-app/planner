@@ -3,6 +3,7 @@ package plancandidate
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/plangen"
 
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -13,6 +14,7 @@ type Service struct {
 	placesApi                   places.PlacesApi
 	planCandidateRepository     repository.PlanCandidateRepository
 	placeSearchResultRepository repository.PlaceSearchResultRepository
+	planGeneratorService        plangen.Service
 }
 
 func NewService(ctx context.Context) (*Service, error) {
@@ -31,9 +33,15 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 
+	planGeneratorService, err := plangen.NewService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing plan generator service: %v", err)
+	}
+
 	return &Service{
 		placesApi:                   *placesApi,
 		planCandidateRepository:     planCandidateRepository,
 		placeSearchResultRepository: placeSearchResultRepository,
+		planGeneratorService:        *planGeneratorService,
 	}, nil
 }
