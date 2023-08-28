@@ -24,6 +24,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 			maps.PlaceDetailsFieldMaskOpeningHours,
 			maps.PlaceDetailsFieldMaskPhotos,
 			maps.PlaceDetailsFieldMaskRatings,
+			maps.PlaceDetailsFieldMaskUserRatingsTotal,
 		},
 	})
 	if err != nil {
@@ -44,6 +45,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 		photoReferences,
 		resp.OpeningHours != nil && resp.OpeningHours.OpenNow != nil && *resp.OpeningHours.OpenNow,
 		resp.Rating,
+		resp.UserRatingsTotal,
 	)
 
 	return &place, nil
