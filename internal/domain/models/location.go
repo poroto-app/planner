@@ -50,6 +50,10 @@ func (g GeoLocation) TravelTimeTo(
 	return timeInMinutes
 }
 
+func (g GeoLocation) Equal(other GeoLocation) bool {
+	return g.Latitude == other.Latitude && g.Longitude == other.Longitude
+}
+
 func toRadian(degree float64) float64 {
 	return math.Pi * degree / 180
 }

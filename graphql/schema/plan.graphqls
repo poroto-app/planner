@@ -29,8 +29,7 @@ type GeoLocation {
 type LocationCategory {
     name: String!
     displayName: String!
-    # TODO: nullableにする
-    photo: String!
+    photo: String
     defaultPhotoUrl: String!
 }
 

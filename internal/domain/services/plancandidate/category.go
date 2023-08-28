@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -68,7 +69,7 @@ func (s Service) CategoriesNearLocation(
 				continue
 			}
 			if placePhoto != nil {
-				category.Photo = placePhoto.ImageUrl
+				category.Photo = utils.StrPointer(placePhoto.ImageUrl)
 				placesUsedOfCategory = append(placesUsedOfCategory, place)
 				break
 			}
