@@ -170,7 +170,7 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID)
+	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID, input.AuthToken)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("could not save plan")
