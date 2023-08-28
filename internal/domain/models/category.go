@@ -6,13 +6,12 @@ import (
 )
 
 // LocationCategory は場所の大まかなカテゴリを示す
-// TODO: Photo は nilable にする
 type LocationCategory struct {
 	Name                  string
 	DisplayName           string
 	SubCategories         []string
 	DefaultPhoto          string
-	Photo                 string
+	Photo                 *string
 	EstimatedStayDuration uint
 }
 
@@ -113,7 +112,6 @@ var (
 		SubCategories: []string{
 			string(maps.PlaceTypeLibrary),
 		},
-		Photo:                 "https://placehold.jp/ff7070/ffffff/300x500.png?text=library",
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
 		EstimatedStayDuration: 20,
 	}
