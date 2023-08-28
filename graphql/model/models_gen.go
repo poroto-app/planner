@@ -99,6 +99,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
+	Author        *User         `json:"author,omitempty"`
 }
 
 type PlansByLocationInput struct {
