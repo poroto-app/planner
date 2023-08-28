@@ -41,6 +41,7 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		TimeInMinutes: int(plan.TimeInMinutes),
 		Transitions:   ToTransitionsEntities(plan.Transitions),
 		AuthorId:      plan.AuthorId,
+		UpdatedAt:     time.Now(),
 	}
 }
 
