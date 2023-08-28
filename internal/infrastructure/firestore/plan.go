@@ -78,7 +78,7 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 
 func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[]models.Plan, error) {
 	collection := p.collection()
-	query := collection.Where("author_id", "==", authorId).OrderBy("created_at", firestore.Desc)
+	query := collection.Where("author_id", "==", authorId).OrderBy("updated_at", firestore.Desc)
 
 	snapshots, err := query.Documents(ctx).GetAll()
 	if err != nil {
