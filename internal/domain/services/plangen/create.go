@@ -35,13 +35,16 @@ func (s Service) createPlan(
 		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 	}
 
-	// 開始地点となる場所から500m圏内の場所に絞る
+	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
 		placeStart.Location.ToGeoLocation(),
 		0,
-		500,
+		1500,
 	)
+
+	// 重複した場所を削除
+	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
 
 	// 会社はプランに含まれないようにする
 	placesFiltered = placefilter.FilterCompany(placesFiltered)
@@ -94,11 +97,12 @@ func (s Service) createPlan(
 		}
 
 		// 飲食店やカフェは複数回含めない
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, []models.LocationCategory{
+		categoriesFood := []models.LocationCategory{
 			models.CategoryRestaurant,
 			models.CategoryMealTakeaway,
 			models.CategoryCafe,
-		}) {
+		}
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Types, categoriesFood) {
 			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Name)
 			continue
 		}
@@ -114,12 +118,14 @@ func (s Service) createPlan(
 		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
 		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
-		// 予定の時間を指定しない場合、3時間を超えたら終了
+		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
 		if freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
@@ -197,4 +203,16 @@ func categoryMainOfPlace(place places.Place) *models.LocationCategory {
 		}
 	}
 	return categoryMain
+}
+
+func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
+	categoriesOfPlace := models.GetCategoriesFromSubCategories(placeTypes)
+	for _, category := range categories {
+		for _, categoryOfPlace := range categoriesOfPlace {
+			if categoryOfPlace.Name == category.Name {
+				return true
+			}
+		}
+	}
+	return false
 }
