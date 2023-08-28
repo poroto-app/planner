@@ -272,25 +272,25 @@ func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUser
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	user, err := userService.FindByUserId(ctx, input.UserID)
+	author, err := userService.FindByUserId(ctx, input.UserID)
 	if err != nil {
-		log.Println("error while fetching user by id: ", err)
+		log.Println("error while fetching author by id: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	if user == nil {
+	if author == nil {
 		return nil, nil
 	}
 
 	plans, err := planService.PlansByUser(ctx, input.UserID)
 	if err != nil {
-		log.Println("error while fetching plans by user: ", err)
+		log.Println("error while fetching plans by author: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
 	return &model.PlansByUserOutput{
 		Plans:  factory.PlansFromDomainModel(plans),
-		Author: factory.UserFromDomainModel(user),
+		Author: factory.UserFromDomainModel(author),
 	}, nil
 }
 
