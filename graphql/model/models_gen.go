@@ -123,8 +123,9 @@ type PlansByUserOutput struct {
 }
 
 type SavePlanFromCandidateInput struct {
-	Session string `json:"session"`
-	PlanID  string `json:"planId"`
+	Session   string  `json:"session"`
+	PlanID    string  `json:"planId"`
+	AuthToken *string `json:"authToken,omitempty"`
 }
 
 type SavePlanFromCandidateOutput struct {

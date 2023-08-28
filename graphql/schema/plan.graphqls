@@ -150,6 +150,7 @@ type ChangePlacesOrderInPlanCandidateOutput {
 input SavePlanFromCandidateInput {
     session: String!
     planId: String!
+    authToken: String
 }
 
 type SavePlanFromCandidateOutput {

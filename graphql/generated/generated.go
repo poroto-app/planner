@@ -878,6 +878,7 @@ type ChangePlacesOrderInPlanCandidateOutput {
 input SavePlanFromCandidateInput {
     session: String!
     planId: String!
+    authToken: String
 }
 
 type SavePlanFromCandidateOutput {
@@ -6180,7 +6181,7 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "planId"}
+	fieldsInOrder := [...]string{"session", "planId", "authToken"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6205,6 +6206,15 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 				return it, err
 			}
 			it.PlanID = data
+		case "authToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthToken = data
 		}
 	}
 
