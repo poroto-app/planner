@@ -114,6 +114,14 @@ type PlansByLocationOutput struct {
 	PageKey *string `json:"pageKey,omitempty"`
 }
 
+type PlansByUserInput struct {
+	UserID string `json:"userId"`
+}
+
+type PlansByUserOutput struct {
+	Plans []*Plan `json:"plans"`
+}
+
 type SavePlanFromCandidateInput struct {
 	Session string `json:"session"`
 	PlanID  string `json:"planId"`

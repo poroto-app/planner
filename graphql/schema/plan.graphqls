@@ -49,6 +49,8 @@ extend type Query {
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
+    plansByUser(input: PlansByUserInput!): PlansByUserOutput!
+
     # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
@@ -69,6 +71,14 @@ input PlansByLocationInput {
 type PlansByLocationOutput {
     plans: [Plan!]!
     pageKey: String
+}
+
+input PlansByUserInput {
+    userId: String!
+}
+
+type PlansByUserOutput {
+    plans: [Plan!]!
 }
 
 type CachedCreatedPlans {
