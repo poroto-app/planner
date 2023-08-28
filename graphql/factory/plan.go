@@ -56,5 +56,6 @@ func PlanFromDomainModel(plan models.Plan) (*graphql.Plan, error) {
 		Places:        places,
 		TimeInMinutes: int(plan.TimeInMinutes),
 		Transitions:   transitions,
+		AuthorID:      plan.AuthorId,
 	}, nil
 }

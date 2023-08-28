@@ -99,7 +99,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
-	Author        *User         `json:"author,omitempty"`
+	AuthorID      *string       `json:"authorId,omitempty"`
 }
 
 type PlansByLocationInput struct {
@@ -119,7 +119,8 @@ type PlansByUserInput struct {
 }
 
 type PlansByUserOutput struct {
-	Plans []*Plan `json:"plans"`
+	Plans  []*Plan `json:"plans"`
+	Author *User   `json:"author"`
 }
 
 type SavePlanFromCandidateInput struct {
