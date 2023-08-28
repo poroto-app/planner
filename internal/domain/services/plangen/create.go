@@ -35,17 +35,20 @@ func (s Service) createPlan(
 		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 	}
 
-	// 開始地点となる場所から500m圏内の場所に絞る
+	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
 		placeStart.Location.ToGeoLocation(),
 		0,
-		500,
+		1500,
 	)
+
+	// 重複した場所を削除
+	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
 
 	// 会社はプランに含まれないようにする
 	placesFiltered = placefilter.FilterCompany(placesFiltered)
-	
+
 	// 場所のカテゴリによるフィルタリング
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
@@ -64,6 +67,26 @@ func (s Service) createPlan(
 	previousLocation := locationStart
 	var timeInPlan uint = 0
 
+	// 指定された場所を基準としてプランを作成するときは必ず含める
+	if locationStart.Equal(placeStart.Location.ToGeoLocation()) {
+		categoryMain := categoryMainOfPlace(placeStart)
+		if categoryMain == nil {
+			categoryMain = &models.CategoryOther
+		}
+
+		placesInPlan = append(placesInPlan, models.Place{
+			Id:                    uuid.New().String(),
+			Name:                  placeStart.Name,
+			GooglePlaceId:         utils.StrPointer(placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:              placeStart.Location.ToGeoLocation(),
+			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Category:              categoryMain.Name,
+		})
+
+		timeInPlan += categoryMain.EstimatedStayDuration
+		previousLocation = placeStart.Location.ToGeoLocation()
+	}
+
 	for _, place := range placesSortedByDistance {
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
@@ -74,24 +97,18 @@ func (s Service) createPlan(
 		}
 
 		// 飲食店やカフェは複数回含めない
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, []models.LocationCategory{
+		categoriesFood := []models.LocationCategory{
 			models.CategoryRestaurant,
 			models.CategoryMealTakeaway,
 			models.CategoryCafe,
-		}) {
+		}
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Types, categoriesFood) {
 			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Name)
 			continue
 		}
 
-		var categoryMain *models.LocationCategory
-		for _, placeType := range place.Types {
-			c := models.CategoryOfSubCategory(placeType)
-			if c != nil {
-				categoryMain = c
-				break
-			}
-		}
 		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
+		categoryMain := categoryMainOfPlace(place)
 		if categoryMain == nil {
 			log.Printf("place %s has no category\n", place.Name)
 			continue
@@ -101,12 +118,14 @@ func (s Service) createPlan(
 		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
 		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
 		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
-		// 予定の時間を指定しない場合、3時間を超えたら終了
+		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
 		if freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
-			break
+			log.Printf("skip place %s because it will be over time\n", place.Name)
+			continue
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
@@ -167,6 +186,30 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 	for _, category := range categories {
 		for _, categoryInPlan := range categoriesInPlan {
 			if categoryInPlan.Name == category.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func categoryMainOfPlace(place places.Place) *models.LocationCategory {
+	var categoryMain *models.LocationCategory
+	for _, placeType := range place.Types {
+		c := models.CategoryOfSubCategory(placeType)
+		if c != nil {
+			categoryMain = c
+			break
+		}
+	}
+	return categoryMain
+}
+
+func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
+	categoriesOfPlace := models.GetCategoriesFromSubCategories(placeTypes)
+	for _, category := range categories {
+		for _, categoryOfPlace := range categoriesOfPlace {
+			if categoryOfPlace.Name == category.Name {
 				return true
 			}
 		}

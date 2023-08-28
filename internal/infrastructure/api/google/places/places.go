@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"googlemaps.github.io/maps"
-	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type PlacesApi struct {
@@ -30,29 +29,6 @@ func NewPlacesApi() (*PlacesApi, error) {
 		apiKey:     apiKey,
 		mapsClient: c,
 	}, nil
-}
-
-type Place struct {
-	PlaceID          string   `firestore:"place_id"`
-	Name             string   `firestore:"name"`
-	Types            []string `firestore:"types"`
-	Location         Location `firestore:"location"`
-	PhotoReferences  []string `firestore:"photo_references"`
-	OpenNow          bool     `firestore:"open_now"`
-	Rating           float32  `firestore:"rating"`
-	UserRatingsTotal int      `firestore:"user_ratings_total"`
-}
-
-type Location struct {
-	Latitude  float64 `firestore:"latitude"`
-	Longitude float64 `firestore:"longitude"`
-}
-
-func (r Location) ToGeoLocation() models.GeoLocation {
-	return models.GeoLocation{
-		Latitude:  r.Latitude,
-		Longitude: r.Longitude,
-	}
 }
 
 type FindPlacesFromLocationRequest struct {
@@ -82,19 +58,16 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			photoReferences = append(photoReferences, photo.PhotoReference)
 		}
 
-		places = append(places, Place{
-			PlaceID: place.PlaceID,
-			Name:    place.Name,
-			Types:   place.Types,
-			Location: Location{
-				Latitude:  place.Geometry.Location.Lat,
-				Longitude: place.Geometry.Location.Lng,
-			},
-			OpenNow:          place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
-			PhotoReferences:  photoReferences,
-			Rating:           place.Rating,
-			UserRatingsTotal: place.UserRatingsTotal,
-		})
+		places = append(places, createPlace(
+			place.PlaceID,
+			place.Name,
+			place.Types,
+			place.Geometry,
+			photoReferences,
+			place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
+			place.Rating,
+			place.UserRatingsTotal,
+		))
 	}
 
 	return places, nil

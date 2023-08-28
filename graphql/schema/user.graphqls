@@ -1,0 +1,14 @@
+type User {
+    id: ID!
+    name: String!
+    photoUrl: String
+}
+
+extend type Query {
+    firebaseUser(input: FirebaseUserInput): User!
+}
+
+input FirebaseUserInput {
+    firebaseUserId: String!
+    firebaseAuthToken: String!
+}
