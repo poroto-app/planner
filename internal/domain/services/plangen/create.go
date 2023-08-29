@@ -12,33 +12,34 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 const (
 	defaultMaxPlanDuration = 180
 )
 
-func (s Service) createPlan(
-	ctx context.Context,
-	locationStart models.GeoLocation,
-	placeStart places.Place,
-	places []places.Place,
-	freeTime *int,
-	createBasedOnCurrentLocation bool,
-	shouldOpenWhileTraveling bool,
-) (*models.Plan, error) {
-	placesFiltered := places
+type CreatePlanParams struct {
+	locationStart                models.GeoLocation
+	placeStart                   api.Place
+	places                       []api.Place
+	freeTime                     *int
+	createBasedOnCurrentLocation bool
+	shouldOpenWhileTraveling     bool
+}
+
+func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*models.Plan, error) {
+	placesFiltered := params.places
 
 	// 現在、開いている場所のみに絞る
-	if shouldOpenWhileTraveling {
+	if params.shouldOpenWhileTraveling {
 		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
 	}
 
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
-		placeStart.Location.ToGeoLocation(),
+		params.placeStart.Location.ToGeoLocation(),
 		0,
 		1500,
 	)
@@ -56,7 +57,7 @@ func (s Service) createPlan(
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
 	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
-		locationRecommend := placeStart.Location.ToGeoLocation()
+		locationRecommend := params.placeStart.Location.ToGeoLocation()
 		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
 		distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
 		return distanceI < distanceJ
@@ -64,27 +65,27 @@ func (s Service) createPlan(
 
 	placesInPlan := make([]models.Place, 0)
 	transitions := make([]models.Transition, 0)
-	previousLocation := locationStart
+	previousLocation := params.locationStart
 	var timeInPlan uint = 0
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
-	if locationStart.Equal(placeStart.Location.ToGeoLocation()) {
-		categoryMain := categoryMainOfPlace(placeStart)
+	if params.locationStart.Equal(params.placeStart.Location.ToGeoLocation()) {
+		categoryMain := categoryMainOfPlace(params.placeStart)
 		if categoryMain == nil {
 			categoryMain = &models.CategoryOther
 		}
 
 		placesInPlan = append(placesInPlan, models.Place{
 			Id:                    uuid.New().String(),
-			Name:                  placeStart.Name,
-			GooglePlaceId:         utils.StrPointer(placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:              placeStart.Location.ToGeoLocation(),
+			Name:                  params.placeStart.Name,
+			GooglePlaceId:         utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:              params.placeStart.Location.ToGeoLocation(),
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
 		})
 
 		timeInPlan += categoryMain.EstimatedStayDuration
-		previousLocation = placeStart.Location.ToGeoLocation()
+		previousLocation = params.placeStart.Location.ToGeoLocation()
 	}
 
 	for _, place := range placesSortedByDistance {
@@ -117,23 +118,23 @@ func (s Service) createPlan(
 		// 予定の時間内に収まらない場合はスキップ
 		travelTime := previousLocation.TravelTimeTo(place.Location.ToGeoLocation(), 80.0)
 		timeInPlace := categoryMain.EstimatedStayDuration + travelTime
-		if freeTime != nil && timeInPlan+timeInPlace > uint(*freeTime) {
+		if params.freeTime != nil && timeInPlan+timeInPlace > uint(*params.freeTime) {
 			log.Printf("skip place %s because it will be over time\n", place.Name)
 			continue
 		}
 
 		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
-		if freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
+		if params.freeTime == nil && timeInPlan+timeInPlace > defaultMaxPlanDuration {
 			log.Printf("skip place %s because it will be over time\n", place.Name)
 			continue
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
-		if shouldOpenWhileTraveling && freeTime != nil && !s.isOpeningWithIn(
+		if params.shouldOpenWhileTraveling && params.freeTime != nil && !s.isOpeningWithIn(
 			ctx,
 			place,
 			time.Now(),
-			time.Minute*time.Duration(*freeTime),
+			time.Minute*time.Duration(*params.freeTime),
 		) {
 			log.Printf("skip place %s because it will be closed\n", place.Name)
 			continue
@@ -150,7 +151,7 @@ func (s Service) createPlan(
 		})
 		timeInPlan += timeInPlace
 		previousLocation = place.Location.ToGeoLocation()
-		transitions = s.AddTransition(placesInPlan, transitions, travelTime, createBasedOnCurrentLocation)
+		transitions = s.AddTransition(placesInPlan, transitions, travelTime, params.createBasedOnCurrentLocation)
 	}
 
 	if len(placesInPlan) == 0 {
@@ -165,7 +166,7 @@ func (s Service) createPlan(
 	title, err := s.GeneratePlanTitle(placesInPlan)
 	if err != nil {
 		log.Printf("error while generating plan title: %v\n", err)
-		title = &placeStart.Name
+		title = &params.placeStart.Name
 	}
 
 	return &models.Plan{
@@ -193,7 +194,7 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 	return false
 }
 
-func categoryMainOfPlace(place places.Place) *models.LocationCategory {
+func categoryMainOfPlace(place api.Place) *models.LocationCategory {
 	var categoryMain *models.LocationCategory
 	for _, placeType := range place.Types {
 		c := models.CategoryOfSubCategory(placeType)

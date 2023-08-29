@@ -38,14 +38,14 @@ func (s Service) CreatePlanFromPlace(
 
 	planCreated, err := s.createPlan(
 		ctx,
-		placeStart.Location.ToGeoLocation(),
-		*placeStart,
-		placesSearched,
-		// TODO: freeTimeの項目を保存し、それを反映させる
-		nil,
-		planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-		// 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
-		false,
+		CreatePlanParams{
+			locationStart:                placeStart.Location.ToGeoLocation(),
+			placeStart:                   *placeStart,
+			places:                       placesSearched,
+			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
+			createBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+			shouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+		},
 	)
 	if err != nil {
 		return nil, err

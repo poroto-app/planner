@@ -106,13 +106,14 @@ func (s Service) CreatePlanByLocation(
 		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
 			plan, err := s.createPlan(
 				ctx,
-				locationStart,
-				placeRecommend,
-				placesFiltered,
-				freeTime,
-				createBasedOnCurrentLocation,
-				// 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
-				createBasedOnCurrentLocation,
+				CreatePlanParams{
+					locationStart:                locationStart,
+					placeStart:                   placeRecommend,
+					places:                       placesFiltered,
+					freeTime:                     freeTime,
+					createBasedOnCurrentLocation: createBasedOnCurrentLocation,
+					shouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				},
 			)
 			if err != nil {
 				log.Printf("error while creating plan: %v\n", err)
