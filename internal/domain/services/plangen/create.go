@@ -23,6 +23,7 @@ type CreatePlanParams struct {
 	locationStart                models.GeoLocation
 	placeStart                   api.Place
 	places                       []api.Place
+	placesOtherPlansContain      []models.Place
 	freeTime                     *int
 	createBasedOnCurrentLocation bool
 	shouldOpenWhileTraveling     bool
@@ -53,6 +54,16 @@ func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*mode
 	// 場所のカテゴリによるフィルタリング
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+
+	// 他のプランに含まれている場所を除外する
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place api.Place) bool {
+		for _, placeOtherPlanContain := range params.placesOtherPlansContain {
+			if place.PlaceID == *placeOtherPlanContain.GooglePlaceId {
+				return false
+			}
+		}
+		return true
+	})
 
 	// 起点となる場所との距離順でソート
 	placesSortedByDistance := placesFiltered
