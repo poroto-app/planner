@@ -229,3 +229,26 @@ func isCategoryOf(placeTypes []string, categories []models.LocationCategory) boo
 	}
 	return false
 }
+
+// sortPlacesByDistanceFrom location からplacesを巡回する最短経路をgreedy法で求める
+func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Place) []models.Place {
+	placesSorted := places
+	prevLocation := location
+	for i := 0; i < len(places); i++ {
+		nearestPlaceIndex := i
+		for j := i; j < len(places); j++ {
+			locationCurrent := placesSorted[j].Location
+			locationNearest := placesSorted[nearestPlaceIndex].Location
+
+			distanceFromCurrent := prevLocation.DistanceInMeter(locationCurrent)
+			distanceFromNearest := prevLocation.DistanceInMeter(locationNearest)
+			if distanceFromCurrent < distanceFromNearest {
+				nearestPlaceIndex = j
+			}
+		}
+
+		placesSorted[i], placesSorted[nearestPlaceIndex] = placesSorted[nearestPlaceIndex], placesSorted[i]
+		prevLocation = placesSorted[i].Location
+	}
+	return placesSorted
+}
