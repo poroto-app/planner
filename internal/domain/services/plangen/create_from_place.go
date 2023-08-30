@@ -36,9 +36,9 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
-	planCreated, err := s.createPlan(
+	planPlaces, err := s.createPlanPlaces(
 		ctx,
-		CreatePlanParams{
+		CreatePlanPlacesParams{
 			locationStart:                placeStart.Location.ToGeoLocation(),
 			placeStart:                   *placeStart,
 			places:                       placesSearched,
@@ -51,9 +51,20 @@ func (s Service) CreatePlanFromPlace(
 		return nil, err
 	}
 
-	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, planCreated); err != nil {
+	plansCreated := s.createPlans(ctx, CreatePlanParams{
+		locationStart: placeStart.Location.ToGeoLocation(),
+		placeStart:    *placeStart,
+		places:        planPlaces,
+	})
+	if len(plansCreated) == 0 {
+		return nil, fmt.Errorf("no plan created")
+	}
+
+	plan := plansCreated[0]
+
+	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, &plan); err != nil {
 		return nil, err
 	}
 
-	return planCreated, nil
+	return &plan, nil
 }

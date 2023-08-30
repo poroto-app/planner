@@ -98,16 +98,16 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
-	var plans []models.Plan
+	var createPlanParams []CreatePlanParams
 	for _, placeRecommend := range placesRecommend {
 		var placesInPlan []models.Place
-		for _, plan := range plans {
-			placesInPlan = append(placesInPlan, plan.Places...)
+		for _, createPlanParam := range createPlanParams {
+			placesInPlan = append(placesInPlan, createPlanParam.places...)
 		}
 
-		plan, err := s.createPlan(
+		planPlaces, err := s.createPlanPlaces(
 			ctx,
-			CreatePlanParams{
+			CreatePlanPlacesParams{
 				locationStart:                locationStart,
 				placeStart:                   placeRecommend,
 				places:                       placesFiltered,
@@ -122,8 +122,14 @@ func (s Service) CreatePlanByLocation(
 			continue
 		}
 
-		plans = append(plans, *plan)
+		createPlanParams = append(createPlanParams, CreatePlanParams{
+			locationStart: locationStart,
+			placeStart:    placeRecommend,
+			places:        planPlaces,
+		})
 	}
+
+	plans := s.createPlans(ctx, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if googlePlaceId != nil {

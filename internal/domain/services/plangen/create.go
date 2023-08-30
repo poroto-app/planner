@@ -18,7 +18,7 @@ const (
 	defaultMaxPlanDuration = 180
 )
 
-type CreatePlanParams struct {
+type CreatePlanPlacesParams struct {
 	locationStart                models.GeoLocation
 	placeStart                   api.Place
 	places                       []api.Place
@@ -28,7 +28,8 @@ type CreatePlanParams struct {
 	shouldOpenWhileTraveling     bool
 }
 
-func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*models.Plan, error) {
+// createPlanPlaces プランの候補地となる場所を作成する
+func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.Place, error) {
 	placesFiltered := params.places
 
 	// 現在、開いている場所のみに絞る
@@ -159,30 +160,57 @@ func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*mode
 		return nil, fmt.Errorf("could not contain any places in plan")
 	}
 
-	// 場所の画像を取得
-	performanceTimer := time.Now()
-	placesInPlan = s.FetchPlacesPhotos(ctx, placesInPlan)
-	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
+	return placesInPlan, nil
+}
 
-	title, err := s.GeneratePlanTitle(placesInPlan)
-	if err != nil {
-		log.Printf("error while generating plan title: %v\n", err)
-		title = &params.placeStart.Name
+type CreatePlanParams struct {
+	locationStart models.GeoLocation
+	placeStart    api.Place
+	places        []models.Place
+}
+
+func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []models.Plan {
+	ch := make(chan *models.Plan, len(params))
+	for _, param := range params {
+		go func(ctx context.Context, param CreatePlanParams) {
+			places := param.places
+
+			// 場所の画像を取得
+			performanceTimer := time.Now()
+			places = s.FetchPlacesPhotos(ctx, places)
+			log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
+
+			title, err := s.GeneratePlanTitle(param.places)
+			if err != nil {
+				log.Printf("error while generating plan title: %v\n", err)
+				title = &param.placeStart.Name
+			}
+
+			places = sortPlacesByDistanceFrom(param.locationStart, places)
+			timeInPlan := planTimeFromPlaces(param.locationStart, places)
+
+			plan := models.Plan{
+				Id:            uuid.New().String(),
+				Name:          *title,
+				Places:        places,
+				TimeInMinutes: timeInPlan,
+			}
+
+			plan.Transitions = plan.RecreateTransition(&param.locationStart)
+			ch <- &plan
+		}(ctx, param)
 	}
 
-	placesInPlan = sortPlacesByDistanceFrom(params.locationStart, placesInPlan)
-	timeInPlan := planTimeFromPlaces(params.locationStart, placesInPlan)
-
-	plan := models.Plan{
-		Id:            uuid.New().String(),
-		Name:          *title,
-		Places:        placesInPlan,
-		TimeInMinutes: timeInPlan,
+	plans := make([]models.Plan, 0)
+	for i := 0; i < len(params); i++ {
+		plan := <-ch
+		if plan == nil {
+			continue
+		}
+		plans = append(plans, *plan)
 	}
 
-	plan.Transitions = plan.RecreateTransition(&params.locationStart)
-
-	return &plan, nil
+	return plans
 }
 
 func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []models.LocationCategory) bool {
