@@ -253,7 +253,9 @@ func isCategoryOf(placeTypes []string, categories []models.LocationCategory) boo
 
 // sortPlacesByDistanceFrom location からplacesを巡回する最短経路をgreedy法で求める
 func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Place) []models.Place {
-	placesSorted := places
+	placesSorted := make([]models.Place, len(places))
+	copy(placesSorted, places)
+
 	prevLocation := location
 	for i := 0; i < len(places); i++ {
 		nearestPlaceIndex := i
@@ -285,7 +287,6 @@ func planTimeFromPlaces(locationStart models.GeoLocation, places []models.Place)
 		// カテゴリが不明な場合，滞在時間が取得できない
 		categoryMain := models.GetCategoryOfName(place.Category)
 		if categoryMain == nil {
-			log.Printf("place %s has no category\n", place.Name)
 			prevLocation = place.Location
 			continue
 		}
