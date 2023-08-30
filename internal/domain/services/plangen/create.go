@@ -196,7 +196,7 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				TimeInMinutes: timeInPlan,
 			}
 
-			plan.Transitions = plan.RecreateTransition(&param.locationStart)
+			plan.Transitions = plan.CreateTransition(&param.locationStart)
 			ch <- &plan
 		}(ctx, param)
 	}

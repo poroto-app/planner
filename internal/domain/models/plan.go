@@ -18,9 +18,9 @@ func (p Plan) GetPlace(placeId string) *Place {
 	return nil
 }
 
-// RecreateTransition　は移動情報を更新する（プラン内の場所の順番入れ替えなどの後に用いる）
+// CreateTransition　は移動情報を更新する（プラン内の場所の順番入れ替えなどの後に用いる）
 // startLocation は現在地の座標を表す
-func (p Plan) RecreateTransition(startLocation *GeoLocation) []Transition {
+func (p Plan) CreateTransition(startLocation *GeoLocation) []Transition {
 	transitions := make([]Transition, 0)
 
 	// 現在位置から作成されたプラン or 場所指定で作成されたプラン

@@ -138,7 +138,7 @@ func TestRecreateTransition(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result := c.plan.RecreateTransition(c.start)
+			result := c.plan.CreateTransition(c.start)
 
 			if diff := cmp.Diff(c.expected, result); diff != "" {
 				t.Errorf("expected %v, but got %v", c.expected, result)
