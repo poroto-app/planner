@@ -252,3 +252,25 @@ func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Place
 	}
 	return placesSorted
 }
+
+// planTimeFromPlaces プランの所要時間を計算する
+func planTimeFromPlaces(locationStart models.GeoLocation, places []models.Place) uint {
+	prevLocation := locationStart
+	var planTimeInMinutes uint
+	for _, place := range places {
+		travelTime := prevLocation.TravelTimeTo(place.Location, 80.0)
+		planTimeInMinutes += travelTime
+
+		// カテゴリが不明な場合，滞在時間が取得できない
+		categoryMain := models.GetCategoryOfName(place.Category)
+		if categoryMain == nil {
+			log.Printf("place %s has no category\n", place.Name)
+			prevLocation = place.Location
+			continue
+		}
+
+		planTimeInMinutes += categoryMain.EstimatedStayDuration
+	}
+
+	return planTimeInMinutes
+}
