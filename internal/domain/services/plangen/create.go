@@ -57,8 +57,12 @@ func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*mode
 
 	// 他のプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place api.Place) bool {
+		if params.placesOtherPlansContain == nil {
+			return true
+		}
+
 		for _, placeOtherPlanContain := range params.placesOtherPlansContain {
-			if place.PlaceID == *placeOtherPlanContain.GooglePlaceId {
+			if placeOtherPlanContain.GooglePlaceId != nil && place.PlaceID == *placeOtherPlanContain.GooglePlaceId {
 				return false
 			}
 		}
