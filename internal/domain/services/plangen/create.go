@@ -95,6 +95,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	for _, place := range placesSorted {
+		if place.PlaceID == params.placeStart.PlaceID {
+			continue
+		}
+
 		// 飲食店やカフェは複数回含めない
 		categoriesFood := []models.LocationCategory{
 			models.CategoryRestaurant,
