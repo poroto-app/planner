@@ -155,6 +155,7 @@ var (
 	CategoryIgnore = LocationCategory{
 		Name: "ignore",
 		SubCategories: []string{
+			"health",
 			string(maps.PlaceTypeAccounting),
 
 			string(maps.PlaceTypeAtm),
