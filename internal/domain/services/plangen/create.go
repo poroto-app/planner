@@ -69,13 +69,10 @@ func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*mode
 		return true
 	})
 
-	// 起点となる場所との距離順でソート
-	placesSortedByDistance := placesFiltered
-	sort.SliceStable(placesSortedByDistance, func(i, j int) bool {
-		locationRecommend := params.placeStart.Location.ToGeoLocation()
-		distanceI := locationRecommend.DistanceInMeter(placesSortedByDistance[i].Location.ToGeoLocation())
-		distanceJ := locationRecommend.DistanceInMeter(placesSortedByDistance[j].Location.ToGeoLocation())
-		return distanceI < distanceJ
+	// レビューの高い順でソート
+	placesSorted := placesFiltered
+	sort.SliceStable(placesSorted, func(i, j int) bool {
+		return placesSorted[i].Rating > placesSorted[j].Rating
 	})
 
 	placesInPlan := make([]models.Place, 0)
@@ -103,7 +100,7 @@ func (s Service) createPlan(ctx context.Context, params CreatePlanParams) (*mode
 		previousLocation = params.placeStart.Location.ToGeoLocation()
 	}
 
-	for _, place := range placesSortedByDistance {
+	for _, place := range placesSorted {
 		var categoriesOfPlace []string
 		for _, placeType := range place.Types {
 			c := models.CategoryOfSubCategory(placeType)
