@@ -189,15 +189,13 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 			places = sortPlacesByDistanceFrom(param.locationStart, places)
 			timeInPlan := planTimeFromPlaces(param.locationStart, places)
 
-			plan := models.Plan{
+			ch <- &models.Plan{
 				Id:            uuid.New().String(),
 				Name:          *title,
 				Places:        places,
 				TimeInMinutes: timeInPlan,
+				Transitions:   models.CreateTransition(places, &param.locationStart),
 			}
-
-			plan.Transitions = plan.CreateTransition(&param.locationStart)
-			ch <- &plan
 		}(ctx, param)
 	}
 
