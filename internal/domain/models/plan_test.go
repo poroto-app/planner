@@ -1,10 +1,11 @@
 package models
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"testing"
 )
 
-func GetPlaceTest(t *testing.T) {
+func TestGetPlace(t *testing.T) {
 	cases := []struct {
 		name     string
 		plan     Plan
@@ -16,15 +17,13 @@ func GetPlaceTest(t *testing.T) {
 			plan: Plan{
 				Places: []Place{
 					{
-						Id:   "1",
-						Name: "place1",
+						Id: "1",
 					},
 				},
 			},
 			placeId: "1",
 			expected: &Place{
-				Id:   "1",
-				Name: "place1",
+				Id: "1",
 			},
 		},
 		{
@@ -32,8 +31,7 @@ func GetPlaceTest(t *testing.T) {
 			plan: Plan{
 				Places: []Place{
 					{
-						Id:   "1",
-						Name: "place1",
+						Id: "1",
 					},
 				},
 			},
@@ -45,8 +43,8 @@ func GetPlaceTest(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			actual := c.plan.GetPlace(c.placeId)
-			if actual != c.expected {
-				t.Errorf("expected: %v, actual: %v", c.expected, actual)
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("(-want +got):\n%s", diff)
 			}
 		})
 	}
