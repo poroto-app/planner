@@ -5,6 +5,7 @@ type Plan {
     timeInMinutes: Int!
     description: String
     transitions: [Transition!]!
+    author: User
 }
 
 type Place {
@@ -47,6 +48,8 @@ extend type Query {
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
+    plansByUser(input: PlansByUserInput!): PlansByUserOutput!
+
     # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
 
@@ -67,6 +70,14 @@ input PlansByLocationInput {
 type PlansByLocationOutput {
     plans: [Plan!]!
     pageKey: String
+}
+
+input PlansByUserInput {
+    userId: String!
+}
+
+type PlansByUserOutput {
+    plans: [Plan!]!
 }
 
 type CachedCreatedPlans {
@@ -138,6 +149,7 @@ type ChangePlacesOrderInPlanCandidateOutput {
 input SavePlanFromCandidateInput {
     session: String!
     planId: String!
+    authToken: String
 }
 
 type SavePlanFromCandidateOutput {

@@ -258,6 +258,11 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 	}, nil
 }
 
+// PlansByUser is the resolver for the plansByUser field.
+func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error) {
+	panic(fmt.Errorf("not implemented: PlansByUser - plansByUser"))
+}
+
 // MatchInterests is the resolver for the matchInterests field.
 func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
 	service, err := plancandidate.NewService(ctx)

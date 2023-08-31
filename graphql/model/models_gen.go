@@ -99,6 +99,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
+	Author        *User         `json:"author,omitempty"`
 }
 
 type PlansByLocationInput struct {
@@ -113,9 +114,18 @@ type PlansByLocationOutput struct {
 	PageKey *string `json:"pageKey,omitempty"`
 }
 
+type PlansByUserInput struct {
+	UserID string `json:"userId"`
+}
+
+type PlansByUserOutput struct {
+	Plans []*Plan `json:"plans"`
+}
+
 type SavePlanFromCandidateInput struct {
-	Session string `json:"session"`
-	PlanID  string `json:"planId"`
+	Session   string  `json:"session"`
+	PlanID    string  `json:"planId"`
+	AuthToken *string `json:"authToken,omitempty"`
 }
 
 type SavePlanFromCandidateOutput struct {
