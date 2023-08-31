@@ -36,24 +36,35 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
-	planCreated, err := s.createPlan(
+	planPlaces, err := s.createPlanPlaces(
 		ctx,
-		placeStart.Location.ToGeoLocation(),
-		*placeStart,
-		placesSearched,
-		// TODO: freeTimeの項目を保存し、それを反映させる
-		nil,
-		planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-		// 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
-		false,
+		CreatePlanPlacesParams{
+			locationStart:                placeStart.Location.ToGeoLocation(),
+			placeStart:                   *placeStart,
+			places:                       placesSearched,
+			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
+			createBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+			shouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+		},
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, planCreated); err != nil {
+	plansCreated := s.createPlans(ctx, CreatePlanParams{
+		locationStart: placeStart.Location.ToGeoLocation(),
+		placeStart:    *placeStart,
+		places:        planPlaces,
+	})
+	if len(plansCreated) == 0 {
+		return nil, fmt.Errorf("no plan created")
+	}
+
+	plan := plansCreated[0]
+
+	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, &plan); err != nil {
 		return nil, err
 	}
 
-	return planCreated, nil
+	return &plan, nil
 }

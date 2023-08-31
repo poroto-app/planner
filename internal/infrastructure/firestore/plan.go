@@ -76,6 +76,29 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 	return &plan, nil
 }
 
+func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[]models.Plan, error) {
+	collection := p.collection()
+	query := collection.Where("author_id", "==", authorId).OrderBy("updated_at", firestore.Desc)
+
+	snapshots, err := query.Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("error while getting plans: %v", err)
+	}
+
+	var plans []models.Plan
+	for _, snapshot := range snapshots {
+		var planEntity entity.PlanEntity
+		if err = snapshot.DataTo(&planEntity); err != nil {
+			return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+
+		plan := entity.FromPlanEntity(planEntity)
+		plans = append(plans, plan)
+	}
+
+	return &plans, nil
+}
+
 // SortedByCreatedAt created_atで降順に並べたPlanを取得する
 // queryCursor(リストの最後の [models.Plan] のID)が指定されている場合は、そのcursor以降のPlanを取得する
 func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error) {

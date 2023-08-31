@@ -33,6 +33,9 @@ func (s Service) FetchCandidatePlaces(
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
+	// 重複した場所を削除
+	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
+
 	placesSortedByRating := placesFiltered
 	sort.Slice(placesSortedByRating, func(i, j int) bool {
 		return placesSortedByRating[i].Rating > placesSortedByRating[j].Rating

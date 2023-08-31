@@ -18,6 +18,7 @@ type PlanEntity struct {
 	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
 	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
 	UpdatedAt     time.Time            `firestore:"updated_at,omitempty"`
+	AuthorId      *string              `firestore:"author_id,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
@@ -39,36 +40,23 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		GeoHash:       geohash,
 		TimeInMinutes: int(plan.TimeInMinutes),
 		Transitions:   ToTransitionsEntities(plan.Transitions),
+		AuthorId:      plan.AuthorId,
+		UpdatedAt:     time.Now(),
 	}
 }
 
 func FromPlanEntity(entity PlanEntity) models.Plan {
-	return fromPlanEntity(
-		entity.Id,
-		entity.Name,
-		entity.Places,
-		entity.TimeInMinutes,
-		entity.Transitions,
-	)
-}
-
-func fromPlanEntity(
-	id string,
-	name string,
-	places []PlaceEntity,
-	timeInMinutes int,
-	transitions *[]TransitionsEntity,
-) models.Plan {
-	ps := make([]models.Place, len(places))
-	for i, place := range places {
+	ps := make([]models.Place, len(entity.Places))
+	for i, place := range entity.Places {
 		ps[i] = FromPlaceEntity(place)
 	}
 
 	return models.Plan{
-		Id:            id,
-		Name:          name,
+		Id:            entity.Id,
+		Name:          entity.Name,
 		Places:        ps,
-		TimeInMinutes: uint(timeInMinutes),
-		Transitions:   FromTransitionEntities(transitions),
+		TimeInMinutes: uint(entity.TimeInMinutes),
+		Transitions:   FromTransitionEntities(entity.Transitions),
+		AuthorId:      entity.AuthorId,
 	}
 }

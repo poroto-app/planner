@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -11,19 +12,13 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+// TODO: PlanGeneratorServiceに持っていく
 func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 	createPlanSessionId string,
 ) ([]models.LocationCategory, error) {
-	placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-		Location: places.Location{
-			Latitude:  location.Latitude,
-			Longitude: location.Longitude,
-		},
-		Radius:   2000,
-		Language: "ja",
-	})
+	placesSearched, err := s.planGeneratorService.SearchNearbyPlaces(ctx, location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
@@ -74,7 +69,7 @@ func (s Service) CategoriesNearLocation(
 				continue
 			}
 			if placePhoto != nil {
-				category.Photo = placePhoto.ImageUrl
+				category.Photo = utils.StrPointer(placePhoto.ImageUrl)
 				placesUsedOfCategory = append(placesUsedOfCategory, place)
 				break
 			}

@@ -3,10 +3,8 @@ package places
 import (
 	"context"
 	"fmt"
-	"os"
-
 	"googlemaps.github.io/maps"
-	"poroto.app/poroto/planner/internal/domain/models"
+	"os"
 )
 
 type PlacesApi struct {
@@ -32,35 +30,20 @@ func NewPlacesApi() (*PlacesApi, error) {
 	}, nil
 }
 
-type Place struct {
-	PlaceID         string   `firestore:"place_id"`
-	Name            string   `firestore:"name"`
-	Types           []string `firestore:"types"`
-	Location        Location `firestore:"location"`
-	PhotoReferences []string `firestore:"photo_references"`
-	OpenNow         bool     `firestore:"open_now"`
-	Rating          float32  `firestore:"rating"`
-}
-
-type Location struct {
-	Latitude  float64 `firestore:"latitude"`
-	Longitude float64 `firestore:"longitude"`
-}
-
-func (r Location) ToGeoLocation() models.GeoLocation {
-	return models.GeoLocation{
-		Latitude:  r.Latitude,
-		Longitude: r.Longitude,
-	}
-}
-
 type FindPlacesFromLocationRequest struct {
-	Location Location
-	Radius   uint
-	Language string
+	Location    Location
+	Radius      uint
+	Language    string
+	Type        *maps.PlaceType
+	SearchCount int
 }
 
 func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
+	var placeType maps.PlaceType
+	if req.Type != nil {
+		placeType = *req.Type
+	}
+
 	placeSearchResults, err := r.nearBySearch(ctx, &maps.NearbySearchRequest{
 		Location: &maps.LatLng{
 			Lat: req.Location.Latitude,
@@ -68,7 +51,8 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 		},
 		Radius:   req.Radius,
 		Language: req.Language,
-	})
+		Type:     placeType,
+	}, req.SearchCount)
 	if err != nil {
 		return nil, err
 	}
@@ -81,18 +65,16 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			photoReferences = append(photoReferences, photo.PhotoReference)
 		}
 
-		places = append(places, Place{
-			PlaceID: place.PlaceID,
-			Name:    place.Name,
-			Types:   place.Types,
-			Location: Location{
-				Latitude:  place.Geometry.Location.Lat,
-				Longitude: place.Geometry.Location.Lng,
-			},
-			OpenNow:         place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
-			PhotoReferences: photoReferences,
-			Rating:          place.Rating,
-		})
+		places = append(places, createPlace(
+			place.PlaceID,
+			place.Name,
+			place.Types,
+			place.Geometry,
+			photoReferences,
+			place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
+			place.Rating,
+			place.UserRatingsTotal,
+		))
 	}
 
 	return places, nil
