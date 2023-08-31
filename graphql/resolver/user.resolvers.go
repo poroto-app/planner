@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 
+	"poroto.app/poroto/planner/graphql/factory"
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 )
@@ -27,9 +28,5 @@ func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseU
 		return nil, fmt.Errorf("internal error")
 	}
 
-	return &model.User{
-		ID:       u.Id,
-		Name:     u.Name,
-		PhotoURL: u.PhotoUrl,
-	}, nil
+	return factory.UserFromDomainModel(u), nil
 }

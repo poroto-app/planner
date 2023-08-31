@@ -16,6 +16,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
+	"poroto.app/poroto/planner/internal/domain/services/user"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
@@ -260,7 +261,38 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 
 // PlansByUser is the resolver for the plansByUser field.
 func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error) {
-	panic(fmt.Errorf("not implemented: PlansByUser - plansByUser"))
+	planService, err := plan.NewService(ctx)
+	if err != nil {
+		log.Println("error while initializing plan service: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	userService, err := user.NewService(ctx)
+	if err != nil {
+		log.Println("error while initializing user service: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	author, err := userService.FindByUserId(ctx, input.UserID)
+	if err != nil {
+		log.Println("error while fetching author by id: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	if author == nil {
+		return nil, nil
+	}
+
+	plans, err := planService.PlansByUser(ctx, input.UserID)
+	if err != nil {
+		log.Println("error while fetching plans by author: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.PlansByUserOutput{
+		Plans:  factory.PlansFromDomainModel(plans),
+		Author: factory.UserFromDomainModel(author),
+	}, nil
 }
 
 // MatchInterests is the resolver for the matchInterests field.

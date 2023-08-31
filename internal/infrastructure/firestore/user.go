@@ -90,6 +90,26 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 	return nil
 }
 
+func (u UserRepository) Find(ctx context.Context, id string) (*models.User, error) {
+	doc := u.doc(id)
+	snapshot, err := doc.Get(ctx)
+	if err != nil && status.Code(err) != codes.NotFound {
+		return nil, fmt.Errorf("error while getting user: %v", err)
+	}
+
+	if !snapshot.Exists() {
+		return nil, nil
+	}
+
+	var userEntity entity.UserEntity
+	if err := snapshot.DataTo(&userEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to user entity: %v", err)
+	}
+
+	user := entity.ToUser(userEntity)
+	return &user, nil
+}
+
 func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error) {
 	log.Printf("Start finding user by firebase uid: %s\n", firebaseUID)
 	docIter := u.collection().Where("firebase_uid", "==", firebaseUID).Documents(ctx)

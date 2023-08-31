@@ -5,7 +5,7 @@ type Plan {
     timeInMinutes: Int!
     description: String
     transitions: [Transition!]!
-    author: User
+    authorId: String
 }
 
 type Place {
@@ -78,6 +78,7 @@ input PlansByUserInput {
 
 type PlansByUserOutput {
     plans: [Plan!]!
+    author: User!
 }
 
 type CachedCreatedPlans {
