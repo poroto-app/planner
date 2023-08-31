@@ -18,31 +18,3 @@ func (p Plan) GetPlace(placeId string) *Place {
 	}
 	return nil
 }
-
-// RecreateTransition　は移動情報を更新する（プラン内の場所の順番入れ替えなどの後に用いる）
-// startLocation は現在地の座標を表す
-func (p Plan) RecreateTransition(startLocation *GeoLocation) []Transition {
-	transitions := make([]Transition, 0)
-
-	// 現在位置から作成されたプラン or 場所指定で作成されたプラン
-	if startLocation != nil {
-		transitions = append(transitions, Transition{
-			FromPlaceId: nil,
-			ToPlaceId:   p.Places[0].Id,
-			Duration:    startLocation.TravelTimeTo(p.Places[0].Location, 80.0),
-		})
-	}
-
-	for i, place := range p.Places {
-		if i >= len(p.Places)-1 {
-			break
-		}
-		transitions = append(transitions, Transition{
-			FromPlaceId: &p.Places[i].Id,
-			ToPlaceId:   p.Places[i+1].Id,
-			Duration:    place.Location.TravelTimeTo(p.Places[i+1].Location, 80.0),
-		})
-	}
-
-	return transitions
-}

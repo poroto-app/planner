@@ -6,8 +6,6 @@ import (
 	"googlemaps.github.io/maps"
 	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
-	"time"
-
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -100,39 +98,38 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
-	performanceTimer := time.Now()
-	chPlans := make(chan *models.Plan, len(placesRecommend))
+	var createPlanParams []CreatePlanParams
 	for _, placeRecommend := range placesRecommend {
-		go func(ctx context.Context, placeRecommend places.Place, chPlan chan<- *models.Plan) {
-			plan, err := s.createPlan(
-				ctx,
-				locationStart,
-				placeRecommend,
-				placesFiltered,
-				freeTime,
-				createBasedOnCurrentLocation,
-				// 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
-				createBasedOnCurrentLocation,
-			)
-			if err != nil {
-				log.Printf("error while creating plan: %v\n", err)
-				chPlan <- nil
-				return
-			}
-			chPlans <- plan
-		}(ctx, placeRecommend, chPlans)
-	}
+		var placesInPlan []models.Place
+		for _, createPlanParam := range createPlanParams {
+			placesInPlan = append(placesInPlan, createPlanParam.places...)
+		}
 
-	plans := make([]models.Plan, 0)
-	for i := 0; i < len(placesRecommend); i++ {
-		plan := <-chPlans
-		if plan == nil {
+		planPlaces, err := s.createPlanPlaces(
+			ctx,
+			CreatePlanPlacesParams{
+				locationStart:                locationStart,
+				placeStart:                   placeRecommend,
+				places:                       placesFiltered,
+				placesOtherPlansContain:      placesInPlan,
+				freeTime:                     freeTime,
+				createBasedOnCurrentLocation: createBasedOnCurrentLocation,
+				shouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+			},
+		)
+		if err != nil {
+			log.Printf("error while creating plan: %v\n", err)
 			continue
 		}
 
-		plans = append(plans, *plan)
+		createPlanParams = append(createPlanParams, CreatePlanParams{
+			locationStart: locationStart,
+			placeStart:    placeRecommend,
+			places:        planPlaces,
+		})
 	}
-	log.Printf("created plans[%v]\n", time.Since(performanceTimer))
+
+	plans := s.createPlans(ctx, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if googlePlaceId != nil {
@@ -147,10 +144,6 @@ func (s Service) CreatePlanByLocation(
 				break
 			}
 		}
-	}
-
-	for _, plan := range plans {
-		log.Printf("plan: %s\n", plan.Name)
 	}
 
 	return &plans, nil
