@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/utils"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
+func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string, authToken *string) (*models.Plan, error) {
 	// プラン候補から対応するプランを取得
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
@@ -36,6 +37,20 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 	if planSaved != nil {
 		log.Printf("plan(%v) already exists. skip saving plan", planId)
 		return planSaved, nil
+	}
+
+	// ユーザー情報を取得
+	if authToken != nil {
+		user, err := s.userService.FindByFirebaseIdToken(ctx, *authToken)
+		if err != nil {
+			return nil, fmt.Errorf("error while getting user from firebase id token: %v", err)
+		}
+
+		if user == nil {
+			return nil, fmt.Errorf("user not found")
+		}
+
+		planToSave.AuthorId = utils.StrPointer(user.Id)
 	}
 
 	// プランを保存

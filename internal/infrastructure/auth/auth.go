@@ -55,6 +55,14 @@ func (f *FirebaseAuth) Verify(
 	return true, nil
 }
 
+func (f *FirebaseAuth) GetFirebaseUIDFromTokenId(ctx context.Context, tokenId string) (*string, error) {
+	token, err := f.client.VerifyIDToken(ctx, tokenId)
+	if err != nil {
+		return nil, fmt.Errorf("error while verifying firebase token: %v", err)
+	}
+	return &token.UID, nil
+}
+
 func (f *FirebaseAuth) GetUser(ctx context.Context, firebaseUid string) (*auth.UserRecord, error) {
 	return f.client.GetUser(ctx, firebaseUid)
 }
