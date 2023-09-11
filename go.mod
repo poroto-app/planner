@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/firestore v1.12.0
 	firebase.google.com/go/v4 v4.12.0
-	github.com/99designs/gqlgen v0.17.34
+	github.com/99designs/gqlgen v0.17.37
 	github.com/GoogleCloudPlatform/functions-framework-go v1.7.4
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/mmcloughlin/geohash v0.10.0
-	github.com/vektah/gqlparser/v2 v2.5.8
+	github.com/vektah/gqlparser/v2 v2.5.9
 	google.golang.org/api v0.138.0
 	google.golang.org/grpc v1.57.0
 	googlemaps.github.io/maps v1.5.0
