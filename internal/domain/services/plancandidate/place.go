@@ -75,8 +75,6 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		thumbnailUrl := thumbnail.ImageUrl
-
 		places = append(places, &models.Place{
 			// TODO: Google Places APIで取得されるIDと対応関係のあるIDを別で保存する
 			Id:                    place.PlaceID,
@@ -86,8 +84,8 @@ func (s Service) FetchCandidatePlaces(
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
 			Categories:            models.GetCategoriesFromSubCategories(place.Types),
-			Thumbnail:             &thumbnailUrl,
-			Photos:                []string{thumbnailUrl},
+			Thumbnails:            []string{thumbnail.ImageUrl},
+			Photos:                []string{thumbnail.ImageUrl},
 		})
 
 		if len(places) >= maxAddablePlaces {
