@@ -62,7 +62,7 @@ func (s Service) FetchCandidatePlaces(
 		}
 
 		thumbnail, err := s.placesApi.FetchPlacePhoto(place, &placesApi.ImageSize{
-			Width:  placesApi.ImgThumbnailMaxHeight,
+			Width:  placesApi.ImgThumbnailMaxWidth,
 			Height: placesApi.ImgThumbnailMaxHeight,
 		})
 		if err != nil {
