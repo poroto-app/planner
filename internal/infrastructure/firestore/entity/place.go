@@ -16,10 +16,11 @@ type PlaceEntity struct {
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
-	var googlePlaceReviews []GooglePlaceReviewEntity
+	var googlePlaceReviews *[]GooglePlaceReviewEntity
 	if place.GooglePlaceReviews != nil {
+		googlePlaceReviews = new([]GooglePlaceReviewEntity)
 		for _, review := range *place.GooglePlaceReviews {
-			googlePlaceReviews = append(googlePlaceReviews, ToGooglePlaceReviewEntity(review))
+			*googlePlaceReviews = append(*googlePlaceReviews, ToGooglePlaceReviewEntity(review))
 		}
 	}
 
@@ -31,15 +32,16 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		Thumbnail:             place.Thumbnail,
 		Photos:                place.Photos,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
-		GooglePlaceReviews:    &googlePlaceReviews,
+		GooglePlaceReviews:    googlePlaceReviews,
 	}
 }
 
 func FromPlaceEntity(entity PlaceEntity) models.Place {
-	var googlePlaceReviews []models.GooglePlaceReview
+	var googlePlaceReviews *[]models.GooglePlaceReview
 	if entity.GooglePlaceReviews != nil {
+		googlePlaceReviews = new([]models.GooglePlaceReview)
 		for _, review := range *entity.GooglePlaceReviews {
-			googlePlaceReviews = append(googlePlaceReviews, FromGooglePlaceReviewEntity(review))
+			*googlePlaceReviews = append(*googlePlaceReviews, FromGooglePlaceReviewEntity(review))
 		}
 	}
 
@@ -51,6 +53,6 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		Thumbnail:             entity.Thumbnail,
 		Photos:                entity.Photos,
 		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
-		GooglePlaceReviews:    &googlePlaceReviews,
+		GooglePlaceReviews:    googlePlaceReviews,
 	}
 }
