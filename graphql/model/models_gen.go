@@ -67,6 +67,17 @@ type GeoLocation struct {
 	Longitude float64 `json:"longitude"`
 }
 
+type GooglePlaceReview struct {
+	Rating           int     `json:"rating"`
+	Text             *string `json:"text,omitempty"`
+	Time             int     `json:"time"`
+	AuthorName       string  `json:"authorName"`
+	AuthorURL        *string `json:"authorUrl,omitempty"`
+	AuthorPhotoURL   *string `json:"authorPhotoUrl,omitempty"`
+	Language         *string `json:"language,omitempty"`
+	OriginalLanguage *string `json:"originalLanguage,omitempty"`
+}
+
 type InterestCandidate struct {
 	Session    string              `json:"session"`
 	Categories []*LocationCategory `json:"categories"`
@@ -85,11 +96,12 @@ type MatchInterestsInput struct {
 }
 
 type Place struct {
-	ID                    string       `json:"id"`
-	Name                  string       `json:"name"`
-	Location              *GeoLocation `json:"location"`
-	Photos                []string     `json:"photos"`
-	EstimatedStayDuration int          `json:"estimatedStayDuration"`
+	ID                    string               `json:"id"`
+	Name                  string               `json:"name"`
+	Location              *GeoLocation         `json:"location"`
+	Photos                []string             `json:"photos"`
+	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
+	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 }
 
 type Plan struct {
