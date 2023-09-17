@@ -88,17 +88,9 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
-// imageSize が nilの場合は、最大1000x1000の画像を取得する
-func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*PlacePhoto, error) {
 	if len(place.PhotoReferences) == 0 {
 		return nil, nil
-	}
-
-	if imageSize == nil {
-		imageSize = &ImageSize{
-			Width:  imgMaxWidth,
-			Height: imgMaxHeight,
-		}
 	}
 
 	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.PhotoReferences[0], r.apiKey)

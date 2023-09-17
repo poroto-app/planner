@@ -61,10 +61,7 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		thumbnail, err := s.placesApi.FetchPlacePhoto(place, &placesApi.ImageSize{
-			Width:  placesApi.ImgThumbnailMaxWidth,
-			Height: placesApi.ImgThumbnailMaxHeight,
-		})
+		thumbnail, err := s.placesApi.FetchPlacePhoto(place, placesApi.ImageSizeThumbnail())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)
 			continue
