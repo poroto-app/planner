@@ -135,26 +135,40 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSi
 		return nil, err
 	}
 
-	var photos []PlacePhoto
+	ch := make(chan *PlacePhoto, len(resp.Photos)*len(imageSizes))
+	fetchPhoto := func(ctx context.Context, photo maps.Photo, imageSize ImageSize, ch chan<- *PlacePhoto) {
+		imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
+		if err != nil {
+			log.Printf("skipping photo because of error while building image url: %v", err)
+			ch <- nil
+		}
+
+		publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+		if err != nil {
+			log.Printf("skipping photo because of error while fetching public image url: %v", err)
+			ch <- nil
+		}
+
+		ch <- &PlacePhoto{
+			ImageUrl:  *publicImageUrl,
+			ImageSize: imageSize,
+		}
+	}
+
 	for _, photo := range resp.Photos {
 		for _, imageSize := range imageSizes {
-			imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
-			if err != nil {
-				log.Printf("skipping photo because of error while building image url: %v", err)
-				continue
-			}
-
-			publicImageUrl, err := fetchPublicImageUrl(imgUrl)
-			if err != nil {
-				log.Printf("skipping photo because of error while fetching public image url: %v", err)
-				continue
-			}
-
-			photos = append(photos, PlacePhoto{
-				ImageUrl:  *publicImageUrl,
-				ImageSize: imageSize,
-			})
+			go fetchPhoto(ctx, photo, imageSize, ch)
 		}
+	}
+
+	var photos []PlacePhoto
+	for i := 0; i < len(resp.Photos)*len(imageSizes); i++ {
+		photo := <-ch
+		if photo == nil {
+			continue
+		}
+
+		photos = append(photos, *photo)
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
