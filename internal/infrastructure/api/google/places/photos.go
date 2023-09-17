@@ -98,7 +98,7 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) (thumbnails, photos []PlacePhoto, err error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -106,11 +106,11 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]Plac
 		},
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	var placePhotos []PlacePhoto
 	for _, photo := range resp.Photos {
+		// 高画質画像を取得
 		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
 		if err != nil {
 			log.Printf("skipping photo because of error while building image url: %v", err)
@@ -123,15 +123,32 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]Plac
 			continue
 		}
 
-		placePhotos = append(placePhotos, PlacePhoto{
+		photos = append(photos, PlacePhoto{
 			ImageUrl: *publicImageUrl,
+		})
+
+		// サムネイル画像を取得
+		imgUrlThumbnail, err := imgUrlBuilder(ImgThumbnailMaxWidth, ImgThumbnailMaxHeight, photo.PhotoReference, r.apiKey)
+		if err != nil {
+			log.Printf("skipping photo because of error while building image url: %v", err)
+			continue
+		}
+
+		publicImageUrlThumbnail, err := fetchPublicImageUrl(imgUrlThumbnail)
+		if err != nil {
+			log.Printf("skipping photo because of error while fetching public image url: %v", err)
+			continue
+		}
+
+		thumbnails = append(thumbnails, PlacePhoto{
+			ImageUrl: *publicImageUrlThumbnail,
 		})
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
-	if len(resp.Photos) > 0 && len(placePhotos) == 0 {
-		return nil, fmt.Errorf("could not fetch any photos")
+	if len(resp.Photos) > 0 && len(photos) == 0 {
+		return nil, nil, fmt.Errorf("could not fetch any photos")
 	}
 
-	return placePhotos, nil
+	return thumbnails, photos, nil
 }
