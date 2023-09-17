@@ -12,7 +12,8 @@ import (
 )
 
 type PlacePhoto struct {
-	ImageUrl string
+	ImageUrl  string
+	ImageSize ImageSize
 }
 
 type ImageSize struct {
@@ -26,6 +27,24 @@ const (
 	ImgThumbnailMaxHeight = 400
 	ImgThumbnailMaxWidth  = 400
 )
+
+func ImageSizeLarge() ImageSize {
+	return ImageSize{
+		Width:  imgMaxWidth,
+		Height: imgMaxHeight,
+	}
+}
+
+func ImageSizeThumbnail() ImageSize {
+	return ImageSize{
+		Width:  ImgThumbnailMaxWidth,
+		Height: ImgThumbnailMaxHeight,
+	}
+}
+
+func (i ImageSize) Same(another ImageSize) bool {
+	return i.Width == another.Width && i.Height == another.Height
+}
 
 func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
@@ -98,7 +117,14 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) (thumbnails, photos []PlacePhoto, err error) {
+// imageSizes が指定されていない場合は、最大1000x1000の画像を取得する
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSizes ...ImageSize) ([]PlacePhoto, error) {
+	if len(imageSizes) == 0 {
+		imageSizes = []ImageSize{
+			ImageSizeLarge(),
+		}
+	}
+
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -106,49 +132,35 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) (thumbn
 		},
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
+	var photos []PlacePhoto
 	for _, photo := range resp.Photos {
-		// 高画質画像を取得
-		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
-		if err != nil {
-			log.Printf("skipping photo because of error while building image url: %v", err)
-			continue
+		for _, imageSize := range imageSizes {
+			imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
+			if err != nil {
+				log.Printf("skipping photo because of error while building image url: %v", err)
+				continue
+			}
+
+			publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+			if err != nil {
+				log.Printf("skipping photo because of error while fetching public image url: %v", err)
+				continue
+			}
+
+			photos = append(photos, PlacePhoto{
+				ImageUrl:  *publicImageUrl,
+				ImageSize: imageSize,
+			})
 		}
-
-		publicImageUrl, err := fetchPublicImageUrl(imgUrl)
-		if err != nil {
-			log.Printf("skipping photo because of error while fetching public image url: %v", err)
-			continue
-		}
-
-		photos = append(photos, PlacePhoto{
-			ImageUrl: *publicImageUrl,
-		})
-
-		// サムネイル画像を取得
-		imgUrlThumbnail, err := imgUrlBuilder(ImgThumbnailMaxWidth, ImgThumbnailMaxHeight, photo.PhotoReference, r.apiKey)
-		if err != nil {
-			log.Printf("skipping photo because of error while building image url: %v", err)
-			continue
-		}
-
-		publicImageUrlThumbnail, err := fetchPublicImageUrl(imgUrlThumbnail)
-		if err != nil {
-			log.Printf("skipping photo because of error while fetching public image url: %v", err)
-			continue
-		}
-
-		thumbnails = append(thumbnails, PlacePhoto{
-			ImageUrl: *publicImageUrlThumbnail,
-		})
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
 	if len(resp.Photos) > 0 && len(photos) == 0 {
-		return nil, nil, fmt.Errorf("could not fetch any photos")
+		return nil, fmt.Errorf("could not fetch any photos")
 	}
 
-	return thumbnails, photos, nil
+	return photos, nil
 }
