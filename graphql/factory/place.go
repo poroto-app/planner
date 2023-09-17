@@ -10,6 +10,14 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
+	var googlePlaceReviews []*graphql.GooglePlaceReview
+	if place.GooglePlaceReviews != nil {
+		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(*place.GooglePlaceReviews))
+		for i, review := range *place.GooglePlaceReviews {
+			googlePlaceReviews[i] = GooglePlaceReviewFromDomainModel(review)
+		}
+	}
+
 	return &graphql.Place{
 		ID:     place.Id,
 		Name:   place.Name,
@@ -19,5 +27,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 			Longitude: place.Location.Longitude,
 		},
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
+		GoogleReviews:         googlePlaceReviews,
 	}
 }
