@@ -10,9 +10,11 @@ type Plan {
 
 type Place {
     id: String!
+    googlePlaceId: String
     name: String!
     location: GeoLocation!
     photos: [String!]!
+    thumbnails: [String!]!
     estimatedStayDuration: Int!
 }
 

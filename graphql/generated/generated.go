@@ -94,10 +94,12 @@ type ComplexityRoot struct {
 
 	Place struct {
 		EstimatedStayDuration func(childComplexity int) int
+		GooglePlaceID         func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		Photos                func(childComplexity int) int
+		Thumbnails            func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -362,6 +364,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Place.EstimatedStayDuration(childComplexity), true
 
+	case "Place.googlePlaceId":
+		if e.complexity.Place.GooglePlaceID == nil {
+			break
+		}
+
+		return e.complexity.Place.GooglePlaceID(childComplexity), true
+
 	case "Place.id":
 		if e.complexity.Place.ID == nil {
 			break
@@ -389,6 +398,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.Photos(childComplexity), true
+
+	case "Place.thumbnails":
+		if e.complexity.Place.Thumbnails == nil {
+			break
+		}
+
+		return e.complexity.Place.Thumbnails(childComplexity), true
 
 	case "Plan.authorId":
 		if e.complexity.Plan.AuthorID == nil {
@@ -746,9 +762,11 @@ var sources = []*ast.Source{
 
 type Place {
     id: String!
+    googlePlaceId: String
     name: String!
     location: GeoLocation!
     photos: [String!]!
+    thumbnails: [String!]!
     estimatedStayDuration: Int!
 }
 
@@ -1219,12 +1237,16 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
 			case "name":
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
+			case "thumbnails":
+				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -2301,6 +2323,47 @@ func (ec *executionContext) fieldContext_Place_id(ctx context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_googlePlaceId(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_googlePlaceId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GooglePlaceID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_googlePlaceId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Place_name(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Place_name(ctx, field)
 	if err != nil {
@@ -2427,6 +2490,50 @@ func (ec *executionContext) _Place_photos(ctx context.Context, field graphql.Col
 }
 
 func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_thumbnails(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_thumbnails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Thumbnails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_thumbnails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Place",
 		Field:      field,
@@ -2612,12 +2719,16 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
 			case "name":
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
+			case "thumbnails":
+				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -3794,12 +3905,16 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
 			case "name":
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
+			case "thumbnails":
+				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -3850,12 +3965,16 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
 			case "name":
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
+			case "thumbnails":
+				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -6719,6 +6838,8 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "googlePlaceId":
+			out.Values[i] = ec._Place_googlePlaceId(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._Place_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6731,6 +6852,11 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "photos":
 			out.Values[i] = ec._Place_photos(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "thumbnails":
+			out.Values[i] = ec._Place_thumbnails(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
