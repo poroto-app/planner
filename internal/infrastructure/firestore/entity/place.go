@@ -7,7 +7,7 @@ type PlaceEntity struct {
 	GooglePlaceId *string           `firestore:"google_place_id"`
 	Name          string            `firestore:"name"`
 	Location      GeoLocationEntity `firestore:"location"`
-	Thumbnail     *string           `firestore:"thumbnail"`
+	Thumbnails    []string          `firestore:"thumbnails,omitempty"`
 	Photos        []string          `firestore:"photos"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
 	EstimatedStayDuration int `firestore:"estimated_stay_duration"`
@@ -19,7 +19,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		GooglePlaceId:         place.GooglePlaceId,
 		Name:                  place.Name,
 		Location:              ToGeoLocationEntity(place.Location),
-		Thumbnail:             place.Thumbnail,
+		Thumbnails:            place.Thumbnails,
 		Photos:                place.Photos,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 	}
@@ -31,7 +31,7 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		GooglePlaceId:         entity.GooglePlaceId,
 		Name:                  entity.Name,
 		Location:              FromGeoLocationEntity(entity.Location),
-		Thumbnail:             entity.Thumbnail,
+		Thumbnails:            entity.Thumbnails,
 		Photos:                entity.Photos,
 		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
 	}
