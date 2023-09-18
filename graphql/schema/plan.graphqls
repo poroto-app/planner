@@ -13,8 +13,7 @@ type Place {
     googlePlaceId: String
     name: String!
     location: GeoLocation!
-    photos: [String!]!
-    thumbnails: [String!]!
+    photos: [Image!]!
     estimatedStayDuration: Int!
 }
 

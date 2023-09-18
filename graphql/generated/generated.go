@@ -72,6 +72,12 @@ type ComplexityRoot struct {
 		Longitude func(childComplexity int) int
 	}
 
+	Image struct {
+		Default func(childComplexity int) int
+		Large   func(childComplexity int) int
+		Small   func(childComplexity int) int
+	}
+
 	InterestCandidate struct {
 		Categories func(childComplexity int) int
 		Session    func(childComplexity int) int
@@ -99,7 +105,6 @@ type ComplexityRoot struct {
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		Photos                func(childComplexity int) int
-		Thumbnails            func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -255,6 +260,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GeoLocation.Longitude(childComplexity), true
 
+	case "Image.default":
+		if e.complexity.Image.Default == nil {
+			break
+		}
+
+		return e.complexity.Image.Default(childComplexity), true
+
+	case "Image.large":
+		if e.complexity.Image.Large == nil {
+			break
+		}
+
+		return e.complexity.Image.Large(childComplexity), true
+
+	case "Image.small":
+		if e.complexity.Image.Small == nil {
+			break
+		}
+
+		return e.complexity.Image.Small(childComplexity), true
+
 	case "InterestCandidate.categories":
 		if e.complexity.InterestCandidate.Categories == nil {
 			break
@@ -398,13 +424,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.Photos(childComplexity), true
-
-	case "Place.thumbnails":
-		if e.complexity.Place.Thumbnails == nil {
-			break
-		}
-
-		return e.complexity.Place.Thumbnails(childComplexity), true
 
 	case "Plan.authorId":
 		if e.complexity.Plan.AuthorID == nil {
@@ -750,6 +769,17 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "../schema/image.graphqls", Input: `enum ImageSize {
+    SMALL
+    LARGE
+}
+
+type Image {
+    default: String!
+    small: String
+    large: String
+}
+`, BuiltIn: false},
 	{Name: "../schema/plan.graphqls", Input: `type Plan {
     id: String!
     name: String!
@@ -765,8 +795,7 @@ type Place {
     googlePlaceId: String
     name: String!
     location: GeoLocation!
-    photos: [String!]!
-    thumbnails: [String!]!
+    photos: [Image!]!
     estimatedStayDuration: Int!
 }
 
@@ -1245,8 +1274,6 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
-			case "thumbnails":
-				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -1708,6 +1735,132 @@ func (ec *executionContext) fieldContext_GeoLocation_longitude(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_default(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_default(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Default, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_default(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_small(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_small(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Small, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_small(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_large(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_large(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Large, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_large(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2484,9 +2637,9 @@ func (ec *executionContext) _Place_photos(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*model.Image)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2496,51 +2649,15 @@ func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Place_thumbnails(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Place_thumbnails(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Thumbnails, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Place_thumbnails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Place",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "default":
+				return ec.fieldContext_Image_default(ctx, field)
+			case "small":
+				return ec.fieldContext_Image_small(ctx, field)
+			case "large":
+				return ec.fieldContext_Image_large(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
 	}
 	return fc, nil
@@ -2727,8 +2844,6 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
-			case "thumbnails":
-				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -3913,8 +4028,6 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
-			case "thumbnails":
-				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -3973,8 +4086,6 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_location(ctx, field)
 			case "photos":
 				return ec.fieldContext_Place_photos(ctx, field)
-			case "thumbnails":
-				return ec.fieldContext_Place_thumbnails(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			}
@@ -6650,6 +6761,49 @@ func (ec *executionContext) _GeoLocation(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var imageImplementors = []string{"Image"}
+
+func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, obj *model.Image) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, imageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Image")
+		case "default":
+			out.Values[i] = ec._Image_default(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "small":
+			out.Values[i] = ec._Image_small(ctx, field, obj)
+		case "large":
+			out.Values[i] = ec._Image_large(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var interestCandidateImplementors = []string{"InterestCandidate"}
 
 func (ec *executionContext) _InterestCandidate(ctx context.Context, sel ast.SelectionSet, obj *model.InterestCandidate) graphql.Marshaler {
@@ -6852,11 +7006,6 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "photos":
 			out.Values[i] = ec._Place_photos(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "thumbnails":
-			out.Values[i] = ec._Place_thumbnails(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -7886,6 +8035,60 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Image(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
