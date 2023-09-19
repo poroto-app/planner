@@ -10,9 +10,9 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
-	var photos []*graphql.Image
+	var images []*graphql.Image
 	for _, photo := range place.Photos {
-		photos = append(photos, &graphql.Image{
+		images = append(images, &graphql.Image{
 			Default: photo,
 		})
 	}
@@ -20,7 +20,8 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 	return &graphql.Place{
 		ID:     place.Id,
 		Name:   place.Name,
-		Photos: photos,
+		Photos: place.Photos,
+		Images: images,
 		Location: &graphql.GeoLocation{
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,

@@ -101,7 +101,8 @@ type Place struct {
 	GooglePlaceID         *string      `json:"googlePlaceId,omitempty"`
 	Name                  string       `json:"name"`
 	Location              *GeoLocation `json:"location"`
-	Photos                []*Image     `json:"photos"`
+	Photos                []string     `json:"photos"`
+	Images                []*Image     `json:"images"`
 	EstimatedStayDuration int          `json:"estimatedStayDuration"`
 }
 

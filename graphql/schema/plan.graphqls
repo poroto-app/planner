@@ -13,7 +13,9 @@ type Place {
     googlePlaceId: String
     name: String!
     location: GeoLocation!
-    photos: [Image!]!
+    # TODO: DELETE ME!
+    photos: [String!]!
+    images: [Image!]!
     estimatedStayDuration: Int!
 }
 
