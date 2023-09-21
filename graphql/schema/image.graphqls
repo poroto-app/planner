@@ -1,0 +1,10 @@
+enum ImageSize {
+    SMALL
+    LARGE
+}
+
+type Image {
+    default: String!
+    small: String
+    large: String
+}
