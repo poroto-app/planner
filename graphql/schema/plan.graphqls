@@ -17,6 +17,18 @@ type Place {
     photos: [String!]!
     images: [Image!]!
     estimatedStayDuration: Int!
+    googleReviews: [GooglePlaceReview!]
+}
+
+type GooglePlaceReview {
+    rating: Int!
+    text: String
+    time: Int!
+    authorName: String!
+    authorUrl: String
+    authorPhotoUrl: String
+    language: String
+    originalLanguage: String
 }
 
 type Transition {
