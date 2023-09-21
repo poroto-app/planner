@@ -72,6 +72,17 @@ type ComplexityRoot struct {
 		Longitude func(childComplexity int) int
 	}
 
+	GooglePlaceReview struct {
+		AuthorName       func(childComplexity int) int
+		AuthorPhotoURL   func(childComplexity int) int
+		AuthorURL        func(childComplexity int) int
+		Language         func(childComplexity int) int
+		OriginalLanguage func(childComplexity int) int
+		Rating           func(childComplexity int) int
+		Text             func(childComplexity int) int
+		Time             func(childComplexity int) int
+	}
+
 	InterestCandidate struct {
 		Categories func(childComplexity int) int
 		Session    func(childComplexity int) int
@@ -94,6 +105,7 @@ type ComplexityRoot struct {
 
 	Place struct {
 		EstimatedStayDuration func(childComplexity int) int
+		GoogleReviews         func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
@@ -253,6 +265,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GeoLocation.Longitude(childComplexity), true
 
+	case "GooglePlaceReview.authorName":
+		if e.complexity.GooglePlaceReview.AuthorName == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.AuthorName(childComplexity), true
+
+	case "GooglePlaceReview.authorPhotoUrl":
+		if e.complexity.GooglePlaceReview.AuthorPhotoURL == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.AuthorPhotoURL(childComplexity), true
+
+	case "GooglePlaceReview.authorUrl":
+		if e.complexity.GooglePlaceReview.AuthorURL == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.AuthorURL(childComplexity), true
+
+	case "GooglePlaceReview.language":
+		if e.complexity.GooglePlaceReview.Language == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.Language(childComplexity), true
+
+	case "GooglePlaceReview.originalLanguage":
+		if e.complexity.GooglePlaceReview.OriginalLanguage == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.OriginalLanguage(childComplexity), true
+
+	case "GooglePlaceReview.rating":
+		if e.complexity.GooglePlaceReview.Rating == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.Rating(childComplexity), true
+
+	case "GooglePlaceReview.text":
+		if e.complexity.GooglePlaceReview.Text == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.Text(childComplexity), true
+
+	case "GooglePlaceReview.time":
+		if e.complexity.GooglePlaceReview.Time == nil {
+			break
+		}
+
+		return e.complexity.GooglePlaceReview.Time(childComplexity), true
+
 	case "InterestCandidate.categories":
 		if e.complexity.InterestCandidate.Categories == nil {
 			break
@@ -361,6 +429,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.EstimatedStayDuration(childComplexity), true
+
+	case "Place.googleReviews":
+		if e.complexity.Place.GoogleReviews == nil {
+			break
+		}
+
+		return e.complexity.Place.GoogleReviews(childComplexity), true
 
 	case "Place.id":
 		if e.complexity.Place.ID == nil {
@@ -750,6 +825,18 @@ type Place {
     location: GeoLocation!
     photos: [String!]!
     estimatedStayDuration: Int!
+    googleReviews: [GooglePlaceReview!]
+}
+
+type GooglePlaceReview {
+    rating: Int!
+    text: String
+    time: Int!
+    authorName: String!
+    authorUrl: String
+    authorPhotoUrl: String
+    language: String
+    originalLanguage: String
 }
 
 type Transition {
@@ -1227,6 +1314,8 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_photos(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -1686,6 +1775,343 @@ func (ec *executionContext) fieldContext_GeoLocation_longitude(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_rating(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_rating(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Rating, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_rating(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_text(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_text(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Text, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_text(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_time(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_authorName(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_authorName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_authorName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_authorUrl(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_authorUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_authorUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_authorPhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_authorPhotoUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorPhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_authorPhotoUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_language(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_language(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Language, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_language(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _GooglePlaceReview_originalLanguage(ctx context.Context, field graphql.CollectedField, obj *model.GooglePlaceReview) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_GooglePlaceReview_originalLanguage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OriginalLanguage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_GooglePlaceReview_originalLanguage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "GooglePlaceReview",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -2483,6 +2909,65 @@ func (ec *executionContext) fieldContext_Place_estimatedStayDuration(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_googleReviews(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_googleReviews(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GoogleReviews, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.GooglePlaceReview)
+	fc.Result = res
+	return ec.marshalOGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_googleReviews(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "rating":
+				return ec.fieldContext_GooglePlaceReview_rating(ctx, field)
+			case "text":
+				return ec.fieldContext_GooglePlaceReview_text(ctx, field)
+			case "time":
+				return ec.fieldContext_GooglePlaceReview_time(ctx, field)
+			case "authorName":
+				return ec.fieldContext_GooglePlaceReview_authorName(ctx, field)
+			case "authorUrl":
+				return ec.fieldContext_GooglePlaceReview_authorUrl(ctx, field)
+			case "authorPhotoUrl":
+				return ec.fieldContext_GooglePlaceReview_authorPhotoUrl(ctx, field)
+			case "language":
+				return ec.fieldContext_GooglePlaceReview_language(ctx, field)
+			case "originalLanguage":
+				return ec.fieldContext_GooglePlaceReview_originalLanguage(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type GooglePlaceReview", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_id(ctx, field)
 	if err != nil {
@@ -2620,6 +3105,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_photos(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -3802,6 +4289,8 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_photos(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -3858,6 +4347,8 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_photos(ctx, field)
 			case "estimatedStayDuration":
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -6531,6 +7022,65 @@ func (ec *executionContext) _GeoLocation(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var googlePlaceReviewImplementors = []string{"GooglePlaceReview"}
+
+func (ec *executionContext) _GooglePlaceReview(ctx context.Context, sel ast.SelectionSet, obj *model.GooglePlaceReview) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, googlePlaceReviewImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("GooglePlaceReview")
+		case "rating":
+			out.Values[i] = ec._GooglePlaceReview_rating(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "text":
+			out.Values[i] = ec._GooglePlaceReview_text(ctx, field, obj)
+		case "time":
+			out.Values[i] = ec._GooglePlaceReview_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "authorName":
+			out.Values[i] = ec._GooglePlaceReview_authorName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "authorUrl":
+			out.Values[i] = ec._GooglePlaceReview_authorUrl(ctx, field, obj)
+		case "authorPhotoUrl":
+			out.Values[i] = ec._GooglePlaceReview_authorPhotoUrl(ctx, field, obj)
+		case "language":
+			out.Values[i] = ec._GooglePlaceReview_language(ctx, field, obj)
+		case "originalLanguage":
+			out.Values[i] = ec._GooglePlaceReview_originalLanguage(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var interestCandidateImplementors = []string{"InterestCandidate"}
 
 func (ec *executionContext) _InterestCandidate(ctx context.Context, sel ast.SelectionSet, obj *model.InterestCandidate) graphql.Marshaler {
@@ -6739,6 +7289,8 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "googleReviews":
+			out.Values[i] = ec._Place_googleReviews(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7747,6 +8299,16 @@ func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplann
 	return ec._GeoLocation(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx context.Context, sel ast.SelectionSet, v *model.GooglePlaceReview) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._GooglePlaceReview(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8426,6 +8988,53 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) marshalOGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GooglePlaceReview) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
