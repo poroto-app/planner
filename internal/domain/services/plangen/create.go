@@ -190,6 +190,11 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				title = &param.placeStart.Name
 			}
 
+			// 場所のレビューを取得
+			performanceTimer = time.Now()
+			places = s.FetchReviews(ctx, places)
+			log.Printf("fetching place reviews took %v\n", time.Since(performanceTimer))
+
 			places = sortPlacesByDistanceFrom(param.locationStart, places)
 			timeInPlan := planTimeFromPlaces(param.locationStart, places)
 

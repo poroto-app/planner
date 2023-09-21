@@ -2,6 +2,12 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }
@@ -67,6 +73,23 @@ type GeoLocation struct {
 	Longitude float64 `json:"longitude"`
 }
 
+type GooglePlaceReview struct {
+	Rating           int     `json:"rating"`
+	Text             *string `json:"text,omitempty"`
+	Time             int     `json:"time"`
+	AuthorName       string  `json:"authorName"`
+	AuthorURL        *string `json:"authorUrl,omitempty"`
+	AuthorPhotoURL   *string `json:"authorPhotoUrl,omitempty"`
+	Language         *string `json:"language,omitempty"`
+	OriginalLanguage *string `json:"originalLanguage,omitempty"`
+}
+
+type Image struct {
+	Default string  `json:"default"`
+	Small   *string `json:"small,omitempty"`
+	Large   *string `json:"large,omitempty"`
+}
+
 type InterestCandidate struct {
 	Session    string              `json:"session"`
 	Categories []*LocationCategory `json:"categories"`
@@ -85,11 +108,14 @@ type MatchInterestsInput struct {
 }
 
 type Place struct {
-	ID                    string       `json:"id"`
-	Name                  string       `json:"name"`
-	Location              *GeoLocation `json:"location"`
-	Photos                []string     `json:"photos"`
-	EstimatedStayDuration int          `json:"estimatedStayDuration"`
+	ID                    string               `json:"id"`
+	GooglePlaceID         *string              `json:"googlePlaceId,omitempty"`
+	Name                  string               `json:"name"`
+	Location              *GeoLocation         `json:"location"`
+	Photos                []string             `json:"photos"`
+	Images                []*Image             `json:"images"`
+	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
+	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 }
 
 type Plan struct {
@@ -143,4 +169,45 @@ type User struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`
 	PhotoURL *string `json:"photoUrl,omitempty"`
+}
+
+type ImageSize string
+
+const (
+	ImageSizeSmall ImageSize = "SMALL"
+	ImageSizeLarge ImageSize = "LARGE"
+)
+
+var AllImageSize = []ImageSize{
+	ImageSizeSmall,
+	ImageSizeLarge,
+}
+
+func (e ImageSize) IsValid() bool {
+	switch e {
+	case ImageSizeSmall, ImageSizeLarge:
+		return true
+	}
+	return false
+}
+
+func (e ImageSize) String() string {
+	return string(e)
+}
+
+func (e *ImageSize) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ImageSize(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ImageSize", str)
+	}
+	return nil
+}
+
+func (e ImageSize) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
