@@ -3,6 +3,7 @@ package models
 // Place 場所の情報
 // Thumbnail サムネイル用の低画質な写真
 // TODO: カテゴリを複数扱えるようにするために、 Category　を削除する
+// TODO: photos, thumbnailを削除する
 type Place struct {
 	Id                    string               `json:"id"`
 	GooglePlaceId         *string              `json:"google_place_id"`
@@ -10,6 +11,7 @@ type Place struct {
 	Location              GeoLocation          `json:"location"`
 	Thumbnail             *string              `json:"thumbnail"`
 	Photos                []string             `json:"photos"`
+	Images                []Image              `json:"images"`
 	EstimatedStayDuration uint                 `json:"estimated_stay_duration"`
 	Category              string               `json:"category"`
 	Categories            []LocationCategory   `json:"categories"`
