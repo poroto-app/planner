@@ -188,8 +188,9 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				chPlaceWithPhotos <- places
 			}(ctx, places, chPlaceWithPhotos)
 
-			chPlanTitle := make(chan *string, 1)
-			go func(ctx context.Context, places []models.Place, chPlanTitle chan<- *string) {
+			// プランのタイトルを生成
+			chPlanTitle := make(chan string, 1)
+			go func(ctx context.Context, places []models.Place, chPlanTitle chan<- string) {
 				performanceTimer := time.Now()
 				title, err := s.GeneratePlanTitle(param.places)
 				if err != nil {
@@ -197,7 +198,7 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 					title = &param.placeStart.Name
 				}
 				log.Printf("generating plan title took %v\n", time.Since(performanceTimer))
-				chPlanTitle <- title
+				chPlanTitle <- *title
 			}(ctx, places, chPlanTitle)
 
 			// 場所のレビューを取得
@@ -209,8 +210,18 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				chPlansWithReviews <- places
 			}(ctx, places, chPlansWithReviews)
 
+			// タイトル生成には2秒以上かかる場合があるため、タイムアウト処理を行う
+			var title string
+			chTitleTimeOut := time.NewTimer(2 * time.Second)
+			select {
+			case title = <-chPlanTitle:
+				chTitleTimeOut.Stop()
+			case <-chTitleTimeOut.C:
+				log.Printf("timeout while generating plan title\n")
+				title = param.placeStart.Name
+			}
+
 			placesWithPhotos := <-chPlaceWithPhotos
-			title := <-chPlanTitle
 			placesWithReviews := <-chPlansWithReviews
 			for i := 0; i < len(places); i++ {
 				places[i].Photos = placesWithPhotos[i].Photos
@@ -222,7 +233,7 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 
 			ch <- &models.Plan{
 				Id:            uuid.New().String(),
-				Name:          *title,
+				Name:          title,
 				Places:        places,
 				TimeInMinutes: timeInPlan,
 				Transitions:   models.CreateTransition(places, &param.locationStart),
