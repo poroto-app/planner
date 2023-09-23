@@ -7,7 +7,7 @@ type Image struct {
 	Large *string
 }
 
-func (i Image) NewImage(small, large *string) (*Image, error) {
+func NewImage(small, large *string) (*Image, error) {
 	if small == nil && large == nil {
 		return nil, fmt.Errorf("small and large are both nil")
 	}
