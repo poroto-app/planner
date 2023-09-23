@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"poroto.app/poroto/planner/internal/domain/utils"
+)
 
 type Image struct {
 	Small *string
@@ -13,8 +16,8 @@ func NewImage(small, large *string) (*Image, error) {
 	}
 
 	return &Image{
-		Small: small,
-		Large: large,
+		Small: utils.StrCopyPointerValue(small),
+		Large: utils.StrCopyPointerValue(large),
 	}, nil
 }
 
