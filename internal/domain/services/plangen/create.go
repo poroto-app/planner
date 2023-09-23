@@ -176,24 +176,46 @@ type CreatePlanParams struct {
 func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []models.Plan {
 	ch := make(chan *models.Plan, len(params))
 	for _, param := range params {
-		go func(ctx context.Context, param CreatePlanParams) {
+		go func(ctx context.Context, param CreatePlanParams, ch chan<- *models.Plan) {
 			places := param.places
 
-			// 場所の画像を取得
-			performanceTimer := time.Now()
-			places = s.FetchPlacesPhotos(ctx, places)
-			log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
+			chPlaceWithPhotos := make(chan []models.Place, 1)
+			go func(ctx context.Context, places []models.Place, chPlaceWithPhotos chan<- []models.Place) {
+				// 場所の画像を取得
+				performanceTimer := time.Now()
+				places = s.FetchPlacesPhotos(ctx, places)
+				log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
+				chPlaceWithPhotos <- places
+			}(ctx, places, chPlaceWithPhotos)
 
-			title, err := s.GeneratePlanTitle(param.places)
-			if err != nil {
-				log.Printf("error while generating plan title: %v\n", err)
-				title = &param.placeStart.Name
-			}
+			chPlanTitle := make(chan *string, 1)
+			go func(ctx context.Context, places []models.Place, chPlanTitle chan<- *string) {
+				performanceTimer := time.Now()
+				title, err := s.GeneratePlanTitle(param.places)
+				if err != nil {
+					log.Printf("error while generating plan title: %v\n", err)
+					title = &param.placeStart.Name
+				}
+				log.Printf("generating plan title took %v\n", time.Since(performanceTimer))
+				chPlanTitle <- title
+			}(ctx, places, chPlanTitle)
 
 			// 場所のレビューを取得
-			performanceTimer = time.Now()
-			places = s.FetchReviews(ctx, places)
-			log.Printf("fetching place reviews took %v\n", time.Since(performanceTimer))
+			chPlansWithReviews := make(chan []models.Place, 1)
+			go func(ctx context.Context, places []models.Place, chPlansWithReviews chan<- []models.Place) {
+				performanceTimer := time.Now()
+				places = s.FetchReviews(ctx, places)
+				log.Printf("fetching place reviews took %v\n", time.Since(performanceTimer))
+				chPlansWithReviews <- places
+			}(ctx, places, chPlansWithReviews)
+
+			placesWithPhotos := <-chPlaceWithPhotos
+			title := <-chPlanTitle
+			placesWithReviews := <-chPlansWithReviews
+			for i := 0; i < len(places); i++ {
+				places[i].Photos = placesWithPhotos[i].Photos
+				places[i].GooglePlaceReviews = placesWithReviews[i].GooglePlaceReviews
+			}
 
 			places = sortPlacesByDistanceFrom(param.locationStart, places)
 			timeInPlan := planTimeFromPlaces(param.locationStart, places)
@@ -205,7 +227,7 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				TimeInMinutes: timeInPlan,
 				Transitions:   models.CreateTransition(places, &param.locationStart),
 			}
-		}(ctx, param)
+		}(ctx, param, ch)
 	}
 
 	plans := make([]models.Plan, 0)
