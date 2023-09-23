@@ -82,18 +82,10 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 	return &publicImageUrl, nil
 }
 
-// FetchPlacePhoto は，指定された場所のサムネイル画像を１件取得する
-// imageSize が nilの場合は、最大1000x1000の画像を取得する
-func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePhoto, error) {
+// FetchPlacePhoto は，指定された場所の画像を１件取得する
+func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*PlacePhoto, error) {
 	if len(place.PhotoReferences) == 0 {
 		return nil, nil
-	}
-
-	if imageSize == nil {
-		imageSize = &ImageSize{
-			Width:  imgMaxWidth,
-			Height: imgMaxHeight,
-		}
 	}
 
 	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.PhotoReferences[0], r.apiKey)
@@ -112,7 +104,7 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize *ImageSize) (*PlacePho
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSizes ...ImageSize) ([]PlacePhoto, error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -125,7 +117,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string) ([]Plac
 
 	var placePhotos []PlacePhoto
 	for _, photo := range resp.Photos {
-		imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photo.PhotoReference, r.apiKey)
+		imgUrl, err := imgUrlBuilder(imgMaxWidthLarge, imgMaxHeightLarge, photo.PhotoReference, r.apiKey)
 		if err != nil {
 			log.Printf("skipping photo because of error while building image url: %v", err)
 			continue
