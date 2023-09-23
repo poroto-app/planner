@@ -3,7 +3,6 @@ package plangen
 import (
 	"context"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
@@ -43,19 +42,6 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 			}
 
 			place.Images = images
-
-			// TODO: DELETE ME!
-			for _, image := range images {
-				if image.Default() == "" {
-					continue
-				}
-
-				if place.Thumbnail == nil && image.Small != nil {
-					place.Thumbnail = utils.StrPointer(*image.Small)
-				}
-
-				place.Photos = append(place.Photos, image.Default())
-			}
 
 			ch <- place
 		}(ctx, place, ch)

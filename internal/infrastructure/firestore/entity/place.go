@@ -1,6 +1,9 @@
 package entity
 
-import "poroto.app/poroto/planner/internal/domain/models"
+import (
+	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
+)
 
 // PlaceEntity
 // EstimatedStayDuration Firestoreではuintをサポートしていないため，intにしている
@@ -24,13 +27,24 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		}
 	}
 
+	// TODO: DELETE ME
+	var thumbnail *string
+	var photos []string
+	for _, image := range place.Images {
+		if thumbnail == nil && image.Small != nil {
+			thumbnail = utils.StrPointer(*image.Small)
+		}
+
+		photos = append(photos, image.Default())
+	}
+
 	return PlaceEntity{
 		Id:                    place.Id,
 		GooglePlaceId:         place.GooglePlaceId,
 		Name:                  place.Name,
 		Location:              ToGeoLocationEntity(place.Location),
-		Thumbnail:             place.Thumbnail,
-		Photos:                place.Photos,
+		Thumbnail:             thumbnail,
+		Photos:                photos,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
 	}
@@ -45,13 +59,23 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		}
 	}
 
+	// TODO: DELETE ME
+	var images []models.Image
+	for _, photo := range entity.Photos {
+		image, err := models.NewImage(nil, utils.StrOmitEmpty(photo))
+		if err != nil {
+			continue
+		}
+
+		images = append(images, *image)
+	}
+
 	return models.Place{
 		Id:                    entity.Id,
 		GooglePlaceId:         entity.GooglePlaceId,
 		Name:                  entity.Name,
 		Location:              FromGeoLocationEntity(entity.Location),
-		Thumbnail:             entity.Thumbnail,
-		Photos:                entity.Photos,
+		Images:                images,
 		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
 	}

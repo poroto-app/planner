@@ -67,8 +67,9 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		if thumbnailImageUrl == nil {
-			log.Printf("place %s has no image\n", place.Name)
+		image, err := models.NewImage(thumbnailImageUrl, nil)
+		if err != nil {
+			log.Printf("error while creating image: %v\n", err)
 			continue
 		}
 
@@ -78,11 +79,10 @@ func (s Service) FetchCandidatePlaces(
 			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
 			Location:              place.Location.ToGeoLocation(),
+			Images:                []models.Image{*image},
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
 			Categories:            models.GetCategoriesFromSubCategories(place.Types),
-			Thumbnail:             thumbnailImageUrl,
-			Photos:                []string{*thumbnailImageUrl},
 		})
 
 		if len(places) >= maxAddablePlaces {
