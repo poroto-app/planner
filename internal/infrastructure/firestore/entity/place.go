@@ -7,6 +7,7 @@ import (
 
 // PlaceEntity
 // EstimatedStayDuration Firestoreではuintをサポートしていないため，intにしている
+// TODO: photos, thumbnailは削除する
 type PlaceEntity struct {
 	Id                    string                     `firestore:"id"`
 	GooglePlaceId         *string                    `firestore:"google_place_id"`
@@ -14,6 +15,7 @@ type PlaceEntity struct {
 	Location              GeoLocationEntity          `firestore:"location"`
 	Thumbnail             *string                    `firestore:"thumbnail"`
 	Photos                []string                   `firestore:"photos"`
+	Images                []ImageEntity              `firestore:"images"`
 	EstimatedStayDuration int                        `firestore:"estimated_stay_duration"`
 	GooglePlaceReviews    *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
 }
@@ -38,6 +40,11 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		photos = append(photos, image.Default())
 	}
 
+	var images []ImageEntity
+	for _, image := range place.Images {
+		images = append(images, ToImageEntity(image))
+	}
+
 	return PlaceEntity{
 		Id:                    place.Id,
 		GooglePlaceId:         place.GooglePlaceId,
@@ -45,6 +52,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		Location:              ToGeoLocationEntity(place.Location),
 		Thumbnail:             thumbnail,
 		Photos:                photos,
+		Images:                images,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
 	}
@@ -61,13 +69,19 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 
 	// TODO: DELETE ME
 	var images []models.Image
-	for _, photo := range entity.Photos {
-		image, err := models.NewImage(nil, utils.StrOmitEmpty(photo))
-		if err != nil {
-			continue
-		}
+	if entity.Images == nil {
+		for _, photo := range entity.Photos {
+			image, err := models.NewImage(nil, utils.StrOmitEmpty(photo))
+			if err != nil {
+				continue
+			}
 
-		images = append(images, *image)
+			images = append(images, *image)
+		}
+	} else {
+		for _, image := range entity.Images {
+			images = append(images, FromImageEntity(image))
+		}
 	}
 
 	return models.Place{
