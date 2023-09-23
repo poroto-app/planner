@@ -83,7 +83,7 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所の画像を１件取得する
-func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*string, error) {
 	if len(place.PhotoReferences) == 0 {
 		return nil, nil
 	}
@@ -98,9 +98,7 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*PlacePhot
 		return nil, fmt.Errorf("error while fetching public image url: %w", err)
 	}
 
-	return &PlacePhoto{
-		ImageUrl: *publicImageUrl,
-	}, nil
+	return publicImageUrl, nil
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
