@@ -11,13 +11,22 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-type PlacePhoto struct {
-	ImageUrl string
-}
-
 type ImageSize struct {
 	Width  uint
 	Height uint
+}
+
+type ImageSizeType int
+
+type PlacePhoto struct {
+	Small *string
+	Large *string
+}
+
+type placePhotoWithSize struct {
+	photoReference string
+	imageUrl       string
+	size           ImageSizeType
 }
 
 const (
@@ -25,6 +34,11 @@ const (
 	imgMaxWidthLarge  = 1000
 	imgMaxHeightSmall = 400
 	imgMaxWidthSmall  = 400
+)
+
+const (
+	ImageSizeTypeLarge ImageSizeType = iota
+	ImageSizeTypeSmall
 )
 
 func ImageSizeLarge() ImageSize {
@@ -38,6 +52,17 @@ func ImageSizeSmall() ImageSize {
 	return ImageSize{
 		Width:  imgMaxWidthSmall,
 		Height: imgMaxHeightSmall,
+	}
+}
+
+func (i ImageSizeType) ImageSize() ImageSize {
+	switch i {
+	case ImageSizeTypeLarge:
+		return ImageSizeLarge()
+	case ImageSizeTypeSmall:
+		return ImageSizeSmall()
+	default:
+		panic(fmt.Sprintf("invalid image size type: %v", i))
 	}
 }
 
@@ -102,7 +127,12 @@ func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*string, e
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSizes ...ImageSize) ([]PlacePhoto, error) {
+// imageSizeTypes が指定されている場合は，高画質の写真を取得する
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+	if len(imageSizeTypes) == 0 {
+		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
+	}
+
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -113,23 +143,67 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSi
 		return nil, err
 	}
 
+	ch := make(chan *placePhotoWithSize, len(resp.Photos)*len(imageSizeTypes))
+	for _, photo := range resp.Photos {
+		for _, imageSizeType := range imageSizeTypes {
+			go func(ctx context.Context, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+				imageSize := imageSizeType.ImageSize()
+
+				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
+				if err != nil {
+					log.Printf("skipping photo because of error while building image url: %v", err)
+					ch <- nil
+					return
+				}
+
+				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+				if err != nil {
+					log.Printf("skipping photo because of error while fetching public image url: %v", err)
+					ch <- nil
+					return
+				}
+
+				ch <- &placePhotoWithSize{
+					photoReference: photo.PhotoReference,
+					imageUrl:       *publicImageUrl,
+					size:           imageSizeType,
+				}
+			}(ctx, photo, imageSizeType, ch)
+		}
+	}
+
+	var placePhotoWithSizes []*placePhotoWithSize
+	for i := 0; i < len(resp.Photos)*len(imageSizeTypes); i++ {
+		placePhotoWithSize := <-ch
+		if placePhotoWithSize == nil {
+			continue
+		}
+		placePhotoWithSizes = append(placePhotoWithSizes, placePhotoWithSize)
+	}
+
 	var placePhotos []PlacePhoto
 	for _, photo := range resp.Photos {
-		imgUrl, err := imgUrlBuilder(imgMaxWidthLarge, imgMaxHeightLarge, photo.PhotoReference, r.apiKey)
-		if err != nil {
-			log.Printf("skipping photo because of error while building image url: %v", err)
+		var placePhoto PlacePhoto
+		for _, placePhotoWithSize := range placePhotoWithSizes {
+			if placePhotoWithSize.photoReference != photo.PhotoReference {
+				continue
+			}
+
+			switch placePhotoWithSize.size {
+			case ImageSizeTypeLarge:
+				placePhoto.Large = &placePhotoWithSize.imageUrl
+			case ImageSizeTypeSmall:
+				placePhoto.Small = &placePhotoWithSize.imageUrl
+			default:
+				panic(fmt.Sprintf("invalid image size type: %v", placePhotoWithSize.size))
+			}
+		}
+
+		if placePhoto.Large == nil && placePhoto.Small == nil {
 			continue
 		}
 
-		publicImageUrl, err := fetchPublicImageUrl(imgUrl)
-		if err != nil {
-			log.Printf("skipping photo because of error while fetching public image url: %v", err)
-			continue
-		}
-
-		placePhotos = append(placePhotos, PlacePhoto{
-			ImageUrl: *publicImageUrl,
-		})
+		placePhotos = append(placePhotos, placePhoto)
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
