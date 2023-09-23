@@ -34,7 +34,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 	var photos []string
 	for _, image := range place.Images {
 		if thumbnail == nil && image.Small != nil {
-			thumbnail = utils.StrPointer(*image.Small)
+			thumbnail = utils.StrCopyPointerValue(image.Small)
 		}
 
 		photos = append(photos, image.Default())

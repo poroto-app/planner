@@ -69,7 +69,7 @@ func (s Service) CategoriesNearLocation(
 				continue
 			}
 			if placePhoto != nil {
-				category.Photo = utils.StrPointer(*placePhoto)
+				category.Photo = utils.StrCopyPointerValue(placePhoto)
 				placesUsedOfCategory = append(placesUsedOfCategory, place)
 				break
 			}
