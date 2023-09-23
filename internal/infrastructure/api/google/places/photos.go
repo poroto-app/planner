@@ -21,11 +21,25 @@ type ImageSize struct {
 }
 
 const (
-	imgMaxHeight          = 1000
-	imgMaxWidth           = 1000
-	ImgThumbnailMaxHeight = 400
-	ImgThumbnailMaxWidth  = 400
+	imgMaxHeightLarge = 1000
+	imgMaxWidthLarge  = 1000
+	imgMaxHeightSmall = 400
+	imgMaxWidthSmall  = 400
 )
+
+func ImageSizeLarge() ImageSize {
+	return ImageSize{
+		Width:  imgMaxWidthLarge,
+		Height: imgMaxHeightLarge,
+	}
+}
+
+func ImageSizeSmall() ImageSize {
+	return ImageSize{
+		Width:  imgMaxWidthSmall,
+		Height: imgMaxHeightSmall,
+	}
+}
 
 func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
