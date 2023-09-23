@@ -10,3 +10,10 @@ func StrOmitEmpty(s string) *string {
 	}
 	return &s
 }
+
+func StrCopyPointerValue(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	return StrPointer(*s)
+}
