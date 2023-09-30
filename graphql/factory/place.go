@@ -11,10 +11,18 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 	}
 
 	var images []*graphql.Image
-	for _, photo := range place.Photos {
+	for _, image := range place.Images {
 		images = append(images, &graphql.Image{
-			Default: photo,
+			Default: image.Default(),
+			Small:   image.Small,
+			Large:   image.Large,
 		})
+	}
+
+	// TODO: DELETE ME
+	var photos []string
+	for _, image := range place.Images {
+		photos = append(photos, image.Default())
 	}
 
 	var googlePlaceReviews []*graphql.GooglePlaceReview
@@ -29,7 +37,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		ID:            place.Id,
 		GooglePlaceID: place.GooglePlaceId,
 		Name:          place.Name,
-		Photos:        place.Photos,
+		Photos:        photos,
 		Images:        images,
 		Location: &graphql.GeoLocation{
 			Latitude:  place.Location.Latitude,

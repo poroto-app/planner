@@ -61,21 +61,17 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		thumbnail, err := s.placesApi.FetchPlacePhoto(place, &placesApi.ImageSize{
-			Width:  placesApi.ImgThumbnailMaxHeight,
-			Height: placesApi.ImgThumbnailMaxHeight,
-		})
+		thumbnailImageUrl, err := s.placesApi.FetchPlacePhoto(place, placesApi.ImageSizeSmall())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)
 			continue
 		}
 
-		if thumbnail == nil {
-			log.Printf("place %s has no thumbnail\n", place.Name)
+		image, err := models.NewImage(thumbnailImageUrl, nil)
+		if err != nil {
+			log.Printf("error while creating image: %v\n", err)
 			continue
 		}
-
-		thumbnailUrl := thumbnail.ImageUrl
 
 		places = append(places, &models.Place{
 			// TODO: Google Places APIで取得されるIDと対応関係のあるIDを別で保存する
@@ -83,11 +79,10 @@ func (s Service) FetchCandidatePlaces(
 			GooglePlaceId:         &place.PlaceID,
 			Name:                  place.Name,
 			Location:              place.Location.ToGeoLocation(),
+			Images:                []models.Image{*image},
 			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
 			Category:              categoryMain.Name,
 			Categories:            models.GetCategoriesFromSubCategories(place.Types),
-			Thumbnail:             &thumbnailUrl,
-			Photos:                []string{thumbnailUrl},
 		})
 
 		if len(places) >= maxAddablePlaces {

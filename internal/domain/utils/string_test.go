@@ -31,3 +31,16 @@ func TestStrOmitEmpty(t *testing.T) {
 		t.Errorf("StrOmitEmpty(%v) = %v, want %v", "", result, nil)
 	}
 }
+
+func TestStrCopyPointerValue(t *testing.T) {
+	input := "test"
+	result := StrCopyPointerValue(&input)
+	if *result != "test" {
+		t.Errorf("StrCopyPointerValue(%v) = %v, want %v", "test", result, "test")
+	}
+
+	result = StrCopyPointerValue(nil)
+	if result != nil {
+		t.Errorf("StrCopyPointerValue(%v) = %v, want %v", "nil", result, nil)
+	}
+}
