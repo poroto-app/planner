@@ -26,7 +26,6 @@ type InterestCandidate {
     categories: [LocationCategory!]!
 }
 
-
 # TODO: PlanCandidateのQueryとPlanのQueryを分ける
 extend type Query {
     plan(id: String!): Plan
@@ -36,15 +35,6 @@ extend type Query {
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
     plansByUser(input: PlansByUserInput!): PlansByUserOutput!
-
-    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
-    matchInterests(input: MatchInterestsInput): InterestCandidate!
-
-    # キャッシュされたプラン一覧を取得する
-    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
-
-    # プランを作成可能な他の場所を取得する
-    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
 }
 
 input PlansByLocationInput {
@@ -66,85 +56,4 @@ input PlansByUserInput {
 type PlansByUserOutput {
     plans: [Plan!]!
     author: User!
-}
-
-type CachedCreatedPlans {
-    plans: [Plan!]
-    createdBasedOnCurrentLocation: Boolean!
-}
-
-input CachedCreatedPlansInput {
-    # CreatePlanByLocationOutputのsession
-    session: String!
-}
-
-input AvailablePlacesForPlanInput {
-    session: String!
-}
-
-type AvailablePlacesForPlan {
-    places: [Place!]!
-}
-
-# TODO: PlanCandidateのMutationとPlanのMutationを分ける
-extend type Mutation {
-    createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
-    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
-    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
-    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
-}
-
-input CreatePlanByLocationInput {
-    session: String
-    latitude: Float!
-    longitude: Float!
-    googlePlaceId: String
-    categoriesPreferred: [String!]
-    categoriesDisliked: [String!]
-    freeTime: Int
-    # 現在地から作成されたプランか
-    # TODO: 必須パラメータにする
-    createdBasedOnCurrentLocation: Boolean
-}
-
-type CreatePlanByLocationOutput {
-    session: String!
-    plans: [Plan!]!
-}
-
-input CreatePlanByPlaceInput {
-    session: String!
-    placeId: String!
-}
-
-type CreatePlanByPlaceOutput {
-    session: String!
-    plan: Plan!
-}
-
-input ChangePlacesOrderInPlanCandidateInput {
-    session: String!
-    planId: String!
-    placeIds: [String!]!
-    currentLatitude: Float
-    currentLongitude: Float
-}
-
-type ChangePlacesOrderInPlanCandidateOutput {
-    plan: Plan!
-}
-
-input SavePlanFromCandidateInput {
-    session: String!
-    planId: String!
-    authToken: String
-}
-
-type SavePlanFromCandidateOutput {
-    plan: Plan!
-}
-
-input MatchInterestsInput {
-    latitude: Float!
-    longitude: Float!
 }

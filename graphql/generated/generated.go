@@ -182,8 +182,8 @@ type QueryResolver interface {
 	Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error)
 	PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error)
 	PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error)
-	MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error)
 	CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error)
+	MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
 	FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error)
 }
@@ -919,7 +919,6 @@ type InterestCandidate {
     categories: [LocationCategory!]!
 }
 
-
 # TODO: PlanCandidateのQueryとPlanのQueryを分ける
 extend type Query {
     plan(id: String!): Plan
@@ -929,15 +928,6 @@ extend type Query {
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
     plansByUser(input: PlansByUserInput!): PlansByUserOutput!
-
-    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
-    matchInterests(input: MatchInterestsInput): InterestCandidate!
-
-    # キャッシュされたプラン一覧を取得する
-    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
-
-    # プランを作成可能な他の場所を取得する
-    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
 }
 
 input PlansByLocationInput {
@@ -959,6 +949,27 @@ input PlansByUserInput {
 type PlansByUserOutput {
     plans: [Plan!]!
     author: User!
+}`, BuiltIn: false},
+	{Name: "../schema/plan_candidate.graphqls", Input: `extend type Query {
+    # TODO: planCandidates 等に変更する
+    # キャッシュされたプラン一覧を取得する
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
+    matchInterests(input: MatchInterestsInput): InterestCandidate!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+}
+
+extend type Mutation {
+    createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+
+    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
+
+    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
+
+    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
 type CachedCreatedPlans {
@@ -977,14 +988,6 @@ input AvailablePlacesForPlanInput {
 
 type AvailablePlacesForPlan {
     places: [Place!]!
-}
-
-# TODO: PlanCandidateのMutationとPlanのMutationを分ける
-extend type Mutation {
-    createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
-    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
-    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
-    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -1040,7 +1043,8 @@ type SavePlanFromCandidateOutput {
 input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
-}`, BuiltIn: false},
+}
+`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `schema {
     query: Query
     mutation: Mutation
@@ -4094,67 +4098,6 @@ func (ec *executionContext) fieldContext_Query_plansByUser(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_matchInterests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_matchInterests(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MatchInterests(rctx, fc.Args["input"].(*model.MatchInterestsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.InterestCandidate)
-	fc.Result = res
-	return ec.marshalNInterestCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "session":
-				return ec.fieldContext_InterestCandidate_session(ctx, field)
-			case "categories":
-				return ec.fieldContext_InterestCandidate_categories(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type InterestCandidate", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_matchInterests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_cachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_cachedCreatedPlans(ctx, field)
 	if err != nil {
@@ -4210,6 +4153,67 @@ func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_cachedCreatedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_matchInterests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_matchInterests(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MatchInterests(rctx, fc.Args["input"].(*model.MatchInterestsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.InterestCandidate)
+	fc.Result = res
+	return ec.marshalNInterestCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "session":
+				return ec.fieldContext_InterestCandidate_session(ctx, field)
+			case "categories":
+				return ec.fieldContext_InterestCandidate_categories(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type InterestCandidate", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_matchInterests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7930,7 +7934,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "matchInterests":
+		case "cachedCreatedPlans":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -7939,7 +7943,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_matchInterests(ctx, field)
+				res = ec._Query_cachedCreatedPlans(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -7952,7 +7956,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "cachedCreatedPlans":
+		case "matchInterests":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -7961,7 +7965,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_cachedCreatedPlans(ctx, field)
+				res = ec._Query_matchInterests(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
