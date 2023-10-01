@@ -25,35 +25,3 @@ type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
 }
-
-# TODO: PlanCandidateのQueryとPlanのQueryを分ける
-extend type Query {
-    plan(id: String!): Plan
-
-    plans(pageKey: String): [Plan!]!
-
-    plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
-
-    plansByUser(input: PlansByUserInput!): PlansByUserOutput!
-}
-
-input PlansByLocationInput {
-    latitude: Float!
-    longitude: Float!
-    limit: Int
-    pageKey: String
-}
-
-type PlansByLocationOutput {
-    plans: [Plan!]!
-    pageKey: String
-}
-
-input PlansByUserInput {
-    userId: String!
-}
-
-type PlansByUserOutput {
-    plans: [Plan!]!
-    author: User!
-}
