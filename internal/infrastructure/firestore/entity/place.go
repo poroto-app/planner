@@ -18,6 +18,7 @@ type PlaceEntity struct {
 	Images                []ImageEntity              `firestore:"images"`
 	EstimatedStayDuration int                        `firestore:"estimated_stay_duration"`
 	GooglePlaceReviews    *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
+	Categories            []string                   `firestore:"categories"`
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
@@ -45,6 +46,11 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		images = append(images, ToImageEntity(image))
 	}
 
+	var categories []string
+	for _, category := range place.Categories {
+		categories = append(categories, category.Name)
+	}
+
 	return PlaceEntity{
 		Id:                    place.Id,
 		GooglePlaceId:         place.GooglePlaceId,
@@ -55,6 +61,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		Images:                images,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
+		Categories:            categories,
 	}
 }
 
@@ -84,6 +91,14 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		}
 	}
 
+	var categories []models.LocationCategory
+	for _, category := range entity.Categories {
+		c := models.GetCategoryOfName(category)
+		if c != nil {
+			categories = append(categories, *c)
+		}
+	}
+
 	return models.Place{
 		Id:                    entity.Id,
 		GooglePlaceId:         entity.GooglePlaceId,
@@ -92,5 +107,6 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		Images:                images,
 		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
+		Categories:            categories,
 	}
 }
