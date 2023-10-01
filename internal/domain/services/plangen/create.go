@@ -224,7 +224,7 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 			placesWithPhotos := <-chPlaceWithPhotos
 			placesWithReviews := <-chPlansWithReviews
 			for i := 0; i < len(places); i++ {
-				places[i].Photos = placesWithPhotos[i].Photos
+				places[i].Images = placesWithPhotos[i].Images
 				places[i].GooglePlaceReviews = placesWithReviews[i].GooglePlaceReviews
 			}
 
