@@ -2,19 +2,15 @@ package entity
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 // PlaceEntity
 // EstimatedStayDuration Firestoreではuintをサポートしていないため，intにしている
-// TODO: photos, thumbnailは削除する
 type PlaceEntity struct {
 	Id                    string                     `firestore:"id"`
 	GooglePlaceId         *string                    `firestore:"google_place_id"`
 	Name                  string                     `firestore:"name"`
 	Location              GeoLocationEntity          `firestore:"location"`
-	Thumbnail             *string                    `firestore:"thumbnail"`
-	Photos                []string                   `firestore:"photos"`
 	Images                []ImageEntity              `firestore:"images"`
 	EstimatedStayDuration int                        `firestore:"estimated_stay_duration"`
 	GooglePlaceReviews    *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
@@ -29,17 +25,6 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		}
 	}
 
-	// TODO: DELETE ME
-	var thumbnail *string
-	var photos []string
-	for _, image := range place.Images {
-		if thumbnail == nil && image.Small != nil {
-			thumbnail = utils.StrCopyPointerValue(image.Small)
-		}
-
-		photos = append(photos, image.Default())
-	}
-
 	var images []ImageEntity
 	for _, image := range place.Images {
 		images = append(images, ToImageEntity(image))
@@ -50,8 +35,6 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		GooglePlaceId:         place.GooglePlaceId,
 		Name:                  place.Name,
 		Location:              ToGeoLocationEntity(place.Location),
-		Thumbnail:             thumbnail,
-		Photos:                photos,
 		Images:                images,
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GooglePlaceReviews:    googlePlaceReviews,
@@ -67,21 +50,9 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		}
 	}
 
-	// TODO: DELETE ME
 	var images []models.Image
-	if entity.Images == nil {
-		for _, photo := range entity.Photos {
-			image, err := models.NewImage(nil, utils.StrOmitEmpty(photo))
-			if err != nil {
-				continue
-			}
-
-			images = append(images, *image)
-		}
-	} else {
-		for _, image := range entity.Images {
-			images = append(images, FromImageEntity(image))
-		}
+	for _, image := range entity.Images {
+		images = append(images, FromImageEntity(image))
 	}
 
 	return models.Place{
