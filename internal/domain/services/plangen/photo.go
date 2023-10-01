@@ -2,28 +2,9 @@ package plangen
 
 import (
 	"context"
-	"fmt"
-
 	"poroto.app/poroto/planner/internal/domain/models"
+	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
-
-// fetchPlacePhotos は，指定された場所の写真を取得する
-func (s Service) fetchPlacePhotos(ctx context.Context, placeId string) (thumbnailUrl *string, photoUrls []string, err error) {
-	placePhotos, err := s.placesApi.FetchPlacePhotos(ctx, placeId)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error while fetching place photos: %v\n", err)
-	}
-
-	for _, photo := range placePhotos {
-		photoUrls = append(photoUrls, photo.ImageUrl)
-
-		if thumbnailUrl == nil {
-			thumbnailUrl = &photo.ImageUrl
-		}
-	}
-
-	return thumbnailUrl, photoUrls, nil
-}
 
 // FetchPlacesPhotos は，指定された場所の写真を一括で取得すR
 func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) []models.Place {
@@ -39,19 +20,28 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 				return
 			}
 
-			thumbnailUrl, photoUrls, err := s.fetchPlacePhotos(ctx, *place.GooglePlaceId)
+			photos, err := s.placesApi.FetchPlacePhotos(
+				ctx,
+				*place.GooglePlaceId,
+				api.ImageSizeTypeSmall,
+				api.ImageSizeTypeLarge,
+			)
 			if err != nil {
 				ch <- place
 				return
 			}
 
-			if thumbnailUrl != nil {
-				place.Thumbnail = thumbnailUrl
+			images := make([]models.Image, 0, len(photos))
+			for _, photo := range photos {
+				image, err := models.NewImage(photo.Small, photo.Large)
+				if err != nil {
+					continue
+				}
+
+				images = append(images, *image)
 			}
 
-			if len(photoUrls) > 0 {
-				place.Photos = photoUrls
-			}
+			place.Images = images
 
 			ch <- place
 		}(ctx, place, ch)
