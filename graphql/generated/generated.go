@@ -918,7 +918,7 @@ type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
 }`, BuiltIn: false},
-	{Name: "../schema/plan_candidate.graphqls", Input: `extend type Mutation {
+	{Name: "../schema/plan_candidate_mutation.graphqls", Input: `extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
