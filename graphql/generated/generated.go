@@ -863,17 +863,7 @@ type Image {
     large: String
 }
 `, BuiltIn: false},
-	{Name: "../schema/plan.graphqls", Input: `type Plan {
-    id: String!
-    name: String!
-    places: [Place!]!
-    timeInMinutes: Int!
-    description: String
-    transitions: [Transition!]!
-    authorId: String
-}
-
-type Place {
+	{Name: "../schema/place.graphqls", Input: `type Place {
     id: String!
     googlePlaceId: String
     name: String!
@@ -883,6 +873,11 @@ type Place {
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
+}
+
+type GeoLocation {
+    latitude: Float!
+    longitude: Float!
 }
 
 type GooglePlaceReview {
@@ -895,16 +890,21 @@ type GooglePlaceReview {
     language: String
     originalLanguage: String
 }
+`, BuiltIn: false},
+	{Name: "../schema/plan.graphqls", Input: `type Plan {
+    id: String!
+    name: String!
+    places: [Place!]!
+    timeInMinutes: Int!
+    description: String
+    transitions: [Transition!]!
+    authorId: String
+}
 
 type Transition {
     from: Place
     to: Place!
     duration: Int!
-}
-
-type GeoLocation {
-    latitude: Float!
-    longitude: Float!
 }
 
 type LocationCategory {
