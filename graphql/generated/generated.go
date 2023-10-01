@@ -852,7 +852,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema/image.graphqls", Input: `enum ImageSize {
+	{Name: "../schema/image_type.graphqls", Input: `enum ImageSize {
     SMALL
     LARGE
 }
@@ -863,7 +863,7 @@ type Image {
     large: String
 }
 `, BuiltIn: false},
-	{Name: "../schema/place.graphqls", Input: `type Place {
+	{Name: "../schema/place_type.graphqls", Input: `type Place {
     id: String!
     googlePlaceId: String
     name: String!
@@ -891,33 +891,6 @@ type GooglePlaceReview {
     originalLanguage: String
 }
 `, BuiltIn: false},
-	{Name: "../schema/plan.graphqls", Input: `type Plan {
-    id: String!
-    name: String!
-    places: [Place!]!
-    timeInMinutes: Int!
-    description: String
-    transitions: [Transition!]!
-    authorId: String
-}
-
-type Transition {
-    from: Place
-    to: Place!
-    duration: Int!
-}
-
-type LocationCategory {
-    name: String!
-    displayName: String!
-    photo: String
-    defaultPhotoUrl: String!
-}
-
-type InterestCandidate {
-    session: String!
-    categories: [LocationCategory!]!
-}`, BuiltIn: false},
 	{Name: "../schema/plan_candidate_mutation.graphqls", Input: `extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 
@@ -1044,6 +1017,33 @@ type PlansByUserOutput {
     author: User!
 }
 `, BuiltIn: false},
+	{Name: "../schema/plan_type.graphqls", Input: `type Plan {
+    id: String!
+    name: String!
+    places: [Place!]!
+    timeInMinutes: Int!
+    description: String
+    transitions: [Transition!]!
+    authorId: String
+}
+
+type Transition {
+    from: Place
+    to: Place!
+    duration: Int!
+}
+
+type LocationCategory {
+    name: String!
+    displayName: String!
+    photo: String
+    defaultPhotoUrl: String!
+}
+
+type InterestCandidate {
+    session: String!
+    categories: [LocationCategory!]!
+}`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `schema {
     query: Query
     mutation: Mutation
