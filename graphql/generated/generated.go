@@ -985,6 +985,11 @@ input AvailablePlacesForPlanInput {
 type AvailablePlacesForPlan {
     places: [Place!]!
 }
+
+type InterestCandidate {
+    session: String!
+    categories: [LocationCategory!]!
+}
 `, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
     plan(id: String!): Plan
@@ -1038,11 +1043,6 @@ type LocationCategory {
     displayName: String!
     photo: String
     defaultPhotoUrl: String!
-}
-
-type InterestCandidate {
-    session: String!
-    categories: [LocationCategory!]!
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `schema {
     query: Query

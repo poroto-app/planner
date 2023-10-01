@@ -27,3 +27,8 @@ input AvailablePlacesForPlanInput {
 type AvailablePlacesForPlan {
     places: [Place!]!
 }
+
+type InterestCandidate {
+    session: String!
+    categories: [LocationCategory!]!
+}

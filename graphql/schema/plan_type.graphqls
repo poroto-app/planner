@@ -20,8 +20,3 @@ type LocationCategory {
     photo: String
     defaultPhotoUrl: String!
 }
-
-type InterestCandidate {
-    session: String!
-    categories: [LocationCategory!]!
-}
