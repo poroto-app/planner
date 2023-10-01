@@ -1,0 +1,29 @@
+extend type Query {
+    # TODO: planCandidates 等に変更する
+    # キャッシュされたプラン一覧を取得する
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
+    matchInterests(input: MatchInterestsInput): InterestCandidate!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+}
+
+type CachedCreatedPlans {
+    plans: [Plan!]
+    createdBasedOnCurrentLocation: Boolean!
+}
+
+input CachedCreatedPlansInput {
+    # CreatePlanByLocationOutputのsession
+    session: String!
+}
+
+input AvailablePlacesForPlanInput {
+    session: String!
+}
+
+type AvailablePlacesForPlan {
+    places: [Place!]!
+}

@@ -918,19 +918,7 @@ type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
 }`, BuiltIn: false},
-	{Name: "../schema/plan_candidate.graphqls", Input: `extend type Query {
-    # TODO: planCandidates 等に変更する
-    # キャッシュされたプラン一覧を取得する
-    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
-
-    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
-    matchInterests(input: MatchInterestsInput): InterestCandidate!
-
-    # プランを作成可能な他の場所を取得する
-    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
-}
-
-extend type Mutation {
+	{Name: "../schema/plan_candidate.graphqls", Input: `extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
@@ -938,24 +926,6 @@ extend type Mutation {
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
-}
-
-type CachedCreatedPlans {
-    plans: [Plan!]
-    createdBasedOnCurrentLocation: Boolean!
-}
-
-input CachedCreatedPlansInput {
-    # CreatePlanByLocationOutputのsession
-    session: String!
-}
-
-input AvailablePlacesForPlanInput {
-    session: String!
-}
-
-type AvailablePlacesForPlan {
-    places: [Place!]!
 }
 
 input CreatePlanByLocationInput {
@@ -1011,6 +981,36 @@ type SavePlanFromCandidateOutput {
 input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
+}
+`, BuiltIn: false},
+	{Name: "../schema/plan_candidate_query.graphqls", Input: `extend type Query {
+    # TODO: planCandidates 等に変更する
+    # キャッシュされたプラン一覧を取得する
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
+    matchInterests(input: MatchInterestsInput): InterestCandidate!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+}
+
+type CachedCreatedPlans {
+    plans: [Plan!]
+    createdBasedOnCurrentLocation: Boolean!
+}
+
+input CachedCreatedPlansInput {
+    # CreatePlanByLocationOutputのsession
+    session: String!
+}
+
+input AvailablePlacesForPlanInput {
+    session: String!
+}
+
+type AvailablePlacesForPlan {
+    places: [Place!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
