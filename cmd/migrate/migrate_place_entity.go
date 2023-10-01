@@ -7,6 +7,7 @@ import (
 	"google.golang.org/api/option"
 	"log"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
@@ -43,28 +44,24 @@ func main() {
 		log.Fatalf("error while initializing firestore client: %v", err)
 	}
 
-	if err := client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		log.Println("Start transaction")
+	collection := client.Collection("plans")
+	documentIter := collection.Documents(ctx)
+	for {
+		snapshot, err := documentIter.Next()
+		if err != nil {
+			break
+		}
 
-		collection := client.Collection("plans")
+		if snapshot.Ref == nil {
+			continue
+		}
 
-		var updatedPlans []entity.PlanEntity
-		documentIter := tx.DocumentRefs(collection)
-		for {
-			doc, err := documentIter.Next()
-			if err != nil {
-				break
-			}
-
-			planDoc, err := tx.Get(doc)
-			if err != nil {
-				return err
-			}
-
-			log.Printf("Updating plan: %s\n", doc.ID)
+		if err := client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+			log.Println("Start transaction====================")
+			log.Printf("Updating plan: %s\n", snapshot.Ref.ID)
 
 			var plan entity.PlanEntity
-			if err := planDoc.DataTo(&plan); err != nil {
+			if err := snapshot.DataTo(&plan); err != nil {
 				return err
 			}
 
@@ -79,19 +76,14 @@ func main() {
 				for i, photo := range place.Photos {
 					place.Images[i] = entity.ImageEntity{
 						Small: nil,
-						Large: &photo,
+						Large: utils.StrPointer(photo),
 					}
 				}
 
 				plan.Places[i] = place
 			}
 
-			updatedPlans = append(updatedPlans, plan)
-		}
-
-		for _, plan := range updatedPlans {
-			doc := collection.Doc(plan.Id)
-			if err := tx.Update(doc, []firestore.Update{
+			if err := tx.Update(collection.Doc(snapshot.Ref.ID), []firestore.Update{
 				{
 					Path:  "places",
 					Value: plan.Places,
@@ -103,11 +95,14 @@ func main() {
 			}); err != nil {
 				return err
 			}
-			log.Printf("Updated plan: %s", plan.Id)
-		}
 
-		return nil
-	}); err != nil {
-		log.Fatalf("error while transaction: %v", err)
+			log.Printf("Updated plan: %s", plan.Id)
+			log.Printf("End transaction====================")
+
+			return nil
+		}); err != nil {
+			log.Fatalf("error while transaction: %v", err)
+		}
 	}
+
 }
