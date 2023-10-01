@@ -110,6 +110,7 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
+		Categories            func(childComplexity int) int
 		EstimatedStayDuration func(childComplexity int) int
 		GooglePlaceID         func(childComplexity int) int
 		GoogleReviews         func(childComplexity int) int
@@ -118,6 +119,11 @@ type ComplexityRoot struct {
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		Photos                func(childComplexity int) int
+	}
+
+	PlaceCategory struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -452,6 +458,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SavePlanFromCandidate(childComplexity, args["input"].(model.SavePlanFromCandidateInput)), true
 
+	case "Place.categories":
+		if e.complexity.Place.Categories == nil {
+			break
+		}
+
+		return e.complexity.Place.Categories(childComplexity), true
+
 	case "Place.estimatedStayDuration":
 		if e.complexity.Place.EstimatedStayDuration == nil {
 			break
@@ -507,6 +520,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.Photos(childComplexity), true
+
+	case "PlaceCategory.id":
+		if e.complexity.PlaceCategory.ID == nil {
+			break
+		}
+
+		return e.complexity.PlaceCategory.ID(childComplexity), true
+
+	case "PlaceCategory.name":
+		if e.complexity.PlaceCategory.Name == nil {
+			break
+		}
+
+		return e.complexity.PlaceCategory.Name(childComplexity), true
 
 	case "Plan.authorId":
 		if e.complexity.Plan.AuthorID == nil {
@@ -873,6 +900,7 @@ type Image {
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
+    categories: [PlaceCategory!]!
 }
 
 type GeoLocation {
@@ -890,7 +918,11 @@ type GooglePlaceReview {
     language: String
     originalLanguage: String
 }
-`, BuiltIn: false},
+
+type PlaceCategory {
+    id: String!
+    name: String!
+}`, BuiltIn: false},
 	{Name: "../schema/plan_candidate_mutation.graphqls", Input: `extend type Mutation {
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 
@@ -1380,6 +1412,8 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			case "googleReviews":
 				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -3251,6 +3285,144 @@ func (ec *executionContext) fieldContext_Place_googleReviews(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_categories(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_categories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Categories, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PlaceCategory)
+	fc.Result = res
+	return ec.marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PlaceCategory_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PlaceCategory_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlaceCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlaceCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.PlaceCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlaceCategory_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlaceCategory_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlaceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlaceCategory_name(ctx context.Context, field graphql.CollectedField, obj *model.PlaceCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlaceCategory_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlaceCategory_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlaceCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_id(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_id(ctx, field)
 	if err != nil {
@@ -3394,6 +3566,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			case "googleReviews":
 				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4582,6 +4756,8 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			case "googleReviews":
 				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4644,6 +4820,8 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
 			case "googleReviews":
 				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -7636,6 +7814,55 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "googleReviews":
 			out.Values[i] = ec._Place_googleReviews(ctx, field, obj)
+		case "categories":
+			out.Values[i] = ec._Place_categories(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var placeCategoryImplementors = []string{"PlaceCategory"}
+
+func (ec *executionContext) _PlaceCategory(ctx context.Context, sel ast.SelectionSet, obj *model.PlaceCategory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, placeCategoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlaceCategory")
+		case "id":
+			out.Values[i] = ec._PlaceCategory_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PlaceCategory_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8858,6 +9085,60 @@ func (ec *executionContext) marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋg
 		return graphql.Null
 	}
 	return ec._Place(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlaceCategory) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategory(ctx context.Context, sel ast.SelectionSet, v *model.PlaceCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PlaceCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Plan) graphql.Marshaler {
