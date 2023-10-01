@@ -1056,19 +1056,19 @@ type Query {
 type Mutation {
     ping(message: String!): String!
 }`, BuiltIn: false},
-	{Name: "../schema/user.graphqls", Input: `type User {
-    id: ID!
-    name: String!
-    photoUrl: String
-}
-
-extend type Query {
+	{Name: "../schema/user_query.graphqls", Input: `extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
 }
 
 input FirebaseUserInput {
     firebaseUserId: String!
     firebaseAuthToken: String!
+}
+`, BuiltIn: false},
+	{Name: "../schema/user_type.graphqls", Input: `type User {
+    id: ID!
+    name: String!
+    photoUrl: String
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
