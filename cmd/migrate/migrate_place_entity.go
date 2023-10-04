@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
+	"time"
 )
 
 func init() {
@@ -24,6 +24,63 @@ func init() {
 	if err := godotenv.Load(".env." + env); err != nil {
 		log.Fatalf("error while loading .env.%s: %v", env, err)
 	}
+}
+
+// PlanEntity 2023/10/4
+type PlanEntity struct {
+	Id            string               `firestore:"id"`
+	Name          string               `firestore:"name"`
+	Places        []PlaceEntity        `firestore:"places"`
+	GeoHash       *string              `firestore:"geohash,omitempty"`
+	TimeInMinutes int                  `firestore:"time_in_minutes"`
+	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
+	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time            `firestore:"updated_at,omitempty"`
+	AuthorId      *string              `firestore:"author_id,omitempty"`
+}
+
+// PlaceEntity 2023/10/4
+type PlaceEntity struct {
+	Id                    string                     `firestore:"id"`
+	GooglePlaceId         *string                    `firestore:"google_place_id"`
+	Name                  string                     `firestore:"name"`
+	Location              GeoLocationEntity          `firestore:"location"`
+	Thumbnail             *string                    `firestore:"thumbnail"`
+	Photos                []string                   `firestore:"photos"`
+	Images                []ImageEntity              `firestore:"images"`
+	EstimatedStayDuration int                        `firestore:"estimated_stay_duration"`
+	GooglePlaceReviews    *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
+}
+
+// TransitionsEntity 2023/10/4
+type TransitionsEntity struct {
+	FromPlaceId *string `firestore:"from,omitempty"`
+	ToPlaceId   string  `firestore:"to"`
+	Duration    int     `firestore:"duration"`
+}
+
+// GeoLocationEntity 2023/10/4
+type GeoLocationEntity struct {
+	Latitude  float64 `firestore:"latitude"`
+	Longitude float64 `firestore:"longitude"`
+}
+
+// ImageEntity 2023/10/4
+type ImageEntity struct {
+	Small *string `firestore:"small,omitempty"`
+	Large *string `firestore:"large,omitempty"`
+}
+
+// GooglePlaceReviewEntity 2023/10/4
+type GooglePlaceReviewEntity struct {
+	Rating           int     `firestore:"rating"`
+	Text             *string `firestore:"text,omitempty"`
+	Time             int     `firestore:"time"`
+	AuthorName       string  `firestore:"author_name"`
+	AuthorUrl        *string `firestore:"author_url,omitempty"`
+	AuthorProfileUrl *string `firestore:"author_profile_url,omitempty"`
+	Language         *string `firestore:"language,omitempty"`
+	OriginalLanguage *string `firestore:"original_language,omitempty"`
 }
 
 // 保存されたプランに含まれる場所の Photos, Thumbnail
@@ -60,7 +117,7 @@ func main() {
 			log.Println("Start transaction====================")
 			log.Printf("Updating plan: %s\n", snapshot.Ref.ID)
 
-			var plan entity.PlanEntity
+			var plan PlanEntity
 			if err := snapshot.DataTo(&plan); err != nil {
 				return err
 			}
@@ -72,9 +129,9 @@ func main() {
 				}
 
 				// images が保存されていない場合は、上書きする
-				place.Images = make([]entity.ImageEntity, len(place.Photos))
+				place.Images = make([]ImageEntity, len(place.Photos))
 				for i, photo := range place.Photos {
-					place.Images[i] = entity.ImageEntity{
+					place.Images[i] = ImageEntity{
 						Small: nil,
 						Large: utils.StrPointer(photo),
 					}
