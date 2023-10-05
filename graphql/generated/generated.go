@@ -118,7 +118,6 @@ type ComplexityRoot struct {
 		Images                func(childComplexity int) int
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
-		Photos                func(childComplexity int) int
 	}
 
 	PlaceCategory struct {
@@ -514,13 +513,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Place.Name(childComplexity), true
 
-	case "Place.photos":
-		if e.complexity.Place.Photos == nil {
-			break
-		}
-
-		return e.complexity.Place.Photos(childComplexity), true
-
 	case "PlaceCategory.id":
 		if e.complexity.PlaceCategory.ID == nil {
 			break
@@ -895,8 +887,6 @@ type Image {
     googlePlaceId: String
     name: String!
     location: GeoLocation!
-    # TODO: DELETE ME!
-    photos: [String!]!
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
@@ -1404,8 +1394,6 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
-			case "photos":
-				return ec.fieldContext_Place_photos(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -3086,50 +3074,6 @@ func (ec *executionContext) fieldContext_Place_location(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Place_photos(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Place_photos(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Photos, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Place_photos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Place",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Place_images(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Place_images(ctx, field)
 	if err != nil {
@@ -3558,8 +3502,6 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
-			case "photos":
-				return ec.fieldContext_Place_photos(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -4748,8 +4690,6 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
-			case "photos":
-				return ec.fieldContext_Place_photos(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -4812,8 +4752,6 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
-			case "photos":
-				return ec.fieldContext_Place_photos(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -7794,11 +7732,6 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "location":
 			out.Values[i] = ec._Place_location(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "photos":
-			out.Values[i] = ec._Place_photos(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
