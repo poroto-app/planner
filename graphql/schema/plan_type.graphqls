@@ -1,0 +1,22 @@
+type Plan {
+    id: String!
+    name: String!
+    places: [Place!]!
+    timeInMinutes: Int!
+    description: String
+    transitions: [Transition!]!
+    authorId: String
+}
+
+type Transition {
+    from: Place
+    to: Place!
+    duration: Int!
+}
+
+type LocationCategory {
+    name: String!
+    displayName: String!
+    photo: String
+    defaultPhotoUrl: String!
+}

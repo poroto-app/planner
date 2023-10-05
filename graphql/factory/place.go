@@ -19,12 +19,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		})
 	}
 
-	// TODO: DELETE ME
-	var photos []string
-	for _, image := range place.Images {
-		photos = append(photos, image.Default())
-	}
-
 	var googlePlaceReviews []*graphql.GooglePlaceReview
 	if place.GooglePlaceReviews != nil {
 		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(*place.GooglePlaceReviews))
@@ -33,11 +27,18 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		}
 	}
 
+	var placeCategories []*graphql.PlaceCategory
+	for _, category := range place.Categories {
+		placeCategories = append(placeCategories, &graphql.PlaceCategory{
+			ID:   category.Name,
+			Name: category.DisplayName,
+		})
+	}
+
 	return &graphql.Place{
 		ID:            place.Id,
 		GooglePlaceID: place.GooglePlaceId,
 		Name:          place.Name,
-		Photos:        photos,
 		Images:        images,
 		Location: &graphql.GeoLocation{
 			Latitude:  place.Location.Latitude,
@@ -45,5 +46,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		},
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GoogleReviews:         googlePlaceReviews,
+		Categories:            placeCategories,
 	}
 }

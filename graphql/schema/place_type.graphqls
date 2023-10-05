@@ -1,0 +1,31 @@
+type Place {
+    id: String!
+    googlePlaceId: String
+    name: String!
+    location: GeoLocation!
+    images: [Image!]!
+    estimatedStayDuration: Int!
+    googleReviews: [GooglePlaceReview!]
+    categories: [PlaceCategory!]!
+}
+
+type GeoLocation {
+    latitude: Float!
+    longitude: Float!
+}
+
+type GooglePlaceReview {
+    rating: Int!
+    text: String
+    time: Int!
+    authorName: String!
+    authorUrl: String
+    authorPhotoUrl: String
+    language: String
+    originalLanguage: String
+}
+
+type PlaceCategory {
+    id: String!
+    name: String!
+}

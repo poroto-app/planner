@@ -112,10 +112,15 @@ type Place struct {
 	GooglePlaceID         *string              `json:"googlePlaceId,omitempty"`
 	Name                  string               `json:"name"`
 	Location              *GeoLocation         `json:"location"`
-	Photos                []string             `json:"photos"`
 	Images                []*Image             `json:"images"`
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
+	Categories            []*PlaceCategory     `json:"categories"`
+}
+
+type PlaceCategory struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type Plan struct {
