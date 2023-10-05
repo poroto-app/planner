@@ -27,6 +27,14 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		}
 	}
 
+	var placeCategories []*graphql.PlaceCategory
+	for _, category := range place.Categories {
+		placeCategories = append(placeCategories, &graphql.PlaceCategory{
+			ID:   category.Name,
+			Name: category.DisplayName,
+		})
+	}
+
 	return &graphql.Place{
 		ID:            place.Id,
 		GooglePlaceID: place.GooglePlaceId,
@@ -38,5 +46,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		},
 		EstimatedStayDuration: int(place.EstimatedStayDuration),
 		GoogleReviews:         googlePlaceReviews,
+		Categories:            placeCategories,
 	}
 }
