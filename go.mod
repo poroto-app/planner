@@ -14,7 +14,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mmcloughlin/geohash v0.10.0
 	github.com/vektah/gqlparser/v2 v2.5.10
-	google.golang.org/api v0.143.0
+	google.golang.org/api v0.145.0
 	google.golang.org/grpc v1.58.2
 	googlemaps.github.io/maps v1.5.0
 )
