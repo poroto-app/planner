@@ -18,6 +18,8 @@ type PlanCandidateRepository interface {
 
 	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error
 
+	RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error
+
 	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error)
 
 	DeleteAll(ctx context.Context, planCandidateIds []string) error
