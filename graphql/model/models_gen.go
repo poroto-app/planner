@@ -19,16 +19,6 @@ type AddPlaceToPlanCandidateOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
-type AlternativePlacesForPlanCandidate struct {
-	Places []*Place `json:"places"`
-}
-
-type AlternativePlacesForPlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
-	PlaceID         string `json:"placeId"`
-}
-
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }
@@ -172,6 +162,16 @@ type PlacesToAddForPlanCandidateInput struct {
 }
 
 type PlacesToAddForPlanCandidateOutput struct {
+	Places []*Place `json:"places"`
+}
+
+type PlacesToReplaceForPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+}
+
+type PlacesToReplaceForPlanCandidateOutput struct {
 	Places []*Place `json:"places"`
 }
 

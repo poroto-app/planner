@@ -14,7 +14,7 @@ extend type Query {
     # ===========================================================
     placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
 
-    placesToReplaceForPlanCandidate(input: AlternativePlacesForPlanCandidateInput!): AlternativePlacesForPlanCandidate!
+    placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
 }
 
 type CachedCreatedPlans {
@@ -49,12 +49,12 @@ type PlacesToAddForPlanCandidateOutput {
     places: [Place!]!
 }
 
-input AlternativePlacesForPlanCandidateInput {
+input PlacesToReplaceForPlanCandidateInput {
     planCandidateId: ID!
     planId: ID!
     placeId: ID!
 }
 
-type AlternativePlacesForPlanCandidate {
+type PlacesToReplaceForPlanCandidateOutput {
     places: [Place!]!
 }
