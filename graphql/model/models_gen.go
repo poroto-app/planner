@@ -166,6 +166,15 @@ type PlaceCategory struct {
 	Name string `json:"name"`
 }
 
+type PlacesToAddForPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+}
+
+type PlacesToAddForPlanCandidateOutput struct {
+	Places []*Place `json:"places"`
+}
+
 type Plan struct {
 	ID            string        `json:"id"`
 	Name          string        `json:"name"`

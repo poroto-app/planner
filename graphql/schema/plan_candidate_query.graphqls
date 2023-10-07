@@ -12,6 +12,8 @@ extend type Query {
     # ===========================================================
     # Edit
     # ===========================================================
+    placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
+
     placesToReplaceForPlanCandidate(input: AlternativePlacesForPlanCandidateInput!): AlternativePlacesForPlanCandidate!
 }
 
@@ -36,6 +38,15 @@ type AvailablePlacesForPlan {
 type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
+}
+
+input PlacesToAddForPlanCandidateInput {
+    planCandidateId: ID!
+    planId: ID!
+}
+
+type PlacesToAddForPlanCandidateOutput {
+    places: [Place!]!
 }
 
 input AlternativePlacesForPlanCandidateInput {
