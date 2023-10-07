@@ -3,6 +3,7 @@ package plancandidate
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
@@ -18,14 +19,6 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	planToUpdate := planCandidate.GetPlan(planId)
 	if planToUpdate == nil {
 		return nil, fmt.Errorf("plan not found: %v\n", planId)
-	}
-
-	// 重複して追加しないようにする
-	for _, place := range planToUpdate.Places {
-		if place.Id == placeId {
-			log.Printf("Place %v is already added to plan candidate %v\n", placeId, planCandidateId)
-			return planToUpdate, nil
-		}
 	}
 
 	log.Printf("Fetching searched places for plan candidate: %v\n", planCandidateId)
@@ -48,7 +41,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 			}
 
 			placeToAdd = &models.Place{
-				Id:                    place.PlaceID,
+				Id:                    uuid.New().String(),
 				GooglePlaceId:         &place.PlaceID,
 				Name:                  place.Name,
 				Location:              place.Location.ToGeoLocation(),
@@ -58,9 +51,20 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 			break
 		}
 	}
-
 	if placeToAdd == nil {
-		return nil, nil
+		return nil, fmt.Errorf("place not found: %v\n", placeId)
+	}
+
+	// 重複して追加しないようにする
+	for _, place := range planToUpdate.Places {
+		if place.GooglePlaceId == nil || placeToAdd.GooglePlaceId == nil {
+			continue
+		}
+
+		if *place.GooglePlaceId == *placeToAdd.GooglePlaceId {
+			log.Printf("Place %v is already added to plan candidate %v\n", placeId, planCandidateId)
+			return planToUpdate, nil
+		}
 	}
 
 	// TODO: キャッシュする
