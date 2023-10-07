@@ -202,3 +202,8 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: ReplacePlaceOfPlanCandidate - replacePlaceOfPlanCandidate"))
 }
+
+// EditPlanTitleOfPlanCandidate is the resolver for the editPlanTitleOfPlanCandidate field.
+func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
+}
