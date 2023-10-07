@@ -998,28 +998,6 @@ type PlaceCategory {
     deletePlaceFromPlanCandidate(input: DeletePlaceFromPlanCandidateInput!): DeletePlaceFromPlanCandidateOutput!
 }
 
-input AddPlaceToPlanCandidateInput {
-    planCandidateId: String!
-    planId: String!
-    placeId: String!
-}
-
-type AddPlaceToPlanCandidateOutput {
-    planCandidateId: String!
-    places: [Place!]!
-}
-
-input DeletePlaceFromPlanCandidateInput {
-    planCandidateId: String!
-    planId: String!
-    placeId: String!
-}
-
-type DeletePlaceFromPlanCandidateOutput {
-    planCandidateId: String!
-    places: [Place!]!
-}
-
 input CreatePlanByLocationInput {
     session: String
     latitude: Float!
@@ -1073,6 +1051,28 @@ type SavePlanFromCandidateOutput {
 input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
+}
+
+input AddPlaceToPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type AddPlaceToPlanCandidateOutput {
+    planCandidateId: String!
+    places: [Place!]!
+}
+
+input DeletePlaceFromPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type DeletePlaceFromPlanCandidateOutput {
+    planCandidateId: String!
+    places: [Place!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/plan_candidate_query.graphqls", Input: `extend type Query {
