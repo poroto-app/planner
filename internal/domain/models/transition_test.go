@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"testing"
 )
 
@@ -43,7 +44,7 @@ func TestCreateTransition(t *testing.T) {
 					Duration:    21,
 				},
 				{
-					FromPlaceId: toStrPointer("01"),
+					FromPlaceId: utils.StrPointer("01"),
 					ToPlaceId:   "02",
 					Duration:    2,
 				},
@@ -71,7 +72,7 @@ func TestCreateTransition(t *testing.T) {
 			},
 			expected: []Transition{
 				{
-					FromPlaceId: toStrPointer("01"),
+					FromPlaceId: utils.StrPointer("01"),
 					ToPlaceId:   "02",
 					Duration:    102,
 				},

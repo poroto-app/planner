@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"testing"
 )
 
@@ -17,7 +18,7 @@ func TestHasPlace(t *testing.T) {
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: toStrPointer("1")}},
+						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
 					},
 				},
 			},
@@ -29,7 +30,7 @@ func TestHasPlace(t *testing.T) {
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: toStrPointer("1")}},
+						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
 					},
 				},
 			},
@@ -77,8 +78,4 @@ func TestPlanCandidate_GetPlan(t *testing.T) {
 			}
 		})
 	}
-}
-
-func toStrPointer(v string) *string {
-	return &v
 }
