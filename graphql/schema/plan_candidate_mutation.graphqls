@@ -80,7 +80,7 @@ input AddPlaceToPlanCandidateInput {
 
 type AddPlaceToPlanCandidateOutput {
     planCandidateId: String!
-    places: [Place!]!
+    plan: Plan!
 }
 
 input DeletePlaceFromPlanCandidateInput {
@@ -91,7 +91,7 @@ input DeletePlaceFromPlanCandidateInput {
 
 type DeletePlaceFromPlanCandidateOutput {
     planCandidateId: String!
-    places: [Place!]!
+    plan: Plan!
 }
 
 input PlacePlaceOnPlanCandidateInput {

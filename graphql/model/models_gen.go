@@ -15,8 +15,8 @@ type AddPlaceToPlanCandidateInput struct {
 }
 
 type AddPlaceToPlanCandidateOutput struct {
-	PlanCandidateID string   `json:"planCandidateId"`
-	Places          []*Place `json:"places"`
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
 }
 
 type AlternativePlacesForPlanCandidate struct {
@@ -91,8 +91,8 @@ type DeletePlaceFromPlanCandidateInput struct {
 }
 
 type DeletePlaceFromPlanCandidateOutput struct {
-	PlanCandidateID string   `json:"planCandidateId"`
-	Places          []*Place `json:"places"`
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
 }
 
 type FirebaseUserInput struct {

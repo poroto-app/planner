@@ -45,7 +45,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AddPlaceToPlanCandidateOutput struct {
-		Places          func(childComplexity int) int
+		Plan            func(childComplexity int) int
 		PlanCandidateID func(childComplexity int) int
 	}
 
@@ -77,7 +77,7 @@ type ComplexityRoot struct {
 	}
 
 	DeletePlaceFromPlanCandidateOutput struct {
-		Places          func(childComplexity int) int
+		Plan            func(childComplexity int) int
 		PlanCandidateID func(childComplexity int) int
 	}
 
@@ -235,12 +235,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AddPlaceToPlanCandidateOutput.places":
-		if e.complexity.AddPlaceToPlanCandidateOutput.Places == nil {
+	case "AddPlaceToPlanCandidateOutput.plan":
+		if e.complexity.AddPlaceToPlanCandidateOutput.Plan == nil {
 			break
 		}
 
-		return e.complexity.AddPlaceToPlanCandidateOutput.Places(childComplexity), true
+		return e.complexity.AddPlaceToPlanCandidateOutput.Plan(childComplexity), true
 
 	case "AddPlaceToPlanCandidateOutput.planCandidateId":
 		if e.complexity.AddPlaceToPlanCandidateOutput.PlanCandidateID == nil {
@@ -312,12 +312,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CreatePlanByPlaceOutput.Session(childComplexity), true
 
-	case "DeletePlaceFromPlanCandidateOutput.places":
-		if e.complexity.DeletePlaceFromPlanCandidateOutput.Places == nil {
+	case "DeletePlaceFromPlanCandidateOutput.plan":
+		if e.complexity.DeletePlaceFromPlanCandidateOutput.Plan == nil {
 			break
 		}
 
-		return e.complexity.DeletePlaceFromPlanCandidateOutput.Places(childComplexity), true
+		return e.complexity.DeletePlaceFromPlanCandidateOutput.Plan(childComplexity), true
 
 	case "DeletePlaceFromPlanCandidateOutput.planCandidateId":
 		if e.complexity.DeletePlaceFromPlanCandidateOutput.PlanCandidateID == nil {
@@ -1123,7 +1123,7 @@ input AddPlaceToPlanCandidateInput {
 
 type AddPlaceToPlanCandidateOutput {
     planCandidateId: String!
-    places: [Place!]!
+    plan: Plan!
 }
 
 input DeletePlaceFromPlanCandidateInput {
@@ -1134,7 +1134,7 @@ input DeletePlaceFromPlanCandidateInput {
 
 type DeletePlaceFromPlanCandidateOutput {
     planCandidateId: String!
-    places: [Place!]!
+    plan: Plan!
 }
 
 input PlacePlaceOnPlanCandidateInput {
@@ -1635,8 +1635,8 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateOutput_planCandi
 	return fc, nil
 }
 
-func (ec *executionContext) _AddPlaceToPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AddPlaceToPlanCandidateOutput_places(ctx, field)
+func (ec *executionContext) _AddPlaceToPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddPlaceToPlanCandidateOutput_plan(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1649,7 +1649,7 @@ func (ec *executionContext) _AddPlaceToPlanCandidateOutput_places(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Places, nil
+		return obj.Plan, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1661,12 +1661,12 @@ func (ec *executionContext) _AddPlaceToPlanCandidateOutput_places(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Place)
+	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AddPlaceToPlanCandidateOutput",
 		Field:      field,
@@ -1675,23 +1675,21 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateOutput_places(ct
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Place_id(ctx, field)
-			case "googlePlaceId":
-				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+				return ec.fieldContext_Plan_id(ctx, field)
 			case "name":
-				return ec.fieldContext_Place_name(ctx, field)
-			case "location":
-				return ec.fieldContext_Place_location(ctx, field)
-			case "images":
-				return ec.fieldContext_Place_images(ctx, field)
-			case "estimatedStayDuration":
-				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
-			case "googleReviews":
-				return ec.fieldContext_Place_googleReviews(ctx, field)
-			case "categories":
-				return ec.fieldContext_Place_categories(ctx, field)
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
 	}
 	return fc, nil
@@ -2234,8 +2232,8 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan
 	return fc, nil
 }
 
-func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.DeletePlaceFromPlanCandidateOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DeletePlaceFromPlanCandidateOutput_places(ctx, field)
+func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.DeletePlaceFromPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeletePlaceFromPlanCandidateOutput_plan(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2248,7 +2246,7 @@ func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput_places(ctx conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Places, nil
+		return obj.Plan, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2260,12 +2258,12 @@ func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput_places(ctx conte
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Place)
+	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DeletePlaceFromPlanCandidateOutput",
 		Field:      field,
@@ -2274,23 +2272,21 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plac
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Place_id(ctx, field)
-			case "googlePlaceId":
-				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+				return ec.fieldContext_Plan_id(ctx, field)
 			case "name":
-				return ec.fieldContext_Place_name(ctx, field)
-			case "location":
-				return ec.fieldContext_Place_location(ctx, field)
-			case "images":
-				return ec.fieldContext_Place_images(ctx, field)
-			case "estimatedStayDuration":
-				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
-			case "googleReviews":
-				return ec.fieldContext_Place_googleReviews(ctx, field)
-			case "categories":
-				return ec.fieldContext_Place_categories(ctx, field)
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
 	}
 	return fc, nil
@@ -3454,8 +3450,8 @@ func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidate(ctx co
 			switch field.Name {
 			case "planCandidateId":
 				return ec.fieldContext_AddPlaceToPlanCandidateOutput_planCandidateId(ctx, field)
-			case "places":
-				return ec.fieldContext_AddPlaceToPlanCandidateOutput_places(ctx, field)
+			case "plan":
+				return ec.fieldContext_AddPlaceToPlanCandidateOutput_plan(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AddPlaceToPlanCandidateOutput", field.Name)
 		},
@@ -3515,8 +3511,8 @@ func (ec *executionContext) fieldContext_Mutation_deletePlaceFromPlanCandidate(c
 			switch field.Name {
 			case "planCandidateId":
 				return ec.fieldContext_DeletePlaceFromPlanCandidateOutput_planCandidateId(ctx, field)
-			case "places":
-				return ec.fieldContext_DeletePlaceFromPlanCandidateOutput_places(ctx, field)
+			case "plan":
+				return ec.fieldContext_DeletePlaceFromPlanCandidateOutput_plan(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DeletePlaceFromPlanCandidateOutput", field.Name)
 		},
@@ -8259,8 +8255,8 @@ func (ec *executionContext) _AddPlaceToPlanCandidateOutput(ctx context.Context, 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "places":
-			out.Values[i] = ec._AddPlaceToPlanCandidateOutput_places(ctx, field, obj)
+		case "plan":
+			out.Values[i] = ec._AddPlaceToPlanCandidateOutput_plan(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -8549,8 +8545,8 @@ func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput(ctx context.Cont
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "places":
-			out.Values[i] = ec._DeletePlaceFromPlanCandidateOutput_places(ctx, field, obj)
+		case "plan":
+			out.Values[i] = ec._DeletePlaceFromPlanCandidateOutput_plan(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
