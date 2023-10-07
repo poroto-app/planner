@@ -22,7 +22,7 @@ func (s Service) RemovePlaceFromPlan(ctx context.Context, planCandidateId string
 
 	// 少なくとも1つの場所がプランに含まれるようにする
 	if len(plan.Places) <= 1 {
-		return nil, fmt.Errorf("cannot remove last place from plan")
+		return nil, fmt.Errorf("plan must have at least one place")
 	}
 
 	// プラン候補から場所を削除
