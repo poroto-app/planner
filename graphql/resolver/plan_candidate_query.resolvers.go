@@ -104,6 +104,11 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 	}, nil
 }
 
+// PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
+func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: PlacesToAddForPlanCandidate - placesToAddForPlanCandidate"))
+}
+
 // PlacesToReplaceForPlanCandidate is the resolver for the placesToReplaceForPlanCandidate field.
 func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, input model.AlternativePlacesForPlanCandidateInput) (*model.AlternativePlacesForPlanCandidate, error) {
 	panic(fmt.Errorf("not implemented: PlacesToReplaceForPlanCandidate - placesToReplaceForPlanCandidate"))
