@@ -14,7 +14,12 @@ import (
 func (s Service) GeneratePlanTitle(places []models.Place) (*string, error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
-		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, place.Category)
+		var categoryNames []string
+		for _, category := range place.Categories {
+			categoryNames = append(categoryNames, category.Name)
+		}
+
+		placeNames[i] = fmt.Sprintf("%s(%s)", place.Name, strings.Join(categoryNames, ","))
 	}
 
 	nGenerate := 5
