@@ -192,3 +192,8 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input model.AddPlaceToPlanCandidateInput) (*model.AddPlaceToPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidate - addPlaceToPlanCandidate"))
 }
+
+// DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
+func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: DeletePlaceFromPlanCandidate - deletePlaceFromPlanCandidate"))
+}

@@ -74,6 +74,17 @@ type CreatePlanByPlaceOutput struct {
 	Plan    *Plan  `json:"plan"`
 }
 
+type DeletePlaceFromPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+}
+
+type DeletePlaceFromPlanCandidateOutput struct {
+	PlanCandidateID string   `json:"planCandidateId"`
+	Places          []*Place `json:"places"`
+}
+
 type FirebaseUserInput struct {
 	FirebaseUserID    string `json:"firebaseUserId"`
 	FirebaseAuthToken string `json:"firebaseAuthToken"`
