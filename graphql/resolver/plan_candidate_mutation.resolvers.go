@@ -190,7 +190,27 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // AddPlaceToPlanCandidate is the resolver for the addPlaceToPlanCandidate field.
 func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input model.AddPlaceToPlanCandidateInput) (*model.AddPlaceToPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidate - addPlaceToPlanCandidate"))
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCandidate, err := s.AddPlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("could not add place to plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planCandidate)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.AddPlaceToPlanCandidateOutput{
+		Plan: graphqlPlanInPlanCandidate,
+	}, nil
 }
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
