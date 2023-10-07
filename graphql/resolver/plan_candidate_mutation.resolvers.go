@@ -187,3 +187,8 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 		Plan: graphqlPlan,
 	}, nil
 }
+
+// AddPlaceToPlanCandidate is the resolver for the addPlaceToPlanCandidate field.
+func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input model.AddPlaceToPlanCandidateInput) (*model.AddPlaceToPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidate - addPlaceToPlanCandidate"))
+}
