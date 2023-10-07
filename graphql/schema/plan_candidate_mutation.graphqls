@@ -6,6 +6,22 @@ extend type Mutation {
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
+
+    # ===========================================================
+    # Edit
+    # ===========================================================
+    addPlaceToPlanCandidate(input: AddPlaceToPlanCandidateInput!): AddPlaceToPlanCandidateOutput!
+}
+
+input AddPlaceToPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type AddPlaceToPlanCandidateOutput {
+    planCandidateId: String!
+    places: [Place!]!
 }
 
 input CreatePlanByLocationInput {
