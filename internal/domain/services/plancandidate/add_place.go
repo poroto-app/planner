@@ -8,6 +8,23 @@ import (
 )
 
 func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId string, placeId string) (*models.Plan, error) {
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
+	}
+
+	planToUpdate := planCandidate.GetPlan(planId)
+	if planToUpdate == nil {
+		return nil, fmt.Errorf("plan not found: %v\n", planId)
+	}
+
+	// 重複して追加しないようにする
+	for _, place := range planToUpdate.Places {
+		if place.Id == placeId {
+			return planToUpdate, nil
+		}
+	}
+
 	log.Printf("Fetching searched places for plan candidate: %v\n", planCandidateId)
 	placesSearched, err := s.placeSearchResultRepository.Find(ctx, planCandidateId)
 	if err != nil {
@@ -65,7 +82,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 
 	// 最新のプランの情報を取得
 	log.Printf("Fetching plan candidate: %v\n", planCandidateId)
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
 	}
