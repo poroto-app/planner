@@ -197,3 +197,8 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: DeletePlaceFromPlanCandidate - deletePlaceFromPlanCandidate"))
 }
+
+// PlacePlaceOnPlanCandidate is the resolver for the placePlaceOnPlanCandidate field.
+func (r *mutationResolver) PlacePlaceOnPlanCandidate(ctx context.Context, input model.PlacePlaceOnPlanCandidateInput) (*model.PlacePlaceOnPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: PlacePlaceOnPlanCandidate - placePlaceOnPlanCandidate"))
+}

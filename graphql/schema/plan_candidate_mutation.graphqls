@@ -13,6 +13,8 @@ extend type Mutation {
     addPlaceToPlanCandidate(input: AddPlaceToPlanCandidateInput!): AddPlaceToPlanCandidateOutput!
 
     deletePlaceFromPlanCandidate(input: DeletePlaceFromPlanCandidateInput!): DeletePlaceFromPlanCandidateOutput!
+
+    placePlaceOnPlanCandidate(input: PlacePlaceOnPlanCandidateInput!): PlacePlaceOnPlanCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -90,4 +92,16 @@ input DeletePlaceFromPlanCandidateInput {
 type DeletePlaceFromPlanCandidateOutput {
     planCandidateId: String!
     places: [Place!]!
+}
+
+input PlacePlaceOnPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeIdToRemove: String!
+    placeIdToReplace: String!
+}
+
+type PlacePlaceOnPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
 }
