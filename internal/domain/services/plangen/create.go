@@ -236,7 +236,6 @@ func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []
 				Name:          title,
 				Places:        places,
 				TimeInMinutes: timeInPlan,
-				Transitions:   models.CreateTransition(places, &param.locationStart),
 			}
 		}(ctx, param, ch)
 	}

@@ -32,7 +32,7 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 		return nil, nil
 	}
 
-	graphqlPlan, err := factory.PlanFromDomainModel(*p)
+	graphqlPlan, err := factory.PlanFromDomainModel(*p, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("internal server error")
@@ -55,7 +55,7 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
-	return factory.PlansFromDomainModel(plans), nil
+	return factory.PlansFromDomainModel(plans, nil), nil
 }
 
 // PlansByLocation is the resolver for the plansByLocation field.
@@ -81,7 +81,7 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 	}
 
 	return &model.PlansByLocationOutput{
-		Plans:   factory.PlansFromDomainModel(plans),
+		Plans:   factory.PlansFromDomainModel(plans, nil),
 		PageKey: nextPageToken,
 	}, nil
 }
@@ -117,7 +117,7 @@ func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUser
 	}
 
 	return &model.PlansByUserOutput{
-		Plans:  factory.PlansFromDomainModel(plans),
+		Plans:  factory.PlansFromDomainModel(plans, nil),
 		Author: factory.UserFromDomainModel(author),
 	}, nil
 }

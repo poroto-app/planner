@@ -7,11 +7,11 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func PlansFromDomainModel(plans *[]models.Plan) []*graphql.Plan {
+func PlansFromDomainModel(plans *[]models.Plan, startLocation *models.GeoLocation) []*graphql.Plan {
 	graphqlPlans := make([]*graphql.Plan, 0)
 
 	for _, plan := range *plans {
-		graphqlPlan, err := PlanFromDomainModel(plan)
+		graphqlPlan, err := PlanFromDomainModel(plan, startLocation)
 		if err != nil {
 			log.Println("error while converting plan to graphql model: ", err)
 			continue
@@ -22,14 +22,15 @@ func PlansFromDomainModel(plans *[]models.Plan) []*graphql.Plan {
 	return graphqlPlans
 }
 
-func PlanFromDomainModel(plan models.Plan) (*graphql.Plan, error) {
+func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*graphql.Plan, error) {
 	places := make([]*graphql.Place, len(plan.Places))
 	for i, place := range plan.Places {
 		places[i] = PlaceFromDomainModel(&place)
 	}
 
-	transitions := make([]*graphql.Transition, len(plan.Transitions))
-	for i, t := range plan.Transitions {
+	transitions := plan.Transitions(startLocation)
+	graphqlTransitionEntities := make([]*graphql.Transition, len(plan.Transitions(startLocation)))
+	for i, t := range transitions {
 		var placeFrom *models.Place
 		if t.FromPlaceId != nil {
 			placeFrom = plan.GetPlace(*t.FromPlaceId)
@@ -43,7 +44,7 @@ func PlanFromDomainModel(plan models.Plan) (*graphql.Plan, error) {
 			return nil, fmt.Errorf("could not find place %s in plan %s", t.ToPlaceId, plan.Id)
 		}
 
-		transitions[i] = &graphql.Transition{
+		graphqlTransitionEntities[i] = &graphql.Transition{
 			From:     PlaceFromDomainModel(placeFrom),
 			To:       PlaceFromDomainModel(placeTo),
 			Duration: int(t.Duration),
@@ -55,7 +56,7 @@ func PlanFromDomainModel(plan models.Plan) (*graphql.Plan, error) {
 		Name:          plan.Name,
 		Places:        places,
 		TimeInMinutes: int(plan.TimeInMinutes),
-		Transitions:   transitions,
+		Transitions:   graphqlTransitionEntities,
 		AuthorID:      plan.AuthorId,
 	}, nil
 }
