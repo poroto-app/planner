@@ -155,18 +155,6 @@ type PlaceCategory struct {
 	Name string `json:"name"`
 }
 
-type PlacePlaceOnPlanCandidateInput struct {
-	PlanCandidateID  string `json:"planCandidateId"`
-	PlanID           string `json:"planId"`
-	PlaceIDToRemove  string `json:"placeIdToRemove"`
-	PlaceIDToReplace string `json:"placeIdToReplace"`
-}
-
-type PlacePlaceOnPlanCandidateOutput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	Plan            *Plan  `json:"plan"`
-}
-
 type Plan struct {
 	ID            string        `json:"id"`
 	Name          string        `json:"name"`
@@ -196,6 +184,18 @@ type PlansByUserInput struct {
 type PlansByUserOutput struct {
 	Plans  []*Plan `json:"plans"`
 	Author *User   `json:"author"`
+}
+
+type ReplacePlaceOfPlanCandidateInput struct {
+	PlanCandidateID  string `json:"planCandidateId"`
+	PlanID           string `json:"planId"`
+	PlaceIDToRemove  string `json:"placeIdToRemove"`
+	PlaceIDToReplace string `json:"placeIdToReplace"`
+}
+
+type ReplacePlaceOfPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
 }
 
 type SavePlanFromCandidateInput struct {
