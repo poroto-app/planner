@@ -23,6 +23,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	// 重複して追加しないようにする
 	for _, place := range planToUpdate.Places {
 		if place.Id == placeId {
+			log.Printf("Place %v is already added to plan candidate %v\n", placeId, planCandidateId)
 			return planToUpdate, nil
 		}
 	}
