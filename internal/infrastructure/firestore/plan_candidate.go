@@ -176,6 +176,49 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	return &planCandidate, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
+	var planCandidate models.PlanCandidate
+	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId)
+		_, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		var planIndex *int
+		for i, plan := range planCandidate.Plans {
+			if plan.Id == planId {
+				*planIndex = i
+				break
+			}
+		}
+
+		if planIndex == nil {
+			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+		}
+
+		placeEntity := entity.ToPlaceEntity(place)
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  fmt.Sprintf("plans.%d.places", *planIndex),
+				Value: firestore.ArrayUnion(placeEntity),
+			},
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("error while adding place to plan candidate: %v", err)
+	}
+
+	return nil
+}
+
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
