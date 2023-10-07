@@ -7,6 +7,8 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+// AddPlace プランに指定された場所を追加する
+// すでに指定された場所が登録されている場合は、なにもしない
 func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId string, placeId string) (*models.Plan, error) {
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
