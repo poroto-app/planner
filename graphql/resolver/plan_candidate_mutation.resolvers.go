@@ -198,7 +198,7 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 
 	planCandidate, err := s.AddPlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		log.Println(fmt.Errorf("error while adding place to plan candidate: %v", err))
 		return nil, fmt.Errorf("could not add place to plan candidate")
 	}
 
