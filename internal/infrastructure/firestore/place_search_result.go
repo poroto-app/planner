@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"google.golang.org/api/option"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/models"
 	google_places "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
 const (
 	collectionPlaceSearchResults = "google_place_api_search_results"
+	subCollectionPhotos          = "photos"
 )
 
 type PlaceSearchResultRepository struct {
@@ -70,6 +73,15 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return places, nil
 }
 
+func (p PlaceSearchResultRepository) SaveImage(ctx context.Context, planCandidateId string, placeId string, image models.Image) error {
+	subCollectionImages := p.subCollectionPhotos(planCandidateId, placeId)
+	if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
+		return fmt.Errorf("error while saving image: %v", err)
+	}
+
+	return nil
+}
+
 func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, planCandidateId := range planCandidateIds {
 		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
@@ -102,4 +114,8 @@ func (p PlaceSearchResultRepository) collection(planCandidateId string) *firesto
 
 func (p PlaceSearchResultRepository) doc(planCandidateId string, placeId string) *firestore.DocumentRef {
 	return p.collection(planCandidateId).Doc(placeId)
+}
+
+func (p PlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, placeId string) *firestore.CollectionRef {
+	return p.doc(planCandidateId, placeId).Collection(subCollectionPhotos)
 }
