@@ -73,8 +73,8 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return places, nil
 }
 
-func (p PlaceSearchResultRepository) SaveImage(ctx context.Context, planCandidateId string, placeId string, image models.Image) error {
-	subCollectionImages := p.subCollectionPhotos(planCandidateId, placeId)
+func (p PlaceSearchResultRepository) SaveImage(ctx context.Context, planCandidateId string, googlePlaceId string, image models.Image) error {
+	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
 	if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
 		return fmt.Errorf("error while saving image: %v", err)
 	}
@@ -112,10 +112,10 @@ func (p PlaceSearchResultRepository) collection(planCandidateId string) *firesto
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlaceSearchResults)
 }
 
-func (p PlaceSearchResultRepository) doc(planCandidateId string, placeId string) *firestore.DocumentRef {
-	return p.collection(planCandidateId).Doc(placeId)
+func (p PlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId string) *firestore.DocumentRef {
+	return p.collection(planCandidateId).Doc(googlePlaceId)
 }
 
-func (p PlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, placeId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, placeId).Collection(subCollectionPhotos)
+func (p PlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
+	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPhotos)
 }
