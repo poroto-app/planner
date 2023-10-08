@@ -1,16 +1,16 @@
-package plangen
+package place
 
 import (
 	"context"
 	"googlemaps.github.io/maps"
 	"log"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]places.Place, error) {
+func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]googleplaces.Place, error) {
 	var placeTypesToSearch = []maps.PlaceType{
 		"",
 		maps.PlaceTypeAquarium,
@@ -24,16 +24,16 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		maps.PlaceTypeZoo,
 	}
 
-	ch := make(chan *[]places.Place, len(placeTypesToSearch))
+	ch := make(chan *[]googleplaces.Place, len(placeTypesToSearch))
 	for _, placeType := range placeTypesToSearch {
-		go func(ctx context.Context, ch chan<- *[]places.Place, placeType maps.PlaceType) {
+		go func(ctx context.Context, ch chan<- *[]googleplaces.Place, placeType maps.PlaceType) {
 			var placeTypePointer *maps.PlaceType
 			if placeType != "" {
 				placeTypePointer = &placeType
 			}
 
-			placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &places.FindPlacesFromLocationRequest{
-				Location: places.Location{
+			placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &googleplaces.FindPlacesFromLocationRequest{
+				Location: googleplaces.Location{
 					Latitude:  location.Latitude,
 					Longitude: location.Longitude,
 				},
@@ -44,14 +44,14 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 			})
 			if err != nil {
 				ch <- nil
-				log.Printf("error while fetching places with type %s: %v\n", placeType, err)
+				log.Printf("error while fetching google_places with type %s: %v\n", placeType, err)
 			}
 
 			ch <- &placesSearched
 		}(ctx, ch, placeType)
 	}
 
-	var placesSearched []places.Place
+	var placesSearched []googleplaces.Place
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
 		if searchResults == nil {

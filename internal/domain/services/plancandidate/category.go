@@ -18,7 +18,7 @@ func (s Service) CategoriesNearLocation(
 	location models.GeoLocation,
 	createPlanSessionId string,
 ) ([]models.LocationCategory, error) {
-	placesSearched, err := s.planGeneratorService.SearchNearbyPlaces(ctx, location)
+	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
