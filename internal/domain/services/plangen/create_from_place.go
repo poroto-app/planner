@@ -51,7 +51,7 @@ func (s Service) CreatePlanFromPlace(
 		return nil, err
 	}
 
-	plansCreated := s.createPlans(ctx, CreatePlanParams{
+	plansCreated := s.createPlanData(ctx, createPlanSessionId, CreatePlanParams{
 		locationStart: placeStart.Location.ToGeoLocation(),
 		placeStart:    *placeStart,
 		places:        planPlaces,
