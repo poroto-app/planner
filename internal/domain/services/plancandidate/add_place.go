@@ -71,7 +71,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 
 	// 画像を取得
 	log.Printf("Fetching photos and reviews for places for plan candidate: %v\n", planCandidateId)
-	places = s.planGeneratorService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places)
+	places = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places)
 	log.Printf("Successfully fetched photos for places for plan candidate: %v\n", planCandidateId)
 
 	// レビューを取得

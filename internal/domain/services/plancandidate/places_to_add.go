@@ -87,7 +87,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	placesToAdd = placesToAdd[:nLimit]
 
 	// 写真を取得
-	placesToAdd = s.planGeneratorService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd)
+	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd)
 
 	// 口コミを取得
 	placesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, placesToAdd)

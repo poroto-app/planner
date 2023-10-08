@@ -130,7 +130,7 @@ func (s Service) fetchAndSavePlacesPhotos(ctx context.Context, planCandidateId s
 	for _, place := range placeIdToPlace {
 		places = append(places, place)
 	}
-	places = s.FetchPlacesPhotos(ctx, places)
+	places = s.placeService.FetchPlacesPhotos(ctx, places)
 
 	// 取得した画像を保存
 	for _, place := range places {
