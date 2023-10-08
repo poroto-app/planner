@@ -215,7 +215,28 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: DeletePlaceFromPlanCandidate - deletePlaceFromPlanCandidate"))
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planUpdated, err := s.RemovePlaceFromPlan(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while deleting place from plan candidate: %v", err))
+		return nil, fmt.Errorf("could not delete place from plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated)
+	if err != nil {
+		log.Printf("error while converting plan to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.DeletePlaceFromPlanCandidateOutput{
+		PlanCandidateID: input.PlanCandidateID,
+		Plan:            graphqlPlanInPlanCandidate,
+	}, nil
 }
 
 // ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
