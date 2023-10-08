@@ -104,7 +104,6 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 						Id: "01",
 					},
 				},
-				Transitions:   []models.Transition{},
 				TimeInMinutes: 0,
 			},
 		},
@@ -118,7 +117,6 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 				c.entity.Places,
 				c.entity.PlaceIdsOrdered,
 				c.entity.TimeInMinutes,
-				c.entity.Transitions,
 			)
 			if err != nil {
 				log.Printf("error occur while in converting entity to domain model: [%v]", err)

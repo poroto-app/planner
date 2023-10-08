@@ -35,7 +35,6 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 			planEntity.Places,
 			planEntity.PlaceIdsOrdered,
 			planEntity.TimeInMinutes,
-			planEntity.Transitions,
 		)
 		if err != nil {
 			log.Printf("error occur while in converting entity to domain model: [%v]", err)
