@@ -6,7 +6,8 @@ import (
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// FetchPlacesPhotos は，指定された場所の写真を一括で取得すR
+// FetchPlacesPhotos は，指定された場所の写真を一括で取得する
+// すでに写真がある場合は，何もしない
 func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) []models.Place {
 	if len(places) == 0 {
 		return places
@@ -16,6 +17,12 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 	for _, place := range places {
 		go func(ctx context.Context, place models.Place, ch chan<- models.Place) {
 			if place.GooglePlaceId == nil {
+				ch <- place
+				return
+			}
+
+			// すでに写真がある場合は，何もしない
+			if place.Images != nil && len(place.Images) > 0 {
 				ch <- place
 				return
 			}
