@@ -67,13 +67,13 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 		}
 	}
 
-	// TODO: キャッシュする
 	places := []models.Place{*placeToAdd}
 
 	log.Printf("Fetching photos and reviews for places for plan candidate: %v\n", planCandidateId)
-	places = s.planGeneratorService.FetchPlacesPhotos(ctx, places)
+	places = s.planGeneratorService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places)
 	log.Printf("Successfully fetched photos for places for plan candidate: %v\n", planCandidateId)
 
+	// TODO: キャッシュする
 	log.Printf("Fetching reviews for places for plan candidate: %v\n", planCandidateId)
 	places = s.planGeneratorService.FetchReviews(ctx, places)
 	log.Printf("Successfully fetched reviews for places for plan candidate: %v\n", planCandidateId)

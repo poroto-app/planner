@@ -2,6 +2,7 @@ package plangen
 
 import (
 	"context"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
@@ -64,6 +65,44 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 
 			places[i] = placeUpdated
 			break
+		}
+	}
+
+	return places
+}
+
+// FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
+func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+	// 写真が取得されていない場所のみ、画像が保存されるようにする
+	var googlePlaceIdsWithPhotos []string
+	for _, place := range places {
+		if place.GooglePlaceId == nil {
+			continue
+		}
+
+		if array.IsContain(googlePlaceIdsWithPhotos, *place.GooglePlaceId) {
+			continue
+		}
+
+		googlePlaceIdsWithPhotos = append(googlePlaceIdsWithPhotos, *place.GooglePlaceId)
+	}
+
+	// 画像を取得
+	places = s.FetchPlacesPhotos(ctx, places)
+
+	// 画像を保存
+	for _, place := range places {
+		if place.GooglePlaceId == nil {
+			continue
+		}
+
+		// すでに写真が取得済みの場合は何もしない
+		if !array.IsContain(googlePlaceIdsWithPhotos, *place.GooglePlaceId) {
+			continue
+		}
+
+		if err := s.placeSearchResultRepository.SaveImagesIfNotExist(ctx, planCandidateId, *place.GooglePlaceId, place.Images); err != nil {
+			continue
 		}
 	}
 
