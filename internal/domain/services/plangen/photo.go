@@ -108,3 +108,44 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 
 	return places
 }
+
+// FetchPlaceReviewsAndSave は，指定された場所のレビューを一括で取得し、保存する
+func (s Service) FetchPlaceReviewsAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+	var googlePlaceIdsWithReviews []string
+	for _, place := range places {
+		if place.GooglePlaceId == nil {
+			continue
+		}
+
+		if array.IsContain(googlePlaceIdsWithReviews, *place.GooglePlaceId) {
+			continue
+		}
+
+		googlePlaceIdsWithReviews = append(googlePlaceIdsWithReviews, *place.GooglePlaceId)
+	}
+
+	// レビューを取得
+	places = s.FetchReviews(ctx, places)
+
+	// レビューを保存
+	for _, place := range places {
+		if place.GooglePlaceId == nil {
+			continue
+		}
+
+		// すでにレビューが取得済みの場合は何もしない
+		if !array.IsContain(googlePlaceIdsWithReviews, *place.GooglePlaceId) {
+			continue
+		}
+
+		if place.GooglePlaceReviews == nil || len(*place.GooglePlaceReviews) == 0 {
+			continue
+		}
+
+		if err := s.placeSearchResultRepository.SaveReviewsIfNotExist(ctx, planCandidateId, *place.GooglePlaceId, *place.GooglePlaceReviews); err != nil {
+			continue
+		}
+	}
+
+	return places
+}
