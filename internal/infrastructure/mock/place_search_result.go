@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"poroto.app/poroto/planner/internal/domain/models"
 
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
@@ -22,6 +23,11 @@ func (p PlaceSearchResultRepository) Save(ctx context.Context, planCandidateId s
 }
 
 func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]places.Place, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	//TODO implement me
 	panic("implement me")
 }
