@@ -32,6 +32,11 @@ func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, p
 	panic("implement me")
 }
 
+func (p PlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, id := range planCandidateIds {
 		delete(p.Data, id)
