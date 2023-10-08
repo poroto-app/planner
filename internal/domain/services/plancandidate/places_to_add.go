@@ -90,8 +90,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	placesToAdd = s.planGeneratorService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd)
 
 	// 口コミを取得
-	// TODO: キャッシュする
-	placesToAdd = s.planGeneratorService.FetchReviews(ctx, placesToAdd)
+	placesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, placesToAdd)
 
 	return placesToAdd, nil
 }

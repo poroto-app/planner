@@ -76,7 +76,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 
 	// レビューを取得
 	log.Printf("Fetching reviews for places for plan candidate: %v\n", planCandidateId)
-	places = s.planGeneratorService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places)
+	places = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places)
 	log.Printf("Successfully fetched reviews for places for plan candidate: %v\n", planCandidateId)
 
 	placeToAdd = &places[0]

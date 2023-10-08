@@ -166,7 +166,7 @@ func (s Service) fetchAndSaveGooglePlaceReviews(ctx context.Context, planCandida
 	for _, place := range placeIdToPlace {
 		places = append(places, place)
 	}
-	places = s.FetchReviews(ctx, places)
+	places = s.placeService.FetchReviews(ctx, places)
 
 	// 取得したレビューを保存
 	for _, place := range places {
