@@ -8,6 +8,13 @@ extend type Query {
 
     # プランを作成可能な他の場所を取得する
     availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+
+    # ===========================================================
+    # Edit
+    # ===========================================================
+    placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
+
+    placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
 }
 
 type CachedCreatedPlans {
@@ -31,4 +38,23 @@ type AvailablePlacesForPlan {
 type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
+}
+
+input PlacesToAddForPlanCandidateInput {
+    planCandidateId: ID!
+    planId: ID!
+}
+
+type PlacesToAddForPlanCandidateOutput {
+    places: [Place!]!
+}
+
+input PlacesToReplaceForPlanCandidateInput {
+    planCandidateId: ID!
+    planId: ID!
+    placeId: ID!
+}
+
+type PlacesToReplaceForPlanCandidateOutput {
+    places: [Place!]!
 }

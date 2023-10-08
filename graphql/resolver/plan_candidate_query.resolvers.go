@@ -103,3 +103,33 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 		Places: graphqlPlaces,
 	}, nil
 }
+
+// PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
+func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	// TODO: 指定されたプランIDが不正だった場合の対処をする
+	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 10)
+	if err != nil {
+		log.Println("error while fetching places to add: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	var places []*model.Place
+	for _, place := range placesToAdd {
+		places = append(places, factory.PlaceFromDomainModel(&place))
+	}
+
+	return &model.PlacesToAddForPlanCandidateOutput{
+		Places: places,
+	}, nil
+}
+
+// PlacesToReplaceForPlanCandidate is the resolver for the placesToReplaceForPlanCandidate field.
+func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: PlacesToReplaceForPlanCandidate - placesToReplaceForPlanCandidate"))
+}

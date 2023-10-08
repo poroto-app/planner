@@ -23,3 +23,12 @@ func (p PlanCandidate) HasPlace(googlePlaceId string) bool {
 	}
 	return false
 }
+
+func (p PlanCandidate) GetPlan(planId string) *Plan {
+	for _, plan := range p.Plans {
+		if plan.Id == planId {
+			return &plan
+		}
+	}
+	return nil
+}

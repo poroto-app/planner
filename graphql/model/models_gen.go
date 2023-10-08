@@ -8,6 +8,17 @@ import (
 	"strconv"
 )
 
+type AddPlaceToPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+}
+
+type AddPlaceToPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
+}
+
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }
@@ -61,6 +72,28 @@ type CreatePlanByPlaceInput struct {
 type CreatePlanByPlaceOutput struct {
 	Session string `json:"session"`
 	Plan    *Plan  `json:"plan"`
+}
+
+type DeletePlaceFromPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+}
+
+type DeletePlaceFromPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
+}
+
+type EditPlanTitleOfPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	Title           string `json:"title"`
+}
+
+type EditPlanTitleOfPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
 }
 
 type FirebaseUserInput struct {
@@ -123,6 +156,25 @@ type PlaceCategory struct {
 	Name string `json:"name"`
 }
 
+type PlacesToAddForPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+}
+
+type PlacesToAddForPlanCandidateOutput struct {
+	Places []*Place `json:"places"`
+}
+
+type PlacesToReplaceForPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+}
+
+type PlacesToReplaceForPlanCandidateOutput struct {
+	Places []*Place `json:"places"`
+}
+
 type Plan struct {
 	ID            string        `json:"id"`
 	Name          string        `json:"name"`
@@ -152,6 +204,18 @@ type PlansByUserInput struct {
 type PlansByUserOutput struct {
 	Plans  []*Plan `json:"plans"`
 	Author *User   `json:"author"`
+}
+
+type ReplacePlaceOfPlanCandidateInput struct {
+	PlanCandidateID  string `json:"planCandidateId"`
+	PlanID           string `json:"planId"`
+	PlaceIDToRemove  string `json:"placeIdToRemove"`
+	PlaceIDToReplace string `json:"placeIdToReplace"`
+}
+
+type ReplacePlaceOfPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
 }
 
 type SavePlanFromCandidateInput struct {

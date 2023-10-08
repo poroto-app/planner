@@ -193,3 +193,64 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 		Plan: graphqlPlan,
 	}, nil
 }
+
+// AddPlaceToPlanCandidate is the resolver for the addPlaceToPlanCandidate field.
+func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input model.AddPlaceToPlanCandidateInput) (*model.AddPlaceToPlanCandidateOutput, error) {
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCandidate, err := s.AddPlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while adding place to plan candidate: %v", err))
+		return nil, fmt.Errorf("could not add place to plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planCandidate)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.AddPlaceToPlanCandidateOutput{
+		Plan: graphqlPlanInPlanCandidate,
+	}, nil
+}
+
+// DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
+func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planUpdated, err := s.RemovePlaceFromPlan(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while deleting place from plan candidate: %v", err))
+		return nil, fmt.Errorf("could not delete place from plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated)
+	if err != nil {
+		log.Printf("error while converting plan to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.DeletePlaceFromPlanCandidateOutput{
+		PlanCandidateID: input.PlanCandidateID,
+		Plan:            graphqlPlanInPlanCandidate,
+	}, nil
+}
+
+// ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
+func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: ReplacePlaceOfPlanCandidate - replacePlaceOfPlanCandidate"))
+}
+
+// EditPlanTitleOfPlanCandidate is the resolver for the editPlanTitleOfPlanCandidate field.
+func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
+}
