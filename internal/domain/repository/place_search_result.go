@@ -9,7 +9,11 @@ import (
 
 type PlaceSearchResultRepository interface {
 	Save(ctx context.Context, planCandidateId string, places []places.Place) error
+
 	Find(ctx context.Context, planCandidateId string) ([]places.Place, error)
-	SaveImage(ctx context.Context, planCandidateId string, googlePlaceId string, image models.Image) error
+
+	// SaveImagesIfNotExist すでに画像が保存されていなかった場合のみ、保存する
+	SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error
+
 	DeleteAll(ctx context.Context, planCandidateIds []string) error
 }

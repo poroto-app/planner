@@ -73,10 +73,23 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return places, nil
 }
 
-func (p PlaceSearchResultRepository) SaveImage(ctx context.Context, planCandidateId string, googlePlaceId string, image models.Image) error {
+func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
-	if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
-		return fmt.Errorf("error while saving image: %v", err)
+
+	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return fmt.Errorf("error while getting images: %v", err)
+	}
+
+	if len(snapshots) > 0 {
+		// すでに画像が保存されている場合は何もしない
+		return fmt.Errorf("images already exist")
+	}
+
+	for _, image := range images {
+		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
+			return fmt.Errorf("error while saving image: %v", err)
+		}
 	}
 
 	return nil
