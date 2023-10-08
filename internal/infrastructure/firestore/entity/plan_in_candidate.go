@@ -38,7 +38,7 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 	}
 }
 
-func fromPlanInCandidateEntity(
+func FromPlanInCandidateEntity(
 	id string,
 	name string,
 	places []PlaceEntity,

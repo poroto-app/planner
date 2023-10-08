@@ -176,6 +176,95 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	return &planCandidate, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
+	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		var planIndex *int
+		for i, plan := range planCandidateEntity.Plans {
+			if plan.Id == planId {
+				idx := i
+				planIndex = &idx
+				break
+			}
+		}
+
+		if planIndex == nil {
+			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+		}
+
+		// TODO: DELETE (移動の情報をもたせない) ========================================
+		// Transitionのデータを再構成
+		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
+		plan, err := entity.FromPlanInCandidateEntity(
+			planEntityToUpdate.Id,
+			planEntityToUpdate.Name,
+			planEntityToUpdate.Places,
+			planEntityToUpdate.PlaceIdsOrdered,
+			planEntityToUpdate.TimeInMinutes,
+			planEntityToUpdate.Transitions,
+		)
+		if err != nil {
+			return fmt.Errorf("error while converting entity to domain model: %v", err)
+		}
+
+		docMetaData := p.docMetaDataV1(planCandidateId)
+		snapshotMetaData, err := tx.Get(docMetaData)
+		if err != nil {
+			return fmt.Errorf("error while getting plan candidate meta data: %v", err)
+		}
+
+		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+		if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		}
+		plan.Places = append(plan.Places, place)
+
+		var locationStart *models.GeoLocation
+		if planCandidateMetaDataEntity.LocationStart != nil {
+			location := entity.FromGeoLocationEntity(*planCandidateMetaDataEntity.LocationStart)
+			locationStart = &location
+		}
+		plan.Transitions = models.CreateTransition(plan.Places, locationStart)
+
+		planEntityToUpdate = entity.ToPlanInCandidateEntity(*plan)
+		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
+		// TODO: DELETE =========================================================================
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidateEntity.Plans,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("error while adding place to plan candidate: %v", err)
+	}
+
+	return nil
+}
+
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {

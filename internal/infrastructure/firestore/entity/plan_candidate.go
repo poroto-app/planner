@@ -29,7 +29,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity) models.PlanCandidate {
 	plans := make([]models.Plan, 0)
 	for _, planEntity := range entity.Plans {
-		plan, err := fromPlanInCandidateEntity(
+		plan, err := FromPlanInCandidateEntity(
 			planEntity.Id,
 			planEntity.Name,
 			planEntity.Places,
