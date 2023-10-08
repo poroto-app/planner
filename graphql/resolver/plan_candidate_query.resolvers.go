@@ -61,7 +61,8 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 		createPlanSessionId,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error while searching categories: %v", err)
+		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
 	var categories = []*model.LocationCategory{}
