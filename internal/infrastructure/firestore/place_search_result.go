@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	collectionPlaceSearchResults = "place_search_results"
+	collectionPlaceSearchResults = "google_place_api_search_results"
 )
 
 type PlaceSearchResultRepository struct {
@@ -87,5 +87,5 @@ func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidat
 }
 
 func (p PlaceSearchResultRepository) doc(planCandidateId string) *firestore.DocumentRef {
-	return p.client.Collection(collectionPlaceSearchResults).Doc(planCandidateId)
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlaceSearchResults).Doc(planCandidateId)
 }
