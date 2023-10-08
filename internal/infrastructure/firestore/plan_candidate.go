@@ -205,43 +205,10 @@ func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, p
 			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
 		}
 
-		// TODO: DELETE (移動の情報をもたせない) ========================================
-		// Transitionのデータを再構成
 		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
-		plan, err := entity.FromPlanInCandidateEntity(
-			planEntityToUpdate.Id,
-			planEntityToUpdate.Name,
-			planEntityToUpdate.Places,
-			planEntityToUpdate.PlaceIdsOrdered,
-			planEntityToUpdate.TimeInMinutes,
-			planEntityToUpdate.Transitions,
-		)
-		if err != nil {
-			return fmt.Errorf("error while converting entity to domain model: %v", err)
-		}
-
-		docMetaData := p.docMetaDataV1(planCandidateId)
-		snapshotMetaData, err := tx.Get(docMetaData)
-		if err != nil {
-			return fmt.Errorf("error while getting plan candidate meta data: %v", err)
-		}
-
-		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
-		}
-		plan.Places = append(plan.Places, place)
-
-		var locationStart *models.GeoLocation
-		if planCandidateMetaDataEntity.LocationStart != nil {
-			location := entity.FromGeoLocationEntity(*planCandidateMetaDataEntity.LocationStart)
-			locationStart = &location
-		}
-		plan.Transitions = models.CreateTransition(plan.Places, locationStart)
-
-		planEntityToUpdate = entity.ToPlanInCandidateEntity(*plan)
+		planEntityToUpdate.Places = append(planEntityToUpdate.Places, entity.ToPlaceEntity(place))
+		planEntityToUpdate.PlaceIdsOrdered = append(planEntityToUpdate.PlaceIdsOrdered, place.Id)
 		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
-		// TODO: DELETE =========================================================================
 
 		if err := tx.Update(doc, []firestore.Update{
 			{
@@ -292,7 +259,7 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
 		}
 
-		// TODO: 直接削除するだけで十分な設計にする（Placeを別で持つ、Transitionを保存しない）
+		// TODO: 直接削除するだけで十分な設計にする（Placeを別で持つ）
 		var planIndex *int
 		for i, plan := range planCandidateEntity.Plans {
 			if plan.Id == planId {
@@ -322,23 +289,8 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 			}
 		}
 
-		// Transitionのデータを再構成
-		plan, err := entity.FromPlanInCandidateEntity(
-			planEntityToUpdate.Id,
-			planEntityToUpdate.Name,
-			places,
-			placeIdsOrdered,
-			planEntityToUpdate.TimeInMinutes,
-			planEntityToUpdate.Transitions,
-		)
-		if err != nil {
-			return fmt.Errorf("error while converting entity to domain model: %v", err)
-		}
-		plan.Transitions = models.CreateTransition(plan.Places, nil)
-
 		planEntityToUpdate.Places = places
 		planEntityToUpdate.PlaceIdsOrdered = placeIdsOrdered
-		planEntityToUpdate.Transitions = entity.ToTransitionsEntities(plan.Transitions)
 		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
 
 		if err := tx.Update(doc, []firestore.Update{

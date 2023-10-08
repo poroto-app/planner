@@ -202,13 +202,19 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidate, err := s.AddPlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
+	planInPlanCandidate, err := s.AddPlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID)
 	if err != nil {
 		log.Println(fmt.Errorf("error while adding place to plan candidate: %v", err))
 		return nil, fmt.Errorf("could not add place to plan candidate")
 	}
 
-	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planCandidate)
+	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planInPlanCandidate, planCandidate.MetaData.LocationStart)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("internal server error")
@@ -233,7 +239,13 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("could not delete place from plan candidate")
 	}
 
-	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated)
+	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated, planCandidate.MetaData.LocationStart)
 	if err != nil {
 		log.Printf("error while converting plan to graphql model: %v", err)
 		return nil, fmt.Errorf("internal server error")
