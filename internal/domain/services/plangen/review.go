@@ -9,12 +9,18 @@ import (
 )
 
 // FetchReviews は、プランに含まれるすべての場所のレビューを一括で取得する
+// すでにレビューを取得している場合は何もしない
 func (s Service) FetchReviews(ctx context.Context, places []models.Place) []models.Place {
 	ch := make(chan *models.Place, len(places))
 	for _, place := range places {
 		go func(ctx context.Context, place models.Place, ch chan<- *models.Place) {
 			if place.GooglePlaceId == nil {
 				ch <- nil
+				return
+			}
+
+			if place.GooglePlaceReviews != nil && len(*place.GooglePlaceReviews) > 0 {
+				ch <- &place
 				return
 			}
 
