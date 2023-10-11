@@ -35,18 +35,12 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 		if place.PlaceID == placeId {
 			categories := models.GetCategoriesFromSubCategories(place.Types)
 
-			var estimatedStayDuration uint = 0
-			if len(categories) > 0 {
-				estimatedStayDuration = categories[0].EstimatedStayDuration
-			}
-
 			placeToAdd = &models.Place{
-				Id:                    uuid.New().String(),
-				GooglePlaceId:         &place.PlaceID,
-				Name:                  place.Name,
-				Location:              place.Location.ToGeoLocation(),
-				EstimatedStayDuration: estimatedStayDuration,
-				Categories:            categories,
+				Id:            uuid.New().String(),
+				GooglePlaceId: &place.PlaceID,
+				Name:          place.Name,
+				Location:      place.Location.ToGeoLocation(),
+				Categories:    categories,
 			}
 			break
 		}

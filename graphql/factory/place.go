@@ -44,7 +44,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,
 		},
-		EstimatedStayDuration: int(place.EstimatedStayDuration),
+		EstimatedStayDuration: int(place.EstimatedStayDuration()),
 		GoogleReviews:         googlePlaceReviews,
 		Categories:            placeCategories,
 	}
