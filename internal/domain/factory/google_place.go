@@ -42,3 +42,19 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		Reviews:         reviews,
 	}
 }
+
+func PlaceEntityFromGooglePlace(place models.GooglePlace) googleplaces.Place {
+	return googleplaces.Place{
+		PlaceID: place.PlaceId,
+		Name:    place.Name,
+		Types:   place.Types,
+		Location: googleplaces.Location{
+			Latitude:  place.Location.Latitude,
+			Longitude: place.Location.Longitude,
+		},
+		PhotoReferences:  place.PhotoReferences,
+		OpenNow:          place.OpenNow,
+		Rating:           place.Rating,
+		UserRatingsTotal: place.UserRatingsTotal,
+	}
+}
