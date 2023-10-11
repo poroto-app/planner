@@ -2,11 +2,11 @@ package factory
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
-func GooglePlaceFromPlaceEntity(place places.Place, imageEntities []entity.ImageEntity, reviewEntities []entity.GooglePlaceReviewEntity) models.GooglePlace {
+func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity.ImageEntity, reviewEntities []entity.GooglePlaceReviewEntity) models.GooglePlace {
 	var images *[]models.Image
 	if len(imageEntities) == 0 {
 		images = nil
@@ -28,9 +28,12 @@ func GooglePlaceFromPlaceEntity(place places.Place, imageEntities []entity.Image
 	}
 
 	return models.GooglePlace{
-		PlaceId:         place.PlaceID,
-		Name:            place.Name,
-		Location:        place.Location.ToGeoLocation(),
+		PlaceId: place.PlaceID,
+		Name:    place.Name,
+		Location: models.GeoLocation{
+			Latitude:  place.Location.Latitude,
+			Longitude: place.Location.Longitude,
+		},
 		PhotoReferences: place.PhotoReferences,
 		OpenNow:         place.OpenNow,
 		Rating:          place.Rating,
