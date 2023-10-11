@@ -47,20 +47,6 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		var categoryMain *models.LocationCategory
-		for _, placeType := range place.Types {
-			c := models.CategoryOfSubCategory(placeType)
-			if c != nil {
-				categoryMain = c
-				break
-			}
-		}
-		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		if categoryMain == nil {
-			log.Printf("place %s has no category\n", place.Name)
-			continue
-		}
-
 		thumbnailImageUrl, err := s.placesApi.FetchPlacePhoto(place, placesApi.ImageSizeSmall())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)

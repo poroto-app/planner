@@ -104,13 +104,6 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		categoryMain := categoryMainOfPlace(place)
-		if categoryMain == nil {
-			log.Printf("place %s has no category\n", place.Name)
-			continue
-		}
-
 		// 最適経路で巡ったときの所要時間を計算
 		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, models.Place{
 			Location:   place.Location.ToGeoLocation(),
@@ -258,18 +251,6 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 	return false
 }
 
-func categoryMainOfPlace(place api.Place) *models.LocationCategory {
-	var categoryMain *models.LocationCategory
-	for _, placeType := range place.Types {
-		c := models.CategoryOfSubCategory(placeType)
-		if c != nil {
-			categoryMain = c
-			break
-		}
-	}
-	return categoryMain
-}
-
 func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
 	categoriesOfPlace := models.GetCategoriesFromSubCategories(placeTypes)
 	for _, category := range categories {
@@ -315,10 +296,7 @@ func planTimeFromPlaces(locationStart models.GeoLocation, places []models.Place)
 		travelTime := prevLocation.TravelTimeTo(place.Location, 80.0)
 		planTimeInMinutes += travelTime
 
-		if len(place.Categories) > 0 {
-			categoryMain := place.Categories[0]
-			planTimeInMinutes += categoryMain.EstimatedStayDuration
-		}
+		planTimeInMinutes += place.EstimatedStayDuration()
 
 		prevLocation = place.Location
 	}
