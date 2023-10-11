@@ -18,7 +18,7 @@ const (
 func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
 	createPlanSessionId string,
-) ([]*models.Place, error) {
+) (*[]models.Place, error) {
 	placesSearched, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
@@ -41,9 +41,9 @@ func (s Service) FetchCandidatePlaces(
 		return placesSortedByRating[i].Rating > placesSortedByRating[j].Rating
 	})
 
-	places := make([]*models.Place, 0, len(placesSortedByRating))
+	places := make([]models.Place, 0, len(placesSortedByRating))
 	for _, place := range placesSortedByRating {
-		if planCandidate.HasPlace(place.PlaceID) {
+		if planCandidate.HasPlace(place.PlaceId) {
 			continue
 		}
 
@@ -59,20 +59,14 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		places = append(places, &models.Place{
-			// TODO: Google Places APIで取得されるIDと対応関係のあるIDを別で保存する
-			Id:            place.PlaceID,
-			GooglePlaceId: &place.PlaceID,
-			Name:          place.Name,
-			Location:      place.Location.ToGeoLocation(),
-			Images:        []models.Image{*image},
-			Categories:    models.GetCategoriesFromSubCategories(place.Types),
-		})
+		place.Images = &[]models.Image{*image}
+
+		places = append(places, place.ToPlace())
 
 		if len(places) >= maxAddablePlaces {
 			break
 		}
 	}
 
-	return places, nil
+	return &places, nil
 }
