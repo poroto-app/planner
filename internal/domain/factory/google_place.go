@@ -30,16 +30,17 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 	return models.GooglePlace{
 		PlaceId: place.PlaceID,
 		Name:    place.Name,
+		Types:   place.Types,
 		Location: models.GeoLocation{
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,
 		},
-		PhotoReferences: place.PhotoReferences,
-		OpenNow:         place.OpenNow,
-		Rating:          place.Rating,
-		Types:           place.Types,
-		Images:          images,
-		Reviews:         reviews,
+		PhotoReferences:  place.PhotoReferences,
+		OpenNow:          place.OpenNow,
+		Rating:           place.Rating,
+		UserRatingsTotal: place.UserRatingsTotal,
+		Images:           images,
+		Reviews:          reviews,
 	}
 }
 
