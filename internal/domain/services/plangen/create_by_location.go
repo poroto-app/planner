@@ -46,7 +46,7 @@ func (s Service) CreatePlanByLocation(
 		if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
 			log.Printf("error while saving places to cache: %v\n", err)
 		}
-		log.Printf("save places to cache[%v]\n", createPlanSessionId)
+		log.Printf("save %d places to cache[%v]\n", len(placesSearched), createPlanSessionId)
 	}
 
 	placesFiltered := placesSearched
@@ -66,6 +66,8 @@ func (s Service) CreatePlanByLocation(
 		}
 		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
 	}
+
+	log.Printf("places filtered: %v\n", len(placesFiltered))
 
 	// プラン作成の基準となる場所を選択
 	var placesRecommend []models.GooglePlace
