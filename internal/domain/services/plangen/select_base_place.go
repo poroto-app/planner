@@ -19,13 +19,7 @@ func (s Service) selectBasePlace(
 ) []models.GooglePlace {
 	// ユーザーが拒否した場所は取り除く
 	if categoryNamesDisliked != nil {
-		var categoriesDisliked []models.LocationCategory
-		for _, categoryName := range *categoryNamesDisliked {
-			category := models.GetCategoryOfName(categoryName)
-			if category != nil {
-				categoriesDisliked = append(categoriesDisliked, *category)
-			}
-		}
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*categoryNamesDisliked)
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
 	}
 
