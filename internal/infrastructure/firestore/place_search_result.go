@@ -13,6 +13,7 @@ import (
 
 const (
 	collectionPlaceSearchResults = "google_place_api_search_results"
+	collectionReviews            = "reviews"
 	subCollectionPhotos          = "photos"
 )
 
@@ -95,6 +96,27 @@ func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, p
 	return nil
 }
 
+func (p PlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
+
+	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return fmt.Errorf("error while getting reviews: %v", err)
+	}
+
+	if len(snapshots) > 0 {
+		// すでにレビューが保存されている場合は何もしない
+		return fmt.Errorf("reviews already exist")
+	}
+
+	for _, review := range reviews {
+		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review)); err != nil {
+			return fmt.Errorf("error while saving review: %v", err)
+		}
+	}
+
+	return nil
+}
 
 func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, planCandidateId := range planCandidateIds {
@@ -132,4 +154,8 @@ func (p PlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId s
 
 func (p PlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
 	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPhotos)
+}
+
+func (p PlaceSearchResultRepository) subCollectionReviews(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
+	return p.doc(planCandidateId, googlePlaceId).Collection(collectionReviews)
 }

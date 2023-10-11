@@ -25,6 +25,11 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	placeIdToImages := s.fetchAndSavePlacesPhotos(ctx, planCandidateId, params...)
 	log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
 
+	// レビューを取得する
+	performanceTimer = time.Now()
+	placeIdToGooglePlaceReviews := s.fetchAndSaveGooglePlaceReviews(ctx, planCandidateId, params...)
+	log.Printf("fetching google place reviews took %v\n", time.Since(performanceTimer))
+
 	ch := make(chan *models.Plan, len(params))
 
 	for _, param := range params {
@@ -44,15 +49,6 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				chPlanTitle <- *title
 			}(ctx, places, chPlanTitle)
 
-			// 場所のレビューを取得
-			chPlansWithReviews := make(chan []models.Place, 1)
-			go func(ctx context.Context, places []models.Place, chPlansWithReviews chan<- []models.Place) {
-				performanceTimer := time.Now()
-				places = s.FetchReviews(ctx, places)
-				log.Printf("fetching place reviews took %v\n", time.Since(performanceTimer))
-				chPlansWithReviews <- places
-			}(ctx, places, chPlansWithReviews)
-
 			// タイトル生成には2秒以上かかる場合があるため、タイムアウト処理を行う
 			var title string
 			chTitleTimeOut := time.NewTimer(2 * time.Second)
@@ -64,10 +60,9 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				title = param.placeStart.Name
 			}
 
-			placesWithReviews := <-chPlansWithReviews
 			for i := 0; i < len(places); i++ {
 				places[i].Images = placeIdToImages[places[i].Id]
-				places[i].GooglePlaceReviews = placesWithReviews[i].GooglePlaceReviews
+				places[i].GooglePlaceReviews = placeIdToGooglePlaceReviews[places[i].Id]
 			}
 
 			places = sortPlacesByDistanceFrom(param.locationStart, places)
@@ -155,4 +150,44 @@ func (s Service) fetchAndSavePlacesPhotos(ctx context.Context, planCandidateId s
 	}
 
 	return placeIdToImages
+}
+
+func (s Service) fetchAndSaveGooglePlaceReviews(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]*[]models.GooglePlaceReview {
+	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
+	placeIdToPlace := make(map[string]models.Place)
+	for _, param := range params {
+		for _, place := range param.places {
+			placeIdToPlace[place.Id] = place
+		}
+	}
+
+	// すべてのプランに含まれる Place を重複がないように選択し、レビューを取得する
+	places := make([]models.Place, 0, len(placeIdToPlace))
+	for _, place := range placeIdToPlace {
+		places = append(places, place)
+	}
+	places = s.FetchReviews(ctx, places)
+
+	// 取得したレビューを保存
+	for _, place := range places {
+		if place.GooglePlaceId == nil {
+			continue
+		}
+
+		if place.GooglePlaceReviews == nil || len(*place.GooglePlaceReviews) == 0 {
+			continue
+		}
+
+		if err := s.placeSearchResultRepository.SaveReviewsIfNotExist(ctx, planCandidateId, *place.GooglePlaceId, *place.GooglePlaceReviews); err != nil {
+			log.Printf("error while saving google place reviews: %v\n", err)
+			continue
+		}
+	}
+
+	placeIdToGooglePlaceReviews := make(map[string]*[]models.GooglePlaceReview)
+	for _, place := range places {
+		placeIdToGooglePlaceReviews[place.Id] = place.GooglePlaceReviews
+	}
+
+	return placeIdToGooglePlaceReviews
 }
