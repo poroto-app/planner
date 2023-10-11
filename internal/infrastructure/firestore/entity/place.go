@@ -5,16 +5,14 @@ import (
 )
 
 // PlaceEntity
-// EstimatedStayDuration Firestoreではuintをサポートしていないため，intにしている
 type PlaceEntity struct {
-	Id                    string                     `firestore:"id"`
-	GooglePlaceId         *string                    `firestore:"google_place_id"`
-	Name                  string                     `firestore:"name"`
-	Location              GeoLocationEntity          `firestore:"location"`
-	Images                []ImageEntity              `firestore:"images"`
-	EstimatedStayDuration int                        `firestore:"estimated_stay_duration"`
-	GooglePlaceReviews    *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
-	Categories            []string                   `firestore:"categories"`
+	Id                 string                     `firestore:"id"`
+	GooglePlaceId      *string                    `firestore:"google_place_id"`
+	Name               string                     `firestore:"name"`
+	Location           GeoLocationEntity          `firestore:"location"`
+	Images             []ImageEntity              `firestore:"images"`
+	GooglePlaceReviews *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
+	Categories         []string                   `firestore:"categories"`
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
@@ -37,14 +35,13 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 	}
 
 	return PlaceEntity{
-		Id:                    place.Id,
-		GooglePlaceId:         place.GooglePlaceId,
-		Name:                  place.Name,
-		Location:              ToGeoLocationEntity(place.Location),
-		Images:                images,
-		EstimatedStayDuration: int(place.EstimatedStayDuration),
-		GooglePlaceReviews:    googlePlaceReviews,
-		Categories:            categories,
+		Id:                 place.Id,
+		GooglePlaceId:      place.GooglePlaceId,
+		Name:               place.Name,
+		Location:           ToGeoLocationEntity(place.Location),
+		Images:             images,
+		GooglePlaceReviews: googlePlaceReviews,
+		Categories:         categories,
 	}
 }
 
@@ -71,13 +68,12 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 	}
 
 	return models.Place{
-		Id:                    entity.Id,
-		GooglePlaceId:         entity.GooglePlaceId,
-		Name:                  entity.Name,
-		Location:              FromGeoLocationEntity(entity.Location),
-		Images:                images,
-		EstimatedStayDuration: uint(entity.EstimatedStayDuration),
-		GooglePlaceReviews:    googlePlaceReviews,
-		Categories:            categories,
+		Id:                 entity.Id,
+		GooglePlaceId:      entity.GooglePlaceId,
+		Name:               entity.Name,
+		Location:           FromGeoLocationEntity(entity.Location),
+		Images:             images,
+		GooglePlaceReviews: googlePlaceReviews,
+		Categories:         categories,
 	}
 }

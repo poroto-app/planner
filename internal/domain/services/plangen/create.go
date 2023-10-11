@@ -79,17 +79,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
 	if params.locationStart.Equal(params.placeStart.Location.ToGeoLocation()) {
-		categoryMain := categoryMainOfPlace(params.placeStart)
-		if categoryMain == nil {
-			categoryMain = &models.CategoryOther
-		}
 
 		placesInPlan = append(placesInPlan, models.Place{
-			Id:                    uuid.New().String(),
-			Name:                  params.placeStart.Name,
-			GooglePlaceId:         utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:              params.placeStart.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
+			Id:            uuid.New().String(),
+			Name:          params.placeStart.Name,
+			GooglePlaceId: utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:      params.placeStart.Location.ToGeoLocation(),
 		})
 	}
 
@@ -118,9 +113,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 		// 最適経路で巡ったときの所要時間を計算
 		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, models.Place{
-			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Categories:            models.GetCategoriesFromSubCategories(place.Types),
+			Location:   place.Location.ToGeoLocation(),
+			Categories: models.GetCategoriesFromSubCategories(place.Types),
 		}))
 		timeInPlan := planTimeFromPlaces(params.locationStart, sortedByDistance)
 
@@ -148,12 +142,11 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 
 		placesInPlan = append(placesInPlan, models.Place{
-			Id:                    uuid.New().String(),
-			Name:                  place.Name,
-			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Categories:            models.GetCategoriesFromSubCategories(place.Types),
+			Id:            uuid.New().String(),
+			Name:          place.Name,
+			GooglePlaceId: utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:      place.Location.ToGeoLocation(),
+			Categories:    models.GetCategoriesFromSubCategories(place.Types),
 		})
 	}
 

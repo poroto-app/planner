@@ -75,13 +75,12 @@ func (s Service) FetchCandidatePlaces(
 
 		places = append(places, &models.Place{
 			// TODO: Google Places APIで取得されるIDと対応関係のあるIDを別で保存する
-			Id:                    place.PlaceID,
-			GooglePlaceId:         &place.PlaceID,
-			Name:                  place.Name,
-			Location:              place.Location.ToGeoLocation(),
-			Images:                []models.Image{*image},
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Categories:            models.GetCategoriesFromSubCategories(place.Types),
+			Id:            place.PlaceID,
+			GooglePlaceId: &place.PlaceID,
+			Name:          place.Name,
+			Location:      place.Location.ToGeoLocation(),
+			Images:        []models.Image{*image},
+			Categories:    models.GetCategoriesFromSubCategories(place.Types),
 		})
 
 		if len(places) >= maxAddablePlaces {

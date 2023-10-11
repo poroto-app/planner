@@ -75,12 +75,11 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		}
 
 		placesToAdd = append(placesToAdd, models.Place{
-			Id:                    uuid.New().String(),
-			Name:                  place.Name,
-			GooglePlaceId:         utils.StrPointer(place.PlaceID),
-			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: categories[0].EstimatedStayDuration,
-			Categories:            categories,
+			Id:            uuid.New().String(),
+			Name:          place.Name,
+			GooglePlaceId: utils.StrPointer(place.PlaceID),
+			Location:      place.Location.ToGeoLocation(),
+			Categories:    categories,
 		})
 	}
 
