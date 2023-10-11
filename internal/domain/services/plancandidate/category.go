@@ -63,7 +63,7 @@ func (s Service) CategoriesNearLocation(
 
 		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
 		for _, place := range placesSortedByCategoryIndex {
-			placePhoto, err := s.placesApi.FetchPlacePhoto(place, places.ImageSizeLarge())
+			placePhoto, err := s.placesApi.FetchPlacePhoto(place.PhotoReferences, places.ImageSizeLarge())
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
 				continue
