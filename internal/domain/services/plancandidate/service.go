@@ -24,17 +24,17 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
 	placeSearchResultRepository, err := firestore.NewPlaceSearchResultRepository(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while initializing place search result repository: %v", err)
 	}
 
 	placeService, err := place.NewPlaceService(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while initializing place service: %v", err)
 	}
 
 	return &Service{
