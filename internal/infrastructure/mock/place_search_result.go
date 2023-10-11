@@ -3,26 +3,24 @@ package mock
 import (
 	"context"
 	"poroto.app/poroto/planner/internal/domain/models"
-
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 type PlaceSearchResultRepository struct {
-	Data map[string][]places.Place
+	Data map[string][]models.GooglePlace
 }
 
-func NewPlaceSearchResultRepository(data map[string][]places.Place) PlaceSearchResultRepository {
+func NewPlaceSearchResultRepository(data map[string][]models.GooglePlace) PlaceSearchResultRepository {
 	return PlaceSearchResultRepository{
 		Data: data,
 	}
 }
 
-func (p PlaceSearchResultRepository) Save(ctx context.Context, planCandidateId string, places []places.Place) error {
+func (p PlaceSearchResultRepository) Save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]places.Place, error) {
+func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
 	//TODO implement me
 	panic("implement me")
 }
