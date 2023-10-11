@@ -2,21 +2,21 @@ package placefilter
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"testing"
 )
 
 func TestFilterByRating(t *testing.T) {
 	cases := []struct {
 		name                   string
-		placesToFilter         []places.Place
+		placesToFilter         []models.GooglePlace
 		lowestRating           float32
 		lowestUserRatingsTotal int
-		expected               []places.Place
+		expected               []models.GooglePlace
 	}{
 		{
 			name: "should filter by rating",
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
 					Rating:           2.9,
 					UserRatingsTotal: 10,
@@ -32,7 +32,7 @@ func TestFilterByRating(t *testing.T) {
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Rating:           3.0,
 					UserRatingsTotal: 10,
@@ -45,7 +45,7 @@ func TestFilterByRating(t *testing.T) {
 		},
 		{
 			name: "should filter by user ratings total",
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
 					Rating:           3.0,
 					UserRatingsTotal: 9,
@@ -61,7 +61,7 @@ func TestFilterByRating(t *testing.T) {
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Rating:           3.0,
 					UserRatingsTotal: 10,

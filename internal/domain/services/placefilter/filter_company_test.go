@@ -2,19 +2,19 @@ package placefilter
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"testing"
 )
 
 func TestFilterCompany(t *testing.T) {
 	cases := []struct {
 		name     string
-		places   []places.Place
-		expected []places.Place
+		places   []models.GooglePlace
+		expected []models.GooglePlace
 	}{
 		{
 			name: "should filter company",
-			places: []places.Place{
+			places: []models.GooglePlace{
 				{
 					Name: "株式会社 Example",
 				},
@@ -25,16 +25,16 @@ func TestFilterCompany(t *testing.T) {
 					Name: "Example（株）",
 				},
 			},
-			expected: []places.Place{},
+			expected: []models.GooglePlace{},
 		},
 		{
 			name: "should not filter non-company",
-			places: []places.Place{
+			places: []models.GooglePlace{
 				{
 					Name: "Example Example Example",
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Name: "Example Example Example",
 				},
