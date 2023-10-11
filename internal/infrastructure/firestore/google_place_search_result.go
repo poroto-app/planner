@@ -42,7 +42,7 @@ func (p GooglePlaceSearchResultRepository) Save(ctx context.Context, planCandida
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, place := range places {
 			doc := p.doc(planCandidateId, place.PlaceId)
-			if _, err := doc.Set(ctx, place); err != nil {
+			if _, err := doc.Set(ctx, factory.PlaceEntityFromGooglePlace(place)); err != nil {
 				return fmt.Errorf("error while saving place search result: %v", err)
 			}
 		}
