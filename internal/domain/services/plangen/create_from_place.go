@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func (s Service) CreatePlanFromPlace(
@@ -24,9 +23,9 @@ func (s Service) CreatePlanFromPlace(
 		return nil, err
 	}
 
-	var placeStart *places.Place
+	var placeStart *models.GooglePlace
 	for _, place := range placesSearched {
-		if place.PlaceID == placeId {
+		if place.PlaceId == placeId {
 			placeStart = &place
 			break
 		}
@@ -39,7 +38,7 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			locationStart:                placeStart.Location.ToGeoLocation(),
+			locationStart:                placeStart.Location,
 			placeStart:                   *placeStart,
 			places:                       placesSearched,
 			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
@@ -52,7 +51,7 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	plansCreated := s.createPlanData(ctx, createPlanSessionId, CreatePlanParams{
-		locationStart: placeStart.Location.ToGeoLocation(),
+		locationStart: placeStart.Location,
 		placeStart:    *placeStart,
 		places:        planPlaces,
 	})

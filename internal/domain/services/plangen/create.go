@@ -7,11 +7,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"poroto.app/poroto/planner/internal/domain/utils"
-	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 const (
@@ -20,16 +17,16 @@ const (
 
 type CreatePlanPlacesParams struct {
 	locationStart                models.GeoLocation
-	placeStart                   api.Place
-	places                       []api.Place
-	placesOtherPlansContain      []models.Place
+	placeStart                   models.GooglePlace
+	places                       []models.GooglePlace
+	placesOtherPlansContain      []models.GooglePlace
 	freeTime                     *int
 	createBasedOnCurrentLocation bool
 	shouldOpenWhileTraveling     bool
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
-func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.Place, error) {
+func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.GooglePlace, error) {
 	placesFiltered := params.places
 
 	// 現在、開いている場所のみに絞る
@@ -40,7 +37,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
-		params.placeStart.Location.ToGeoLocation(),
+		params.placeStart.Location,
 		0,
 		1500,
 	)
@@ -56,13 +53,13 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// 他のプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place api.Place) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
 		if params.placesOtherPlansContain == nil {
 			return true
 		}
 
 		for _, placeOtherPlanContain := range params.placesOtherPlansContain {
-			if placeOtherPlanContain.GooglePlaceId != nil && place.PlaceID == *placeOtherPlanContain.GooglePlaceId {
+			if place.PlaceId == placeOtherPlanContain.PlaceId {
 				return false
 			}
 		}
@@ -75,21 +72,15 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		return placesSorted[i].Rating > placesSorted[j].Rating
 	})
 
-	placesInPlan := make([]models.Place, 0)
+	placesInPlan := make([]models.GooglePlace, 0)
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
-	if params.locationStart.Equal(params.placeStart.Location.ToGeoLocation()) {
-
-		placesInPlan = append(placesInPlan, models.Place{
-			Id:            uuid.New().String(),
-			Name:          params.placeStart.Name,
-			GooglePlaceId: utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:      params.placeStart.Location.ToGeoLocation(),
-		})
+	if params.locationStart.Equal(params.placeStart.Location) {
+		placesInPlan = append(placesInPlan, params.placeStart)
 	}
 
 	for _, place := range placesSorted {
-		if place.PlaceID == params.placeStart.PlaceID {
+		if place.PlaceId == params.placeStart.PlaceId {
 			continue
 		}
 
@@ -105,10 +96,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 
 		// 最適経路で巡ったときの所要時間を計算
-		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, models.Place{
-			Location:   place.Location.ToGeoLocation(),
-			Categories: models.GetCategoriesFromSubCategories(place.Types),
-		}))
+		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, place))
 		timeInPlan := planTimeFromPlaces(params.locationStart, sortedByDistance)
 
 		// 予定の時間内に収まらない場合はスキップ
@@ -134,13 +122,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		placesInPlan = append(placesInPlan, models.Place{
-			Id:            uuid.New().String(),
-			Name:          place.Name,
-			GooglePlaceId: utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:      place.Location.ToGeoLocation(),
-			Categories:    models.GetCategoriesFromSubCategories(place.Types),
-		})
+		placesInPlan = append(placesInPlan, place)
 	}
 
 	if len(placesInPlan) == 0 {
@@ -150,10 +132,11 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	return placesInPlan, nil
 }
 
-func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []models.LocationCategory) bool {
+func isAlreadyHavePlaceCategoryOf(placesInPlan []models.GooglePlace, categories []models.LocationCategory) bool {
 	var categoriesInPlan []models.LocationCategory
 	for _, place := range placesInPlan {
-		categoriesInPlan = append(categoriesInPlan, place.Categories...)
+		cs := models.GetCategoriesFromSubCategories(place.Types)
+		categoriesInPlan = append(categoriesInPlan, cs...)
 	}
 
 	for _, category := range categories {
@@ -179,8 +162,8 @@ func isCategoryOf(placeTypes []string, categories []models.LocationCategory) boo
 }
 
 // sortPlacesByDistanceFrom location からplacesを巡回する最短経路をgreedy法で求める
-func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Place) []models.Place {
-	placesSorted := make([]models.Place, len(places))
+func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.GooglePlace) []models.GooglePlace {
+	placesSorted := make([]models.GooglePlace, len(places))
 	copy(placesSorted, places)
 
 	prevLocation := location
@@ -204,7 +187,7 @@ func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Place
 }
 
 // planTimeFromPlaces プランの所要時間を計算する
-func planTimeFromPlaces(locationStart models.GeoLocation, places []models.Place) uint {
+func planTimeFromPlaces(locationStart models.GeoLocation, places []models.GooglePlace) uint {
 	prevLocation := locationStart
 	var planTimeInMinutes uint
 	for _, place := range places {

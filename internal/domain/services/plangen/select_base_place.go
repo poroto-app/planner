@@ -3,7 +3,6 @@ package plangen
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"sort"
 )
 
@@ -13,11 +12,11 @@ const (
 
 // selectBasePlace は，プランの起点となる場所を選択する
 func (s Service) selectBasePlace(
-	places []api.Place,
+	places []models.GooglePlace,
 	categoryNamesPreferred *[]string,
 	categoryNamesDisliked *[]string,
 	shouldOpenNow bool,
-) []api.Place {
+) []models.GooglePlace {
 	// ユーザーが拒否した場所は取り除く
 	if categoryNamesDisliked != nil {
 		var categoriesDisliked []models.LocationCategory
@@ -52,13 +51,13 @@ func (s Service) selectBasePlace(
 
 // selectByReview は，レビューの高い順に場所を選択する
 // categoriesPreferred が指定される場合は、同じカテゴリの場所が含まれないように選択する
-func selectByReview(places []api.Place) []api.Place {
+func selectByReview(places []models.GooglePlace) []models.GooglePlace {
 	// レビューの高い順にソート
 	sort.SliceStable(places, func(i, j int) bool {
 		return places[i].Rating > places[j].Rating
 	})
 
-	var placesSelected []api.Place
+	var placesSelected []models.GooglePlace
 	for _, place := range places {
 		// 既に選択済みの場所は除外
 		if isAlreadyAdded(place, placesSelected) {
@@ -93,19 +92,19 @@ func selectByReview(places []api.Place) []api.Place {
 
 // selectByDistanceFromPlaces は，プラン間の内容が重複しないようにするため、既に選択された場所から遠い場所を選択する
 func selectByDistanceFromPlaces(
-	places []api.Place,
-	placesSelected []api.Place,
-) []api.Place {
+	places []models.GooglePlace,
+	placesSelected []models.GooglePlace,
+) []models.GooglePlace {
 	// 既に選択された場所から遠い順にソート
 	sort.SliceStable(places, func(i, j int) bool {
 		sumDistanceI := 0.0
 		for _, placeSelected := range placesSelected {
-			sumDistanceI += placeSelected.Location.ToGeoLocation().DistanceInMeter(places[i].Location.ToGeoLocation())
+			sumDistanceI += placeSelected.Location.DistanceInMeter(places[i].Location)
 		}
 
 		sumDistanceJ := 0.0
 		for _, placeSelected := range placesSelected {
-			sumDistanceJ += placeSelected.Location.ToGeoLocation().DistanceInMeter(places[j].Location.ToGeoLocation())
+			sumDistanceJ += placeSelected.Location.DistanceInMeter(places[j].Location)
 		}
 
 		return sumDistanceI > sumDistanceJ
@@ -123,16 +122,16 @@ func selectByDistanceFromPlaces(
 	return placesSelected
 }
 
-func isAlreadyAdded(place api.Place, places []api.Place) bool {
+func isAlreadyAdded(place models.GooglePlace, places []models.GooglePlace) bool {
 	for _, p := range places {
-		if p.PlaceID == place.PlaceID {
+		if p.PlaceId == place.PlaceId {
 			return true
 		}
 	}
 	return false
 }
 
-func isSameCategoryPlace(a, b api.Place) bool {
+func isSameCategoryPlace(a, b models.GooglePlace) bool {
 	categoriesOfA := categoriesOfPlace(a)
 	categoriesOfB := categoriesOfPlace(b)
 	for _, categoryOfA := range categoriesOfA {
@@ -145,7 +144,7 @@ func isSameCategoryPlace(a, b api.Place) bool {
 	return false
 }
 
-func categoriesOfPlace(place api.Place) []models.LocationCategory {
+func categoriesOfPlace(place models.GooglePlace) []models.LocationCategory {
 	var categories []models.LocationCategory
 	for _, placeType := range place.Types {
 		category := models.CategoryOfSubCategory(placeType)
@@ -158,13 +157,13 @@ func categoriesOfPlace(place api.Place) []models.LocationCategory {
 
 // isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
 func isNearFromPlaces(
-	placeBase api.Place,
-	placesCompare []api.Place,
+	placeBase models.GooglePlace,
+	placesCompare []models.GooglePlace,
 	distance int,
 ) bool {
 	for _, placeCompare := range placesCompare {
-		locationOfPlaceBase := placeBase.Location.ToGeoLocation()
-		locationOfPlaceCompare := placeCompare.Location.ToGeoLocation()
+		locationOfPlaceBase := placeBase.Location
+		locationOfPlaceCompare := placeCompare.Location
 		distanceFromSelectedPlace := locationOfPlaceCompare.DistanceInMeter(locationOfPlaceBase)
 		if int(distanceFromSelectedPlace) < distance {
 			return true

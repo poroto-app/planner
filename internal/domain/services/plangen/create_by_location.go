@@ -6,6 +6,7 @@ import (
 	"googlemaps.github.io/maps"
 	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -24,7 +25,7 @@ func (s Service) CreatePlanByLocation(
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
 	// 付近の場所を検索
-	var placesSearched []places.Place
+	var placesSearched []models.GooglePlace
 
 	//　キャッシュがあれば利用する
 	placesCached, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
@@ -67,7 +68,7 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	// プラン作成の基準となる場所を選択
-	var placesRecommend []places.Place
+	var placesRecommend []models.GooglePlace
 
 	if googlePlaceId != nil {
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
@@ -100,7 +101,7 @@ func (s Service) CreatePlanByLocation(
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	var createPlanParams []CreatePlanParams
 	for _, placeRecommend := range placesRecommend {
-		var placesInPlan []models.Place
+		var placesInPlan []models.GooglePlace
 		for _, createPlanParam := range createPlanParams {
 			placesInPlan = append(placesInPlan, createPlanParam.places...)
 		}
@@ -153,11 +154,11 @@ func (s Service) CreatePlanByLocation(
 // placesSearched から探し、なければAPIを使って取得する
 func (s Service) findOrFetchPlaceById(
 	ctx context.Context,
-	placesSearched []places.Place,
+	placesSearched []models.GooglePlace,
 	googlePlaceId string,
-) (place *places.Place, found bool, err error) {
+) (place *models.GooglePlace, found bool, err error) {
 	for _, placeSearched := range placesSearched {
-		if placeSearched.PlaceID == googlePlaceId {
+		if placeSearched.PlaceId == googlePlaceId {
 			place = &placeSearched
 			break
 		}
@@ -167,13 +168,17 @@ func (s Service) findOrFetchPlaceById(
 		return place, true, nil
 	}
 
-	place, err = s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
+	// TODO: キャッシュする
+	googlePlace, err := s.placesApi.FetchPlace(ctx, places.FetchPlaceRequest{
 		PlaceId:  googlePlaceId,
 		Language: "ja",
 	})
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v\n", err)
 	}
+
+	p := factory.GooglePlaceFromPlaceEntity(*googlePlace, nil, nil)
+	place = &p
 
 	return place, false, nil
 }
