@@ -16,7 +16,7 @@ func (s Service) isOpeningWithIn(
 	startTime time.Time,
 	duration time.Duration,
 ) bool {
-	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place.PlaceID)
 	if err != nil {
 		log.Printf("error while fetching place opening periods: %v\n", err)
 		return false
