@@ -71,7 +71,7 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
 	var googlePlaceIdsWithPhotos []string
 	for _, place := range places {
-		if place.Images == nil && len(*place.Images) > 0 {
+		if place.Images != nil && len(*place.Images) > 0 {
 			googlePlaceIdsWithPhotos = append(googlePlaceIdsWithPhotos, place.PlaceId)
 		}
 	}
