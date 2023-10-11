@@ -36,7 +36,7 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	if placesSearched == nil {
-		placesSearched, err = s.SearchNearbyPlaces(ctx, locationStart)
+		placesSearched, err = s.placeService.SearchNearbyPlaces(ctx, locationStart)
 
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching places: %v\n", err)
