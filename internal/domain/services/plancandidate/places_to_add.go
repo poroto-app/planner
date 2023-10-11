@@ -3,11 +3,8 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"sort"
 )
 
@@ -48,13 +45,13 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// すでにプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place places.Place) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
 		for _, placeInPlan := range plan.Places {
 			if placeInPlan.GooglePlaceId == nil {
 				return false
 			}
 
-			if *placeInPlan.GooglePlaceId == place.PlaceID {
+			if *placeInPlan.GooglePlaceId == place.PlaceId {
 				return false
 			}
 		}
@@ -67,29 +64,20 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	})
 
 	// TODO: すべてのカテゴリの場所が表示されるようにする
-	var placesToAdd []models.Place
-	for _, place := range placesFiltered {
-		categories := models.GetCategoriesFromSubCategories(place.Types)
-		if len(categories) == 0 {
-			continue
-		}
+	googlePlacesToAdd := placesFiltered
 
-		placesToAdd = append(placesToAdd, models.Place{
-			Id:            uuid.New().String(),
-			Name:          place.Name,
-			GooglePlaceId: utils.StrPointer(place.PlaceID),
-			Location:      place.Location.ToGeoLocation(),
-			Categories:    categories,
-		})
-	}
-
-	placesToAdd = placesToAdd[:nLimit]
+	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
 
 	// 写真を取得
-	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd)
+	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	// 口コミを取得
-	placesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, placesToAdd)
+	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+
+	placesToAdd := make([]models.Place, len(googlePlacesToAdd))
+	for i, place := range googlePlacesToAdd {
+		placesToAdd[i] = place.ToPlace()
+	}
 
 	return placesToAdd, nil
 }
