@@ -46,7 +46,7 @@ func (s Service) FetchReviews(ctx context.Context, places []models.GooglePlace) 
 				})
 			}
 
-			place.SetReviews(&googlePlaceReviews)
+			place.Reviews = &googlePlaceReviews
 			ch <- &place
 		}(ctx, place, ch)
 	}

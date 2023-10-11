@@ -1,6 +1,8 @@
 package models
 
-import "poroto.app/poroto/planner/internal/domain/utils"
+import (
+	"poroto.app/poroto/planner/internal/domain/utils"
+)
 
 type GooglePlace struct {
 	PlaceId          string
@@ -13,20 +15,6 @@ type GooglePlace struct {
 	UserRatingsTotal int
 	Images           *[]Image
 	Reviews          *[]GooglePlaceReview
-}
-
-func (g GooglePlace) SetImages(images *[]Image) {
-	if images == nil || len(*images) == 0 {
-		g.Images = nil
-	}
-	g.Images = images
-}
-
-func (g GooglePlace) SetReviews(reviews *[]GooglePlaceReview) {
-	if reviews == nil || len(*reviews) == 0 {
-		g.Reviews = nil
-	}
-	g.Reviews = reviews
 }
 
 func (g GooglePlace) ToPlace() Place {

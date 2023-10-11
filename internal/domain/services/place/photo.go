@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -19,6 +20,7 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- models.GooglePlace) {
 			// すでに写真がある場合は，何もしない
 			if place.Images != nil && len(*place.Images) > 0 {
+				log.Printf("skip fetching place photos because images already exist: %v\n", place.PlaceId)
 				ch <- place
 				return
 			}
@@ -30,22 +32,23 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 				api.ImageSizeTypeLarge,
 			)
 			if err != nil {
+				log.Printf("error while fetching place photos: %v\n", err)
 				ch <- place
 				return
 			}
 
-			images := make([]models.Image, 0, len(photos))
+			var images []models.Image
 			for _, photo := range photos {
 				image, err := models.NewImage(photo.Small, photo.Large)
 				if err != nil {
+					log.Printf("error while creating image: %v\n", err)
 					continue
 				}
 
 				images = append(images, *image)
 			}
 
-			place.SetImages(&images)
-
+			place.Images = &images
 			ch <- place
 		}(ctx, place, ch)
 	}
@@ -57,7 +60,6 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 			if place.PlaceId != placeUpdated.PlaceId {
 				continue
 			}
-
 			places[i] = placeUpdated
 			break
 		}
