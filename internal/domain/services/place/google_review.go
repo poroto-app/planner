@@ -11,22 +11,18 @@ import (
 
 // FetchReviews は、プランに含まれるすべての場所のレビューを一括で取得する
 // すでにレビューを取得している場合は何もしない
-func (s Service) FetchReviews(ctx context.Context, places []models.Place) []models.Place {
-	ch := make(chan *models.Place, len(places))
+func (s Service) FetchReviews(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
+	ch := make(chan *models.GooglePlace, len(places))
 	for _, place := range places {
-		go func(ctx context.Context, place models.Place, ch chan<- *models.Place) {
-			if place.GooglePlaceId == nil {
-				ch <- nil
-				return
-			}
-
-			if place.GooglePlaceReviews != nil && len(*place.GooglePlaceReviews) > 0 {
+		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
+			// すでにレビューがある場合は何もしない
+			if place.Reviews != nil && len(*place.Reviews) > 0 {
 				ch <- &place
 				return
 			}
 
 			reviews, err := s.placesApi.FetchPlaceReview(ctx, api.FetchPlaceReviewRequest{
-				PlaceId:  *place.GooglePlaceId,
+				PlaceId:  place.PlaceId,
 				Language: "ja",
 			})
 			if err != nil {
@@ -50,7 +46,7 @@ func (s Service) FetchReviews(ctx context.Context, places []models.Place) []mode
 				})
 			}
 
-			place.GooglePlaceReviews = &googlePlaceReviews
+			place.SetReviews(&googlePlaceReviews)
 			ch <- &place
 		}(ctx, place, ch)
 	}
@@ -62,7 +58,7 @@ func (s Service) FetchReviews(ctx context.Context, places []models.Place) []mode
 		}
 
 		for j, place := range places {
-			if placeUpdated.Id == place.Id {
+			if placeUpdated.PlaceId == place.PlaceId {
 				places[j] = *placeUpdated
 				break
 			}
@@ -73,18 +69,12 @@ func (s Service) FetchReviews(ctx context.Context, places []models.Place) []mode
 }
 
 // FetchPlaceReviewsAndSave は，指定された場所のレビューを一括で取得し、保存する
-func (s Service) FetchPlaceReviewsAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+func (s Service) FetchPlaceReviewsAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	var googlePlaceIdsWithReviews []string
 	for _, place := range places {
-		if place.GooglePlaceId == nil {
-			continue
+		if place.Reviews != nil && len(*place.Reviews) > 0 {
+			googlePlaceIdsWithReviews = append(googlePlaceIdsWithReviews, place.PlaceId)
 		}
-
-		if array.IsContain(googlePlaceIdsWithReviews, *place.GooglePlaceId) {
-			continue
-		}
-
-		googlePlaceIdsWithReviews = append(googlePlaceIdsWithReviews, *place.GooglePlaceId)
 	}
 
 	// レビューを取得
@@ -92,20 +82,16 @@ func (s Service) FetchPlaceReviewsAndSave(ctx context.Context, planCandidateId s
 
 	// レビューを保存
 	for _, place := range places {
-		if place.GooglePlaceId == nil {
-			continue
-		}
-
 		// すでにレビューが取得済みの場合は何もしない
-		if !array.IsContain(googlePlaceIdsWithReviews, *place.GooglePlaceId) {
+		if array.IsContain(googlePlaceIdsWithReviews, place.PlaceId) {
 			continue
 		}
 
-		if place.GooglePlaceReviews == nil || len(*place.GooglePlaceReviews) == 0 {
+		if place.Reviews == nil || len(*place.Reviews) == 0 {
 			continue
 		}
 
-		if err := s.placeSearchResultRepository.SaveReviewsIfNotExist(ctx, planCandidateId, *place.GooglePlaceId, *place.GooglePlaceReviews); err != nil {
+		if err := s.placeSearchResultRepository.SaveReviewsIfNotExist(ctx, planCandidateId, place.PlaceId, *place.Reviews); err != nil {
 			continue
 		}
 	}
