@@ -1,6 +1,8 @@
 package firestore
 
 import (
+	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
@@ -11,6 +13,7 @@ import (
 
 const (
 	collectionPlaceSearchResults = "google_place_api_search_results"
+	subCollectionPhotos          = "photos"
 )
 
 type PlaceSearchResultRepository struct {
@@ -70,6 +73,29 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	return places, nil
 }
 
+func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
+
+	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
+	if err != nil {
+		return fmt.Errorf("error while getting images: %v", err)
+	}
+
+	if len(snapshots) > 0 {
+		// すでに画像が保存されている場合は何もしない
+		return fmt.Errorf("images already exist")
+	}
+
+	for _, image := range images {
+		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
+			return fmt.Errorf("error while saving image: %v", err)
+		}
+	}
+
+	return nil
+}
+
+
 func (p PlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, planCandidateId := range planCandidateIds {
 		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
@@ -100,6 +126,10 @@ func (p PlaceSearchResultRepository) collection(planCandidateId string) *firesto
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlaceSearchResults)
 }
 
-func (p PlaceSearchResultRepository) doc(planCandidateId string, placeId string) *firestore.DocumentRef {
-	return p.collection(planCandidateId).Doc(placeId)
+func (p PlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId string) *firestore.DocumentRef {
+	return p.collection(planCandidateId).Doc(googlePlaceId)
+}
+
+func (p PlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
+	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPhotos)
 }
