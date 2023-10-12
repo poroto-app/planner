@@ -79,18 +79,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
 	if params.locationStart.Equal(params.placeStart.Location.ToGeoLocation()) {
-		categoryMain := categoryMainOfPlace(params.placeStart)
-		if categoryMain == nil {
-			categoryMain = &models.CategoryOther
-		}
 
 		placesInPlan = append(placesInPlan, models.Place{
-			Id:                    uuid.New().String(),
-			Name:                  params.placeStart.Name,
-			GooglePlaceId:         utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:              params.placeStart.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Category:              categoryMain.Name,
+			Id:            uuid.New().String(),
+			Name:          params.placeStart.Name,
+			GooglePlaceId: utils.StrPointer(params.placeStart.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:      params.placeStart.Location.ToGeoLocation(),
 		})
 	}
 
@@ -110,19 +104,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		// MEMO: カテゴリが不明な場合，滞在時間が取得できない
-		categoryMain := categoryMainOfPlace(place)
-		if categoryMain == nil {
-			log.Printf("place %s has no category\n", place.Name)
-			continue
-		}
-
 		// 最適経路で巡ったときの所要時間を計算
 		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, models.Place{
-			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Category:              categoryMain.Name,
-			Categories:            models.GetCategoriesFromSubCategories(place.Types),
+			Location:   place.Location.ToGeoLocation(),
+			Categories: models.GetCategoriesFromSubCategories(place.Types),
 		}))
 		timeInPlan := planTimeFromPlaces(params.locationStart, sortedByDistance)
 
@@ -150,13 +135,11 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 
 		placesInPlan = append(placesInPlan, models.Place{
-			Id:                    uuid.New().String(),
-			Name:                  place.Name,
-			GooglePlaceId:         utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
-			Location:              place.Location.ToGeoLocation(),
-			EstimatedStayDuration: categoryMain.EstimatedStayDuration,
-			Category:              categoryMain.Name,
-			Categories:            models.GetCategoriesFromSubCategories(place.Types),
+			Id:            uuid.New().String(),
+			Name:          place.Name,
+			GooglePlaceId: utils.StrPointer(place.PlaceID), // MEMO: 値コピーでないと参照が変化してしまう
+			Location:      place.Location.ToGeoLocation(),
+			Categories:    models.GetCategoriesFromSubCategories(place.Types),
 		})
 	}
 
@@ -165,92 +148,6 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	return placesInPlan, nil
-}
-
-type CreatePlanParams struct {
-	locationStart models.GeoLocation
-	placeStart    api.Place
-	places        []models.Place
-}
-
-func (s Service) createPlans(ctx context.Context, params ...CreatePlanParams) []models.Plan {
-	ch := make(chan *models.Plan, len(params))
-	for _, param := range params {
-		go func(ctx context.Context, param CreatePlanParams, ch chan<- *models.Plan) {
-			places := param.places
-
-			chPlaceWithPhotos := make(chan []models.Place, 1)
-			go func(ctx context.Context, places []models.Place, chPlaceWithPhotos chan<- []models.Place) {
-				// 場所の画像を取得
-				performanceTimer := time.Now()
-				places = s.FetchPlacesPhotos(ctx, places)
-				log.Printf("fetching place photos took %v\n", time.Since(performanceTimer))
-				chPlaceWithPhotos <- places
-			}(ctx, places, chPlaceWithPhotos)
-
-			// プランのタイトルを生成
-			chPlanTitle := make(chan string, 1)
-			go func(ctx context.Context, places []models.Place, chPlanTitle chan<- string) {
-				performanceTimer := time.Now()
-				title, err := s.GeneratePlanTitle(param.places)
-				if err != nil {
-					log.Printf("error while generating plan title: %v\n", err)
-					title = &param.placeStart.Name
-				}
-				log.Printf("generating plan title took %v\n", time.Since(performanceTimer))
-				chPlanTitle <- *title
-			}(ctx, places, chPlanTitle)
-
-			// 場所のレビューを取得
-			chPlansWithReviews := make(chan []models.Place, 1)
-			go func(ctx context.Context, places []models.Place, chPlansWithReviews chan<- []models.Place) {
-				performanceTimer := time.Now()
-				places = s.FetchReviews(ctx, places)
-				log.Printf("fetching place reviews took %v\n", time.Since(performanceTimer))
-				chPlansWithReviews <- places
-			}(ctx, places, chPlansWithReviews)
-
-			// タイトル生成には2秒以上かかる場合があるため、タイムアウト処理を行う
-			var title string
-			chTitleTimeOut := time.NewTimer(2 * time.Second)
-			select {
-			case title = <-chPlanTitle:
-				chTitleTimeOut.Stop()
-			case <-chTitleTimeOut.C:
-				log.Printf("timeout while generating plan title\n")
-				title = param.placeStart.Name
-			}
-
-			placesWithPhotos := <-chPlaceWithPhotos
-			placesWithReviews := <-chPlansWithReviews
-			for i := 0; i < len(places); i++ {
-				places[i].Images = placesWithPhotos[i].Images
-				places[i].GooglePlaceReviews = placesWithReviews[i].GooglePlaceReviews
-			}
-
-			places = sortPlacesByDistanceFrom(param.locationStart, places)
-			timeInPlan := planTimeFromPlaces(param.locationStart, places)
-
-			ch <- &models.Plan{
-				Id:            uuid.New().String(),
-				Name:          title,
-				Places:        places,
-				TimeInMinutes: timeInPlan,
-				Transitions:   models.CreateTransition(places, &param.locationStart),
-			}
-		}(ctx, param, ch)
-	}
-
-	plans := make([]models.Plan, 0)
-	for i := 0; i < len(params); i++ {
-		plan := <-ch
-		if plan == nil {
-			continue
-		}
-		plans = append(plans, *plan)
-	}
-
-	return plans
 }
 
 func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []models.LocationCategory) bool {
@@ -267,18 +164,6 @@ func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []mode
 		}
 	}
 	return false
-}
-
-func categoryMainOfPlace(place api.Place) *models.LocationCategory {
-	var categoryMain *models.LocationCategory
-	for _, placeType := range place.Types {
-		c := models.CategoryOfSubCategory(placeType)
-		if c != nil {
-			categoryMain = c
-			break
-		}
-	}
-	return categoryMain
 }
 
 func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
@@ -326,14 +211,9 @@ func planTimeFromPlaces(locationStart models.GeoLocation, places []models.Place)
 		travelTime := prevLocation.TravelTimeTo(place.Location, 80.0)
 		planTimeInMinutes += travelTime
 
-		// カテゴリが不明な場合，滞在時間が取得できない
-		categoryMain := models.GetCategoryOfName(place.Category)
-		if categoryMain == nil {
-			prevLocation = place.Location
-			continue
-		}
+		planTimeInMinutes += place.EstimatedStayDuration()
 
-		planTimeInMinutes += categoryMain.EstimatedStayDuration
+		prevLocation = place.Location
 	}
 
 	return planTimeInMinutes

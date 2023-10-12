@@ -176,6 +176,144 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	return &planCandidate, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
+	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		var planIndex *int
+		for i, plan := range planCandidateEntity.Plans {
+			if plan.Id == planId {
+				idx := i
+				planIndex = &idx
+				break
+			}
+		}
+
+		if planIndex == nil {
+			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+		}
+
+		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
+		planEntityToUpdate.Places = append(planEntityToUpdate.Places, entity.ToPlaceEntity(place))
+		planEntityToUpdate.PlaceIdsOrdered = append(planEntityToUpdate.PlaceIdsOrdered, place.Id)
+		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidateEntity.Plans,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("error while adding place to plan candidate: %v", err)
+	}
+
+	return nil
+}
+
+func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		docMetaData := p.docMetaDataV1(planCandidateId)
+		snapshotMetaData, err := tx.Get(docMetaData)
+		if err != nil {
+			return fmt.Errorf("error while getting plan candidate meta data: %v", err)
+		}
+
+		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+		if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		}
+
+		// TODO: 直接削除するだけで十分な設計にする（Placeを別で持つ）
+		var planIndex *int
+		for i, plan := range planCandidateEntity.Plans {
+			if plan.Id == planId {
+				idx := i
+				planIndex = &idx
+				break
+			}
+		}
+		if planIndex == nil {
+			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+		}
+
+		// places から削除
+		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
+		var places []entity.PlaceEntity
+		for _, place := range planEntityToUpdate.Places {
+			if place.Id != placeId {
+				places = append(places, place)
+			}
+		}
+
+		// placeIdsOrdered から削除
+		var placeIdsOrdered []string
+		for _, placeIdOrdered := range planEntityToUpdate.PlaceIdsOrdered {
+			if placeIdOrdered != placeId {
+				placeIdsOrdered = append(placeIdsOrdered, placeIdOrdered)
+			}
+		}
+
+		planEntityToUpdate.Places = places
+		planEntityToUpdate.PlaceIdsOrdered = placeIdsOrdered
+		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidateEntity.Plans,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while removing place from plan candidate: %v", err)
+	}
+
+	return nil
+}
+
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {

@@ -10,11 +10,10 @@ import (
 // PlaceIdsOrdered は Places の順番を管理する（Places配列を書き換えて更新すると、更新の量が多くなるため）
 // MEMO: PlanEntityを用いると、CreatedAtとUpdatedAtが含まれてしまうため、別の構造体を利用している
 type PlanInCandidateEntity struct {
-	Id              string               `firestore:"id"`
-	Name            string               `firestore:"name"`
-	Places          []PlaceEntity        `firestore:"places"`
-	PlaceIdsOrdered []string             `firestore:"place_ids_ordered"`
-	Transitions     *[]TransitionsEntity `firestore:"transitions,omitempty"`
+	Id              string        `firestore:"id"`
+	Name            string        `firestore:"name"`
+	Places          []PlaceEntity `firestore:"places"`
+	PlaceIdsOrdered []string      `firestore:"place_ids_ordered"`
 	// MEMO: Firestoreではuintをサポートしていないため，intにしている
 	TimeInMinutes int `firestore:"time_in_minutes"`
 }
@@ -34,17 +33,15 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 		Places:          ps,
 		PlaceIdsOrdered: placeIdsOrdered,
 		TimeInMinutes:   int(plan.TimeInMinutes),
-		Transitions:     ToTransitionsEntities(plan.Transitions),
 	}
 }
 
-func fromPlanInCandidateEntity(
+func FromPlanInCandidateEntity(
 	id string,
 	name string,
 	places []PlaceEntity,
 	placeIdsOrdered []string,
 	timeInMinutes int,
-	transitions *[]TransitionsEntity,
 ) (*models.Plan, error) {
 	placesOrdered := make([]models.Place, len(places))
 
@@ -66,7 +63,6 @@ func fromPlanInCandidateEntity(
 		Name:          name,
 		Places:        placesOrdered,
 		TimeInMinutes: uint(timeInMinutes),
-		Transitions:   FromTransitionEntities(transitions),
 	}, nil
 }
 

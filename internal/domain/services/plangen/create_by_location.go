@@ -36,7 +36,7 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	if placesSearched == nil {
-		placesSearched, err = s.SearchNearbyPlaces(ctx, locationStart)
+		placesSearched, err = s.placeService.SearchNearbyPlaces(ctx, locationStart)
 
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching places: %v\n", err)
@@ -129,7 +129,7 @@ func (s Service) CreatePlanByLocation(
 		})
 	}
 
-	plans := s.createPlans(ctx, createPlanParams...)
+	plans := s.createPlanData(ctx, createPlanSessionId, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if googlePlaceId != nil {

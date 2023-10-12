@@ -6,6 +6,17 @@ extend type Mutation {
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
+
+    # ===========================================================
+    # Edit
+    # ===========================================================
+    addPlaceToPlanCandidate(input: AddPlaceToPlanCandidateInput!): AddPlaceToPlanCandidateOutput!
+
+    deletePlaceFromPlanCandidate(input: DeletePlaceFromPlanCandidateInput!): DeletePlaceFromPlanCandidateOutput!
+
+    replacePlaceOfPlanCandidate(input: ReplacePlaceOfPlanCandidateInput!): ReplacePlaceOfPlanCandidateOutput!
+
+    editPlanTitleOfPlanCandidate(input: EditPlanTitleOfPlanCandidateInput!): EditPlanTitleOfPlanCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -61,4 +72,49 @@ type SavePlanFromCandidateOutput {
 input MatchInterestsInput {
     latitude: Float!
     longitude: Float!
+}
+
+input AddPlaceToPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type AddPlaceToPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input DeletePlaceFromPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type DeletePlaceFromPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input ReplacePlaceOfPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeIdToRemove: String!
+    placeIdToReplace: String!
+}
+
+type ReplacePlaceOfPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input EditPlanTitleOfPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    title: String!
+}
+
+type EditPlanTitleOfPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
 }

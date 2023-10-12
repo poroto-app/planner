@@ -10,15 +10,14 @@ import (
 // GeoHash はプランの最初の場所のGeoHashを示す（プランは小さい範囲で作られるため、どこをとってもあまり変わらない）
 // TimeInMinutes MEMO: Firestoreではuintをサポートしていないため，intにしている
 type PlanEntity struct {
-	Id            string               `firestore:"id"`
-	Name          string               `firestore:"name"`
-	Places        []PlaceEntity        `firestore:"places"`
-	GeoHash       *string              `firestore:"geohash,omitempty"`
-	TimeInMinutes int                  `firestore:"time_in_minutes"`
-	Transitions   *[]TransitionsEntity `firestore:"transitions,omitempty"`
-	CreatedAt     time.Time            `firestore:"created_at,omitempty,serverTimestamp"`
-	UpdatedAt     time.Time            `firestore:"updated_at,omitempty"`
-	AuthorId      *string              `firestore:"author_id,omitempty"`
+	Id            string        `firestore:"id"`
+	Name          string        `firestore:"name"`
+	Places        []PlaceEntity `firestore:"places"`
+	GeoHash       *string       `firestore:"geohash,omitempty"`
+	TimeInMinutes int           `firestore:"time_in_minutes"`
+	CreatedAt     time.Time     `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt     time.Time     `firestore:"updated_at,omitempty"`
+	AuthorId      *string       `firestore:"author_id,omitempty"`
 }
 
 func ToPlanEntity(plan models.Plan) PlanEntity {
@@ -39,7 +38,6 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		Places:        places,
 		GeoHash:       geohash,
 		TimeInMinutes: int(plan.TimeInMinutes),
-		Transitions:   ToTransitionsEntities(plan.Transitions),
 		AuthorId:      plan.AuthorId,
 		UpdatedAt:     time.Now(),
 	}
@@ -56,7 +54,6 @@ func FromPlanEntity(entity PlanEntity) models.Plan {
 		Name:          entity.Name,
 		Places:        ps,
 		TimeInMinutes: uint(entity.TimeInMinutes),
-		Transitions:   FromTransitionEntities(entity.Transitions),
 		AuthorId:      entity.AuthorId,
 	}
 }

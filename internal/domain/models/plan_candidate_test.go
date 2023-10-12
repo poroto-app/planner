@@ -1,6 +1,10 @@
 package models
 
-import "testing"
+import (
+	"github.com/google/go-cmp/cmp"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	"testing"
+)
 
 func TestHasPlace(t *testing.T) {
 	cases := []struct {
@@ -14,7 +18,7 @@ func TestHasPlace(t *testing.T) {
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: toStrPointer("1")}},
+						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
 					},
 				},
 			},
@@ -26,7 +30,7 @@ func TestHasPlace(t *testing.T) {
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: toStrPointer("1")}},
+						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
 					},
 				},
 			},
@@ -45,6 +49,33 @@ func TestHasPlace(t *testing.T) {
 	}
 }
 
-func toStrPointer(v string) *string {
-	return &v
+func TestPlanCandidate_GetPlan(t *testing.T) {
+	cases := []struct {
+		name          string
+		planCandidate PlanCandidate
+		planId        string
+		expected      *Plan
+	}{
+		{
+			name:          "Has plan",
+			planCandidate: PlanCandidate{Plans: []Plan{{Id: "1"}}},
+			planId:        "1",
+			expected:      &Plan{Id: "1"},
+		},
+		{
+			name:          "Does not have plan",
+			planCandidate: PlanCandidate{Plans: []Plan{{Id: "1"}}},
+			planId:        "2",
+			expected:      nil,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := c.planCandidate.GetPlan(c.planId)
+			if diff := cmp.Diff(result, c.expected); diff != "" {
+				t.Errorf("GetPlan() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
 }
