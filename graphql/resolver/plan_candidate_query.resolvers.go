@@ -132,5 +132,24 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 
 // PlacesToReplaceForPlanCandidate is the resolver for the placesToReplaceForPlanCandidate field.
 func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: PlacesToReplaceForPlanCandidate - placesToReplaceForPlanCandidate"))
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println("error while initializing plan candidate service: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 10)
+	if err != nil {
+		log.Println("error while fetching places to replace: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	var places []*model.Place
+	for _, place := range placesToReplace {
+		places = append(places, factory.PlaceFromDomainModel(&place))
+	}
+
+	return &model.PlacesToReplaceForPlanCandidateOutput{
+		Places: places,
+	}, nil
 }
