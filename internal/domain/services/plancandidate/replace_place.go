@@ -34,6 +34,11 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 	}
 	log.Printf("succeeded fetching place to be replaced: %v\n", placeIdToBeReplaced)
 
+	// 指定された場所がすでにプランに含まれている場合は何もしない
+	if planToUpdate.GetPlace(placeIdToReplace) != nil {
+		return nil, fmt.Errorf("place to replace already exists: %v\n", placeIdToReplace)
+	}
+
 	var placeToReplace *models.Place
 	for _, place := range placesSearched {
 		// TODO: PlaceRepositoryを用いて、Planner APIが指定したPlaceIdで取得できるようにする
