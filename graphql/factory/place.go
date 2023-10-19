@@ -47,5 +47,9 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		EstimatedStayDuration: int(place.EstimatedStayDuration()),
 		GoogleReviews:         googlePlaceReviews,
 		Categories:            placeCategories,
+		Budget: &graphql.Budget{
+			Budget:           place.EstimatedBudget(),
+			GooglePriceLevel: *place.PriceLevel,
+		},
 	}
 }
