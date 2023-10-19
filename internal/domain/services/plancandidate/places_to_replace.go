@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"sort"
 )
 
@@ -62,13 +60,9 @@ func (s Service) FetchPlacesToReplace(
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// すでにプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place places.Place) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
 		for _, placeInPlan := range plan.Places {
-			if placeInPlan.GooglePlaceId == nil {
-				return false
-			}
-
-			if *placeInPlan.GooglePlaceId == place.PlaceID {
+			if *placeInPlan.GooglePlaceId == place.PlaceId {
 				return false
 			}
 		}
@@ -83,30 +77,28 @@ func (s Service) FetchPlacesToReplace(
 		return placesFiltered[i].Rating > placesFiltered[j].Rating
 	})
 
-	var placesToAdd []models.Place
+	var googlePlacesToAdd []models.GooglePlace
 	for _, place := range placesFiltered {
 		categories := models.GetCategoriesFromSubCategories(place.Types)
 		if len(categories) == 0 {
 			continue
 		}
 
-		// TODO: IDが統一されるようにする
-		placesToAdd = append(placesToAdd, models.Place{
-			Id:            place.PlaceID,
-			Name:          place.Name,
-			GooglePlaceId: utils.StrPointer(place.PlaceID),
-			Location:      place.Location.ToGeoLocation(),
-			Categories:    categories,
-		})
+		googlePlacesToAdd = append(googlePlacesToAdd)
 	}
 
-	placesToAdd = placesToAdd[:nLimit]
+	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
 
 	// 写真を取得
-	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd)
+	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	// 口コミを取得
-	placesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, placesToAdd)
+	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+
+	var placesToAdd []models.Place
+	for _, googlePlacesToAdd := range googlePlacesToAdd {
+		placesToAdd = append(placesToAdd, googlePlacesToAdd.ToPlace())
+	}
 
 	return placesToAdd, nil
 }
