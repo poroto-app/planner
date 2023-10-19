@@ -2,6 +2,7 @@ package places
 
 import (
 	"context"
+
 	"googlemaps.github.io/maps"
 )
 
@@ -25,6 +26,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 			maps.PlaceDetailsFieldMaskPhotos,
 			maps.PlaceDetailsFieldMaskRatings,
 			maps.PlaceDetailsFieldMaskUserRatingsTotal,
+			maps.PlaceDetailsFieldMaskPriceLevel,
 		},
 	})
 	if err != nil {
@@ -46,6 +48,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 		resp.OpeningHours != nil && resp.OpeningHours.OpenNow != nil && *resp.OpeningHours.OpenNow,
 		resp.Rating,
 		resp.UserRatingsTotal,
+		resp.PriceLevel,
 	)
 
 	return &place, nil

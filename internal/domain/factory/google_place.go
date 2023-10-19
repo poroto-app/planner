@@ -41,6 +41,7 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		UserRatingsTotal: place.UserRatingsTotal,
 		Images:           images,
 		Reviews:          reviews,
+		PriceLevel:       &place.PriceLevel,
 	}
 }
 
@@ -57,5 +58,6 @@ func PlaceEntityFromGooglePlace(place models.GooglePlace) googleplaces.Place {
 		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
+		PriceLevel:       *place.PriceLevel,
 	}
 }
