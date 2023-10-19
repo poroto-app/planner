@@ -35,6 +35,13 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		})
 	}
 
+	var placeBudget *graphql.Budget
+	if place.PriceLevel != nil {
+		placeBudget = &graphql.Budget{
+			Budget:           place.EstimatedBudget(),
+			GooglePriceLevel: *place.PriceLevel,
+		}
+	}
 	return &graphql.Place{
 		ID:            place.Id,
 		GooglePlaceID: place.GooglePlaceId,
@@ -47,9 +54,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		EstimatedStayDuration: int(place.EstimatedStayDuration()),
 		GoogleReviews:         googlePlaceReviews,
 		Categories:            placeCategories,
-		Budget: &graphql.Budget{
-			Budget:           place.EstimatedBudget(),
-			GooglePriceLevel: *place.PriceLevel,
-		},
+		Budget:                placeBudget,
 	}
 }
