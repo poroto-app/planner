@@ -149,7 +149,7 @@ type Place struct {
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 	Categories            []*PlaceCategory     `json:"categories"`
-	PriceLevel            *PriceLevel          `json:"priceLevel"`
+	PriceLevel            *PriceLevel          `json:"priceLevel,omitempty"`
 }
 
 type PlaceCategory struct {

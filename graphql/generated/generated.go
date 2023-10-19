@@ -1106,7 +1106,7 @@ type Image {
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
-    priceLevel: PriceLevel!
+    priceLevel: PriceLevel
 }
 
 type GeoLocation {
@@ -4249,14 +4249,11 @@ func (ec *executionContext) _Place_priceLevel(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.PriceLevel)
 	fc.Result = res
-	return ec.marshalNPriceLevel2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceLevel(ctx, field.Selections, res)
+	return ec.marshalOPriceLevel2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceLevel(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_priceLevel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9639,9 +9636,6 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "priceLevel":
 			out.Values[i] = ec._Place_priceLevel(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11361,16 +11355,6 @@ func (ec *executionContext) marshalNPlansByUserOutput2ᚖporotoᚗappᚋporoto�
 	return ec._PlansByUserOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPriceLevel2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceLevel(ctx context.Context, sel ast.SelectionSet, v *model.PriceLevel) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._PriceLevel(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNReplacePlaceOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateInput(ctx context.Context, v interface{}) (model.ReplacePlaceOfPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputReplacePlaceOfPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11957,6 +11941,13 @@ func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgr
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPriceLevel2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceLevel(ctx context.Context, sel ast.SelectionSet, v *model.PriceLevel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PriceLevel(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
