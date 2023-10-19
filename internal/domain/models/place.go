@@ -12,6 +12,12 @@ type Place struct {
 	PriceLevel         *int                 `json:"price_level"`
 }
 
+const (
+	thresholdOfLevel1AndLevel2 = 1000
+	thresholdOfLevel2AndLevel3 = 3000
+	thresholdOfLevel3AndLevel4 = 10000
+)
+
 func (p Place) MainCategory() *LocationCategory {
 	if len(p.Categories) == 0 {
 		return nil
@@ -27,16 +33,20 @@ func (p Place) EstimatedStayDuration() uint {
 	return categoryMain.EstimatedStayDuration
 }
 
-func (p Place) EstimatedBudget() string {
+func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax *int) {
 	switch *p.PriceLevel {
 	case 0:
-		return "¥0~¥1000"
+		return nil, toIntPointer(thresholdOfLevel1AndLevel2)
 	case 1, 2:
-		return "¥1000~¥3000"
+		return toIntPointer(thresholdOfLevel1AndLevel2), toIntPointer(thresholdOfLevel2AndLevel3)
 	case 3:
-		return "¥3000~¥10000"
+		return toIntPointer(thresholdOfLevel2AndLevel3), toIntPointer(thresholdOfLevel3AndLevel4)
 	case 4:
-		return "¥10000~"
+		return toIntPointer(thresholdOfLevel3AndLevel4), nil
 	}
-	return "out of range of price level"
+	return nil, nil
+}
+
+func toIntPointer(x int) *int {
+	return &x
 }

@@ -35,10 +35,12 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		})
 	}
 
-	var placeBudget *graphql.Budget
+	var placeRange *graphql.PriceRange
 	if place.PriceLevel != nil {
-		placeBudget = &graphql.Budget{
-			Budget:           place.EstimatedBudget(),
+		priceRangeMin, priceRangeMax := place.EstimatedPriceRange()
+		placeRange = &graphql.PriceRange{
+			PriceRangeMin:    *priceRangeMin,
+			PriceRangeMax:    *priceRangeMax,
 			GooglePriceLevel: *place.PriceLevel,
 		}
 	}
@@ -54,6 +56,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		EstimatedStayDuration: int(place.EstimatedStayDuration()),
 		GoogleReviews:         googlePlaceReviews,
 		Categories:            placeCategories,
-		Budget:                placeBudget,
+		PriceRange:            placeRange,
 	}
 }
