@@ -28,7 +28,7 @@ type AvailablePlacesForPlanInput struct {
 }
 
 type Budget struct {
-	Budget           string `json:"budget"`
+	PriceRange       string `json:"priceRange"`
 	GooglePriceLevel int    `json:"googlePriceLevel"`
 }
 

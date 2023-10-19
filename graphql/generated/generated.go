@@ -54,8 +54,8 @@ type ComplexityRoot struct {
 	}
 
 	Budget struct {
-		Budget           func(childComplexity int) int
 		GooglePriceLevel func(childComplexity int) int
+		PriceRange       func(childComplexity int) int
 	}
 
 	CachedCreatedPlans struct {
@@ -275,19 +275,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AvailablePlacesForPlan.Places(childComplexity), true
 
-	case "Budget.budget":
-		if e.complexity.Budget.Budget == nil {
-			break
-		}
-
-		return e.complexity.Budget.Budget(childComplexity), true
-
 	case "Budget.googlePriceLevel":
 		if e.complexity.Budget.GooglePriceLevel == nil {
 			break
 		}
 
 		return e.complexity.Budget.GooglePriceLevel(childComplexity), true
+
+	case "Budget.priceRange":
+		if e.complexity.Budget.PriceRange == nil {
+			break
+		}
+
+		return e.complexity.Budget.PriceRange(childComplexity), true
 
 	case "CachedCreatedPlans.createdBasedOnCurrentLocation":
 		if e.complexity.CachedCreatedPlans.CreatedBasedOnCurrentLocation == nil {
@@ -1126,7 +1126,7 @@ type GooglePlaceReview {
 }
 
 type Budget {
-    budget: String!
+    priceRange: String!
     googlePriceLevel: Int!
 }
 
@@ -1906,8 +1906,8 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Budget_budget(ctx context.Context, field graphql.CollectedField, obj *model.Budget) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Budget_budget(ctx, field)
+func (ec *executionContext) _Budget_priceRange(ctx context.Context, field graphql.CollectedField, obj *model.Budget) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Budget_priceRange(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1920,7 +1920,7 @@ func (ec *executionContext) _Budget_budget(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Budget, nil
+		return obj.PriceRange, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1937,7 +1937,7 @@ func (ec *executionContext) _Budget_budget(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Budget_budget(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Budget_priceRange(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Budget",
 		Field:      field,
@@ -4352,8 +4352,8 @@ func (ec *executionContext) fieldContext_Place_budget(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "budget":
-				return ec.fieldContext_Budget_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Budget_priceRange(ctx, field)
 			case "googlePriceLevel":
 				return ec.fieldContext_Budget_googlePriceLevel(ctx, field)
 			}
@@ -8998,8 +8998,8 @@ func (ec *executionContext) _Budget(ctx context.Context, sel ast.SelectionSet, o
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Budget")
-		case "budget":
-			out.Values[i] = ec._Budget_budget(ctx, field, obj)
+		case "priceRange":
+			out.Values[i] = ec._Budget_priceRange(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

@@ -27,7 +27,7 @@ type GooglePlaceReview {
 }
 
 type Budget {
-    budget: String!
+    priceRange: String!
     googlePriceLevel: Int!
 }
 
