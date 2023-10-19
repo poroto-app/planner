@@ -26,3 +26,17 @@ func (p Place) EstimatedStayDuration() uint {
 	}
 	return categoryMain.EstimatedStayDuration
 }
+
+func (p Place) EstimatedBudget() string {
+	switch *p.PriceLevel {
+	case 0:
+		return "¥0~¥1000"
+	case 1, 2:
+		return "¥1000~¥3000"
+	case 3:
+		return "¥3000~¥10000"
+	case 4:
+		return "¥10000~"
+	}
+	return "out of range of price level"
+}
