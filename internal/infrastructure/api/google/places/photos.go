@@ -108,12 +108,12 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所の画像を１件取得する
-func (r PlacesApi) FetchPlacePhoto(place Place, imageSize ImageSize) (*string, error) {
-	if len(place.PhotoReferences) == 0 {
+func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize) (*string, error) {
+	if len(photoReferences) == 0 {
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, place.PhotoReferences[0], r.apiKey)
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReferences[0], r.apiKey)
 	if err != nil {
 		return nil, err
 	}

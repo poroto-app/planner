@@ -1,9 +1,11 @@
 package placefilter
 
-import "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+import (
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
-func FilterByRating(placesToFilter []places.Place, lowestRating float32, lowestUserRatingsTotal int) []places.Place {
-	return FilterPlaces(placesToFilter, func(place places.Place) bool {
+func FilterByRating(placesToFilter []models.GooglePlace, lowestRating float32, lowestUserRatingsTotal int) []models.GooglePlace {
+	return FilterPlaces(placesToFilter, func(place models.GooglePlace) bool {
 		return place.Rating >= lowestRating && place.UserRatingsTotal >= lowestUserRatingsTotal
 	})
 }

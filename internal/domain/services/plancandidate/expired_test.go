@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/mock"
 )
 
@@ -17,9 +16,9 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 		name                       string
 		expiresAt                  time.Time
 		planCandidates             map[string]models.PlanCandidate
-		placeSearchResults         map[string][]places.Place
+		placeSearchResults         map[string][]models.GooglePlace
 		expectedPlanCandidates     map[string]models.PlanCandidate
-		expectedPlaceSearchResults map[string][]places.Place
+		expectedPlaceSearchResults map[string][]models.GooglePlace
 	}{
 		{
 			name:      "expired plan candidates are deleted",
@@ -38,10 +37,10 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
-			placeSearchResults: map[string][]places.Place{
-				"planCandidate1": {{PlaceID: "place1"}},
-				"planCandidate2": {{PlaceID: "place2"}},
-				"planCandidate3": {{PlaceID: "place3"}},
+			placeSearchResults: map[string][]models.GooglePlace{
+				"planCandidate1": {{PlaceId: "place1"}},
+				"planCandidate2": {{PlaceId: "place2"}},
+				"planCandidate3": {{PlaceId: "place3"}},
 			},
 			expectedPlanCandidates: map[string]models.PlanCandidate{
 				"planCandidate3": {
@@ -49,8 +48,8 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
-			expectedPlaceSearchResults: map[string][]places.Place{
-				"planCandidate3": {{PlaceID: "place3"}},
+			expectedPlaceSearchResults: map[string][]models.GooglePlace{
+				"planCandidate3": {{PlaceId: "place3"}},
 			},
 		},
 	}

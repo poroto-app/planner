@@ -2,7 +2,6 @@ package places
 
 import (
 	"googlemaps.github.io/maps"
-	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type Place struct {
@@ -19,13 +18,6 @@ type Place struct {
 type Location struct {
 	Latitude  float64 `firestore:"latitude"`
 	Longitude float64 `firestore:"longitude"`
-}
-
-func (r Location) ToGeoLocation() models.GeoLocation {
-	return models.GeoLocation{
-		Latitude:  r.Latitude,
-		Longitude: r.Longitude,
-	}
 }
 
 func createPlace(

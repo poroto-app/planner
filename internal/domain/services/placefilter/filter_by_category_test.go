@@ -5,27 +5,26 @@ import (
 	"testing"
 
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func TestFuncFilterByCategory(t *testing.T) {
 	cases := []struct {
 		name                   string
 		includeGivenCategories bool
-		placesToFilter         []places.Place
+		placesToFilter         []models.GooglePlace
 		categories             []models.LocationCategory
-		expected               []places.Place
+		expected               []models.GooglePlace
 	}{
 		{
 			name:                   "should filter places by category and include given categories",
 			includeGivenCategories: true,
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
-					PlaceID: "Place_1",
+					PlaceId: "Place_1",
 					Types:   []string{"museum"},
 				},
 				{
-					PlaceID: "Place_2",
+					PlaceId: "Place_2",
 					Types:   []string{"atm"},
 				},
 			},
@@ -35,9 +34,9 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"museum"},
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
-					PlaceID: "Place_1",
+					PlaceId: "Place_1",
 					Types:   []string{"museum"},
 				},
 			},
@@ -45,15 +44,15 @@ func TestFuncFilterByCategory(t *testing.T) {
 		{
 			name:                   "should filter places by category and exclude given categories",
 			includeGivenCategories: false,
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
-					PlaceID: "Place_1",
+					PlaceId: "Place_1",
 					Types: []string{
 						"museum",
 					},
 				},
 				{
-					PlaceID: "Place_2",
+					PlaceId: "Place_2",
 					Types:   []string{"atm"},
 				},
 			},
@@ -63,9 +62,9 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"atm"},
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
-					PlaceID: "Place_1",
+					PlaceId: "Place_1",
 					Types:   []string{"museum"},
 				},
 			},

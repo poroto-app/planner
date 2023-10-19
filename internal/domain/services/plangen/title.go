@@ -11,11 +11,11 @@ import (
 
 // GeneratePlanTitle プランのタイトルを生成する
 // タイトルが生成できなかった場合は、nilを返す
-func (s Service) GeneratePlanTitle(places []models.Place) (*string, error) {
+func (s Service) GeneratePlanTitle(places []models.GooglePlace) (*string, error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
 		var categoryNames []string
-		for _, category := range place.Categories {
+		for _, category := range models.GetCategoriesFromSubCategories(place.Types) {
 			categoryNames = append(categoryNames, category.Name)
 		}
 

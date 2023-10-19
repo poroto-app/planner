@@ -2,6 +2,7 @@ package place
 
 import (
 	"context"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -9,48 +10,45 @@ import (
 
 // FetchPlacesPhotos は，指定された場所の写真を一括で取得する
 // すでに写真がある場合は，何もしない
-func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) []models.Place {
+func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
 	if len(places) == 0 {
 		return places
 	}
 
-	ch := make(chan models.Place, len(places))
+	ch := make(chan models.GooglePlace, len(places))
 	for _, place := range places {
-		go func(ctx context.Context, place models.Place, ch chan<- models.Place) {
-			if place.GooglePlaceId == nil {
-				ch <- place
-				return
-			}
-
+		go func(ctx context.Context, place models.GooglePlace, ch chan<- models.GooglePlace) {
 			// すでに写真がある場合は，何もしない
-			if place.Images != nil && len(place.Images) > 0 {
+			if place.Images != nil && len(*place.Images) > 0 {
+				log.Printf("skip fetching place photos because images already exist: %v\n", place.PlaceId)
 				ch <- place
 				return
 			}
 
 			photos, err := s.placesApi.FetchPlacePhotos(
 				ctx,
-				*place.GooglePlaceId,
+				place.PlaceId,
 				api.ImageSizeTypeSmall,
 				api.ImageSizeTypeLarge,
 			)
 			if err != nil {
+				log.Printf("error while fetching place photos: %v\n", err)
 				ch <- place
 				return
 			}
 
-			images := make([]models.Image, 0, len(photos))
+			var images []models.Image
 			for _, photo := range photos {
 				image, err := models.NewImage(photo.Small, photo.Large)
 				if err != nil {
+					log.Printf("error while creating image: %v\n", err)
 					continue
 				}
 
 				images = append(images, *image)
 			}
 
-			place.Images = images
-
+			place.Images = &images
 			ch <- place
 		}(ctx, place, ch)
 	}
@@ -59,10 +57,9 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 		placeUpdated := <-ch
 
 		for i, place := range places {
-			if place.Id != placeUpdated.Id {
+			if place.PlaceId != placeUpdated.PlaceId {
 				continue
 			}
-
 			places[i] = placeUpdated
 			break
 		}
@@ -72,19 +69,13 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.Place) [
 }
 
 // FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
-func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
 	var googlePlaceIdsWithPhotos []string
 	for _, place := range places {
-		if place.GooglePlaceId == nil {
-			continue
+		if place.Images != nil && len(*place.Images) > 0 {
+			googlePlaceIdsWithPhotos = append(googlePlaceIdsWithPhotos, place.PlaceId)
 		}
-
-		if array.IsContain(googlePlaceIdsWithPhotos, *place.GooglePlaceId) {
-			continue
-		}
-
-		googlePlaceIdsWithPhotos = append(googlePlaceIdsWithPhotos, *place.GooglePlaceId)
 	}
 
 	// 画像を取得
@@ -92,16 +83,16 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 
 	// 画像を保存
 	for _, place := range places {
-		if place.GooglePlaceId == nil {
-			continue
-		}
-
 		// すでに写真が取得済みの場合は何もしない
-		if !array.IsContain(googlePlaceIdsWithPhotos, *place.GooglePlaceId) {
+		if array.IsContain(googlePlaceIdsWithPhotos, place.PlaceId) {
 			continue
 		}
 
-		if err := s.placeSearchResultRepository.SaveImagesIfNotExist(ctx, planCandidateId, *place.GooglePlaceId, place.Images); err != nil {
+		if place.Images == nil || len(*place.Images) == 0 {
+			continue
+		}
+
+		if err := s.placeSearchResultRepository.SaveImagesIfNotExist(ctx, planCandidateId, place.PlaceId, *place.Images); err != nil {
 			continue
 		}
 	}
