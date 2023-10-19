@@ -2,10 +2,11 @@ package plangen
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"log"
-	"poroto.app/poroto/planner/internal/domain/models"
 	"time"
+
+	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type CreatePlanParams struct {
@@ -16,9 +17,9 @@ type CreatePlanParams struct {
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
-	// レビューと写真を取得する
+	// レビュー・写真・価格帯を取得する
 	performanceTimer := time.Now()
-	placeIdToReviewAndImages := s.fetchReviewAndImages(ctx, planCandidateId, params...)
+	placeIdToReviewAndImagesAndPriceLevel := s.fetchReviewAndImagesAndPriceLevel(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
 
 	ch := make(chan *models.Plan, len(params))
@@ -56,9 +57,10 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 
 			var places []models.Place
 			for i := 0; i < len(googlePlaces); i++ {
-				if value, ok := placeIdToReviewAndImages[googlePlaces[i].PlaceId]; ok {
+				if value, ok := placeIdToReviewAndImagesAndPriceLevel[googlePlaces[i].PlaceId]; ok {
 					googlePlaces[i].Images = &value.Images
 					googlePlaces[i].Reviews = &value.Reviews
+					googlePlaces[i].PriceLevel = value.PriceLevel
 				}
 				places = append(places, googlePlaces[i].ToPlace())
 			}
@@ -84,14 +86,15 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	return plans
 }
 
-type reviewAndImages struct {
+type reviewAndImagesAndPriceLevel struct {
 	GooglePlaceId string
 	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
+	PriceLevel    *int
 }
 
-// fetchReviewAndImages は、指定された場所の写真とレビューを一括で取得し、保存する
-func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImages {
+// fetchReviewAndImagesAndLevel は、指定された場所の写真・レビュー・価格帯を一括で取得し、保存する
+func (s Service) fetchReviewAndImagesAndPriceLevel(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImagesAndPriceLevel {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.GooglePlace)
 	for _, param := range params {
@@ -108,11 +111,13 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 
 	places = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places...)
 	places = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places...)
+	places = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, places...)
 
-	placeIdToImages := make(map[string]reviewAndImages)
+	placeIdToImages := make(map[string]reviewAndImagesAndPriceLevel)
 	for _, place := range places {
 		var reviews []models.GooglePlaceReview
 		var images []models.Image
+		var priceLevel *int
 
 		if place.Reviews != nil {
 			reviews = *place.Reviews
@@ -122,10 +127,15 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 			images = *place.Images
 		}
 
-		placeIdToImages[place.PlaceId] = reviewAndImages{
+		if place.PriceLevel != nil {
+			priceLevel = place.PriceLevel
+		}
+
+		placeIdToImages[place.PlaceId] = reviewAndImagesAndPriceLevel{
 			GooglePlaceId: place.PlaceId,
 			Reviews:       reviews,
 			Images:        images,
+			PriceLevel:    priceLevel,
 		}
 	}
 
