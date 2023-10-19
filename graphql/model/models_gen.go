@@ -27,6 +27,11 @@ type AvailablePlacesForPlanInput struct {
 	Session string `json:"session"`
 }
 
+type Budget struct {
+	Budget           string `json:"budget"`
+	GooglePriceLevel int    `json:"googlePriceLevel"`
+}
+
 type CachedCreatedPlans struct {
 	Plans                         []*Plan `json:"plans,omitempty"`
 	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
@@ -149,7 +154,7 @@ type Place struct {
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 	Categories            []*PlaceCategory     `json:"categories"`
-	PriceLevel            *PriceLevel          `json:"priceLevel,omitempty"`
+	Budget                *Budget              `json:"budget,omitempty"`
 }
 
 type PlaceCategory struct {
@@ -205,11 +210,6 @@ type PlansByUserInput struct {
 type PlansByUserOutput struct {
 	Plans  []*Plan `json:"plans"`
 	Author *User   `json:"author"`
-}
-
-type PriceLevel struct {
-	PriceLevel       int `json:"priceLevel"`
-	GooglePriceLevel int `json:"googlePriceLevel"`
 }
 
 type ReplacePlaceOfPlanCandidateInput struct {
