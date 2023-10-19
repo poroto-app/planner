@@ -7,6 +7,7 @@ type Place {
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
+    priceLevel: PriceLevel!
 }
 
 type GeoLocation {
@@ -23,6 +24,11 @@ type GooglePlaceReview {
     authorPhotoUrl: String
     language: String
     originalLanguage: String
+}
+
+type PriceLevel {
+    priceLevel: Int!
+    googlePriceLevel: Int!
 }
 
 type PlaceCategory {
