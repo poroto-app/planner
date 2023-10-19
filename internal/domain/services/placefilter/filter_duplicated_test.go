@@ -2,35 +2,35 @@ package placefilter
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"testing"
 )
 
 func TestFilterDuplicated(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []places.Place
-		expected       []places.Place
+		placesToFilter []models.GooglePlace
+		expected       []models.GooglePlace
 	}{
 		{
 			name: "no duplicated",
-			placesToFilter: []places.Place{
-				{PlaceID: "1"},
-				{PlaceID: "2"},
+			placesToFilter: []models.GooglePlace{
+				{PlaceId: "1"},
+				{PlaceId: "2"},
 			},
-			expected: []places.Place{
-				{PlaceID: "1"},
-				{PlaceID: "2"},
+			expected: []models.GooglePlace{
+				{PlaceId: "1"},
+				{PlaceId: "2"},
 			},
 		},
 		{
 			name: "duplicated",
-			placesToFilter: []places.Place{
-				{PlaceID: "1"},
-				{PlaceID: "1"},
+			placesToFilter: []models.GooglePlace{
+				{PlaceId: "1"},
+				{PlaceId: "1"},
 			},
-			expected: []places.Place{
-				{PlaceID: "1"},
+			expected: []models.GooglePlace{
+				{PlaceId: "1"},
 			},
 		},
 	}

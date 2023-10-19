@@ -12,9 +12,9 @@ type PlaceOpeningPeriod struct {
 	ClosingTime string
 }
 
-func (r PlacesApi) FetchPlaceOpeningPeriods(ctx context.Context, place Place) ([]PlaceOpeningPeriod, error) {
+func (r PlacesApi) FetchPlaceOpeningPeriods(ctx context.Context, googlePlaceId string) ([]PlaceOpeningPeriod, error) {
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-		PlaceID: place.PlaceID,
+		PlaceID: googlePlaceId,
 		Fields: []maps.PlaceDetailsFieldMask{
 			maps.PlaceDetailsFieldMaskOpeningHours,
 		},

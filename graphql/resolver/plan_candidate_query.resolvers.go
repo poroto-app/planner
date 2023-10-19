@@ -95,9 +95,9 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	graphqlPlaces := make([]*model.Place, len(availablePlaces))
-	for i, place := range availablePlaces {
-		graphqlPlaces[i] = factory.PlaceFromDomainModel(place)
+	graphqlPlaces := make([]*model.Place, len(*availablePlaces))
+	for i, place := range *availablePlaces {
+		graphqlPlaces[i] = factory.PlaceFromDomainModel(&place)
 	}
 
 	return &model.AvailablePlacesForPlan{

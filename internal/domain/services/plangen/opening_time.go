@@ -3,20 +3,19 @@ package plangen
 import (
 	"context"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"strconv"
 	"time"
-
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
 func (s Service) isOpeningWithIn(
 	ctx context.Context,
-	place places.Place,
+	place models.GooglePlace,
 	startTime time.Time,
 	duration time.Duration,
 ) bool {
-	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place)
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place.PlaceId)
 	if err != nil {
 		log.Printf("error while fetching place opening periods: %v\n", err)
 		return false

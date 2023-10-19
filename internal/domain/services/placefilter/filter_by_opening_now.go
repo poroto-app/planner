@@ -1,9 +1,11 @@
 package placefilter
 
-import "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+import (
+	"poroto.app/poroto/planner/internal/domain/models"
+)
 
-func FilterByOpeningNow(placesToFilter []places.Place) []places.Place {
-	return FilterPlaces(placesToFilter, func(place places.Place) bool {
+func FilterByOpeningNow(placesToFilter []models.GooglePlace) []models.GooglePlace {
+	return FilterPlaces(placesToFilter, func(place models.GooglePlace) bool {
 		return place.OpenNow
 	})
 }

@@ -14,7 +14,7 @@ type Service struct {
 	placesApi                   places.PlacesApi
 	placeService                place.Service
 	planCandidateRepository     repository.PlanCandidateRepository
-	placeSearchResultRepository repository.PlaceSearchResultRepository
+	placeSearchResultRepository repository.GooglePlaceSearchResultRepository
 	openaiChatCompletionClient  openai.ChatCompletionClient
 }
 
@@ -34,7 +34,7 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeSearchResultRepository, err := firestore.NewPlaceSearchResultRepository(ctx)
+	placeSearchResultRepository, err := firestore.NewGooglePlaceSearchResultRepository(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing place search result repository: %v", err)
 	}
