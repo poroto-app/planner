@@ -52,7 +52,7 @@ func (s Service) FetchPlacesPriceLevelAndSave(ctx context.Context, planCandidate
 	// 価格帯が取得されていない場所のみ、価格帯が保存されるようにする
 	var googlePlaceIdsWithPriceLevel []string
 	for _, place := range places {
-		if place.Images != nil && len(*place.Images) > 0 {
+		if place.PriceLevel != nil {
 			googlePlaceIdsWithPriceLevel = append(googlePlaceIdsWithPriceLevel, place.PlaceId)
 		}
 	}
