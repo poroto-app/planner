@@ -53,11 +53,6 @@ type ComplexityRoot struct {
 		Places func(childComplexity int) int
 	}
 
-	Budget struct {
-		GooglePriceLevel func(childComplexity int) int
-		PriceRange       func(childComplexity int) int
-	}
-
 	CachedCreatedPlans struct {
 		CreatedBasedOnCurrentLocation func(childComplexity int) int
 		Plans                         func(childComplexity int) int
@@ -134,7 +129,6 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
-		Budget                func(childComplexity int) int
 		Categories            func(childComplexity int) int
 		EstimatedStayDuration func(childComplexity int) int
 		GooglePlaceID         func(childComplexity int) int
@@ -143,6 +137,7 @@ type ComplexityRoot struct {
 		Images                func(childComplexity int) int
 		Location              func(childComplexity int) int
 		Name                  func(childComplexity int) int
+		PriceRange            func(childComplexity int) int
 	}
 
 	PlaceCategory struct {
@@ -176,6 +171,12 @@ type ComplexityRoot struct {
 	PlansByUserOutput struct {
 		Author func(childComplexity int) int
 		Plans  func(childComplexity int) int
+	}
+
+	PriceRange struct {
+		GooglePriceLevel func(childComplexity int) int
+		PriceRangeMax    func(childComplexity int) int
+		PriceRangeMin    func(childComplexity int) int
 	}
 
 	Query struct {
@@ -274,20 +275,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AvailablePlacesForPlan.Places(childComplexity), true
-
-	case "Budget.googlePriceLevel":
-		if e.complexity.Budget.GooglePriceLevel == nil {
-			break
-		}
-
-		return e.complexity.Budget.GooglePriceLevel(childComplexity), true
-
-	case "Budget.priceRange":
-		if e.complexity.Budget.PriceRange == nil {
-			break
-		}
-
-		return e.complexity.Budget.PriceRange(childComplexity), true
 
 	case "CachedCreatedPlans.createdBasedOnCurrentLocation":
 		if e.complexity.CachedCreatedPlans.CreatedBasedOnCurrentLocation == nil {
@@ -607,13 +594,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SavePlanFromCandidate(childComplexity, args["input"].(model.SavePlanFromCandidateInput)), true
 
-	case "Place.budget":
-		if e.complexity.Place.Budget == nil {
-			break
-		}
-
-		return e.complexity.Place.Budget(childComplexity), true
-
 	case "Place.categories":
 		if e.complexity.Place.Categories == nil {
 			break
@@ -669,6 +649,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Place.Name(childComplexity), true
+
+	case "Place.priceRange":
+		if e.complexity.Place.PriceRange == nil {
+			break
+		}
+
+		return e.complexity.Place.PriceRange(childComplexity), true
 
 	case "PlaceCategory.id":
 		if e.complexity.PlaceCategory.ID == nil {
@@ -774,6 +761,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PlansByUserOutput.Plans(childComplexity), true
+
+	case "PriceRange.googlePriceLevel":
+		if e.complexity.PriceRange.GooglePriceLevel == nil {
+			break
+		}
+
+		return e.complexity.PriceRange.GooglePriceLevel(childComplexity), true
+
+	case "PriceRange.priceRangeMax":
+		if e.complexity.PriceRange.PriceRangeMax == nil {
+			break
+		}
+
+		return e.complexity.PriceRange.PriceRangeMax(childComplexity), true
+
+	case "PriceRange.priceRangeMin":
+		if e.complexity.PriceRange.PriceRangeMin == nil {
+			break
+		}
+
+		return e.complexity.PriceRange.PriceRangeMin(childComplexity), true
 
 	case "Query.availablePlacesForPlan":
 		if e.complexity.Query.AvailablePlacesForPlan == nil {
@@ -1106,7 +1114,7 @@ type Image {
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
-    budget: Budget
+    priceRange: PriceRange
 }
 
 type GeoLocation {
@@ -1125,8 +1133,9 @@ type GooglePlaceReview {
     originalLanguage: String
 }
 
-type Budget {
-    priceRange: String!
+type PriceRange {
+    priceRangeMin: Int!
+    priceRangeMax: Int!
     googlePriceLevel: Int!
 }
 
@@ -1897,98 +1906,10 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Budget_priceRange(ctx context.Context, field graphql.CollectedField, obj *model.Budget) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Budget_priceRange(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PriceRange, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Budget_priceRange(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Budget",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Budget_googlePriceLevel(ctx context.Context, field graphql.CollectedField, obj *model.Budget) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Budget_googlePriceLevel(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.GooglePriceLevel, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Budget_googlePriceLevel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Budget",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4316,8 +4237,8 @@ func (ec *executionContext) fieldContext_Place_categories(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Place_budget(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Place_budget(ctx, field)
+func (ec *executionContext) _Place_priceRange(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_priceRange(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4330,7 +4251,7 @@ func (ec *executionContext) _Place_budget(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Budget, nil
+		return obj.PriceRange, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4339,12 +4260,12 @@ func (ec *executionContext) _Place_budget(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Budget)
+	res := resTmp.(*model.PriceRange)
 	fc.Result = res
-	return ec.marshalOBudget2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐBudget(ctx, field.Selections, res)
+	return ec.marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceRange(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Place_budget(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Place_priceRange(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Place",
 		Field:      field,
@@ -4352,12 +4273,14 @@ func (ec *executionContext) fieldContext_Place_budget(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "priceRange":
-				return ec.fieldContext_Budget_priceRange(ctx, field)
+			case "priceRangeMin":
+				return ec.fieldContext_PriceRange_priceRangeMin(ctx, field)
+			case "priceRangeMax":
+				return ec.fieldContext_PriceRange_priceRangeMax(ctx, field)
 			case "googlePriceLevel":
-				return ec.fieldContext_Budget_googlePriceLevel(ctx, field)
+				return ec.fieldContext_PriceRange_googlePriceLevel(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Budget", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PriceRange", field.Name)
 		},
 	}
 	return fc, nil
@@ -4506,8 +4429,8 @@ func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_place
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4570,8 +4493,8 @@ func (ec *executionContext) fieldContext_PlacesToReplaceForPlanCandidateOutput_p
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4722,8 +4645,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -5117,6 +5040,138 @@ func (ec *executionContext) fieldContext_PlansByUserOutput_author(ctx context.Co
 				return ec.fieldContext_User_photoUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceRange_priceRangeMin(ctx context.Context, field graphql.CollectedField, obj *model.PriceRange) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PriceRange_priceRangeMin(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PriceRangeMin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PriceRange_priceRangeMin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceRange",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceRange_priceRangeMax(ctx context.Context, field graphql.CollectedField, obj *model.PriceRange) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PriceRange_priceRangeMax(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PriceRangeMax, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PriceRange_priceRangeMax(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceRange",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PriceRange_googlePriceLevel(ctx context.Context, field graphql.CollectedField, obj *model.PriceRange) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PriceRange_googlePriceLevel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GooglePriceLevel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PriceRange_googlePriceLevel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PriceRange",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6134,8 +6189,8 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -6198,8 +6253,8 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_googleReviews(ctx, field)
 			case "categories":
 				return ec.fieldContext_Place_categories(ctx, field)
-			case "budget":
-				return ec.fieldContext_Place_budget(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -8987,50 +9042,6 @@ func (ec *executionContext) _AvailablePlacesForPlan(ctx context.Context, sel ast
 	return out
 }
 
-var budgetImplementors = []string{"Budget"}
-
-func (ec *executionContext) _Budget(ctx context.Context, sel ast.SelectionSet, obj *model.Budget) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, budgetImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Budget")
-		case "priceRange":
-			out.Values[i] = ec._Budget_priceRange(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "googlePriceLevel":
-			out.Values[i] = ec._Budget_googlePriceLevel(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var cachedCreatedPlansImplementors = []string{"CachedCreatedPlans"}
 
 func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, obj *model.CachedCreatedPlans) graphql.Marshaler {
@@ -9678,8 +9689,8 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "budget":
-			out.Values[i] = ec._Place_budget(ctx, field, obj)
+		case "priceRange":
+			out.Values[i] = ec._Place_priceRange(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9947,6 +9958,55 @@ func (ec *executionContext) _PlansByUserOutput(ctx context.Context, sel ast.Sele
 			}
 		case "author":
 			out.Values[i] = ec._PlansByUserOutput_author(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var priceRangeImplementors = []string{"PriceRange"}
+
+func (ec *executionContext) _PriceRange(ctx context.Context, sel ast.SelectionSet, obj *model.PriceRange) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, priceRangeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PriceRange")
+		case "priceRangeMin":
+			out.Values[i] = ec._PriceRange_priceRangeMin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "priceRangeMax":
+			out.Values[i] = ec._PriceRange_priceRangeMax(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "googlePriceLevel":
+			out.Values[i] = ec._PriceRange_googlePriceLevel(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11787,13 +11847,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOBudget2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐBudget(ctx context.Context, sel ast.SelectionSet, v *model.Budget) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Budget(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx context.Context, v interface{}) (*model.FirebaseUserInput, error) {
 	if v == nil {
 		return nil, nil
@@ -11948,6 +12001,13 @@ func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgr
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceRange(ctx context.Context, sel ast.SelectionSet, v *model.PriceRange) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PriceRange(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
