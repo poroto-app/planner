@@ -265,7 +265,7 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plan, err := s.ReplacePlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceIDToReplace, input.PlaceIDToReplace)
+	plan, err := s.ReplacePlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceIDToRemove, input.PlaceIDToReplace)
 	if err != nil {
 		log.Println(fmt.Errorf("error while replacing place of plan candidate: %v", err))
 		return nil, fmt.Errorf("could not replace place of plan candidate")
