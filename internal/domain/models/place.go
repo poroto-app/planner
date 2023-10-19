@@ -9,6 +9,7 @@ type Place struct {
 	Images             []Image              `json:"images"`
 	Categories         []LocationCategory   `json:"categories"`
 	GooglePlaceReviews *[]GooglePlaceReview `json:"google_place_reviews"`
+	PriceLevel         *int                 `json:"price_level"`
 }
 
 func (p Place) MainCategory() *LocationCategory {
