@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -40,6 +41,38 @@ func (s Service) FetchPriceLevel(ctx context.Context, places []models.GooglePlac
 				places[j] = *placeUpdated
 				break
 			}
+		}
+	}
+
+	return places
+}
+
+// FetchPlacesPriceLevelAndSave は，指定された場所の価格帯を一括で取得し，保存する
+func (s Service) FetchPlacesPriceLevelAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
+	// 価格帯が取得されていない場所のみ、価格帯が保存されるようにする
+	var googlePlaceIdsWithPriceLevel []string
+	for _, place := range places {
+		if place.Images != nil && len(*place.Images) > 0 {
+			googlePlaceIdsWithPriceLevel = append(googlePlaceIdsWithPriceLevel, place.PlaceId)
+		}
+	}
+
+	// 価格帯を取得
+	places = s.FetchPriceLevel(ctx, places)
+
+	// 価格帯を保存
+	for _, place := range places {
+		// すでに価格帯が取得済みの場合は何もしない
+		if array.IsContain(googlePlaceIdsWithPriceLevel, place.PlaceId) {
+			continue
+		}
+
+		if place.PriceLevel == nil {
+			continue
+		}
+
+		if err := s.placeSearchResultRepository.SavePriceLevelIfNotExist(ctx, planCandidateId, place.PlaceId, place.PriceLevel); err != nil {
+			continue
 		}
 	}
 

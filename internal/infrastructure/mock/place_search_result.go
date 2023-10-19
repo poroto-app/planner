@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -31,6 +32,11 @@ func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, p
 }
 
 func (p PlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p PlaceSearchResultRepository) SavePriceLevelIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error {
 	//TODO implement me
 	panic("implement me")
 }

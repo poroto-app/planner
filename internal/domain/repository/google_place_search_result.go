@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -15,6 +16,9 @@ type GooglePlaceSearchResultRepository interface {
 
 	// SaveReviewsIfNotExist すでにレビューが保存されていなかった場合のみ、保存する
 	SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error
+
+	// SavePriceLevelIfNotExist すでに価格帯が保存されていなかった場合のみ、保存する
+	SavePriceLevelIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error
 
 	DeleteAll(ctx context.Context, planCandidateIds []string) error
 }
