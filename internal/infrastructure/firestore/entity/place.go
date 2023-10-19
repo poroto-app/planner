@@ -13,6 +13,7 @@ type PlaceEntity struct {
 	Images             []ImageEntity              `firestore:"images"`
 	GooglePlaceReviews *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
 	Categories         []string                   `firestore:"categories"`
+	PriceLevel         *int                       `firesyore:"price_level"`
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
@@ -42,6 +43,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 		Images:             images,
 		GooglePlaceReviews: googlePlaceReviews,
 		Categories:         categories,
+		PriceLevel:         place.PriceLevel,
 	}
 }
 
@@ -75,5 +77,6 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 		Images:             images,
 		GooglePlaceReviews: googlePlaceReviews,
 		Categories:         categories,
+		PriceLevel:         entity.PriceLevel,
 	}
 }
