@@ -3,9 +3,10 @@ package plancandidate
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"sort"
 )
 
 // FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する
@@ -73,6 +74,9 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 
 	// 口コミを取得
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+
+	// 価格帯を取得
+	googlePlacesToAdd = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	placesToAdd := make([]models.Place, len(googlePlacesToAdd))
 	for i, place := range googlePlacesToAdd {
