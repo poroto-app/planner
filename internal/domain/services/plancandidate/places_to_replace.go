@@ -84,7 +84,7 @@ func (s Service) FetchPlacesToReplace(
 			continue
 		}
 
-		googlePlacesToAdd = append(googlePlacesToAdd)
+		googlePlacesToAdd = append(googlePlacesToAdd, place)
 	}
 
 	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
