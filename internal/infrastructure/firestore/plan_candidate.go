@@ -392,6 +392,8 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 		if placeIndex == nil {
 			return fmt.Errorf("place[%s] not found in plan[%s] in plan candidate[%s]", placeIdToBeReplaced, planId, planCandidateId)
 		}
+
+		planCandidateEntity.Plans[*planIndex].Places = places
 		planCandidateEntity.Plans[*placeIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
 
 		if err := tx.Update(doc, []firestore.Update{
