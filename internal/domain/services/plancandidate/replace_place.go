@@ -24,7 +24,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 
 	placeToBeReplaced := planToUpdate.GetPlace(placeIdToBeReplaced)
 	if placeToBeReplaced == nil {
-		return nil, fmt.Errorf("place not found: %v\n", placeIdToBeReplaced)
+		return nil, fmt.Errorf("place to be replaced not found: %v\n", placeIdToBeReplaced)
 	}
 
 	var placeToReplace *models.Place
@@ -36,7 +36,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 		}
 	}
 	if placeToReplace == nil {
-		return nil, fmt.Errorf("place not found: %v\n", placeIdToReplace)
+		return nil, fmt.Errorf("place to replace not found: %v\n", placeIdToReplace)
 	}
 
 	if err := s.planCandidateRepository.ReplacePlace(ctx, planCandidateId, planId, placeIdToBeReplaced, *placeToReplace); err != nil {
