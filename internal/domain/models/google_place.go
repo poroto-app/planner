@@ -15,6 +15,7 @@ type GooglePlace struct {
 	UserRatingsTotal int
 	Images           *[]Image
 	Reviews          *[]GooglePlaceReview
+	PriceLevel       *int
 }
 
 func (g GooglePlace) ToPlace() Place {
@@ -31,6 +32,7 @@ func (g GooglePlace) ToPlace() Place {
 		Images:             *g.Images,
 		Categories:         GetCategoriesFromSubCategories(g.Types),
 		GooglePlaceReviews: g.Reviews,
+		PriceLevel:         g.PriceLevel,
 	}
 }
 
