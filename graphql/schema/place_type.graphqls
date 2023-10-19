@@ -7,7 +7,7 @@ type Place {
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
-    budget: Budget
+    priceRange: PriceRange
 }
 
 type GeoLocation {
@@ -26,8 +26,9 @@ type GooglePlaceReview {
     originalLanguage: String
 }
 
-type Budget {
-    budget: String!
+type PriceRange {
+    priceRangeMin: Int!
+    priceRangeMax: Int!
     googlePriceLevel: Int!
 }
 
