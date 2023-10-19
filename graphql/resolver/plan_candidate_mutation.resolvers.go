@@ -259,7 +259,34 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 
 // ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
 func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: ReplacePlaceOfPlanCandidate - replacePlaceOfPlanCandidate"))
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plan, err := s.ReplacePlace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceIDToReplace, input.PlaceIDToReplace)
+	if err != nil {
+		log.Println(fmt.Errorf("error while replacing place of plan candidate: %v", err))
+		return nil, fmt.Errorf("could not replace place of plan candidate")
+	}
+
+	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*plan, planCandidate.MetaData.LocationStart)
+	if err != nil {
+		log.Printf("error while converting plan to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.ReplacePlaceOfPlanCandidateOutput{
+		PlanCandidateID: input.PlanCandidateID,
+		Plan:            graphqlPlanInPlanCandidate,
+	}, nil
 }
 
 // EditPlanTitleOfPlanCandidate is the resolver for the editPlanTitleOfPlanCandidate field.
