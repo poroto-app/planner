@@ -317,11 +317,11 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %w", err)
 	}
 
 	if planCandidate == nil {
-		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
+		return nil, fmt.Errorf("not found plan candidate[%s]", planCandidateId)
 	}
 
 	// planCandidateの中から指定のplanを探索
