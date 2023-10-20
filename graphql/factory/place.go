@@ -38,10 +38,12 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 	var placeRange *graphql.PriceRange
 	if place.PriceLevel != nil {
 		priceRangeMin, priceRangeMax := place.EstimatedPriceRange()
-		placeRange = &graphql.PriceRange{
-			PriceRangeMin:    priceRangeMin,
-			PriceRangeMax:    priceRangeMax,
-			GooglePriceLevel: *place.PriceLevel,
+		if priceRangeMin != nil && priceRangeMax != nil {
+			placeRange = &graphql.PriceRange{
+				PriceRangeMin:    *priceRangeMin,
+				PriceRangeMax:    *priceRangeMax,
+				GooglePriceLevel: *place.PriceLevel,
+			}
 		}
 	}
 	return &graphql.Place{

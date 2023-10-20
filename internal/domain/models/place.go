@@ -13,9 +13,11 @@ type Place struct {
 }
 
 const (
-	thresholdOfLevel1AndLevel2 = 1000
-	thresholdOfLevel2AndLevel3 = 3000
-	thresholdOfLevel3AndLevel4 = 10000
+	limitOfPriceRangeMin         = 0
+	thresholdOfLevel0AndLevel1_2 = 1000
+	thresholdOfLevel1_2AndLevel3 = 3000
+	thresholdOfLevel3AndLevel4   = 10000
+	limitOfPriceRangeMax         = 30000
 )
 
 func (p Place) MainCategory() *LocationCategory {
@@ -36,13 +38,13 @@ func (p Place) EstimatedStayDuration() uint {
 func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax *int) {
 	switch *p.PriceLevel {
 	case 0:
-		return nil, toIntPointer(thresholdOfLevel1AndLevel2)
+		return toIntPointer(limitOfPriceRangeMin), toIntPointer(thresholdOfLevel0AndLevel1_2)
 	case 1, 2:
-		return toIntPointer(thresholdOfLevel1AndLevel2), toIntPointer(thresholdOfLevel2AndLevel3)
+		return toIntPointer(thresholdOfLevel0AndLevel1_2), toIntPointer(thresholdOfLevel1_2AndLevel3)
 	case 3:
-		return toIntPointer(thresholdOfLevel2AndLevel3), toIntPointer(thresholdOfLevel3AndLevel4)
+		return toIntPointer(thresholdOfLevel1_2AndLevel3), toIntPointer(thresholdOfLevel3AndLevel4)
 	case 4:
-		return toIntPointer(thresholdOfLevel3AndLevel4), nil
+		return toIntPointer(thresholdOfLevel3AndLevel4), toIntPointer(limitOfPriceRangeMax)
 	}
 	return nil, nil
 }

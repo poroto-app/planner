@@ -208,9 +208,9 @@ type PlansByUserOutput struct {
 }
 
 type PriceRange struct {
-	PriceRangeMin    *int `json:"priceRangeMin,omitempty"`
-	PriceRangeMax    *int `json:"priceRangeMax,omitempty"`
-	GooglePriceLevel int  `json:"googlePriceLevel"`
+	PriceRangeMin    int `json:"priceRangeMin"`
+	PriceRangeMax    int `json:"priceRangeMax"`
+	GooglePriceLevel int `json:"googlePriceLevel"`
 }
 
 type ReplacePlaceOfPlanCandidateInput struct {

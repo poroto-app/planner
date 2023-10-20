@@ -27,8 +27,8 @@ type GooglePlaceReview {
 }
 
 type PriceRange {
-    priceRangeMin: Int
-    priceRangeMax: Int
+    priceRangeMin: Int!
+    priceRangeMax: Int!
     googlePriceLevel: Int!
 }
 

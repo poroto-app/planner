@@ -1134,8 +1134,8 @@ type GooglePlaceReview {
 }
 
 type PriceRange {
-    priceRangeMin: Int
-    priceRangeMax: Int
+    priceRangeMin: Int!
+    priceRangeMax: Int!
     googlePriceLevel: Int!
 }
 
@@ -5066,11 +5066,14 @@ func (ec *executionContext) _PriceRange_priceRangeMin(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PriceRange_priceRangeMin(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5107,11 +5110,14 @@ func (ec *executionContext) _PriceRange_priceRangeMax(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PriceRange_priceRangeMax(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9991,8 +9997,14 @@ func (ec *executionContext) _PriceRange(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("PriceRange")
 		case "priceRangeMin":
 			out.Values[i] = ec._PriceRange_priceRangeMin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "priceRangeMax":
 			out.Values[i] = ec._PriceRange_priceRangeMax(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "googlePriceLevel":
 			out.Values[i] = ec._PriceRange_googlePriceLevel(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
