@@ -394,7 +394,7 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 		}
 
 		planCandidateEntity.Plans[*planIndex].Places = places
-		planCandidateEntity.Plans[*placeIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
+		planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
 
 		if err := tx.Update(doc, []firestore.Update{
 			{
