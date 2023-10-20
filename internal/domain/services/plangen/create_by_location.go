@@ -3,8 +3,9 @@ package plangen
 import (
 	"context"
 	"fmt"
-	"googlemaps.github.io/maps"
 	"log"
+
+	"googlemaps.github.io/maps"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -40,7 +41,7 @@ func (s Service) CreatePlanByLocation(
 		placesSearched, err = s.placeService.SearchNearbyPlaces(ctx, locationStart)
 
 		if err != nil {
-			return nil, fmt.Errorf("error while fetching places: %v\n", err)
+			return nil, fmt.Errorf("error while fetching places: %v", err)
 		}
 
 		if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
@@ -176,7 +177,7 @@ func (s Service) findOrFetchPlaceById(
 		Language: "ja",
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("error while fetching place: %v\n", err)
+		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
 	p := factory.GooglePlaceFromPlaceEntity(*googlePlace, nil, nil)
