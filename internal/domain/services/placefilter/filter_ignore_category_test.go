@@ -1,21 +1,20 @@
 package placefilter
 
 import (
+	"poroto.app/poroto/planner/internal/domain/models"
 	"reflect"
 	"testing"
-
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func TestFilterIgnoreCategory(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []places.Place
-		expected       []places.Place
+		placesToFilter []models.GooglePlace
+		expected       []models.GooglePlace
 	}{
 		{
 			name: "should remove ignore category",
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
 					Name:  "Museo Nacional de Bellas Artes",
 					Types: []string{"museum"},
@@ -25,7 +24,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 					Types: []string{"atm"},
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Name:  "Museo Nacional de Bellas Artes",
 					Types: []string{"museum"},
@@ -34,7 +33,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 		},
 		{
 			name: "ignore if place has at least one ignore category",
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
 					Name:  "Museo Nacional de Bellas Artes",
 					Types: []string{"museum", "church"},
@@ -44,7 +43,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 					Types: []string{"cafe"},
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Name:  "Cafe",
 					Types: []string{"cafe"},

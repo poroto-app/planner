@@ -43,7 +43,7 @@ func (s Service) CategoriesNearLocation(
 
 	// 検索された場所のカテゴリとその写真を取得
 	categories := make([]models.LocationCategory, 0)
-	placesUsedOfCategory := make([]places.Place, 0)
+	placesUsedOfCategory := make([]models.GooglePlace, 0)
 	for _, categoryPlaces := range placeCategoryGroups {
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
@@ -51,8 +51,8 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place places.Place) bool {
-			return placefilter.FindById(placesUsedOfCategory, place.PlaceID) == nil
+		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.GooglePlace) bool {
+			return placefilter.FindById(placesUsedOfCategory, place.PlaceId) == nil
 		})
 
 		// カテゴリと関連の強い場所から順に写真を取得する
@@ -63,7 +63,7 @@ func (s Service) CategoriesNearLocation(
 
 		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
 		for _, place := range placesSortedByCategoryIndex {
-			placePhoto, err := s.placesApi.FetchPlacePhoto(place, places.ImageSizeLarge())
+			placePhoto, err := s.placesApi.FetchPlacePhoto(place.PhotoReferences, places.ImageSizeLarge())
 			if err != nil {
 				log.Printf("error while fetching place photo: %v\n", err)
 				continue
@@ -83,13 +83,13 @@ func (s Service) CategoriesNearLocation(
 
 type groupPlacesByCategoryResult struct {
 	category string
-	places   []places.Place
+	places   []models.GooglePlace
 }
 
 // groupPlacesByCategory は場所をカテゴリごとにグループ化する
 // 同じ場所が複数のカテゴリに含まれることがある
-func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategoryResult {
-	locationsGroupByCategory := make(map[string][]places.Place, 0)
+func groupPlacesByCategory(placesToGroup []models.GooglePlace) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]models.GooglePlace, 0)
 	for _, location := range placesToGroup {
 		for _, subCategory := range location.Types {
 			category := models.CategoryOfSubCategory(subCategory)
@@ -98,7 +98,7 @@ func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategory
 			}
 
 			if _, ok := locationsGroupByCategory[category.Name]; ok {
-				locationsGroupByCategory[category.Name] = []places.Place{}
+				locationsGroupByCategory[category.Name] = []models.GooglePlace{}
 			}
 
 			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], location)
@@ -116,8 +116,8 @@ func groupPlacesByCategory(placesToGroup []places.Place) []groupPlacesByCategory
 	return result
 }
 
-// indexOfCategory は places.Place.Types 中の`category`に対応するTypeのインデックスを返す
-func indexOfCategory(place places.Place, category models.LocationCategory) int {
+// indexOfCategory は models.GooglePlace.Types 中の`category`に対応するTypeのインデックスを返す
+func indexOfCategory(place models.GooglePlace, category models.LocationCategory) int {
 	for i, placeType := range place.Types {
 		c := models.CategoryOfSubCategory(placeType)
 		if c.Name == category.Name {

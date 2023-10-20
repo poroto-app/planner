@@ -4,13 +4,14 @@ import (
 	"context"
 	"googlemaps.github.io/maps"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]googleplaces.Place, error) {
+func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]models.GooglePlace, error) {
 	var placeTypesToSearch = []maps.PlaceType{
 		"",
 		maps.PlaceTypeAquarium,
@@ -24,9 +25,9 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		maps.PlaceTypeZoo,
 	}
 
-	ch := make(chan *[]googleplaces.Place, len(placeTypesToSearch))
+	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))
 	for _, placeType := range placeTypesToSearch {
-		go func(ctx context.Context, ch chan<- *[]googleplaces.Place, placeType maps.PlaceType) {
+		go func(ctx context.Context, ch chan<- *[]models.GooglePlace, placeType maps.PlaceType) {
 			var placeTypePointer *maps.PlaceType
 			if placeType != "" {
 				placeTypePointer = &placeType
@@ -47,11 +48,16 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 				log.Printf("error while fetching google_places with type %s: %v\n", placeType, err)
 			}
 
-			ch <- &placesSearched
+			var places []models.GooglePlace
+			for _, place := range placesSearched {
+				places = append(places, factory.GooglePlaceFromPlaceEntity(place, nil, nil))
+			}
+
+			ch <- &places
 		}(ctx, ch, placeType)
 	}
 
-	var placesSearched []googleplaces.Place
+	var placesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
 		if searchResults == nil {

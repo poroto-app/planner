@@ -341,6 +341,82 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	return plan, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, planCandidateId, planId, placeIdToBeReplaced string, placeToReplace models.Place) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// PlanCandidateを取得
+		doc := p.doc(planCandidateId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+			}
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		// Planを取得
+		var planIndex *int
+		for i, plan := range planCandidateEntity.Plans {
+			if plan.Id == planId {
+				idx := i
+				planIndex = &idx
+				break
+			}
+		}
+		if planIndex == nil {
+			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+		}
+
+		// Placeを取得
+		var places []entity.PlaceEntity
+		for _, place := range planCandidateEntity.Plans[*planIndex].Places {
+			if place.Id == placeIdToBeReplaced {
+				places = append(places, entity.ToPlaceEntity(placeToReplace))
+			} else {
+				places = append(places, place)
+			}
+		}
+
+		// 順番を更新
+		var placeIndex *int
+		for i, placeId := range planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered {
+			if placeId == placeIdToBeReplaced {
+				idx := i
+				placeIndex = &idx
+				break
+			}
+		}
+		if placeIndex == nil {
+			return fmt.Errorf("place[%s] not found in plan[%s] in plan candidate[%s]", placeIdToBeReplaced, planId, planCandidateId)
+		}
+
+		planCandidateEntity.Plans[*planIndex].Places = places
+		planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "plans",
+				Value: planCandidateEntity.Plans,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating plan candidate[%s]: %v", planCandidateId, err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while replacing place: %v", err)
+	}
+
+	return nil
+}
+
 func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, planCandidateId := range planCandidateIds {

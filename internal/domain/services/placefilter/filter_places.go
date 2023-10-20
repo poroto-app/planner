@@ -1,11 +1,11 @@
 package placefilter
 
 import (
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func FilterPlaces(placesToFilter []places.Place, filterFunc func(place places.Place) bool) []places.Place {
-	values := make([]places.Place, 0)
+func FilterPlaces(placesToFilter []models.GooglePlace, filterFunc func(place models.GooglePlace) bool) []models.GooglePlace {
+	values := make([]models.GooglePlace, 0)
 	for _, place := range placesToFilter {
 		if filterFunc(place) {
 			values = append(values, place)

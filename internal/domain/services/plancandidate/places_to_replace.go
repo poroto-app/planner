@@ -8,9 +8,13 @@ import (
 	"sort"
 )
 
-// FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する
-// nLimit によって取得する場所の数を制限することができる
-func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, planId string, nLimit uint) ([]models.Place, error) {
+func (s Service) FetchPlacesToReplace(
+	ctx context.Context,
+	planCandidateId string,
+	planId string,
+	placeId string,
+	nLimit uint,
+) ([]models.Place, error) {
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
@@ -25,6 +29,17 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	}
 	if plan == nil {
 		return nil, fmt.Errorf("plan not found")
+	}
+
+	var placeToReplace *models.Place
+	for _, placeInPlan := range plan.Places {
+		if placeInPlan.Id != placeId {
+			placeToReplace = &placeInPlan
+			break
+		}
+	}
+	if placeToReplace == nil {
+		return nil, fmt.Errorf("place to replace not found")
 	}
 
 	placesSearched, err := s.placeSearchResultRepository.Find(ctx, planCandidateId)
@@ -47,10 +62,6 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
 		for _, placeInPlan := range plan.Places {
-			if placeInPlan.GooglePlaceId == nil {
-				return false
-			}
-
 			if *placeInPlan.GooglePlaceId == place.PlaceId {
 				return false
 			}
@@ -58,25 +69,35 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		return true
 	})
 
+	// 指定された場所と同じカテゴリの場所を選択
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories, true)
+
 	// レビューの高い順でソート
 	sort.SliceStable(placesFiltered, func(i, j int) bool {
 		return placesFiltered[i].Rating > placesFiltered[j].Rating
 	})
 
-	// TODO: すべてのカテゴリの場所が表示されるようにする
-	googlePlacesToAdd := placesFiltered
+	var googlePlacesToAdd []models.GooglePlace
+	for _, place := range placesFiltered {
+		categories := models.GetCategoriesFromSubCategories(place.Types)
+		if len(categories) == 0 {
+			continue
+		}
+
+		googlePlacesToAdd = append(googlePlacesToAdd, place)
+	}
 
 	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
 
 	// 写真を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	// 口コミを取得
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
-	placesToAdd := make([]models.Place, len(googlePlacesToAdd))
-	for i, place := range googlePlacesToAdd {
-		placesToAdd[i] = place.ToPlace()
+	var placesToAdd []models.Place
+	for _, googlePlacesToAdd := range googlePlacesToAdd {
+		placesToAdd = append(placesToAdd, googlePlacesToAdd.ToPlace())
 	}
 
 	return placesToAdd, nil

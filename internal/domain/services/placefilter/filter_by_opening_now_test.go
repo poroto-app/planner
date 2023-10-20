@@ -1,21 +1,20 @@
 package placefilter
 
 import (
+	"poroto.app/poroto/planner/internal/domain/models"
 	"reflect"
 	"testing"
-
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func TestFilterByOpeningNow(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []places.Place
-		expected       []places.Place
+		placesToFilter []models.GooglePlace
+		expected       []models.GooglePlace
 	}{
 		{
 			name: "should filter places by opening now",
-			placesToFilter: []places.Place{
+			placesToFilter: []models.GooglePlace{
 				{
 					Name:    "Museo Nacional de Bellas Artes",
 					OpenNow: true,
@@ -25,7 +24,7 @@ func TestFilterByOpeningNow(t *testing.T) {
 					OpenNow: false,
 				},
 			},
-			expected: []places.Place{
+			expected: []models.GooglePlace{
 				{
 					Name:    "Museo Nacional de Bellas Artes",
 					OpenNow: true,

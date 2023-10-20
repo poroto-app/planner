@@ -2,15 +2,15 @@ package placefilter
 
 import (
 	"poroto.app/poroto/planner/internal/domain/array"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func FilterDuplicated(placesToFilter []places.Place) []places.Place {
+func FilterDuplicated(placesToFilter []models.GooglePlace) []models.GooglePlace {
 	var placeIdsInResult []string
-	var placesFiltered []places.Place
+	var placesFiltered []models.GooglePlace
 	for _, place := range placesToFilter {
-		if !array.IsContain(placeIdsInResult, place.PlaceID) {
-			placeIdsInResult = append(placeIdsInResult, place.PlaceID)
+		if !array.IsContain(placeIdsInResult, place.PlaceId) {
+			placeIdsInResult = append(placeIdsInResult, place.PlaceId)
 			placesFiltered = append(placesFiltered, place)
 		}
 	}
