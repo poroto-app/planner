@@ -36,7 +36,7 @@ func (p PlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, 
 	panic("implement me")
 }
 
-func (p PlaceSearchResultRepository) SavePriceLevelIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error {
+func (p PlaceSearchResultRepository) SavePriceLevel(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error {
 	//TODO implement me
 	panic("implement me")
 }

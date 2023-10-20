@@ -49,7 +49,6 @@ func (s Service) FetchPriceLevel(ctx context.Context, places []models.GooglePlac
 
 // FetchPlacesPriceLevelAndSave は，指定された場所の価格帯を一括で取得し，保存する
 func (s Service) FetchPlacesPriceLevelAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
-	// 価格帯が取得されていない場所のみ、価格帯が保存されるようにする
 	var googlePlaceIdsWithPriceLevel []string
 	for _, place := range places {
 		if place.PriceLevel != nil {
@@ -71,7 +70,7 @@ func (s Service) FetchPlacesPriceLevelAndSave(ctx context.Context, planCandidate
 			continue
 		}
 
-		if err := s.placeSearchResultRepository.SavePriceLevelIfNotExist(ctx, planCandidateId, place.PlaceId, place.PriceLevel); err != nil {
+		if err := s.placeSearchResultRepository.SavePriceLevel(ctx, planCandidateId, place.PlaceId, place.PriceLevel); err != nil {
 			continue
 		}
 	}

@@ -17,7 +17,6 @@ const (
 	collectionPlaceSearchResults = "google_place_api_search_results"
 	collectionReviews            = "reviews"
 	subCollectionPhotos          = "photos"
-	subCollectionPriceLevel      = "price_level"
 )
 
 type GooglePlaceSearchResultRepository struct {
@@ -135,21 +134,20 @@ func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Con
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) SavePriceLevelIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error {
-	subCollectionPriceLevel := p.subCollectionPriceLevel(planCandidateId, googlePlaceId)
-
-	snapshots, err := subCollectionPriceLevel.Limit(1).Documents(ctx).GetAll()
-	if err != nil {
-		return fmt.Errorf("error while getting price level: %v", err)
-	}
-
-	if len(snapshots) > 0 {
-		// すでに価格帯が保存されている場合は何もしない
-		return fmt.Errorf("price level already exist")
-	}
-
-	if _, err := subCollectionPriceLevel.NewDoc().Set(ctx, priceLevel); err != nil {
-		return fmt.Errorf("error while saving price level: %v", err)
+func (p GooglePlaceSearchResultRepository) SavePriceLevel(ctx context.Context, planCandidateId string, googlePlaceId string, priceLevel *int) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidateId, googlePlaceId)
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "price_level",
+				Value: *priceLevel,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating price level: %v", err)
+		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while saving place search results: %v", err)
 	}
 
 	return nil
@@ -233,8 +231,4 @@ func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId s
 
 func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
 	return p.doc(planCandidateId, googlePlaceId).Collection(collectionReviews)
-}
-
-func (p GooglePlaceSearchResultRepository) subCollectionPriceLevel(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPriceLevel)
 }
