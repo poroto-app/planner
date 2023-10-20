@@ -17,9 +17,9 @@ type CreatePlanParams struct {
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
-	// レビュー・写真・価格帯を取得する
+	// レビュー・写真を取得する
 	performanceTimer := time.Now()
-	placeIdToReviewAndImagesAndPriceLevel := s.fetchReviewAndImagesAndPriceLevel(ctx, planCandidateId, params...)
+	placeIdToReviewAndImagesAndPriceLevel := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
 
 	ch := make(chan *models.Plan, len(params))
@@ -93,8 +93,8 @@ type reviewAndImagesAndPriceLevel struct {
 	PriceLevel    *int
 }
 
-// fetchReviewAndImagesAndLevel は、指定された場所の写真・レビュー・価格帯を一括で取得し、保存する
-func (s Service) fetchReviewAndImagesAndPriceLevel(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImagesAndPriceLevel {
+// fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
+func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImagesAndPriceLevel {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.GooglePlace)
 	for _, param := range params {
