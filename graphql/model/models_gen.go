@@ -149,6 +149,7 @@ type Place struct {
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 	Categories            []*PlaceCategory     `json:"categories"`
+	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
 }
 
 type PlaceCategory struct {
@@ -204,6 +205,12 @@ type PlansByUserInput struct {
 type PlansByUserOutput struct {
 	Plans  []*Plan `json:"plans"`
 	Author *User   `json:"author"`
+}
+
+type PriceRange struct {
+	PriceRangeMin    int `json:"priceRangeMin"`
+	PriceRangeMax    int `json:"priceRangeMax"`
+	GooglePriceLevel int `json:"googlePriceLevel"`
 }
 
 type ReplacePlaceOfPlanCandidateInput struct {
