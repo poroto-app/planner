@@ -61,7 +61,7 @@ func selectByReview(places []models.PlaceInPlanCandidate) []models.PlaceInPlanCa
 		// 既に選択された場所と異なるカテゴリの場所が選択されるようにする
 		isAlreadyHaveSameCategory := false
 		for _, placeSelected := range placesSelected {
-			if isSameCategoryPlace(place, placeSelected) {
+			if place.IsSameCategoryPlace(placeSelected) {
 				isAlreadyHaveSameCategory = true
 				break
 			}
@@ -120,17 +120,6 @@ func isAlreadyAdded(place models.PlaceInPlanCandidate, places []models.PlaceInPl
 	for _, p := range places {
 		if p.Id == place.Id {
 			return true
-		}
-	}
-	return false
-}
-
-func isSameCategoryPlace(a, b models.PlaceInPlanCandidate) bool {
-	for _, categoryOfA := range a.Categories() {
-		for _, categoryOfB := range b.Categories() {
-			if categoryOfA.Name == categoryOfB.Name {
-				return true
-			}
 		}
 	}
 	return false

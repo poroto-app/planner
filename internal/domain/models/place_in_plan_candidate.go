@@ -19,3 +19,14 @@ func (p PlaceInPlanCandidate) EstimatedStayDuration() uint {
 	}
 	return p.Categories()[0].EstimatedStayDuration
 }
+
+func (p PlaceInPlanCandidate) IsSameCategoryPlace(other PlaceInPlanCandidate) bool {
+	for _, categoryOfA := range p.Categories() {
+		for _, categoryOfB := range other.Categories() {
+			if categoryOfA.Name == categoryOfB.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
