@@ -54,6 +54,14 @@ func (p GooglePlaceSearchResultRepository) Save(ctx context.Context, planCandida
 	return nil
 }
 
+func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, planCandidateId string, googlePlace models.GooglePlace) error {
+	doc := p.doc(planCandidateId, googlePlace.PlaceId)
+	if err := tx.Set(doc, factory.PlaceEntityFromGooglePlace(googlePlace)); err != nil {
+		return fmt.Errorf("error while saving place search result: %v", err)
+	}
+	return nil
+}
+
 func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
 	collection := p.collection(planCandidateId)
 
