@@ -61,6 +61,11 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while fetching photos: %v", err)
 	}
 
+	reviews, err := p.fetchReviewsByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching reviews: %v", err)
+	}
+
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
 		var placeEntity googleplaces.Place
@@ -75,15 +80,17 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 			}
 		}
 
-		reviews, err := p.fetchReviews(ctx, planCandidateId, placeEntity.PlaceID)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching reviews: %v", err)
+		var reviewsOfPlace []entity.GooglePlaceReviewEntity
+		for _, review := range reviews {
+			if review.GooglePlaceId == placeEntity.PlaceID {
+				reviewsOfPlace = append(reviewsOfPlace, review)
+			}
 		}
 
 		places = append(places, factory.GooglePlaceFromPlaceEntity(
 			placeEntity,
-			photos,
-			reviews,
+			photosOfPlace,
+			reviewsOfPlace,
 		))
 	}
 
@@ -116,7 +123,7 @@ func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Cont
 func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
 	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 
-	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
+	snapshots, err := subCollectionReviews.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return fmt.Errorf("error while getting reviews: %v", err)
 	}
@@ -127,7 +134,7 @@ func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Con
 	}
 
 	for _, review := range reviews {
-		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review)); err != nil {
+		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving review: %v", err)
 		}
 	}
@@ -174,7 +181,7 @@ func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx cont
 	return photos, nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.GooglePlaceReviewEntity, error) {
+func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.GooglePlaceReviewEntity, error) {
 	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 	reviewsSnapshots, err := subCollectionReviews.Documents(ctx).GetAll()
 	if err != nil {
