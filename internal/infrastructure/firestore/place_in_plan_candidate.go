@@ -100,6 +100,9 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	// Google Places APIの検索結果を取得
 	performanceTimer := time.Now()
 	googlePlaces, err := p.googlePlaceSearchResultRepository.find(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching google places: %v", err)
+	}
 	log.Printf("fetching google places took %v\n", time.Since(performanceTimer))
 
 	var places []models.PlaceInPlanCandidate
