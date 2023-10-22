@@ -1,5 +1,7 @@
 package models
 
+import "poroto.app/poroto/planner/internal/domain/utils"
+
 type PlaceInPlanCandidate struct {
 	Id     string
 	Google GooglePlace
@@ -29,4 +31,20 @@ func (p PlaceInPlanCandidate) IsSameCategoryPlace(other PlaceInPlanCandidate) bo
 		}
 	}
 	return false
+}
+
+func (p PlaceInPlanCandidate) ToPlace() Place {
+	if p.Google.Images == nil {
+		p.Google.Images = new([]Image)
+	}
+
+	return Place{
+		Id:                 p.Id,
+		GooglePlaceId:      utils.StrPointer(p.Google.PlaceId),
+		Name:               p.Google.Name,
+		Location:           p.Google.Location,
+		Images:             *p.Google.Images,
+		Categories:         GetCategoriesFromSubCategories(p.Google.Types),
+		GooglePlaceReviews: p.Google.Reviews,
+	}
 }
