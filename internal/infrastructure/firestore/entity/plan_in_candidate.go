@@ -50,7 +50,7 @@ func FromPlanInCandidateEntity(
 	}
 
 	// 整合性の確認
-	if err := validatePlanInCandidateEntity(placesOrdered, placeIdsOrdered); err != nil {
+	if err := validatePlaceInPlanCandidateEntity(placesOrdered, placeIdsOrdered); err != nil {
 		return nil, fmt.Errorf("places in plan candidate is invalid: %w", err)
 	}
 
@@ -62,14 +62,13 @@ func FromPlanInCandidateEntity(
 	}, nil
 }
 
-// validatePlanInCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
-func validatePlanInCandidateEntity(places []models.Place, placeIdsOrdered []string) error {
+// validatePlaceInPlanCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
+func validatePlaceInPlanCandidateEntity(places []models.Place, placeIdsOrdered []string) error {
 	// 順序指定ID配列の数が正しいかどうか　を確認
 	if len(places) != len(placeIdsOrdered) {
 		return fmt.Errorf("the length of placeIdsOrdered is invalid")
 	}
 
-	// 順序指定ID配列の中に重複がないか，実在するPlace.Idに一致するか　を確認
 	placeIncluded := make(map[string]models.Place)
 	for _, placeId := range placeIdsOrdered {
 		for _, place := range places {
@@ -77,9 +76,15 @@ func validatePlanInCandidateEntity(places []models.Place, placeIdsOrdered []stri
 				continue
 			}
 
+			// 重複があるかどうかを確認
+			if _, ok := placeIncluded[place.Id]; ok {
+				return fmt.Errorf("place(%s) is duplicated", placeId)
+			}
+
 			placeIncluded[place.Id] = place
 		}
 
+		// 存在しない場所IDが指定されていないかどうかを確認
 		if _, ok := placeIncluded[placeId]; !ok {
 			return fmt.Errorf("place(%s) was not found", placeId)
 		}
