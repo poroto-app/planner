@@ -12,3 +12,10 @@ func (p PlaceInPlanCandidate) Location() GeoLocation {
 func (p PlaceInPlanCandidate) Categories() []LocationCategory {
 	return GetCategoriesFromSubCategories(p.Google.Types)
 }
+
+func (p PlaceInPlanCandidate) EstimatedStayDuration() uint {
+	if len(p.Categories()) == 0 {
+		return 0
+	}
+	return p.Categories()[0].EstimatedStayDuration
+}
