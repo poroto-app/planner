@@ -136,17 +136,6 @@ func isSameCategoryPlace(a, b models.PlaceInPlanCandidate) bool {
 	return false
 }
 
-func categoriesOfPlace(place models.GooglePlace) []models.LocationCategory {
-	var categories []models.LocationCategory
-	for _, placeType := range place.Types {
-		category := models.CategoryOfSubCategory(placeType)
-		if category != nil {
-			categories = append(categories, *category)
-		}
-	}
-	return categories
-}
-
 // isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
 func isNearFromPlaces(
 	placeBase models.PlaceInPlanCandidate,
