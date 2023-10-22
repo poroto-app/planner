@@ -9,44 +9,56 @@ import (
 func TestFilterIgnoreCategory(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []models.GooglePlace
-		expected       []models.GooglePlace
+		placesToFilter []models.PlaceInPlanCandidate
+		expected       []models.PlaceInPlanCandidate
 	}{
 		{
 			name: "should remove ignore category",
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					Name:  "Museo Nacional de Bellas Artes",
-					Types: []string{"museum"},
+					Google: models.GooglePlace{
+						Name:  "Museo Nacional de Bellas Artes",
+						Types: []string{"museum"},
+					},
 				},
 				{
-					Name:  "ATM",
-					Types: []string{"atm"},
+					Google: models.GooglePlace{
+						Name:  "ATM",
+						Types: []string{"atm"},
+					},
 				},
 			},
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					Name:  "Museo Nacional de Bellas Artes",
-					Types: []string{"museum"},
+					Google: models.GooglePlace{
+						Name:  "Museo Nacional de Bellas Artes",
+						Types: []string{"museum"},
+					},
 				},
 			},
 		},
 		{
 			name: "ignore if place has at least one ignore category",
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					Name:  "Museo Nacional de Bellas Artes",
-					Types: []string{"museum", "church"},
+					Google: models.GooglePlace{
+						Name:  "Museo Nacional de Bellas Artes",
+						Types: []string{"museum", "church"},
+					},
 				},
 				{
-					Name:  "Cafe",
-					Types: []string{"cafe"},
+					Google: models.GooglePlace{
+						Name:  "Cafe",
+						Types: []string{"cafe"},
+					},
 				},
 			},
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					Name:  "Cafe",
-					Types: []string{"cafe"},
+					Google: models.GooglePlace{
+						Name:  "Cafe",
+						Types: []string{"cafe"},
+					},
 				},
 			},
 		},
