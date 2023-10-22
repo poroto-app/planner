@@ -1,7 +1,7 @@
 package placefilter
 
 import (
-	"reflect"
+	"github.com/google/go-cmp/cmp"
 	"testing"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -72,8 +72,8 @@ func TestFuncFilterByCategory(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			actual := FilterByCategory(c.placesToFilter, c.categories, c.includeGivenCategories)
-			if !reflect.DeepEqual(c.expected, actual) {
-				t.Errorf("expected: %v\nactual: %v", c.expected, actual)
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("FilterByCategory() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
