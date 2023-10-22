@@ -44,8 +44,8 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 	}, nil
 }
 
-func (p PlaceInPlanCandidateRepository) SavePlaces(planCandidateId string, places []models.PlaceInPlanCandidate) error {
-	if err := p.client.RunTransaction(context.Background(), func(ctx context.Context, tx *firestore.Transaction) error {
+func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, place := range places {
 			doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
 			if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
