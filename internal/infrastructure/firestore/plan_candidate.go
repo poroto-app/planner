@@ -2,7 +2,9 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"os"
 	"time"
 
@@ -101,33 +103,23 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	return &planCandidate, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]models.PlanCandidate, error) {
-	var planCandidates []models.PlanCandidate
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		query := p.collection().Where("expires_at", "<=", expiresAt)
-		snapshots, err := tx.Documents(query).GetAll()
+func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
+	var planCandidateIds []string
+
+	query := p.collection().Where("expires_at", "<=", expiresAt)
+	docIter := query.Documents(ctx)
+	for {
+		doc, err := docIter.Next()
 		if err != nil {
-			return fmt.Errorf("error while getting all plan candidates: %v", err)
-		}
-
-		for _, snapshot := range snapshots {
-			var planCandidateEntity entity.PlanCandidateEntity
-			if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+			if errors.Is(err, iterator.Done) {
+				break
 			}
-
-			// この関数は削除でのみもちいるため、メタデータの取得はできていなくても良い
-			// TODO: validateが入らないようにする
-			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, entity.PlanCandidateMetaDataV1Entity{}, nil)
-			planCandidates = append(planCandidates, planCandidate)
+			return nil, fmt.Errorf("error while iterating plan candidate: %v", err)
 		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("error while finding expired plan candidates: %v", err)
+		planCandidateIds = append(planCandidateIds, doc.Ref.ID)
 	}
 
-	return &planCandidates, nil
+	return &planCandidateIds, nil
 }
 
 // TODO: errorだけを返すようにする
