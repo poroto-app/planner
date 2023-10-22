@@ -18,14 +18,14 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
-	placesSearched, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
+	places, err := s.placeRepository.FindByPlanCandidateId(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}
 
-	var placeStart *models.GooglePlace
-	for _, place := range placesSearched {
-		if place.PlaceId == placeId {
+	var placeStart *models.PlaceInPlanCandidate
+	for _, place := range *places {
+		if place.Id == placeId {
 			placeStart = &place
 			break
 		}
@@ -38,9 +38,9 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			locationStart:                placeStart.Location,
+			locationStart:                placeStart.Location(),
 			placeStart:                   *placeStart,
-			places:                       placesSearched,
+			places:                       *places,
 			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
 			createBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 			shouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
@@ -51,7 +51,7 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	plansCreated := s.createPlanData(ctx, createPlanSessionId, CreatePlanParams{
-		locationStart: placeStart.Location,
+		locationStart: placeStart.Location(),
 		placeStart:    *placeStart,
 		places:        planPlaces,
 	})
