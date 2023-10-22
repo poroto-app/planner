@@ -118,6 +118,10 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 	placeIdToImages := make(map[string]reviewAndImages)
 	for _, place := range places {
 		for _, googlePlace := range googlePlaces {
+			if place.Google.PlaceId != googlePlace.PlaceId {
+				continue
+			}
+
 			var reviews []models.GooglePlaceReview
 			var images []models.Image
 
@@ -135,6 +139,8 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 				Reviews:       reviews,
 				Images:        images,
 			}
+
+			break
 		}
 	}
 
