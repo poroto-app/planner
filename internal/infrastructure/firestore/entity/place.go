@@ -20,13 +20,13 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 	if place.GooglePlaceReviews != nil {
 		googlePlaceReviews = new([]GooglePlaceReviewEntity)
 		for _, review := range *place.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, ToGooglePlaceReviewEntity(review))
+			*googlePlaceReviews = append(*googlePlaceReviews, ToGooglePlaceReviewEntity(review, *place.GooglePlaceId))
 		}
 	}
 
 	var images []ImageEntity
 	for _, image := range place.Images {
-		images = append(images, ToImageEntity(image))
+		images = append(images, ToImageEntity(*place.GooglePlaceId, image))
 	}
 
 	var categories []string
