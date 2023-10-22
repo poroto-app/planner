@@ -11,12 +11,11 @@ import (
 )
 
 type Service struct {
-	placesApi                   places.PlacesApi
-	placeService                place.Service
-	planCandidateRepository     repository.PlanCandidateRepository
-	placeRepository             repository.PlaceInPlanCandidateRepository
-	placeSearchResultRepository repository.GooglePlaceSearchResultRepository
-	openaiChatCompletionClient  openai.ChatCompletionClient
+	placesApi                  places.PlacesApi
+	placeService               place.Service
+	planCandidateRepository    repository.PlanCandidateRepository
+	placeRepository            repository.PlaceInPlanCandidateRepository
+	openaiChatCompletionClient openai.ChatCompletionClient
 }
 
 func NewService(ctx context.Context) (*Service, error) {
@@ -40,23 +39,16 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
-	// TODO: placeRepositoryで統一する
-	placeSearchResultRepository, err := firestore.NewGooglePlaceSearchResultRepository(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error while initializing place search result repository: %v", err)
-	}
-
 	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
 	}
 
 	return &Service{
-		placesApi:                   *placesApi,
-		placeService:                *placeService,
-		planCandidateRepository:     planCandidateRepository,
-		placeRepository:             *placeRepository,
-		placeSearchResultRepository: placeSearchResultRepository,
-		openaiChatCompletionClient:  *openaiChatCompletionClient,
+		placesApi:                  *placesApi,
+		placeService:               *placeService,
+		planCandidateRepository:    planCandidateRepository,
+		placeRepository:            *placeRepository,
+		openaiChatCompletionClient: *openaiChatCompletionClient,
 	}, nil
 }
