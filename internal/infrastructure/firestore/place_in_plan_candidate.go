@@ -44,6 +44,26 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 	}, nil
 }
 
+func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
+		if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
+			return fmt.Errorf("error while saving place in plan candidate: %v", err)
+		}
+
+		// Google Places APIの検索結果を保存
+		if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
+			return fmt.Errorf("error while saving google place: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while saving place in plan candidate: %v", err)
+	}
+
+	return nil
+}
+
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, place := range places {
