@@ -49,7 +49,7 @@ func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, pla
 }
 
 func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
-	collection := p.collection(planCandidateId)
+	collection := p.subCollection(planCandidateId)
 
 	snapshots, err := collection.Documents(ctx).GetAll()
 	if err != nil {
@@ -85,7 +85,7 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 
 // TODO: 個々の画像をIDで区別できるようにする
 func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
-	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
+	subCollectionImages := p.subCollectionPhotos(planCandidateId)
 
 	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
 	if err != nil {
@@ -107,7 +107,7 @@ func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Cont
 }
 
 func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
+	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 
 	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
 	if err != nil {
@@ -129,7 +129,7 @@ func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Con
 }
 
 func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firestore.Transaction, planCandidateId string) error {
-	collection := p.collection(planCandidateId)
+	collection := p.subCollection(planCandidateId)
 
 	docIter := tx.DocumentRefs(collection)
 	for {
@@ -149,7 +149,7 @@ func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firesto
 }
 
 func (p GooglePlaceSearchResultRepository) fetchPhotos(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.ImageEntity, error) {
-	subCollectionPhotos := p.subCollectionPhotos(planCandidateId, googlePlaceId)
+	subCollectionPhotos := p.subCollectionPhotos(planCandidateId)
 	photosSnapshots, err := subCollectionPhotos.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting photos: %v", err)
@@ -168,7 +168,7 @@ func (p GooglePlaceSearchResultRepository) fetchPhotos(ctx context.Context, plan
 }
 
 func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.GooglePlaceReviewEntity, error) {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
+	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 	reviewsSnapshots, err := subCollectionReviews.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting reviews: %v", err)
@@ -186,18 +186,18 @@ func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, pla
 	return reviews, nil
 }
 
-func (p GooglePlaceSearchResultRepository) collection(planCandidateId string) *firestore.CollectionRef {
+func (p GooglePlaceSearchResultRepository) subCollection(planCandidateId string) *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionGooglePlaceSearchResults)
 }
 
 func (p GooglePlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId string) *firestore.DocumentRef {
-	return p.collection(planCandidateId).Doc(googlePlaceId)
+	return p.subCollection(planCandidateId).Doc(googlePlaceId)
 }
 
-func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPhotos)
+func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionPhotos)
 }
 
-func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionReviews)
+func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionReviews)
 }
