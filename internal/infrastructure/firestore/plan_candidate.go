@@ -19,6 +19,7 @@ import (
 const (
 	collectionPlanCandidates = "plan_candidates"
 	collectionMetaData       = "meta_data"
+	subCollectionPlans       = "plans"
 )
 
 type PlanCandidateFirestoreRepository struct {
@@ -49,14 +50,26 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 }
 
 func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandidate *models.PlanCandidate) error {
-	doc := p.doc(planCandidate.Id)
-	if _, err := doc.Set(ctx, entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
-		return fmt.Errorf("error while saving plan candidate: %v", err)
-	}
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.doc(planCandidate.Id)
+		if err := tx.Set(doc, entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
+			return fmt.Errorf("error while saving plan candidate: %v", err)
+		}
 
-	docMetaData := p.docMetaDataV1(planCandidate.Id)
-	if _, err := docMetaData.Set(ctx, entity.ToPlanCandidateMetaDataV1Entity(planCandidate.MetaData)); err != nil {
-		return fmt.Errorf("error while saving plan candidate meta data: %v", err)
+		docMetaData := p.docMetaDataV1(planCandidate.Id)
+		if err := tx.Set(docMetaData, entity.ToPlanCandidateMetaDataV1Entity(planCandidate.MetaData)); err != nil {
+			return fmt.Errorf("error while saving plan candidate meta data: %v", err)
+		}
+
+		for _, plan := range planCandidate.Plans {
+			if err := tx.Set(p.subCollectionPlans(planCandidate.Id).Doc(plan.Id), entity.ToPlanInCandidateEntity(plan)); err != nil {
+				return fmt.Errorf("error while saving plan in plan candidate: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while saving plan candidate: %v", err)
 	}
 
 	return nil
@@ -78,6 +91,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 	}
 
+	// プラン候補メタデータを取得
 	docMetaData := p.docMetaDataV1(planCandidateId)
 	snapshotMetaData, err := docMetaData.Get(ctx)
 	if err != nil {
@@ -93,12 +107,28 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
 	}
 
+	// プランを取得
+	snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plans: %v", err)
+	}
+
+	var plans []entity.PlanInCandidateEntity
+	for _, snapshotPlan := range snapshotPlans {
+		var plan entity.PlanInCandidateEntity
+		if err = snapshotPlan.DataTo(&plan); err != nil {
+			return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+		plans = append(plans, plan)
+	}
+
+	//　検索された場所を取得
 	places, err := p.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, *places)
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places)
 
 	return &planCandidate, nil
 }
@@ -128,22 +158,19 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	planCandidateId string,
 	plan *models.Plan,
 ) (*models.PlanCandidate, error) {
-	var planCandidate models.PlanCandidate
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.doc(planCandidateId)
-		_, err := tx.Get(doc)
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
-			}
-			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
+		// プランを保存
+		docPlan := p.subCollectionPlans(planCandidateId).Doc(plan.Id)
+		if err := tx.Set(docPlan, entity.ToPlanInCandidateEntity(*plan)); err != nil {
+			return fmt.Errorf("error while saving plan[%s] in plan candidate[%s]: %v", plan.Id, planCandidateId, err)
 		}
 
-		planEntity := entity.ToPlanInCandidateEntity(*plan)
-		if err := tx.Update(doc, []firestore.Update{
+		// 候補の最後に追加
+		docPlanCandidate := p.doc(planCandidateId)
+		if err := tx.Update(docPlanCandidate, []firestore.Update{
 			{
-				Path:  "plans",
-				Value: firestore.ArrayUnion(planEntity),
+				Path:  "plan_ids",
+				Value: firestore.ArrayUnion(plan.Id),
 			},
 		}); err != nil {
 			return err
@@ -155,76 +182,20 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 		return nil, fmt.Errorf("error while adding plan to plan candidate: %v", err)
 	}
 
-	docMetaData := p.docMetaDataV1(planCandidateId)
-	snapshotMetaData, err := docMetaData.Get(ctx)
+	planCandidateUpdated, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
 	}
-
-	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
-	}
-
-	docPlanCandidate := p.doc(planCandidateId)
-	snapshotPlanCandidate, err := docPlanCandidate.Get(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
-	}
-
-	var planCandidateEntity entity.PlanCandidateEntity
-	if err = snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-	}
-
-	places, err := p.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v", err)
-	}
-
-	planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, *places)
-
-	return &planCandidate, nil
+	return planCandidateUpdated, nil
 }
 
 func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.doc(planCandidateId)
-		snapshot, err := tx.Get(doc)
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
-			}
-			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
-		}
-
-		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-		}
-
-		var planIndex *int
-		for i, plan := range planCandidateEntity.Plans {
-			if plan.Id == planId {
-				idx := i
-				planIndex = &idx
-				break
-			}
-		}
-
-		if planIndex == nil {
-			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
-		}
-
-		// TODO: Planを別のサブコレクションに分ける
-		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
-		planEntityToUpdate.PlaceIdsOrdered = append(planEntityToUpdate.PlaceIdsOrdered, place.Id)
-		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
-
+		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
 		if err := tx.Update(doc, []firestore.Update{
 			{
-				Path:  "plans",
-				Value: planCandidateEntity.Plans,
+				Path:  "place_ids_ordered",
+				Value: firestore.ArrayUnion(place.Id),
 			},
 			{
 				Path:  "updated_at",
@@ -245,60 +216,11 @@ func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, p
 
 func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.doc(planCandidateId)
-		snapshot, err := tx.Get(doc)
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
-			}
-			return fmt.Errorf("error while getting plan candidate[%s]: %v", planCandidateId, err)
-		}
-
-		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-		}
-
-		docMetaData := p.docMetaDataV1(planCandidateId)
-		snapshotMetaData, err := tx.Get(docMetaData)
-		if err != nil {
-			return fmt.Errorf("error while getting plan candidate meta data: %v", err)
-		}
-
-		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
-		}
-
-		// TODO: 直接削除するだけで十分な設計にする（Placeを別で持つ）
-		var planIndex *int
-		for i, plan := range planCandidateEntity.Plans {
-			if plan.Id == planId {
-				idx := i
-				planIndex = &idx
-				break
-			}
-		}
-		if planIndex == nil {
-			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
-		}
-
-		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
-		// placeIdsOrdered から削除
-		var placeIdsOrdered []string
-		for _, placeIdOrdered := range planEntityToUpdate.PlaceIdsOrdered {
-			if placeIdOrdered != placeId {
-				placeIdsOrdered = append(placeIdsOrdered, placeIdOrdered)
-			}
-		}
-
-		planEntityToUpdate.PlaceIdsOrdered = placeIdsOrdered
-		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
-
+		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
 		if err := tx.Update(doc, []firestore.Update{
 			{
-				Path:  "plans",
-				Value: planCandidateEntity.Plans,
+				Path:  "place_ids_ordered",
+				Value: firestore.ArrayRemove(placeId),
 			},
 			{
 				Path:  "updated_at",
@@ -317,16 +239,49 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 }
 
 func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+			}
+
+			return fmt.Errorf("error while getting plan[%s] in plan candidate[%s]: %v", planId, planCandidateId, err)
+		}
+
+		var planInCandidateEntity entity.PlanInCandidateEntity
+		if err = snapshot.DataTo(&planInCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+
+		if len(placeIdsOrdered) != len(planInCandidateEntity.PlaceIdsOrdered) {
+			return fmt.Errorf("the length of placeIdsOrdered is invalid")
+		}
+
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "place_ids_ordered",
+				Value: placeIdsOrdered,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating places order: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("error while updating places order: %v", err)
+	}
+
 	planCandidate, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
 	}
 
-	if planCandidate == nil {
-		return nil, fmt.Errorf("not found plan candidate[%s]\n", planCandidateId)
-	}
-
-	// planCandidateの中から指定のplanを探索
 	var plan *models.Plan
 	for _, p := range planCandidate.Plans {
 		if p.Id == planId {
@@ -334,63 +289,38 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 			break
 		}
 	}
-	if plan == nil {
-		return nil, fmt.Errorf("not found plan[%s] in plan candidate[%s]", planId, planCandidate.Id)
-	}
-
-	// MOCK：並び替え・更新処理を実装
 
 	return plan, nil
 }
 
 func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, planCandidateId, planId, placeIdToBeReplaced string, placeToReplace models.Place) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		// PlanCandidateを取得
-		doc := p.doc(planCandidateId)
+		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
 		snapshot, err := tx.Get(doc)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				return fmt.Errorf("plan candidate[%s] not found", planCandidateId)
+				return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
 			}
+
+			return fmt.Errorf("error while getting plan[%s] in plan candidate[%s]: %v", planId, planCandidateId, err)
 		}
 
-		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		var planInCandidateEntity entity.PlanInCandidateEntity
+		if err = snapshot.DataTo(&planInCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 		}
 
-		// Planを取得
-		var planIndex *int
-		for i, plan := range planCandidateEntity.Plans {
-			if plan.Id == planId {
-				idx := i
-				planIndex = &idx
+		for i, placeIdOrdered := range planInCandidateEntity.PlaceIdsOrdered {
+			if placeIdOrdered == placeIdToBeReplaced {
+				planInCandidateEntity.PlaceIdsOrdered[i] = placeToReplace.Id
 				break
 			}
 		}
-		if planIndex == nil {
-			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
-		}
-
-		// 順番を更新
-		var placeIndex *int
-		for i, placeId := range planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered {
-			if placeId == placeIdToBeReplaced {
-				idx := i
-				placeIndex = &idx
-				break
-			}
-		}
-		if placeIndex == nil {
-			return fmt.Errorf("place[%s] not found in plan[%s] in plan candidate[%s]", placeIdToBeReplaced, planId, planCandidateId)
-		}
-
-		planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
 
 		if err := tx.Update(doc, []firestore.Update{
 			{
-				Path:  "plans",
-				Value: planCandidateEntity.Plans,
+				Path:  "place_ids_ordered",
+				Value: planInCandidateEntity.PlaceIdsOrdered,
 			},
 			{
 				Path:  "updated_at",
@@ -411,6 +341,28 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, planCandidateId := range planCandidateIds {
+			// プラン候補メタデータを削除
+			docMetadata := p.docMetaDataV1(planCandidateId)
+			if err := tx.Delete(docMetadata); err != nil {
+				return fmt.Errorf("error while deleting plan candidate meta data[%s]: %v", planCandidateId, err)
+			}
+
+			// プランを削除
+			docIter := tx.DocumentRefs(p.subCollectionPlans(planCandidateId))
+			for {
+				doc, err := docIter.Next()
+				if err != nil {
+					if errors.Is(err, iterator.Done) {
+						break
+					}
+					return fmt.Errorf("error while iterating plans: %v", err)
+				}
+
+				if err := tx.Delete(doc); err != nil {
+					return fmt.Errorf("error while deleting plan[%s]: %v", doc.ID, err)
+				}
+			}
+
 			doc := p.doc(planCandidateId)
 			if err := tx.Delete(doc); err != nil {
 				return fmt.Errorf("error while deleting plan candidate[%s]: %v", planCandidateId, err)
@@ -430,6 +382,10 @@ func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef
 
 func (p *PlanCandidateFirestoreRepository) doc(id string) *firestore.DocumentRef {
 	return p.collection().Doc(id)
+}
+
+func (p *PlanCandidateFirestoreRepository) subCollectionPlans(planCandidateId string) *firestore.CollectionRef {
+	return p.doc(planCandidateId).Collection(subCollectionPlans)
 }
 
 func (p *PlanCandidateFirestoreRepository) docMetaDataV1(id string) *firestore.DocumentRef {
