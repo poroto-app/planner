@@ -94,7 +94,7 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	}
 
 	// Google Places APIの検索結果を取得
-	googlePlaces, err := p.googlePlaceSearchResultRepository.Find(ctx, planCandidateId)
+	googlePlaces, err := p.googlePlaceSearchResultRepository.find(ctx, planCandidateId)
 
 	var places []models.PlaceInPlanCandidate
 	for _, snapshot := range snapshots {

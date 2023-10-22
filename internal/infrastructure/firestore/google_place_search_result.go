@@ -38,7 +38,7 @@ func NewGooglePlaceSearchResultRepository(ctx context.Context) (*GooglePlaceSear
 	}, nil
 }
 
-func (p GooglePlaceSearchResultRepository) Save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
+func (p GooglePlaceSearchResultRepository) save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, place := range places {
 			doc := p.doc(planCandidateId, place.PlaceId)
@@ -62,7 +62,7 @@ func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, pla
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
+func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
 	collection := p.collection(planCandidateId)
 
 	snapshots, err := collection.Documents(ctx).GetAll()
