@@ -147,6 +147,20 @@ func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Cont
 	return nil
 }
 
+func (p PlaceInPlanCandidateRepository) SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+	if err := p.googlePlaceSearchResultRepository.saveImagesIfNotExist(ctx, planCandidateId, googlePlaceId, images); err != nil {
+		return fmt.Errorf("error while saving google images: %v", err)
+	}
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, reviews); err != nil {
+		return fmt.Errorf("error while saving google reviews: %v", err)
+	}
+	return nil
+}
+
 func (p PlaceInPlanCandidateRepository) collectionPlaces(planCandidateId string) *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlacesInPlanCandidate)
 }

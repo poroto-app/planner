@@ -25,7 +25,7 @@ func (p PlaceSearchResultRepository) Find(ctx context.Context, planCandidateId s
 	panic("implement me")
 }
 
-func (p PlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+func (p PlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	//TODO implement me
 	panic("implement me")
 }

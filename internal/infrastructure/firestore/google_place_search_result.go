@@ -99,7 +99,8 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 	return places, nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+// TODO: 個々の画像をIDで区別できるようにする
+func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
 
 	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
@@ -121,7 +122,7 @@ func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Cont
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
 	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
 
 	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
