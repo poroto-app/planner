@@ -40,7 +40,7 @@ func (p PlaceInPlanCandidate) ToPlace() Place {
 
 	return Place{
 		Id:                 p.Id,
-		GooglePlaceId:      utils.StrPointer(p.Google.PlaceId),
+		GooglePlaceId:      utils.StrOmitEmpty(p.Google.PlaceId),
 		Name:               p.Google.Name,
 		Location:           p.Google.Location,
 		Images:             *p.Google.Images,
