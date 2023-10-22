@@ -41,3 +41,14 @@ func (g GooglePlace) EstimatedStayDuration() uint {
 	}
 	return categories[0].EstimatedStayDuration
 }
+
+// IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
+func (g GooglePlace) IndexOfCategory(category LocationCategory) int {
+	for i, placeType := range g.Types {
+		c := CategoryOfSubCategory(placeType)
+		if c.Name == category.Name {
+			return i
+		}
+	}
+	return -1
+}
