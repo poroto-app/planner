@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
+	"time"
 )
 
 const (
@@ -90,13 +92,15 @@ func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCand
 func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) (*[]models.PlaceInPlanCandidate, error) {
 	collection := p.collectionPlaces(planCandidateId)
 
-	snapshots, err := collection.Documents(context.Background()).GetAll()
+	snapshots, err := collection.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting place in plan candidates: %v", err)
 	}
 
 	// Google Places APIの検索結果を取得
+	performanceTimer := time.Now()
 	googlePlaces, err := p.googlePlaceSearchResultRepository.find(ctx, planCandidateId)
+	log.Printf("fetching google places took %v\n", time.Since(performanceTimer))
 
 	var places []models.PlaceInPlanCandidate
 	for _, snapshot := range snapshots {
