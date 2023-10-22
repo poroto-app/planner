@@ -11,6 +11,4 @@ type GooglePlaceSearchResultRepository interface {
 
 	// SaveReviewsIfNotExist すでにレビューが保存されていなかった場合のみ、保存する
 	SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error
-
-	DeleteAll(ctx context.Context, planCandidateIds []string) error
 }

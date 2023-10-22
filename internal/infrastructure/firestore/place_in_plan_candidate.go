@@ -3,7 +3,9 @@ package firestore
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -115,6 +117,34 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	}
 
 	return &places, nil
+}
+
+func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Context, planCandidateId string) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		if err := p.googlePlaceSearchResultRepository.deleteByPlanCandidateIdTx(tx, planCandidateId); err != nil {
+			return fmt.Errorf("error while deleting google place search results: %v", err)
+		}
+
+		docIter := tx.DocumentRefs(p.collectionPlaces(planCandidateId))
+		for {
+			doc, err := docIter.Next()
+			if errors.Is(err, iterator.Done) {
+				break
+			}
+			if err != nil {
+				return fmt.Errorf("error while iterating place in plan candidates: %v", err)
+			}
+			if err := tx.Delete(doc); err != nil {
+				return fmt.Errorf("error while deleting place in plan candidates: %v", err)
+			}
+		}
+
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while deleting place in plan candidates: %v", err)
+	}
+
+	return nil
 }
 
 func (p PlaceInPlanCandidateRepository) collectionPlaces(planCandidateId string) *firestore.CollectionRef {

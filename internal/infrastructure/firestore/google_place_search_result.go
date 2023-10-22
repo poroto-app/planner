@@ -3,7 +3,9 @@ package firestore
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/factory"
@@ -141,26 +143,20 @@ func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Con
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	for _, planCandidateId := range planCandidateIds {
-		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-			collection := p.collection(planCandidateId)
+func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firestore.Transaction, planCandidateId string) error {
+	collection := p.collection(planCandidateId)
 
-			// collection内のドキュメントをすべて削除
-			snapshots, err := collection.Documents(ctx).GetAll()
-			if err != nil {
-				return fmt.Errorf("error while getting place search results: %v", err)
-			}
-
-			for _, snapshot := range snapshots {
-				if _, err := snapshot.Ref.Delete(ctx); err != nil {
-					return fmt.Errorf("error while deleting place search result: %v", err)
-				}
-			}
-
-			return nil
-		}, firestore.MaxAttempts(3)); err != nil {
-			return fmt.Errorf("error while deleting place search results: %v", err)
+	docIter := tx.DocumentRefs(collection)
+	for {
+		doc, err := docIter.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error while iterating documents: %v", err)
+		}
+		if err := tx.Delete(doc); err != nil {
+			return fmt.Errorf("error while deleting place search result: %v", err)
 		}
 	}
 
