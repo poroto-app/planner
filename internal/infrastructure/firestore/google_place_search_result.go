@@ -56,6 +56,11 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while getting place search results: %v", err)
 	}
 
+	photos, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching photos: %v", err)
+	}
+
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
 		var placeEntity googleplaces.Place
@@ -63,9 +68,11 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 			return nil, fmt.Errorf("error while converting snapshot to place search result entity: %v", err)
 		}
 
-		photos, err := p.fetchPhotos(ctx, planCandidateId, placeEntity.PlaceID)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching photos: %v", err)
+		var photosOfPlace []entity.ImageEntity
+		for _, photo := range photos {
+			if photo.GooglePlaceId == placeEntity.PlaceID {
+				photosOfPlace = append(photosOfPlace, photo)
+			}
 		}
 
 		reviews, err := p.fetchReviews(ctx, planCandidateId, placeEntity.PlaceID)
@@ -87,7 +94,7 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId)
 
-	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
+	snapshots, err := subCollectionImages.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return fmt.Errorf("error while getting images: %v", err)
 	}
@@ -98,7 +105,7 @@ func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Cont
 	}
 
 	for _, image := range images {
-		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
+		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(googlePlaceId, image)); err != nil {
 			return fmt.Errorf("error while saving image: %v", err)
 		}
 	}
@@ -148,7 +155,7 @@ func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firesto
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchPhotos(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.ImageEntity, error) {
+func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.ImageEntity, error) {
 	subCollectionPhotos := p.subCollectionPhotos(planCandidateId)
 	photosSnapshots, err := subCollectionPhotos.Documents(ctx).GetAll()
 	if err != nil {
