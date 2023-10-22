@@ -19,7 +19,6 @@ func (s Service) FetchPlacesToReplace(
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}
-
 	var plan *models.Plan
 	for _, p := range planCandidate.Plans {
 		if p.Id == planId {
@@ -86,7 +85,9 @@ func (s Service) FetchPlacesToReplace(
 		places = append(places, place)
 	}
 
-	places = places[:nLimit]
+	if len(places) > int(nLimit) {
+		places = places[:nLimit]
+	}
 
 	var googlePlacesToAdd []models.GooglePlace
 	for _, place := range places {
