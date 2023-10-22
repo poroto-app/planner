@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	collectionPlaceSearchResults = "google_place_api_search_results"
-	collectionReviews            = "reviews"
-	subCollectionPhotos          = "photos"
+	subCollectionGooglePlaceSearchResults = "google_places_api_search_results"
+	subCollectionReviews                  = "google_places_api_reviews"
+	subCollectionPhotos                   = "google_places_api_photos"
 )
 
 type GooglePlaceSearchResultRepository struct {
@@ -187,7 +187,7 @@ func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, pla
 }
 
 func (p GooglePlaceSearchResultRepository) collection(planCandidateId string) *firestore.CollectionRef {
-	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlaceSearchResults)
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionGooglePlaceSearchResults)
 }
 
 func (p GooglePlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId string) *firestore.DocumentRef {
@@ -199,5 +199,5 @@ func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId s
 }
 
 func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(collectionReviews)
+	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionReviews)
 }
