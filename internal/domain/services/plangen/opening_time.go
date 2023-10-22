@@ -11,11 +11,11 @@ import (
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
 func (s Service) isOpeningWithIn(
 	ctx context.Context,
-	place models.GooglePlace,
+	place models.PlaceInPlanCandidate,
 	startTime time.Time,
 	duration time.Duration,
 ) bool {
-	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place.PlaceId)
+	placeOpeningPeriods, err := s.placesApi.FetchPlaceOpeningPeriods(ctx, place.Google.PlaceId)
 	if err != nil {
 		log.Printf("error while fetching place opening periods: %v\n", err)
 		return false
