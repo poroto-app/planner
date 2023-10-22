@@ -40,22 +40,6 @@ func NewGooglePlaceSearchResultRepository(ctx context.Context) (*GooglePlaceSear
 	}, nil
 }
 
-func (p GooglePlaceSearchResultRepository) save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, place := range places {
-			doc := p.doc(planCandidateId, place.PlaceId)
-			if _, err := doc.Set(ctx, factory.PlaceEntityFromGooglePlace(place)); err != nil {
-				return fmt.Errorf("error while saving place search result: %v", err)
-			}
-		}
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while saving place search results: %v", err)
-	}
-
-	return nil
-}
-
 func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, planCandidateId string, googlePlace models.GooglePlace) error {
 	doc := p.doc(planCandidateId, googlePlace.PlaceId)
 	if err := tx.Set(doc, factory.PlaceEntityFromGooglePlace(googlePlace)); err != nil {
