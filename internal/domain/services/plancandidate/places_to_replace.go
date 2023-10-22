@@ -42,12 +42,12 @@ func (s Service) FetchPlacesToReplace(
 		return nil, fmt.Errorf("place to replace not found")
 	}
 
-	placesSearched, err := s.placeSearchResultRepository.Find(ctx, planCandidateId)
+	placesSearched, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
 
-	placesFiltered := placesSearched
+	placesFiltered := *placesSearched
 
 	// 重複した場所を削除
 	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
@@ -60,9 +60,9 @@ func (s Service) FetchPlacesToReplace(
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// すでにプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
 		for _, placeInPlan := range plan.Places {
-			if *placeInPlan.GooglePlaceId == place.PlaceId {
+			if placeInPlan.Id == place.Id {
 				return false
 			}
 		}
@@ -74,20 +74,24 @@ func (s Service) FetchPlacesToReplace(
 
 	// レビューの高い順でソート
 	sort.SliceStable(placesFiltered, func(i, j int) bool {
-		return placesFiltered[i].Rating > placesFiltered[j].Rating
+		return placesFiltered[i].Google.Rating > placesFiltered[j].Google.Rating
 	})
 
-	var googlePlacesToAdd []models.GooglePlace
+	var places []models.PlaceInPlanCandidate
 	for _, place := range placesFiltered {
-		categories := models.GetCategoriesFromSubCategories(place.Types)
-		if len(categories) == 0 {
+		if len(place.Categories()) == 0 {
 			continue
 		}
 
-		googlePlacesToAdd = append(googlePlacesToAdd, place)
+		places = append(places, place)
 	}
 
-	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
+	places = places[:nLimit]
+
+	var googlePlacesToAdd []models.GooglePlace
+	for _, place := range places {
+		googlePlacesToAdd = append(googlePlacesToAdd, place.Google)
+	}
 
 	// 写真を取得
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
@@ -96,8 +100,15 @@ func (s Service) FetchPlacesToReplace(
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	var placesToAdd []models.Place
-	for _, googlePlacesToAdd := range googlePlacesToAdd {
-		placesToAdd = append(placesToAdd, googlePlacesToAdd.ToPlace())
+	for _, place := range places {
+		for _, googlePlaceToAdd := range googlePlacesToAdd {
+			if googlePlaceToAdd.PlaceId != place.Google.PlaceId {
+				continue
+			}
+
+			place.Google = googlePlaceToAdd
+			placesToAdd = append(placesToAdd, place.ToPlace())
+		}
 	}
 
 	return placesToAdd, nil
