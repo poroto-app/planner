@@ -17,9 +17,9 @@ type CreatePlanParams struct {
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
-	// レビュー・写真を取得する
+	// レビュー・写真・価格帯を取得する
 	performanceTimer := time.Now()
-	placeIdToReviewAndImagesAndPriceLevel := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
+	placeIdToPlaceDetailData := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
 
 	ch := make(chan *models.Plan, len(params))
@@ -57,7 +57,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 
 			var places []models.Place
 			for i := 0; i < len(googlePlaces); i++ {
-				if value, ok := placeIdToReviewAndImagesAndPriceLevel[googlePlaces[i].PlaceId]; ok {
+				if value, ok := placeIdToPlaceDetailData[googlePlaces[i].PlaceId]; ok {
 					googlePlaces[i].Images = &value.Images
 					googlePlaces[i].Reviews = &value.Reviews
 					googlePlaces[i].PriceLevel = value.PriceLevel
@@ -86,15 +86,15 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	return plans
 }
 
-type reviewAndImagesAndPriceLevel struct {
+type placeDetail struct {
 	GooglePlaceId string
 	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
 	PriceLevel    *int
 }
 
-// fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
-func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImagesAndPriceLevel {
+// fetchPlaceDetailData は、指定された場所の写真・レビュー・値段帯を一括で取得し、保存する
+func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]placeDetail {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.GooglePlace)
 	for _, param := range params {
@@ -113,7 +113,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 	places = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places...)
 	places = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, places...)
 
-	placeIdToImages := make(map[string]reviewAndImagesAndPriceLevel)
+	placeIdToImages := make(map[string]placeDetail)
 	for _, place := range places {
 		var reviews []models.GooglePlaceReview
 		var images []models.Image
@@ -131,7 +131,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 			priceLevel = place.PriceLevel
 		}
 
-		placeIdToImages[place.PlaceId] = reviewAndImagesAndPriceLevel{
+		placeIdToImages[place.PlaceId] = placeDetail{
 			GooglePlaceId: place.PlaceId,
 			Reviews:       reviews,
 			Images:        images,
