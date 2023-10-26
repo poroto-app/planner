@@ -1,7 +1,7 @@
 package placefilter
 
 import (
-	"reflect"
+	"github.com/google/go-cmp/cmp"
 	"testing"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -11,21 +11,21 @@ func TestFuncFilterByCategory(t *testing.T) {
 	cases := []struct {
 		name                   string
 		includeGivenCategories bool
-		placesToFilter         []models.GooglePlace
+		placesToFilter         []models.PlaceInPlanCandidate
 		categories             []models.LocationCategory
-		expected               []models.GooglePlace
+		expected               []models.PlaceInPlanCandidate
 	}{
 		{
 			name:                   "should filter places by category and include given categories",
 			includeGivenCategories: true,
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					PlaceId: "Place_1",
-					Types:   []string{"museum"},
+					Id:     "Place_1",
+					Google: models.GooglePlace{Types: []string{"museum"}},
 				},
 				{
-					PlaceId: "Place_2",
-					Types:   []string{"atm"},
+					Id:     "Place_2",
+					Google: models.GooglePlace{Types: []string{"atm"}},
 				},
 			},
 			categories: []models.LocationCategory{
@@ -34,26 +34,24 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"museum"},
 				},
 			},
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					PlaceId: "Place_1",
-					Types:   []string{"museum"},
+					Id:     "Place_1",
+					Google: models.GooglePlace{Types: []string{"museum"}},
 				},
 			},
 		},
 		{
 			name:                   "should filter places by category and exclude given categories",
 			includeGivenCategories: false,
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					PlaceId: "Place_1",
-					Types: []string{
-						"museum",
-					},
+					Id:     "Place_1",
+					Google: models.GooglePlace{Types: []string{"museum"}},
 				},
 				{
-					PlaceId: "Place_2",
-					Types:   []string{"atm"},
+					Id:     "Place_2",
+					Google: models.GooglePlace{Types: []string{"atm"}},
 				},
 			},
 			categories: []models.LocationCategory{
@@ -62,10 +60,10 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"atm"},
 				},
 			},
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					PlaceId: "Place_1",
-					Types:   []string{"museum"},
+					Id:     "Place_1",
+					Google: models.GooglePlace{Types: []string{"museum"}},
 				},
 			},
 		},
@@ -74,8 +72,8 @@ func TestFuncFilterByCategory(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			actual := FilterByCategory(c.placesToFilter, c.categories, c.includeGivenCategories)
-			if !reflect.DeepEqual(c.expected, actual) {
-				t.Errorf("expected: %v\nactual: %v", c.expected, actual)
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("FilterByCategory() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

@@ -17,16 +17,16 @@ const (
 
 type CreatePlanPlacesParams struct {
 	locationStart                models.GeoLocation
-	placeStart                   models.GooglePlace
-	places                       []models.GooglePlace
-	placesOtherPlansContain      []models.GooglePlace
+	placeStart                   models.PlaceInPlanCandidate
+	places                       []models.PlaceInPlanCandidate
+	placesOtherPlansContain      []models.PlaceInPlanCandidate
 	freeTime                     *int
 	createBasedOnCurrentLocation bool
 	shouldOpenWhileTraveling     bool
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
-func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.GooglePlace, error) {
+func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.PlaceInPlanCandidate, error) {
 	placesFiltered := params.places
 
 	// 現在、開いている場所のみに絞る
@@ -37,7 +37,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
-		params.placeStart.Location,
+		params.placeStart.Location(),
 		0,
 		1500,
 	)
@@ -53,13 +53,13 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// 他のプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.GooglePlace) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
 		if params.placesOtherPlansContain == nil {
 			return true
 		}
 
 		for _, placeOtherPlanContain := range params.placesOtherPlansContain {
-			if place.PlaceId == placeOtherPlanContain.PlaceId {
+			if place.Id == placeOtherPlanContain.Id {
 				return false
 			}
 		}
@@ -69,18 +69,18 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	// レビューの高い順でソート
 	placesSorted := placesFiltered
 	sort.SliceStable(placesSorted, func(i, j int) bool {
-		return placesSorted[i].Rating > placesSorted[j].Rating
+		return placesSorted[i].Google.Rating > placesSorted[j].Google.Rating
 	})
 
-	placesInPlan := make([]models.GooglePlace, 0)
+	placesInPlan := make([]models.PlaceInPlanCandidate, 0)
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
-	if params.locationStart.Equal(params.placeStart.Location) {
+	if params.locationStart.Equal(params.placeStart.Location()) {
 		placesInPlan = append(placesInPlan, params.placeStart)
 	}
 
 	for _, place := range placesSorted {
-		if place.PlaceId == params.placeStart.PlaceId {
+		if place.Id == params.placeStart.Id {
 			continue
 		}
 
@@ -90,8 +90,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			models.CategoryMealTakeaway,
 			models.CategoryCafe,
 		}
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Types, categoriesFood) {
-			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Name)
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Google.Types, categoriesFood) {
+			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Google.Name)
 			continue
 		}
 
@@ -101,13 +101,13 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 		// 予定の時間内に収まらない場合はスキップ
 		if params.freeTime != nil && timeInPlan > uint(*params.freeTime) {
-			log.Printf("skip place %s because it will be over time\n", place.Name)
+			log.Printf("skip place %s because it will be over time\n", place.Google.Name)
 			continue
 		}
 
 		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
 		if params.freeTime == nil && timeInPlan > defaultMaxPlanDuration {
-			log.Printf("skip place %s because it will be over time\n", place.Name)
+			log.Printf("skip place %s because it will be over time\n", place.Google.Name)
 			continue
 		}
 
@@ -118,7 +118,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			time.Now(),
 			time.Minute*time.Duration(*params.freeTime),
 		) {
-			log.Printf("skip place %s because it will be closed\n", place.Name)
+			log.Printf("skip place %s because it will be closed\n", place.Google.Name)
 			continue
 		}
 
@@ -132,11 +132,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	return placesInPlan, nil
 }
 
-func isAlreadyHavePlaceCategoryOf(placesInPlan []models.GooglePlace, categories []models.LocationCategory) bool {
+func isAlreadyHavePlaceCategoryOf(placesInPlan []models.PlaceInPlanCandidate, categories []models.LocationCategory) bool {
 	var categoriesInPlan []models.LocationCategory
 	for _, place := range placesInPlan {
-		cs := models.GetCategoriesFromSubCategories(place.Types)
-		categoriesInPlan = append(categoriesInPlan, cs...)
+		categoriesInPlan = append(categoriesInPlan, place.Categories()...)
 	}
 
 	for _, category := range categories {
@@ -162,16 +161,16 @@ func isCategoryOf(placeTypes []string, categories []models.LocationCategory) boo
 }
 
 // sortPlacesByDistanceFrom location からplacesを巡回する最短経路をgreedy法で求める
-func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.GooglePlace) []models.GooglePlace {
-	placesSorted := make([]models.GooglePlace, len(places))
+func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+	placesSorted := make([]models.PlaceInPlanCandidate, len(places))
 	copy(placesSorted, places)
 
 	prevLocation := location
 	for i := 0; i < len(places); i++ {
 		nearestPlaceIndex := i
 		for j := i; j < len(places); j++ {
-			locationCurrent := placesSorted[j].Location
-			locationNearest := placesSorted[nearestPlaceIndex].Location
+			locationCurrent := placesSorted[j].Location()
+			locationNearest := placesSorted[nearestPlaceIndex].Location()
 
 			distanceFromCurrent := prevLocation.DistanceInMeter(locationCurrent)
 			distanceFromNearest := prevLocation.DistanceInMeter(locationNearest)
@@ -181,22 +180,22 @@ func sortPlacesByDistanceFrom(location models.GeoLocation, places []models.Googl
 		}
 
 		placesSorted[i], placesSorted[nearestPlaceIndex] = placesSorted[nearestPlaceIndex], placesSorted[i]
-		prevLocation = placesSorted[i].Location
+		prevLocation = placesSorted[i].Location()
 	}
 	return placesSorted
 }
 
 // planTimeFromPlaces プランの所要時間を計算する
-func planTimeFromPlaces(locationStart models.GeoLocation, places []models.GooglePlace) uint {
+func planTimeFromPlaces(locationStart models.GeoLocation, places []models.PlaceInPlanCandidate) uint {
 	prevLocation := locationStart
 	var planTimeInMinutes uint
 	for _, place := range places {
-		travelTime := prevLocation.TravelTimeTo(place.Location, 80.0)
+		travelTime := prevLocation.TravelTimeTo(place.Location(), 80.0)
 		planTimeInMinutes += travelTime
 
 		planTimeInMinutes += place.EstimatedStayDuration()
 
-		prevLocation = place.Location
+		prevLocation = place.Location()
 	}
 
 	return planTimeInMinutes

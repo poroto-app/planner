@@ -2,46 +2,45 @@ package models
 
 import (
 	"github.com/google/go-cmp/cmp"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"testing"
 )
 
-func TestHasPlace(t *testing.T) {
+func TestPlanCandidate_HasPlace(t *testing.T) {
 	cases := []struct {
 		name          string
 		planCandidate PlanCandidate
-		googlePlaceId string
+		placeId       string
 		expected      bool
 	}{
 		{
-			name: "Has place",
+			name: "Has place of placeId",
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
+						Places: []Place{{Id: "1"}},
 					},
 				},
 			},
-			googlePlaceId: "1",
-			expected:      true,
+			placeId:  "1",
+			expected: true,
 		},
 		{
-			name: "Does not have place",
+			name: "Does not have place of placeId",
 			planCandidate: PlanCandidate{
 				Plans: []Plan{
 					{
-						Places: []Place{{GooglePlaceId: utils.StrPointer("1")}},
+						Places: []Place{{Id: "1"}},
 					},
 				},
 			},
-			googlePlaceId: "2",
-			expected:      false,
+			placeId:  "2",
+			expected: false,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result := c.planCandidate.HasPlace(c.googlePlaceId)
+			result := c.planCandidate.HasPlace(c.placeId)
 			if result != c.expected {
 				t.Errorf("expected: %t\nactual: %t", c.expected, result)
 			}

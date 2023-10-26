@@ -7,7 +7,7 @@ import (
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	placesApi "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 const (
@@ -19,7 +19,7 @@ func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
 	createPlanSessionId string,
 ) (*[]models.Place, error) {
-	placesSearched, err := s.placeSearchResultRepository.Find(ctx, createPlanSessionId)
+	placesSaved, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (s Service) FetchCandidatePlaces(
 		return nil, err
 	}
 
-	placesFiltered := placesSearched
+	placesFiltered := *placesSaved
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
@@ -38,16 +38,17 @@ func (s Service) FetchCandidatePlaces(
 
 	placesSortedByRating := placesFiltered
 	sort.Slice(placesSortedByRating, func(i, j int) bool {
-		return placesSortedByRating[i].Rating > placesSortedByRating[j].Rating
+		return placesSortedByRating[i].Google.Rating > placesSortedByRating[j].Google.Rating
 	})
 
-	places := make([]models.Place, 0, len(placesSortedByRating))
+	placesToSuggest := make([]models.Place, 0, len(placesSortedByRating))
 	for _, place := range placesSortedByRating {
-		if planCandidate.HasPlace(place.PlaceId) {
+		if planCandidate.HasPlace(place.Id) {
 			continue
 		}
 
-		thumbnailImageUrl, err := s.placesApi.FetchPlacePhoto(place.PhotoReferences, placesApi.ImageSizeSmall())
+		// TODO: キャッシュする
+		thumbnailImageUrl, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeSmall())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)
 			continue
@@ -59,14 +60,14 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		place.Images = &[]models.Image{*image}
+		place.Google.Images = &[]models.Image{*image}
 
-		places = append(places, place.ToPlace())
+		placesToSuggest = append(placesToSuggest, place.ToPlace())
 
-		if len(places) >= maxAddablePlaces {
+		if len(placesToSuggest) >= maxAddablePlaces {
 			break
 		}
 	}
 
-	return &places, nil
+	return &placesToSuggest, nil
 }

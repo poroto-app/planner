@@ -3,7 +3,9 @@ package firestore
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/factory"
@@ -38,23 +40,15 @@ func NewGooglePlaceSearchResultRepository(ctx context.Context) (*GooglePlaceSear
 	}, nil
 }
 
-func (p GooglePlaceSearchResultRepository) Save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, place := range places {
-			doc := p.doc(planCandidateId, place.PlaceId)
-			if _, err := doc.Set(ctx, factory.PlaceEntityFromGooglePlace(place)); err != nil {
-				return fmt.Errorf("error while saving place search result: %v", err)
-			}
-		}
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while saving place search results: %v", err)
+func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, planCandidateId string, googlePlace models.GooglePlace) error {
+	doc := p.doc(planCandidateId, googlePlace.PlaceId)
+	if err := tx.Set(doc, factory.PlaceEntityFromGooglePlace(googlePlace)); err != nil {
+		return fmt.Errorf("error while saving place search result: %v", err)
 	}
-
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
+func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
 	collection := p.collection(planCandidateId)
 
 	snapshots, err := collection.Documents(ctx).GetAll()
@@ -89,7 +83,8 @@ func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandida
 	return places, nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+// TODO: 個々の画像をIDで区別できるようにする
+func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
 
 	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
@@ -111,7 +106,7 @@ func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Cont
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
 	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
 
 	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
@@ -133,26 +128,20 @@ func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Con
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	for _, planCandidateId := range planCandidateIds {
-		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-			collection := p.collection(planCandidateId)
+func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firestore.Transaction, planCandidateId string) error {
+	collection := p.collection(planCandidateId)
 
-			// collection内のドキュメントをすべて削除
-			snapshots, err := collection.Documents(ctx).GetAll()
-			if err != nil {
-				return fmt.Errorf("error while getting place search results: %v", err)
-			}
-
-			for _, snapshot := range snapshots {
-				if _, err := snapshot.Ref.Delete(ctx); err != nil {
-					return fmt.Errorf("error while deleting place search result: %v", err)
-				}
-			}
-
-			return nil
-		}, firestore.MaxAttempts(3)); err != nil {
-			return fmt.Errorf("error while deleting place search results: %v", err)
+	docIter := tx.DocumentRefs(collection)
+	for {
+		doc, err := docIter.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error while iterating documents: %v", err)
+		}
+		if err := tx.Delete(doc); err != nil {
+			return fmt.Errorf("error while deleting place search result: %v", err)
 		}
 	}
 
