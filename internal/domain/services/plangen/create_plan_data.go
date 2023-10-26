@@ -60,7 +60,6 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
 					placesInPlanCandidate[i].Google.Images = &value.Images
 					placesInPlanCandidate[i].Google.Reviews = &value.Reviews
-					placesInPlanCandidate[i].Google.PriceLevel = value.PriceLevel
 				}
 				places = append(places, placesInPlanCandidate[i].ToPlace())
 			}
@@ -91,7 +90,6 @@ type placeDetail struct {
 	GooglePlaceId string
 	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
-	PriceLevel    *int
 }
 
 // fetchPlaceDetailData は、指定された場所の写真・レビュー・値段帯を一括で取得し、保存する
@@ -141,7 +139,6 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 				GooglePlaceId: place.Google.PlaceId,
 				Reviews:       reviews,
 				Images:        images,
-				PriceLevel:    googlePlace.PriceLevel,
 			}
 
 			break
