@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"log"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,117 +11,71 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 	cases := []struct {
 		name     string
 		entity   PlanInCandidateEntity
+		places   []models.PlaceInPlanCandidate
 		expected *models.Plan
 	}{
 		{
-			name: "順序指定ID配列に重複がある場合は空のプランを返す",
+			name: "正常系",
 			entity: PlanInCandidateEntity{
-				Id:   "duplication",
-				Name: "プラン候補A",
-				Places: []PlaceEntity{
-					{
-						Id: "01",
-					},
-					{
-						Id: "02",
-					},
-				},
-				PlaceIdsOrdered: []string{
-					"01",
-					"01",
-				},
+				PlaceIdsOrdered: []string{"02", "01"},
 			},
-			expected: nil,
-		},
-		{
-			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は空のプランを返す",
-			entity: PlanInCandidateEntity{
-				Id:   "inconsistent",
-				Name: "プラン候補A",
-				Places: []PlaceEntity{
-					{
-						Id: "01",
-					},
-					{
-						Id: "02",
-					},
-				},
-				PlaceIdsOrdered: []string{
-					"10",
-					"20",
-				},
-			},
-			expected: nil,
-		},
-		{
-			name: "順序指定ID配列と場所一覧の数が合わない場合は空のプランを返す",
-			entity: PlanInCandidateEntity{
-				Id:   "over_ids",
-				Name: "プラン候補A",
-				Places: []PlaceEntity{
-					{
-						Id: "01",
-					},
-					{
-						Id: "02",
-					},
-				},
-				PlaceIdsOrdered: []string{
-					"01",
-					"02",
-					"03",
-				},
-			},
-			expected: nil,
-		},
-		{
-			name: "正常な場合はプラン作成時から場所一覧の順序が並び替えられたプランを返す",
-			entity: PlanInCandidateEntity{
-				Id:   "correct",
-				Name: "プラン候補A",
-				Places: []PlaceEntity{
-					{
-						Id: "01",
-					},
-					{
-						Id: "02",
-					},
-				},
-				PlaceIdsOrdered: []string{
-					"02",
-					"01",
-				},
+			places: []models.PlaceInPlanCandidate{
+				{Id: "01"},
+				{Id: "02"},
 			},
 			expected: &models.Plan{
-				Id:   "correct",
-				Name: "プラン候補A",
 				Places: []models.Place{
-					{
-						Id: "02",
-					},
-					{
-						Id: "01",
-					},
+					{Id: "02"},
+					{Id: "01"},
 				},
-				TimeInMinutes: 0,
 			},
+		},
+		{
+			name: "placeIdsOrdered に重複がある場合は nil を返す",
+			entity: PlanInCandidateEntity{
+				PlaceIdsOrdered: []string{"01", "01"},
+			},
+			places: []models.PlaceInPlanCandidate{
+				{Id: "01"},
+				{Id: "02"},
+			},
+			expected: nil,
+		},
+		{
+			name: "placeIdsOrdered と places の示す場所が一致しない場合はnilを返す",
+			entity: PlanInCandidateEntity{
+				PlaceIdsOrdered: []string{"10", "20"},
+			},
+			places: []models.PlaceInPlanCandidate{
+				{Id: "01"},
+				{Id: "02"},
+			},
+			expected: nil,
+		},
+		{
+			name: "placeIdsOrdered と places の大きさが一致しない場合は場合はnil",
+			entity: PlanInCandidateEntity{
+				PlaceIdsOrdered: []string{"01", "02", "03"},
+			},
+			places: []models.PlaceInPlanCandidate{
+				{Id: "01"},
+				{Id: "02"},
+			},
+			expected: nil,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result, err := FromPlanInCandidateEntity(
+			result, _ := FromPlanInCandidateEntity(
 				c.entity.Id,
 				c.entity.Name,
-				c.entity.Places,
+				c.places,
 				c.entity.PlaceIdsOrdered,
 				c.entity.TimeInMinutes,
 			)
-			if err != nil {
-				log.Printf("error occur while in converting entity to domain model: [%v]", err)
-			}
 			if diff := cmp.Diff(c.expected, result); diff != "" {
-				t.Errorf("expected %v, but got %v", c.expected, result)
+				t.Errorf("FromPlanInCandidateEntity() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -131,101 +84,59 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 func TestValidatePlanInCandidateEntity(t *testing.T) {
 	cases := []struct {
 		name            string
-		entity          []PlaceEntity
 		placeIdsOrdered []string
-		expected        bool
+		places          []models.Place
+		valid           bool
 	}{
 		{
-			name: "順序指定ID配列に重複がある場合は false",
-			entity: []PlaceEntity{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
+			name:            "正常系",
+			placeIdsOrdered: []string{"02", "01"},
+			places: []models.Place{
+				{Id: "01"},
+				{Id: "02"},
 			},
-			placeIdsOrdered: []string{
-				"01",
-				"01",
-			},
-			expected: false,
+			valid: true,
 		},
 		{
-			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は false",
-			entity: []PlaceEntity{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
+			name:            "placeIdsOrdered に重複がある場合は false",
+			placeIdsOrdered: []string{"01", "01"},
+			places: []models.Place{
+				{Id: "01"},
+				{Id: "02"},
 			},
-			placeIdsOrdered: []string{
-				"10",
-				"20",
-			},
-			expected: false,
+			valid: false,
 		},
 		{
-			name: "順序指定ID配列と場所一覧の示す場所が一致しない場合は false",
-			entity: []PlaceEntity{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
+			name:            "placeIdsOrdered と places の示す場所が一致しない場合は false",
+			placeIdsOrdered: []string{"10", "20"},
+			places: []models.Place{
+				{Id: "01"},
+				{Id: "02"},
 			},
-			placeIdsOrdered: []string{
-				"10",
-				"20",
-			},
-			expected: false,
+			valid: false,
 		},
 		{
-			name: "順序指定ID配列と場所一覧の数が合わない場合は false",
-			entity: []PlaceEntity{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
-			},
-			placeIdsOrdered: []string{
-				"01",
-				"02",
-				"03",
-			},
-			expected: false,
+			name:            "placeIdsOrdered と places の示す場所が一致しない場合は false",
+			placeIdsOrdered: []string{"10", "20"},
+			valid:           false,
 		},
 		{
-			name: "正常な場合は true",
-			entity: []PlaceEntity{
-				{
-					Id: "01",
-				},
-				{
-					Id: "02",
-				},
-			},
-			placeIdsOrdered: []string{
-				"02",
-				"01",
-			},
-			expected: true,
+			name:            "placeIdsOrdered と places の大きさが一致しない場合は false",
+			placeIdsOrdered: []string{"01", "02", "03"},
+			valid:           false,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result := validatePlanInCandidateEntity(
-				c.entity,
+			err := validatePlaceInPlanCandidateEntity(
+				c.places,
 				c.placeIdsOrdered,
 			)
-			if diff := cmp.Diff(c.expected, result); diff != "" {
-				t.Errorf("expected %v, but got %v", c.expected, result)
+
+			result := err == nil
+			if diff := cmp.Diff(c.valid, result); diff != "" {
+				t.Errorf("valid %v, but got %v", c.valid, result)
 			}
 		})
 	}

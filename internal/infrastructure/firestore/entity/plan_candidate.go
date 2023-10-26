@@ -26,18 +26,18 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity) models.PlanCandidate {
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, places []models.PlaceInPlanCandidate) models.PlanCandidate {
 	plans := make([]models.Plan, 0)
 	for _, planEntity := range entity.Plans {
 		plan, err := FromPlanInCandidateEntity(
 			planEntity.Id,
 			planEntity.Name,
-			planEntity.Places,
+			places,
 			planEntity.PlaceIdsOrdered,
 			planEntity.TimeInMinutes,
 		)
 		if err != nil {
-			log.Printf("error occur while in converting entity to domain model: [%v]", err)
+			log.Printf("error occur while in converting entity.PlanCandidateEntity to models.PlanCandidate: %v", err)
 			continue
 		}
 

@@ -2,7 +2,9 @@ package firestore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"os"
 	"time"
 
@@ -20,7 +22,8 @@ const (
 )
 
 type PlanCandidateFirestoreRepository struct {
-	client *firestore.Client
+	client                         *firestore.Client
+	placeInPlanCandidateRepository *PlaceInPlanCandidateRepository
 }
 
 func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRepository, error) {
@@ -34,8 +37,14 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
 
+	placeInPlanCandidateRepository, err := NewPlaceInPlanCandidateRepository(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing placeInPlanCandidateRepository: %v", err)
+	}
+
 	return &PlanCandidateFirestoreRepository{
-		client: client,
+		client:                         client,
+		placeInPlanCandidateRepository: placeInPlanCandidateRepository,
 	}, nil
 }
 
@@ -84,39 +93,36 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
+	places, err := p.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places: %v", err)
+	}
+
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, *places)
 
 	return &planCandidate, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]models.PlanCandidate, error) {
-	var planCandidates []models.PlanCandidate
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		query := p.collection().Where("expires_at", "<=", expiresAt)
-		snapshots, err := tx.Documents(query).GetAll()
+func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
+	var planCandidateIds []string
+
+	query := p.collection().Where("expires_at", "<=", expiresAt)
+	docIter := query.Documents(ctx)
+	for {
+		doc, err := docIter.Next()
 		if err != nil {
-			return fmt.Errorf("error while getting all plan candidates: %v", err)
-		}
-
-		for _, snapshot := range snapshots {
-			var planCandidateEntity entity.PlanCandidateEntity
-			if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+			if errors.Is(err, iterator.Done) {
+				break
 			}
-
-			// この関数は削除でのみもちいるため、メタデータの取得はできていなくても良い
-			planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, entity.PlanCandidateMetaDataV1Entity{})
-			planCandidates = append(planCandidates, planCandidate)
+			return nil, fmt.Errorf("error while iterating plan candidate: %v", err)
 		}
-
-		return nil
-	}); err != nil {
-		return nil, fmt.Errorf("error while finding expired plan candidates: %v", err)
+		planCandidateIds = append(planCandidateIds, doc.Ref.ID)
 	}
 
-	return &planCandidates, nil
+	return &planCandidateIds, nil
 }
 
+// TODO: errorだけを返すようにする
 func (p *PlanCandidateFirestoreRepository) AddPlan(
 	ctx context.Context,
 	planCandidateId string,
@@ -171,7 +177,12 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 	}
 
-	planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity)
+	places, err := p.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places: %v", err)
+	}
+
+	planCandidate = entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, *places)
 
 	return &planCandidate, nil
 }
@@ -205,8 +216,8 @@ func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, p
 			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
 		}
 
+		// TODO: Planを別のサブコレクションに分ける
 		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
-		planEntityToUpdate.Places = append(planEntityToUpdate.Places, entity.ToPlaceEntity(place))
 		planEntityToUpdate.PlaceIdsOrdered = append(planEntityToUpdate.PlaceIdsOrdered, place.Id)
 		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
 
@@ -272,15 +283,7 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
 		}
 
-		// places から削除
 		planEntityToUpdate := planCandidateEntity.Plans[*planIndex]
-		var places []entity.PlaceEntity
-		for _, place := range planEntityToUpdate.Places {
-			if place.Id != placeId {
-				places = append(places, place)
-			}
-		}
-
 		// placeIdsOrdered から削除
 		var placeIdsOrdered []string
 		for _, placeIdOrdered := range planEntityToUpdate.PlaceIdsOrdered {
@@ -289,7 +292,6 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 			}
 		}
 
-		planEntityToUpdate.Places = places
 		planEntityToUpdate.PlaceIdsOrdered = placeIdsOrdered
 		planCandidateEntity.Plans[*planIndex] = planEntityToUpdate
 
@@ -370,16 +372,6 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 			return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
 		}
 
-		// Placeを取得
-		var places []entity.PlaceEntity
-		for _, place := range planCandidateEntity.Plans[*planIndex].Places {
-			if place.Id == placeIdToBeReplaced {
-				places = append(places, entity.ToPlaceEntity(placeToReplace))
-			} else {
-				places = append(places, place)
-			}
-		}
-
 		// 順番を更新
 		var placeIndex *int
 		for i, placeId := range planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered {
@@ -393,7 +385,6 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 			return fmt.Errorf("place[%s] not found in plan[%s] in plan candidate[%s]", placeIdToBeReplaced, planId, planCandidateId)
 		}
 
-		planCandidateEntity.Plans[*planIndex].Places = places
 		planCandidateEntity.Plans[*planIndex].PlaceIdsOrdered[*placeIndex] = placeToReplace.Id
 
 		if err := tx.Update(doc, []firestore.Update{
