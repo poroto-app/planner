@@ -8,41 +8,39 @@ import (
 )
 
 type PlanCandidateEntity struct {
-	Id        string                  `firestore:"id"`
-	Plans     []PlanInCandidateEntity `firestore:"plans"`
-	ExpiresAt time.Time               `firestore:"expires_at"`
+	Id        string    `firestore:"id"`
+	PlanIds   []string  `firestore:"plan_ids"`
+	ExpiresAt time.Time `firestore:"expires_at"`
 }
 
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
-	plans := make([]PlanInCandidateEntity, len(planCandidate.Plans))
+	plansIds := make([]string, len(planCandidate.Plans))
 	for i, plan := range planCandidate.Plans {
-		plans[i] = ToPlanInCandidateEntity(plan)
+		plansIds[i] = plan.Id
 	}
 
 	return PlanCandidateEntity{
 		Id:        planCandidate.Id,
-		Plans:     plans,
+		PlanIds:   plansIds,
 		ExpiresAt: planCandidate.ExpiresAt,
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity) models.PlanCandidate {
-	plans := make([]models.Plan, 0)
-	for _, planEntity := range entity.Plans {
-		plan, err := FromPlanInCandidateEntity(
-			planEntity.Id,
-			planEntity.Name,
-			planEntity.Places,
-			planEntity.PlaceIdsOrdered,
-			planEntity.TimeInMinutes,
-		)
-		if err != nil {
-			log.Printf("error occur while in converting entity to domain model: [%v]", err)
-			continue
-		}
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.PlaceInPlanCandidate) models.PlanCandidate {
+	var plans []models.Plan
+	for _, planId := range entity.PlanIds {
+		for _, place := range planEntities {
+			if place.Id != planId {
+				continue
+			}
 
-		// エラーを含むプランが存在した場合，正常なプランだけを返す
-		plans = append(plans, *plan)
+			plan, err := FromPlanInCandidateEntity(planId, place.Name, places, place.PlaceIdsOrdered, place.TimeInMinutes)
+			if err != nil {
+				log.Printf("error while converting entity.PlanCandidateEntity to models.PlanCandidate: %v", err)
+			}
+
+			plans = append(plans, *plan)
+		}
 	}
 
 	return models.PlanCandidate{

@@ -301,5 +301,10 @@ func GetCategoriesFromSubCategories(subCategories []string) []LocationCategory {
 			categoryNames = append(categoryNames, category.Name)
 		}
 	}
+
+	if len(categories) == 0 {
+		return nil
+	}
+
 	return categories
 }

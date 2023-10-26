@@ -6,14 +6,16 @@ import (
 )
 
 type ImageEntity struct {
-	Small *string `firestore:"small,omitempty"`
-	Large *string `firestore:"large,omitempty"`
+	GooglePlaceId string  `firestore:"google_place_id"`
+	Small         *string `firestore:"small,omitempty"`
+	Large         *string `firestore:"large,omitempty"`
 }
 
-func ToImageEntity(image models.Image) ImageEntity {
+func ToImageEntity(googlePlaceId string, image models.Image) ImageEntity {
 	return ImageEntity{
-		Small: utils.StrCopyPointerValue(image.Small),
-		Large: utils.StrCopyPointerValue(image.Large),
+		GooglePlaceId: googlePlaceId,
+		Small:         utils.StrCopyPointerValue(image.Small),
+		Large:         utils.StrCopyPointerValue(image.Large),
 	}
 }
 
