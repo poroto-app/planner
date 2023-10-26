@@ -5,8 +5,7 @@
 erDiagram
     PlanCandidate
     Plan {
-    %% TODO: PlaceRepositoryに保存した値を取得するようにする
-        Places Place[]
+        placeIds string[]
     }
     Place {
         id string
