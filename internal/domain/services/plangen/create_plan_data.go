@@ -17,7 +17,7 @@ type CreatePlanParams struct {
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
-	// レビュー・写真・価格帯を取得する
+	// レビュー・写真を取得する
 	performanceTimer := time.Now()
 	placeIdToPlaceDetailData := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
@@ -92,7 +92,7 @@ type placeDetail struct {
 	Images        []models.Image
 }
 
-// fetchPlaceDetailData は、指定された場所の写真・レビュー・値段帯を一括で取得し、保存する
+// fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
 func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]placeDetail {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.PlaceInPlanCandidate)
