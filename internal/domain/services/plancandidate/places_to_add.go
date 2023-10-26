@@ -75,9 +75,6 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// 口コミを取得
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
-	// 価格帯を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, googlePlacesToAdd...)
-
 	placesToAdd := make([]models.Place, len(googlePlacesToAdd))
 	for i, place := range googlePlacesToAdd {
 		placesToAdd[i] = place.ToPlace()

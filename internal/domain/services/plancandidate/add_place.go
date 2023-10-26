@@ -65,11 +65,6 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 	log.Printf("Successfully fetched reviews for places for plan candidate: %v\n", planCandidateId)
 
-	// 価格帯を取得
-	log.Printf("Fetching price level for places for plan candidate: %v\n", planCandidateId)
-	googlePlaces = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, googlePlaces...)
-	log.Printf("Successfully fetched price level for places for plan candidate: %v\n", planCandidateId)
-
 	placeToAdd := googlePlaces[0].ToPlace()
 
 	// プランに指定された場所を追加

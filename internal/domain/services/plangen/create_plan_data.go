@@ -111,7 +111,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 
 	places = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places...)
 	places = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places...)
-	places = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, places...)
+	//places = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, places...)
 
 	placeIdToImages := make(map[string]placeDetail)
 	for _, place := range places {
