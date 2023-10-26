@@ -185,7 +185,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 
 	planCandidateUpdated, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
 	}
 	return planCandidateUpdated, nil
 }
