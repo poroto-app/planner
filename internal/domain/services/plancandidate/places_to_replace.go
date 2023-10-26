@@ -3,20 +3,22 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"sort"
-
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"sort"
 )
 
-// FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する
-// nLimit によって取得する場所の数を制限することができる
-func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, planId string, nLimit uint) ([]models.Place, error) {
+func (s Service) FetchPlacesToReplace(
+	ctx context.Context,
+	planCandidateId string,
+	planId string,
+	placeId string,
+	nLimit uint,
+) ([]models.Place, error) {
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}
-
 	var plan *models.Plan
 	for _, p := range planCandidate.Plans {
 		if p.Id == planId {
@@ -28,12 +30,23 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		return nil, fmt.Errorf("plan not found")
 	}
 
-	placesSaved, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	var placeToReplace *models.Place
+	for _, placeInPlan := range plan.Places {
+		if placeInPlan.Id != placeId {
+			placeToReplace = &placeInPlan
+			break
+		}
+	}
+	if placeToReplace == nil {
+		return nil, fmt.Errorf("place to replace not found")
+	}
+
+	placesSearched, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
 
-	placesFiltered := *placesSaved
+	placesFiltered := *placesSearched
 
 	// 重複した場所を削除
 	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
@@ -48,45 +61,54 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
 		for _, placeInPlan := range plan.Places {
-			if placeInPlan.GooglePlaceId == nil {
-				return false
-			}
-
-			if *placeInPlan.GooglePlaceId == place.Id {
+			if placeInPlan.Id == place.Id {
 				return false
 			}
 		}
 		return true
 	})
 
+	// 指定された場所と同じカテゴリの場所を選択
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories, true)
+
 	// レビューの高い順でソート
 	sort.SliceStable(placesFiltered, func(i, j int) bool {
 		return placesFiltered[i].Google.Rating > placesFiltered[j].Google.Rating
 	})
 
-	// TODO: すべてのカテゴリの場所が表示されるようにする
-	var googlePlacesToAdd []models.GooglePlace
+	var places []models.PlaceInPlanCandidate
 	for _, place := range placesFiltered {
+		if len(place.Categories()) == 0 {
+			continue
+		}
+
+		places = append(places, place)
+	}
+
+	if len(places) > int(nLimit) {
+		places = places[:nLimit]
+	}
+
+	var googlePlacesToAdd []models.GooglePlace
+	for _, place := range places {
 		googlePlacesToAdd = append(googlePlacesToAdd, place.Google)
 	}
 
-	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
-
 	// 写真を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	// 口コミを取得
 	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	var placesToAdd []models.Place
-	for _, place := range placesFiltered {
-		for _, googlePlace := range googlePlacesToAdd {
-			if googlePlace.PlaceId != place.Google.PlaceId {
+	for _, place := range places {
+		for _, googlePlaceToAdd := range googlePlacesToAdd {
+			if googlePlaceToAdd.PlaceId != place.Google.PlaceId {
 				continue
 			}
-			place.Google = googlePlace
+
+			place.Google = googlePlaceToAdd
 			placesToAdd = append(placesToAdd, place.ToPlace())
-			break
 		}
 	}
 

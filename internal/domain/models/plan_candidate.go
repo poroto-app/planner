@@ -9,14 +9,10 @@ type PlanCandidate struct {
 	ExpiresAt time.Time
 }
 
-func (p PlanCandidate) HasPlace(googlePlaceId string) bool {
+func (p PlanCandidate) HasPlace(placeId string) bool {
 	for _, plan := range p.Plans {
 		for _, place := range plan.Places {
-			if place.GooglePlaceId == nil {
-				continue
-			}
-
-			if googlePlaceId == *place.GooglePlaceId {
+			if placeId == place.Id {
 				return true
 			}
 		}

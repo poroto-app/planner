@@ -9,66 +9,86 @@ import (
 func TestFilterByRating(t *testing.T) {
 	cases := []struct {
 		name                   string
-		placesToFilter         []models.GooglePlace
+		placesToFilter         []models.PlaceInPlanCandidate
 		lowestRating           float32
 		lowestUserRatingsTotal int
-		expected               []models.GooglePlace
+		expected               []models.PlaceInPlanCandidate
 	}{
 		{
 			name: "should filter by rating",
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					Rating:           2.9,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           2.9,
+						UserRatingsTotal: 10,
+					},
 				},
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 10,
+					},
 				},
 				{
-					Rating:           3.1,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.1,
+						UserRatingsTotal: 10,
+					},
 				},
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 10,
+					},
 				},
 				{
-					Rating:           3.1,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.1,
+						UserRatingsTotal: 10,
+					},
 				},
 			},
 		},
 		{
 			name: "should filter by user ratings total",
-			placesToFilter: []models.GooglePlace{
+			placesToFilter: []models.PlaceInPlanCandidate{
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 9,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 9,
+					},
 				},
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 10,
+					},
 				},
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 11,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 11,
+					},
 				},
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []models.GooglePlace{
+			expected: []models.PlaceInPlanCandidate{
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 10,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 10,
+					},
 				},
 				{
-					Rating:           3.0,
-					UserRatingsTotal: 11,
+					Google: models.GooglePlace{
+						Rating:           3.0,
+						UserRatingsTotal: 11,
+					},
 				},
 			},
 		},

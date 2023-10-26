@@ -9,9 +9,9 @@ import (
 )
 
 type Service struct {
-	placesApi                   places.PlacesApi
-	placeSearchResultRepository repository.GooglePlaceSearchResultRepository
-	planCandidateRepository     repository.PlanCandidateRepository
+	placesApi                      places.PlacesApi
+	placeInPlanCandidateRepository repository.PlaceInPlanCandidateRepository
+	planCandidateRepository        repository.PlanCandidateRepository
 }
 
 func NewPlaceService(ctx context.Context) (*Service, error) {
@@ -20,7 +20,7 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing places api: %v", err)
 	}
 
-	placeSearchResultRepository, err := firestore.NewGooglePlaceSearchResultRepository(ctx)
+	placeInPlanCandidateRepository, err := firestore.NewPlaceInPlanCandidateRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +31,8 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 	}
 
 	return &Service{
-		placesApi:                   *placesApi,
-		placeSearchResultRepository: placeSearchResultRepository,
-		planCandidateRepository:     planCandidateRepository,
+		placesApi:                      *placesApi,
+		placeInPlanCandidateRepository: *placeInPlanCandidateRepository,
+		planCandidateRepository:        planCandidateRepository,
 	}, nil
 }

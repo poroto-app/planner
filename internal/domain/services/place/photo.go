@@ -92,7 +92,7 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 			continue
 		}
 
-		if err := s.placeSearchResultRepository.SaveImagesIfNotExist(ctx, planCandidateId, place.PlaceId, *place.Images); err != nil {
+		if err := s.placeInPlanCandidateRepository.SaveGoogleImages(ctx, planCandidateId, place.PlaceId, *place.Images); err != nil {
 			continue
 		}
 	}

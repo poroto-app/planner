@@ -5,13 +5,13 @@ import (
 )
 
 func FilterWithinDistanceRange(
-	placesToFilter []models.GooglePlace,
+	placesToFilter []models.PlaceInPlanCandidate,
 	currentLocation models.GeoLocation,
 	startInMeter float64,
 	endInMeter float64,
-) []models.GooglePlace {
-	return FilterPlaces(placesToFilter, func(place models.GooglePlace) bool {
-		distance := currentLocation.DistanceInMeter(place.Location)
+) []models.PlaceInPlanCandidate {
+	return FilterPlaces(placesToFilter, func(place models.PlaceInPlanCandidate) bool {
+		distance := currentLocation.DistanceInMeter(place.Location())
 		return startInMeter <= distance && distance < endInMeter
 	})
 }

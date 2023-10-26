@@ -3,13 +3,15 @@ package plancandidate
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // TODO: PlanGeneratorServiceに持っていく
@@ -23,11 +25,16 @@ func (s Service) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	if err := s.placeSearchResultRepository.Save(ctx, createPlanSessionId, placesSearched); err != nil {
+	places := make([]models.PlaceInPlanCandidate, 0)
+	for _, googlePlace := range placesSearched {
+		places = append(places, factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace))
+	}
+
+	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, createPlanSessionId, places); err != nil {
 		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
 	}
 
-	placesFiltered := placesSearched
+	placesFiltered := places
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 	placesFiltered = placefilter.FilterCompany(placesFiltered)
@@ -43,7 +50,7 @@ func (s Service) CategoriesNearLocation(
 
 	// 検索された場所のカテゴリとその写真を取得
 	categories := make([]models.LocationCategory, 0)
-	placesUsedOfCategory := make([]models.GooglePlace, 0)
+	placesUsedOfCategory := make([]models.PlaceInPlanCandidate, 0)
 	for _, categoryPlaces := range placeCategoryGroups {
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
@@ -51,21 +58,22 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.GooglePlace) bool {
-			return placefilter.FindById(placesUsedOfCategory, place.PlaceId) == nil
+		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.PlaceInPlanCandidate) bool {
+			return placefilter.FindById(placesUsedOfCategory, place.Id) == nil
 		})
 
 		// カテゴリと関連の強い場所から順に写真を取得する
 		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
 		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
-			return indexOfCategory(placesSortedByCategoryIndex[i], *category) < indexOfCategory(placesSortedByCategoryIndex[j], *category)
+			return placesSortedByCategoryIndex[i].Google.IndexOfCategory(*category) < placesSortedByCategoryIndex[j].Google.IndexOfCategory(*category)
 		})
 
 		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
 		for _, place := range placesSortedByCategoryIndex {
-			placePhoto, err := s.placesApi.FetchPlacePhoto(place.PhotoReferences, places.ImageSizeLarge())
+			// TODO: キャッシュ
+			placePhoto, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeLarge())
 			if err != nil {
-				log.Printf("error while fetching place photo: %v\n", err)
+				log.Printf("error while fetching googlePlace photo: %v\n", err)
 				continue
 			}
 			if placePhoto != nil {
@@ -83,25 +91,25 @@ func (s Service) CategoriesNearLocation(
 
 type groupPlacesByCategoryResult struct {
 	category string
-	places   []models.GooglePlace
+	places   []models.PlaceInPlanCandidate
 }
 
 // groupPlacesByCategory は場所をカテゴリごとにグループ化する
 // 同じ場所が複数のカテゴリに含まれることがある
-func groupPlacesByCategory(placesToGroup []models.GooglePlace) []groupPlacesByCategoryResult {
-	locationsGroupByCategory := make(map[string][]models.GooglePlace, 0)
-	for _, location := range placesToGroup {
-		for _, subCategory := range location.Types {
+func groupPlacesByCategory(placesToGroup []models.PlaceInPlanCandidate) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]models.PlaceInPlanCandidate, 0)
+	for _, place := range placesToGroup {
+		for _, subCategory := range place.Google.Types {
 			category := models.CategoryOfSubCategory(subCategory)
 			if category == nil {
 				continue
 			}
 
 			if _, ok := locationsGroupByCategory[category.Name]; ok {
-				locationsGroupByCategory[category.Name] = []models.GooglePlace{}
+				locationsGroupByCategory[category.Name] = []models.PlaceInPlanCandidate{}
 			}
 
-			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], location)
+			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], place)
 		}
 	}
 
@@ -114,15 +122,4 @@ func groupPlacesByCategory(placesToGroup []models.GooglePlace) []groupPlacesByCa
 	}
 
 	return result
-}
-
-// indexOfCategory は models.GooglePlace.Types 中の`category`に対応するTypeのインデックスを返す
-func indexOfCategory(place models.GooglePlace, category models.LocationCategory) int {
-	for i, placeType := range place.Types {
-		c := models.CategoryOfSubCategory(placeType)
-		if c.Name == category.Name {
-			return i
-		}
-	}
-	return -1
 }

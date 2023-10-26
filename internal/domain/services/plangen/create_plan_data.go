@@ -11,8 +11,8 @@ import (
 
 type CreatePlanParams struct {
 	locationStart models.GeoLocation
-	placeStart    models.GooglePlace
-	places        []models.GooglePlace
+	placeStart    models.PlaceInPlanCandidate
+	places        []models.PlaceInPlanCandidate
 }
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
@@ -26,23 +26,23 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 
 	for _, param := range params {
 		go func(ctx context.Context, param CreatePlanParams, ch chan<- *models.Plan) {
-			googlePlaces := param.places
+			placesInPlanCandidate := param.places
 
-			googlePlaces = sortPlacesByDistanceFrom(param.locationStart, googlePlaces)
-			timeInPlan := planTimeFromPlaces(param.locationStart, googlePlaces)
+			placesInPlanCandidate = sortPlacesByDistanceFrom(param.locationStart, placesInPlanCandidate)
+			timeInPlan := planTimeFromPlaces(param.locationStart, placesInPlanCandidate)
 
 			// プランのタイトルを生成
 			chPlanTitle := make(chan string, 1)
-			go func(ctx context.Context, places []models.GooglePlace, chPlanTitle chan<- string) {
+			go func(ctx context.Context, chPlanTitle chan<- string) {
 				performanceTimer := time.Now()
 				title, err := s.GeneratePlanTitle(param.places)
 				if err != nil {
 					log.Printf("error while generating plan title: %v\n", err)
-					title = &param.placeStart.Name
+					title = &param.placeStart.Google.Name
 				}
 				log.Printf("generating plan title took %v\n", time.Since(performanceTimer))
 				chPlanTitle <- *title
-			}(ctx, googlePlaces, chPlanTitle)
+			}(ctx, chPlanTitle)
 
 			// タイトル生成には2秒以上かかる場合があるため、タイムアウト処理を行う
 			var title string
@@ -52,17 +52,17 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				chTitleTimeOut.Stop()
 			case <-chTitleTimeOut.C:
 				log.Printf("timeout while generating plan title\n")
-				title = param.placeStart.Name
+				title = param.placeStart.Google.Name
 			}
 
 			var places []models.Place
-			for i := 0; i < len(googlePlaces); i++ {
-				if value, ok := placeIdToPlaceDetailData[googlePlaces[i].PlaceId]; ok {
-					googlePlaces[i].Images = &value.Images
-					googlePlaces[i].Reviews = &value.Reviews
-					googlePlaces[i].PriceLevel = value.PriceLevel
+			for i := 0; i < len(placesInPlanCandidate); i++ {
+				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
+					placesInPlanCandidate[i].Google.Images = &value.Images
+					placesInPlanCandidate[i].Google.Reviews = &value.Reviews
+					placesInPlanCandidate[i].Google.PriceLevel = value.PriceLevel
 				}
-				places = append(places, googlePlaces[i].ToPlace())
+				places = append(places, placesInPlanCandidate[i].ToPlace())
 			}
 
 			ch <- &models.Plan{
@@ -87,6 +87,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 }
 
 type placeDetail struct {
+	PlaceId       string
 	GooglePlaceId string
 	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
@@ -96,48 +97,56 @@ type placeDetail struct {
 // fetchPlaceDetailData は、指定された場所の写真・レビュー・値段帯を一括で取得し、保存する
 func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]placeDetail {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
-	placeIdToPlace := make(map[string]models.GooglePlace)
+	placeIdToPlace := make(map[string]models.PlaceInPlanCandidate)
 	for _, param := range params {
 		for _, place := range param.places {
-			placeIdToPlace[place.PlaceId] = place
+			placeIdToPlace[place.Id] = place
 		}
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する
-	places := make([]models.GooglePlace, 0, len(placeIdToPlace))
+	places := make([]models.PlaceInPlanCandidate, 0, len(placeIdToPlace))
 	for _, place := range placeIdToPlace {
 		places = append(places, place)
 	}
 
-	places = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, places...)
-	places = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, places...)
-	//places = s.placeService.FetchPlacesPriceLevelAndSave(ctx, planCandidateId, places...)
-
-	placeIdToImages := make(map[string]placeDetail)
+	var googlePlaces []models.GooglePlace
 	for _, place := range places {
-		var reviews []models.GooglePlaceReview
-		var images []models.Image
-		var priceLevel *int
+		googlePlaces = append(googlePlaces, place.Google)
+	}
 
-		if place.Reviews != nil {
-			reviews = *place.Reviews
-		}
+	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
+	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 
-		if place.Images != nil {
-			images = *place.Images
-		}
+	placeIdToPlaceDetail := make(map[string]placeDetail)
+	for _, place := range places {
+		for _, googlePlace := range googlePlaces {
+			if place.Google.PlaceId != googlePlace.PlaceId {
+				continue
+			}
 
-		if place.PriceLevel != nil {
-			priceLevel = place.PriceLevel
-		}
+			var reviews []models.GooglePlaceReview
+			var images []models.Image
 
-		placeIdToImages[place.PlaceId] = placeDetail{
-			GooglePlaceId: place.PlaceId,
-			Reviews:       reviews,
-			Images:        images,
-			PriceLevel:    priceLevel,
+			if googlePlace.Reviews != nil {
+				reviews = *googlePlace.Reviews
+			}
+
+			if googlePlace.Images != nil {
+				images = *googlePlace.Images
+			}
+
+			placeIdToPlaceDetail[place.Id] = placeDetail{
+				PlaceId:       place.Id,
+				GooglePlaceId: place.Google.PlaceId,
+				Reviews:       reviews,
+				Images:        images,
+				PriceLevel:    googlePlace.PriceLevel,
+			}
+
+			break
 		}
 	}
 
-	return placeIdToImages
+	return placeIdToPlaceDetail
 }

@@ -58,6 +58,11 @@ func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, pl
 	panic("implement me")
 }
 
+func (p PlanRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (p PlanRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, id := range planCandidateIds {
 		delete(p.Data, id)

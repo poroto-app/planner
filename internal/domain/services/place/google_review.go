@@ -91,7 +91,7 @@ func (s Service) FetchPlaceReviewsAndSave(ctx context.Context, planCandidateId s
 			continue
 		}
 
-		if err := s.placeSearchResultRepository.SaveReviewsIfNotExist(ctx, planCandidateId, place.PlaceId, *place.Reviews); err != nil {
+		if err := s.placeInPlanCandidateRepository.SaveGoogleReviews(ctx, planCandidateId, place.PlaceId, *place.Reviews); err != nil {
 			continue
 		}
 	}
