@@ -7,11 +7,11 @@ type GooglePlace struct {
 	Location         GeoLocation
 	PhotoReferences  []string
 	OpenNow          bool
+	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int
 	Images           *[]Image
 	Reviews          *[]GooglePlaceReview
-	PriceLevel       *int
 }
 
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す

@@ -11,11 +11,10 @@ type Place struct {
 	Images             []Image              `json:"images"`
 	Categories         []LocationCategory   `json:"categories"`
 	GooglePlaceReviews *[]GooglePlaceReview `json:"google_place_reviews"`
-	PriceLevel         *int                 `json:"price_level"`
+	PriceLevel         int                  `json:"price_level"`
 }
 
 const (
-	limitOfPriceRangeMin         = 0
 	thresholdOfLevel0AndLevel1_2 = 1000
 	thresholdOfLevel1_2AndLevel3 = 3000
 	thresholdOfLevel3AndLevel4   = 10000
@@ -38,7 +37,7 @@ func (p Place) EstimatedStayDuration() uint {
 }
 
 func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax *int) {
-	switch *p.PriceLevel {
+	switch p.PriceLevel {
 	case 0:
 		return utils.ToIntPointer(0), utils.ToIntPointer(0)
 	case 1, 2:
