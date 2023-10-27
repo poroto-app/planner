@@ -12,13 +12,6 @@ type Place struct {
 	PriceLevel         int                  `json:"price_level"`
 }
 
-const (
-	maxPriceOfLevel1 = 1000
-	maxPriceOfLevel2 = 3000
-	maxPriceOfLevel3 = 10000
-	maxPriceOfLevel4 = 30000
-)
-
 func (p Place) MainCategory() *LocationCategory {
 	if len(p.Categories) == 0 {
 		return nil
@@ -35,41 +28,7 @@ func (p Place) EstimatedStayDuration() uint {
 }
 
 // EstimatedPriceRange 価格帯を推定する
-// SEE: https://developers.google.com/maps/documentation/places/web-service/details?hl=ja#Place-price_level
 func (p Place) EstimatedPriceRange() (priceRange *PriceRange) {
-	switch p.PriceLevel {
-	case 0:
-		// TODO: 飲食店でprice_levelが0の場合は、価格帯が不明なので、nilを返す
-		return &PriceRange{
-			Min:              0,
-			Max:              0,
-			GooglePriceLevel: p.PriceLevel,
-		}
-	case 1:
-		return &PriceRange{
-			Min:              0,
-			Max:              maxPriceOfLevel1,
-			GooglePriceLevel: p.PriceLevel,
-		}
-	case 2:
-		return &PriceRange{
-			Min:              0,
-			Max:              maxPriceOfLevel2,
-			GooglePriceLevel: p.PriceLevel,
-		}
-	case 3:
-		return &PriceRange{
-			Min:              0,
-			Max:              maxPriceOfLevel3,
-			GooglePriceLevel: p.PriceLevel,
-		}
-	case 4:
-		return &PriceRange{
-			Min:              0,
-			Max:              maxPriceOfLevel4,
-			GooglePriceLevel: p.PriceLevel,
-		}
-	default:
-		return nil
-	}
+	// TODO: 飲食店でprice_levelが0の場合は、価格帯が不明なので、nilを返す
+	return PriceRangeFromGooglePriceLevel(p.PriceLevel)
 }
