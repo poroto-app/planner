@@ -3,9 +3,10 @@ package plancandidate
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"sort"
 )
 
 // FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する

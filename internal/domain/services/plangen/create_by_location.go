@@ -3,9 +3,10 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/google/uuid"
 	"googlemaps.github.io/maps"
-	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -183,7 +184,7 @@ func (s Service) findOrFetchPlaceById(
 		Language: "ja",
 	})
 	if err != nil {
-		return nil, false, fmt.Errorf("error while fetching place: %v\n", err)
+		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
 	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil, nil)

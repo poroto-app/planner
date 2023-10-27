@@ -46,5 +46,6 @@ func (p PlaceInPlanCandidate) ToPlace() Place {
 		Images:             *p.Google.Images,
 		Categories:         GetCategoriesFromSubCategories(p.Google.Types),
 		GooglePlaceReviews: p.Google.Reviews,
+		PriceLevel:         p.Google.PriceLevel,
 	}
 }

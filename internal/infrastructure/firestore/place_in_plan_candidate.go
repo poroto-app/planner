@@ -1,17 +1,18 @@
 package firestore
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
 	"fmt"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 	"log"
 	"os"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
-	"time"
 )
 
 const (

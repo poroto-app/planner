@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"google.golang.org/api/iterator"
 	"os"
 	"time"
+
+	"google.golang.org/api/iterator"
 
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
@@ -184,7 +185,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 
 	planCandidateUpdated, err := p.Find(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %w\n", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
 	}
 	return planCandidateUpdated, nil
 }

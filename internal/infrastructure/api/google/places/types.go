@@ -13,6 +13,7 @@ type Place struct {
 	OpenNow          bool     `firestore:"open_now"`
 	Rating           float32  `firestore:"rating"`
 	UserRatingsTotal int      `firestore:"user_ratings_total"`
+	PriceLevel       int      `firestore:"price_level"`
 }
 
 type Location struct {
@@ -29,6 +30,7 @@ func createPlace(
 	openNow bool,
 	rating float32,
 	userRatingsTotal int,
+	priceLevel int,
 ) Place {
 	return Place{
 		PlaceID:          placeID,
@@ -38,6 +40,7 @@ func createPlace(
 		OpenNow:          openNow,
 		Rating:           rating,
 		UserRatingsTotal: userRatingsTotal,
+		PriceLevel:       priceLevel,
 		Location: Location{
 			Latitude:  geometry.Location.Lat,
 			Longitude: geometry.Location.Lng,

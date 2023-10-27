@@ -2,10 +2,11 @@ package plangen
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"log"
-	"poroto.app/poroto/planner/internal/domain/models"
 	"time"
+
+	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type CreatePlanParams struct {
@@ -16,9 +17,9 @@ type CreatePlanParams struct {
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
-	// レビューと写真を取得する
+	// レビュー・写真を取得する
 	performanceTimer := time.Now()
-	placeIdToReviewAndImages := s.fetchReviewAndImages(ctx, planCandidateId, params...)
+	placeIdToPlaceDetailData := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
 
 	ch := make(chan *models.Plan, len(params))
@@ -56,7 +57,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 
 			var places []models.Place
 			for i := 0; i < len(placesInPlanCandidate); i++ {
-				if value, ok := placeIdToReviewAndImages[placesInPlanCandidate[i].Id]; ok {
+				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
 					placesInPlanCandidate[i].Google.Images = &value.Images
 					placesInPlanCandidate[i].Google.Reviews = &value.Reviews
 				}
@@ -84,15 +85,15 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	return plans
 }
 
-type reviewAndImages struct {
+type placeDetail struct {
 	PlaceId       string
 	GooglePlaceId string
 	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
 }
 
-// fetchReviewAndImages は、指定された場所の写真とレビューを一括で取得し、保存する
-func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]reviewAndImages {
+// fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
+func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]placeDetail {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.PlaceInPlanCandidate)
 	for _, param := range params {
@@ -115,7 +116,7 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
 	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 
-	placeIdToImages := make(map[string]reviewAndImages)
+	placeIdToPlaceDetail := make(map[string]placeDetail)
 	for _, place := range places {
 		for _, googlePlace := range googlePlaces {
 			if place.Google.PlaceId != googlePlace.PlaceId {
@@ -133,7 +134,7 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 				images = *googlePlace.Images
 			}
 
-			placeIdToImages[place.Id] = reviewAndImages{
+			placeIdToPlaceDetail[place.Id] = placeDetail{
 				PlaceId:       place.Id,
 				GooglePlaceId: place.Google.PlaceId,
 				Reviews:       reviews,
@@ -144,5 +145,5 @@ func (s Service) fetchReviewAndImages(ctx context.Context, planCandidateId strin
 		}
 	}
 
-	return placeIdToImages
+	return placeIdToPlaceDetail
 }
