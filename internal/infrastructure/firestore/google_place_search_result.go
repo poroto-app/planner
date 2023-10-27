@@ -1,11 +1,14 @@
 package firestore
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"fmt"
-	"google.golang.org/api/option"
 	"os"
+
+	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -13,9 +16,9 @@ import (
 )
 
 const (
-	collectionPlaceSearchResults = "google_place_api_search_results"
-	collectionReviews            = "reviews"
-	subCollectionPhotos          = "photos"
+	subCollectionGooglePlaceSearchResults = "google_places_api_search_results"
+	subCollectionReviews                  = "google_places_api_reviews"
+	subCollectionPhotos                   = "google_places_api_photos"
 )
 
 type GooglePlaceSearchResultRepository struct {
@@ -38,28 +41,30 @@ func NewGooglePlaceSearchResultRepository(ctx context.Context) (*GooglePlaceSear
 	}, nil
 }
 
-func (p GooglePlaceSearchResultRepository) Save(ctx context.Context, planCandidateId string, places []models.GooglePlace) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, place := range places {
-			doc := p.doc(planCandidateId, place.PlaceId)
-			if _, err := doc.Set(ctx, factory.PlaceEntityFromGooglePlace(place)); err != nil {
-				return fmt.Errorf("error while saving place search result: %v", err)
-			}
-		}
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while saving place search results: %v", err)
+func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, planCandidateId string, googlePlace models.GooglePlace) error {
+	doc := p.doc(planCandidateId, googlePlace.PlaceId)
+	if err := tx.Set(doc, factory.PlaceEntityFromGooglePlace(googlePlace)); err != nil {
+		return fmt.Errorf("error while saving place search result: %v", err)
 	}
-
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
-	collection := p.collection(planCandidateId)
+func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandidateId string) ([]models.GooglePlace, error) {
+	collection := p.subCollection(planCandidateId)
 
 	snapshots, err := collection.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting place search results: %v", err)
+	}
+
+	photos, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching photos: %v", err)
+	}
+
+	reviews, err := p.fetchReviewsByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching reviews: %v", err)
 	}
 
 	var places []models.GooglePlace
@@ -69,30 +74,35 @@ func (p GooglePlaceSearchResultRepository) Find(ctx context.Context, planCandida
 			return nil, fmt.Errorf("error while converting snapshot to place search result entity: %v", err)
 		}
 
-		photos, err := p.fetchPhotos(ctx, planCandidateId, placeEntity.PlaceID)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching photos: %v", err)
+		var photosOfPlace []entity.ImageEntity
+		for _, photo := range photos {
+			if photo.GooglePlaceId == placeEntity.PlaceID {
+				photosOfPlace = append(photosOfPlace, photo)
+			}
 		}
 
-		reviews, err := p.fetchReviews(ctx, planCandidateId, placeEntity.PlaceID)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching reviews: %v", err)
+		var reviewsOfPlace []entity.GooglePlaceReviewEntity
+		for _, review := range reviews {
+			if review.GooglePlaceId == placeEntity.PlaceID {
+				reviewsOfPlace = append(reviewsOfPlace, review)
+			}
 		}
 
 		places = append(places, factory.GooglePlaceFromPlaceEntity(
 			placeEntity,
-			photos,
-			reviews,
+			photosOfPlace,
+			reviewsOfPlace,
 		))
 	}
 
 	return places, nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
-	subCollectionImages := p.subCollectionPhotos(planCandidateId, googlePlaceId)
+// TODO: 個々の画像をIDで区別できるようにする
+func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+	subCollectionImages := p.subCollectionPhotos(planCandidateId)
 
-	snapshots, err := subCollectionImages.Limit(1).Documents(ctx).GetAll()
+	snapshots, err := subCollectionImages.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return fmt.Errorf("error while getting images: %v", err)
 	}
@@ -103,7 +113,7 @@ func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Cont
 	}
 
 	for _, image := range images {
-		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(image)); err != nil {
+		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(googlePlaceId, image)); err != nil {
 			return fmt.Errorf("error while saving image: %v", err)
 		}
 	}
@@ -111,10 +121,10 @@ func (p GooglePlaceSearchResultRepository) SaveImagesIfNotExist(ctx context.Cont
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
+func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 
-	snapshots, err := subCollectionReviews.Limit(1).Documents(ctx).GetAll()
+	snapshots, err := subCollectionReviews.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
 	if err != nil {
 		return fmt.Errorf("error while getting reviews: %v", err)
 	}
@@ -125,7 +135,7 @@ func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Con
 	}
 
 	for _, review := range reviews {
-		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review)); err != nil {
+		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving review: %v", err)
 		}
 	}
@@ -133,34 +143,28 @@ func (p GooglePlaceSearchResultRepository) SaveReviewsIfNotExist(ctx context.Con
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	for _, planCandidateId := range planCandidateIds {
-		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-			collection := p.collection(planCandidateId)
+func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firestore.Transaction, planCandidateId string) error {
+	collection := p.subCollection(planCandidateId)
 
-			// collection内のドキュメントをすべて削除
-			snapshots, err := collection.Documents(ctx).GetAll()
-			if err != nil {
-				return fmt.Errorf("error while getting place search results: %v", err)
-			}
-
-			for _, snapshot := range snapshots {
-				if _, err := snapshot.Ref.Delete(ctx); err != nil {
-					return fmt.Errorf("error while deleting place search result: %v", err)
-				}
-			}
-
-			return nil
-		}, firestore.MaxAttempts(3)); err != nil {
-			return fmt.Errorf("error while deleting place search results: %v", err)
+	docIter := tx.DocumentRefs(collection)
+	for {
+		doc, err := docIter.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			return fmt.Errorf("error while iterating documents: %v", err)
+		}
+		if err := tx.Delete(doc); err != nil {
+			return fmt.Errorf("error while deleting place search result: %v", err)
 		}
 	}
 
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchPhotos(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.ImageEntity, error) {
-	subCollectionPhotos := p.subCollectionPhotos(planCandidateId, googlePlaceId)
+func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.ImageEntity, error) {
+	subCollectionPhotos := p.subCollectionPhotos(planCandidateId)
 	photosSnapshots, err := subCollectionPhotos.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting photos: %v", err)
@@ -178,8 +182,8 @@ func (p GooglePlaceSearchResultRepository) fetchPhotos(ctx context.Context, plan
 	return photos, nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, planCandidateId string, googlePlaceId string) ([]entity.GooglePlaceReviewEntity, error) {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId, googlePlaceId)
+func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.GooglePlaceReviewEntity, error) {
+	subCollectionReviews := p.subCollectionReviews(planCandidateId)
 	reviewsSnapshots, err := subCollectionReviews.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting reviews: %v", err)
@@ -197,18 +201,18 @@ func (p GooglePlaceSearchResultRepository) fetchReviews(ctx context.Context, pla
 	return reviews, nil
 }
 
-func (p GooglePlaceSearchResultRepository) collection(planCandidateId string) *firestore.CollectionRef {
-	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlaceSearchResults)
+func (p GooglePlaceSearchResultRepository) subCollection(planCandidateId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionGooglePlaceSearchResults)
 }
 
 func (p GooglePlaceSearchResultRepository) doc(planCandidateId string, googlePlaceId string) *firestore.DocumentRef {
-	return p.collection(planCandidateId).Doc(googlePlaceId)
+	return p.subCollection(planCandidateId).Doc(googlePlaceId)
 }
 
-func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(subCollectionPhotos)
+func (p GooglePlaceSearchResultRepository) subCollectionPhotos(planCandidateId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionPhotos)
 }
 
-func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string, googlePlaceId string) *firestore.CollectionRef {
-	return p.doc(planCandidateId, googlePlaceId).Collection(collectionReviews)
+func (p GooglePlaceSearchResultRepository) subCollectionReviews(planCandidateId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionReviews)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -21,38 +22,33 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	}
 
 	log.Printf("Fetching searched places for plan candidate: %v\n", planCandidateId)
-	placesSearched, err := s.placeSearchResultRepository.Find(ctx, planCandidateId)
+	places, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("Successfully fetched searched places for plan candidate: %v\n", planCandidateId)
 
 	// 追加する場所を取得する
-	var googlePlaceToAdd *models.GooglePlace
-	for _, place := range placesSearched {
-		// TODO: Google の PlaceIDでマッチさせるのではなく、plannerが作成したIDでマッチするようにする
-		if place.PlaceId == placeId {
-			googlePlaceToAdd = &place
+	var placeToAdd *models.PlaceInPlanCandidate
+	for _, place := range *places {
+		if place.Id == placeId {
+			placeToAdd = &place
 			break
 		}
 	}
-	if googlePlaceToAdd == nil {
+	if placeToAdd == nil {
 		return nil, fmt.Errorf("place not found: %v\n", placeId)
 	}
 
 	// 重複して追加しないようにする
 	for _, place := range planToUpdate.Places {
-		if place.GooglePlaceId == nil {
-			continue
-		}
-
-		if *place.GooglePlaceId == googlePlaceToAdd.PlaceId {
+		if place.Id == placeToAdd.Id {
 			log.Printf("Place %v is already added to plan candidate %v\n", placeId, planCandidateId)
 			return planToUpdate, nil
 		}
 	}
 
-	googlePlaces := []models.GooglePlace{*googlePlaceToAdd}
+	googlePlaces := []models.GooglePlace{placeToAdd.Google}
 
 	// 画像を取得
 	log.Printf("Fetching photos and reviews for places for plan candidate: %v\n", planCandidateId)
@@ -64,11 +60,11 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 	log.Printf("Successfully fetched reviews for places for plan candidate: %v\n", planCandidateId)
 
-	placeToAdd := googlePlaces[0].ToPlace()
+	placeToAdd.Google = googlePlaces[0]
 
 	// プランに指定された場所を追加
 	log.Printf("Adding place to plan candidate %v\n", planCandidateId)
-	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, placeToAdd); err != nil {
+	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, placeToAdd.ToPlace()); err != nil {
 		return nil, fmt.Errorf("error while adding place to plan candidate: %v\n", err)
 	}
 	log.Printf("Successfully added place to plan candidate %v\n", planCandidateId)

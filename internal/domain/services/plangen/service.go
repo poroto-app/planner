@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	placesApi                   places.PlacesApi
-	placeService                place.Service
-	planCandidateRepository     repository.PlanCandidateRepository
-	placeSearchResultRepository repository.GooglePlaceSearchResultRepository
-	openaiChatCompletionClient  openai.ChatCompletionClient
+	placesApi                  places.PlacesApi
+	placeService               place.Service
+	planCandidateRepository    repository.PlanCandidateRepository
+	placeRepository            repository.PlaceInPlanCandidateRepository
+	openaiChatCompletionClient openai.ChatCompletionClient
 }
 
 func NewService(ctx context.Context) (*Service, error) {
@@ -34,9 +34,9 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeSearchResultRepository, err := firestore.NewGooglePlaceSearchResultRepository(ctx)
+	placeRepository, err := firestore.NewPlaceInPlanCandidateRepository(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing place search result repository: %v", err)
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
 	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
@@ -45,10 +45,10 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 
 	return &Service{
-		placesApi:                   *placesApi,
-		placeService:                *placeService,
-		planCandidateRepository:     planCandidateRepository,
-		placeSearchResultRepository: placeSearchResultRepository,
-		openaiChatCompletionClient:  *openaiChatCompletionClient,
+		placesApi:                  *placesApi,
+		placeService:               *placeService,
+		planCandidateRepository:    planCandidateRepository,
+		placeRepository:            *placeRepository,
+		openaiChatCompletionClient: *openaiChatCompletionClient,
 	}, nil
 }

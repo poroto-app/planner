@@ -9,6 +9,7 @@ type Place struct {
 	Images             []Image              `json:"images"`
 	Categories         []LocationCategory   `json:"categories"`
 	GooglePlaceReviews *[]GooglePlaceReview `json:"google_place_reviews"`
+	PriceLevel         int                  `json:"price_level"`
 }
 
 func (p Place) MainCategory() *LocationCategory {
@@ -24,4 +25,10 @@ func (p Place) EstimatedStayDuration() uint {
 		return 0
 	}
 	return categoryMain.EstimatedStayDuration
+}
+
+// EstimatedPriceRange 価格帯を推定する
+func (p Place) EstimatedPriceRange() (priceRange *PriceRange) {
+	// TODO: 飲食店でprice_levelが0の場合は、価格帯が不明なので、nilを返す
+	return PriceRangeFromGooglePriceLevel(p.PriceLevel)
 }

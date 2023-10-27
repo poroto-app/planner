@@ -21,7 +21,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 	}
 
 	log.Printf("start searching places: %v\n", planCandidateId)
-	placesSearched, err := s.placeSearchResultRepository.Find(ctx, planCandidateId)
+	places, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +40,8 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 	}
 
 	var placeToReplace *models.Place
-	for _, place := range placesSearched {
-		// TODO: PlaceRepositoryを用いて、Planner APIが指定したPlaceIdで取得できるようにする
-		if place.PlaceId == placeIdToReplace {
+	for _, place := range *places {
+		if place.Id == placeIdToReplace {
 			p := place.ToPlace()
 			placeToReplace = &p
 			break

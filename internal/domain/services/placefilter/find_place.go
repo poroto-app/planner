@@ -4,7 +4,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func Find(placesToSearch []models.GooglePlace, findFunc func(place models.GooglePlace) bool) *models.GooglePlace {
+func Find(placesToSearch []models.PlaceInPlanCandidate, findFunc func(place models.PlaceInPlanCandidate) bool) *models.PlaceInPlanCandidate {
 	for _, place := range placesToSearch {
 		if findFunc(place) {
 			copy := place
@@ -14,8 +14,8 @@ func Find(placesToSearch []models.GooglePlace, findFunc func(place models.Google
 	return nil
 }
 
-func FindById(placesToSearch []models.GooglePlace, placeId string) *models.GooglePlace {
-	return Find(placesToSearch, func(place models.GooglePlace) bool {
-		return place.PlaceId == placeId
+func FindById(placesToSearch []models.PlaceInPlanCandidate, placeId string) *models.PlaceInPlanCandidate {
+	return Find(placesToSearch, func(place models.PlaceInPlanCandidate) bool {
+		return place.Id == placeId
 	})
 }

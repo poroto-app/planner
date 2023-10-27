@@ -6,7 +6,7 @@ import (
 )
 
 // FilterCompany 会社の場所をフィルタリングする
-func FilterCompany(placesToFiler []models.GooglePlace) []models.GooglePlace {
+func FilterCompany(placesToFiler []models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
 	companyTags := []string{
 		"（株）",
 		"（有）",
@@ -19,9 +19,9 @@ func FilterCompany(placesToFiler []models.GooglePlace) []models.GooglePlace {
 		"合同会社",
 	}
 
-	return FilterPlaces(placesToFiler, func(place models.GooglePlace) bool {
+	return FilterPlaces(placesToFiler, func(place models.PlaceInPlanCandidate) bool {
 		for _, tag := range companyTags {
-			if strings.Contains(place.Name, tag) {
+			if strings.Contains(place.Google.Name, tag) {
 				return false
 			}
 		}

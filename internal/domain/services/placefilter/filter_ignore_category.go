@@ -6,10 +6,10 @@ import (
 )
 
 // FilterIgnoreCategory ignore categoryを除外する
-func FilterIgnoreCategory(placesToFilter []models.GooglePlace) []models.GooglePlace {
-	return FilterPlaces(placesToFilter, func(place models.GooglePlace) bool {
-		for _, category := range place.Types {
-			if array.IsContain(models.CategoryIgnore.SubCategories, category) {
+func FilterIgnoreCategory(placesToFilter []models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+	return FilterPlaces(placesToFilter, func(place models.PlaceInPlanCandidate) bool {
+		for _, placeType := range place.Google.Types {
+			if array.IsContain(models.CategoryIgnore.SubCategories, placeType) {
 				return false
 			}
 		}

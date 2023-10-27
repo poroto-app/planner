@@ -9,28 +9,28 @@ import (
 func TestFilterDuplicated(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []models.GooglePlace
-		expected       []models.GooglePlace
+		placesToFilter []models.PlaceInPlanCandidate
+		expected       []models.PlaceInPlanCandidate
 	}{
 		{
 			name: "no duplicated",
-			placesToFilter: []models.GooglePlace{
-				{PlaceId: "1"},
-				{PlaceId: "2"},
+			placesToFilter: []models.PlaceInPlanCandidate{
+				{Id: "1"},
+				{Id: "2"},
 			},
-			expected: []models.GooglePlace{
-				{PlaceId: "1"},
-				{PlaceId: "2"},
+			expected: []models.PlaceInPlanCandidate{
+				{Id: "1"},
+				{Id: "2"},
 			},
 		},
 		{
 			name: "duplicated",
-			placesToFilter: []models.GooglePlace{
-				{PlaceId: "1"},
-				{PlaceId: "1"},
+			placesToFilter: []models.PlaceInPlanCandidate{
+				{Id: "1"},
+				{Id: "1"},
 			},
-			expected: []models.GooglePlace{
-				{PlaceId: "1"},
+			expected: []models.PlaceInPlanCandidate{
+				{Id: "1"},
 			},
 		},
 	}

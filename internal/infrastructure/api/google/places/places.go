@@ -3,8 +3,9 @@ package places
 import (
 	"context"
 	"fmt"
-	"googlemaps.github.io/maps"
 	"os"
+
+	"googlemaps.github.io/maps"
 )
 
 type PlacesApi struct {
@@ -74,6 +75,7 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 			place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
 			place.Rating,
 			place.UserRatingsTotal,
+			place.PriceLevel,
 		))
 	}
 
