@@ -1,6 +1,8 @@
 package models
 
-import "poroto.app/poroto/planner/internal/domain/utils"
+import (
+	"fmt"
+)
 
 // Place 場所の情報
 type Place struct {
@@ -36,16 +38,17 @@ func (p Place) EstimatedStayDuration() uint {
 	return categoryMain.EstimatedStayDuration
 }
 
-func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax *int) {
+func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax int, err error) {
 	switch p.PriceLevel {
 	case 0:
-		return utils.ToIntPointer(0), utils.ToIntPointer(0)
+		return 0, 0, nil
 	case 1, 2:
-		return utils.ToIntPointer(thresholdOfLevel0AndLevel1_2), utils.ToIntPointer(thresholdOfLevel1_2AndLevel3)
+		return thresholdOfLevel0AndLevel1_2, thresholdOfLevel1_2AndLevel3, nil
 	case 3:
-		return utils.ToIntPointer(thresholdOfLevel1_2AndLevel3), utils.ToIntPointer(thresholdOfLevel3AndLevel4)
+		return thresholdOfLevel1_2AndLevel3, thresholdOfLevel3AndLevel4, nil
 	case 4:
-		return utils.ToIntPointer(thresholdOfLevel3AndLevel4), utils.ToIntPointer(limitOfPriceRangeMax)
+		return thresholdOfLevel3AndLevel4, limitOfPriceRangeMax, nil
+	default:
+		return 0, 0, fmt.Errorf("invalid price level: %d", p.PriceLevel)
 	}
-	return nil, nil
 }

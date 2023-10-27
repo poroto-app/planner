@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"log"
 	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
@@ -36,11 +37,13 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 	}
 
 	var placeRange *graphql.PriceRange
-	priceRangeMin, priceRangeMax := place.EstimatedPriceRange()
-	if priceRangeMin != nil && priceRangeMax != nil {
+	priceRangeMin, priceRangeMax, err := place.EstimatedPriceRange()
+	if err != nil {
+		log.Printf("failed to get estimated price range: %v\n", err)
+	} else {
 		placeRange = &graphql.PriceRange{
-			PriceRangeMin:    *priceRangeMin,
-			PriceRangeMax:    *priceRangeMax,
+			PriceRangeMin:    priceRangeMin,
+			PriceRangeMax:    priceRangeMax,
 			GooglePriceLevel: place.PriceLevel,
 		}
 	}
