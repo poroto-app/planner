@@ -31,19 +31,19 @@ func PriceRangeFromGooglePriceLevel(priceLevel int) *PriceRange {
 		}
 	case 2:
 		return &PriceRange{
-			Min:              0,
+			Min:              maxPriceOfLevel1,
 			Max:              maxPriceOfLevel2,
 			GooglePriceLevel: priceLevel,
 		}
 	case 3:
 		return &PriceRange{
-			Min:              0,
+			Min:              maxPriceOfLevel2,
 			Max:              maxPriceOfLevel3,
 			GooglePriceLevel: priceLevel,
 		}
 	case 4:
 		return &PriceRange{
-			Min:              0,
+			Min:              maxPriceOfLevel3,
 			Max:              maxPriceOfLevel4,
 			GooglePriceLevel: priceLevel,
 		}
