@@ -40,7 +40,7 @@ func (p Place) EstimatedStayDuration() uint {
 func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax *int) {
 	switch *p.PriceLevel {
 	case 0:
-		return utils.ToIntPointer(limitOfPriceRangeMin), utils.ToIntPointer(thresholdOfLevel0AndLevel1_2)
+		return utils.ToIntPointer(0), utils.ToIntPointer(0)
 	case 1, 2:
 		return utils.ToIntPointer(thresholdOfLevel0AndLevel1_2), utils.ToIntPointer(thresholdOfLevel1_2AndLevel3)
 	case 3:
