@@ -17,10 +17,10 @@ type Place struct {
 }
 
 const (
-	thresholdOfLevel0AndLevel1_2 = 1000
-	thresholdOfLevel1_2AndLevel3 = 3000
-	thresholdOfLevel3AndLevel4   = 10000
-	limitOfPriceRangeMax         = 30000
+	maxPriceOfLevel1 = 1000
+	maxPriceOfLevel2 = 3000
+	maxPriceOfLevel3 = 10000
+	maxPriceOfLevel4 = 30000
 )
 
 func (p Place) MainCategory() *LocationCategory {
@@ -42,12 +42,15 @@ func (p Place) EstimatedPriceRange() (priceRangeMin, priceRangeMax int, err erro
 	switch p.PriceLevel {
 	case 0:
 		return 0, 0, nil
-	case 1, 2:
-		return thresholdOfLevel0AndLevel1_2, thresholdOfLevel1_2AndLevel3, nil
+
+	case 1:
+		return 0, maxPriceOfLevel1, nil
+	case 2:
+		return maxPriceOfLevel1, maxPriceOfLevel2, nil
 	case 3:
-		return thresholdOfLevel1_2AndLevel3, thresholdOfLevel3AndLevel4, nil
+		return maxPriceOfLevel2, maxPriceOfLevel3, nil
 	case 4:
-		return thresholdOfLevel3AndLevel4, limitOfPriceRangeMax, nil
+		return maxPriceOfLevel3, maxPriceOfLevel4, nil
 	default:
 		return 0, 0, fmt.Errorf("invalid price level: %d", p.PriceLevel)
 	}
