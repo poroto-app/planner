@@ -153,7 +153,8 @@ type NearbyPlaceCategoriesInput struct {
 }
 
 type NearbyPlaceCategoryOutput struct {
-	Categories []*NearbyLocationCategory `json:"categories"`
+	PlanCandidateID string                    `json:"planCandidateId"`
+	Categories      []*NearbyLocationCategory `json:"categories"`
 }
 
 type Place struct {

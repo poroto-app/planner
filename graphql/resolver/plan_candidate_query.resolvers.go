@@ -119,7 +119,8 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 	}
 
 	return &model.NearbyPlaceCategoryOutput{
-		Categories: categories,
+		PlanCandidateID: createPlanSessionId,
+		Categories:      categories,
 	}, nil
 }
 
