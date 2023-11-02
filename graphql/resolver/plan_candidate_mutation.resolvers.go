@@ -233,7 +233,7 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planInPlanCandidate, err := s.AddPlaceAfterAnyPlace(ctx, input.PlanCandidateID, input.PlanID, input.PreviousPlaceID, input.PlaceID)
+	planInPlanCandidate, err := s.AddPlaceAfterPlace(ctx, input.PlanCandidateID, input.PlanID, input.PreviousPlaceID, input.PlaceID)
 	if err != nil {
 		log.Println(fmt.Errorf("error while adding place to plan candidate: %v", err))
 		return nil, fmt.Errorf("could not add place to plan candidate")
