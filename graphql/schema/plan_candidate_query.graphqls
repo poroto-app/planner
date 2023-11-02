@@ -54,7 +54,7 @@ input NearbyPlaceCategoriesInput {
 }
 
 type NearbyPlaceCategoryOutput {
-    categories: [LocationCategory!]!
+    categories: [NearbyLocationCategory!]!
 }
 
 input PlacesToAddForPlanCandidateInput {

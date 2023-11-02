@@ -1375,7 +1375,7 @@ input NearbyPlaceCategoriesInput {
 }
 
 type NearbyPlaceCategoryOutput {
-    categories: [LocationCategory!]!
+    categories: [NearbyLocationCategory!]!
 }
 
 input PlacesToAddForPlanCandidateInput {
@@ -4171,9 +4171,9 @@ func (ec *executionContext) _NearbyPlaceCategoryOutput_categories(ctx context.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.LocationCategory)
+	res := resTmp.([]*model.NearbyLocationCategory)
 	fc.Result = res
-	return ec.marshalNLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLocationCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4184,16 +4184,16 @@ func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_categories(ct
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "name":
-				return ec.fieldContext_LocationCategory_name(ctx, field)
+			case "Id":
+				return ec.fieldContext_NearbyLocationCategory_Id(ctx, field)
 			case "displayName":
-				return ec.fieldContext_LocationCategory_displayName(ctx, field)
-			case "photo":
-				return ec.fieldContext_LocationCategory_photo(ctx, field)
+				return ec.fieldContext_NearbyLocationCategory_displayName(ctx, field)
+			case "places":
+				return ec.fieldContext_NearbyLocationCategory_places(ctx, field)
 			case "defaultPhotoUrl":
-				return ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
+				return ec.fieldContext_NearbyLocationCategory_defaultPhotoUrl(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type LocationCategory", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type NearbyLocationCategory", field.Name)
 		},
 	}
 	return fc, nil
@@ -11733,6 +11733,60 @@ func (ec *executionContext) marshalNLocationCategory2ᚖporotoᚗappᚋporotoᚋ
 		return graphql.Null
 	}
 	return ec._LocationCategory(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx context.Context, sel ast.SelectionSet, v *model.NearbyLocationCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._NearbyLocationCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx context.Context, v interface{}) (model.NearbyPlaceCategoriesInput, error) {
