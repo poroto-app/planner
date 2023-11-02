@@ -14,9 +14,17 @@ type Transition {
     duration: Int!
 }
 
+# TODO: DELETE
 type LocationCategory {
     name: String!
     displayName: String!
     photo: String
+    defaultPhotoUrl: String!
+}
+
+type NearbyLocationCategory {
+    Id: String!
+    displayName: String!
+    photos: [Image!]!
     defaultPhotoUrl: String!
 }
