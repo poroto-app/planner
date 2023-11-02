@@ -225,9 +225,9 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 	}, nil
 }
 
-// AddPlaceToPlanCandidateInAnyOrder is the resolver for the AddPlaceToPlanCandidateInAnyOrder field.
-func (r *mutationResolver) AddPlaceToPlanCandidateInAnyOrder(ctx context.Context, input *model.AddPlaceToPlanCandidateInAnyOrderInput) (*model.AddPlaceToPlanCandidateInAnyOrderOutput, error) {
-	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateInAnyOrder - AddPlaceToPlanCandidateInAnyOrder"))
+// AddPlaceToPlanCandidateAfterAnyPlace is the resolver for the addPlaceToPlanCandidateAfterAnyPlace field.
+func (r *mutationResolver) AddPlaceToPlanCandidateAfterAnyPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterAnyPlaceInput) (*model.AddPlaceToPlanCandidateAfterAnyPlaceOutput, error) {
+	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateAfterAnyPlace - addPlaceToPlanCandidateAfterAnyPlace"))
 }
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
@@ -297,4 +297,14 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 // EditPlanTitleOfPlanCandidate is the resolver for the editPlanTitleOfPlanCandidate field.
 func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
+}
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *mutationResolver) AddPlaceToPlanCandidateInAnyOrder(ctx context.Context, input *model.AddPlaceToPlanCandidateInAnyOrderInput) (*model.AddPlaceToPlanCandidateInAnyOrderOutput, error) {
+	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateInAnyOrder - AddPlaceToPlanCandidateInAnyOrder"))
 }
