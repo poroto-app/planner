@@ -44,7 +44,7 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	AddPlaceToPlanCandidateAfterAnyPlaceOutput struct {
+	AddPlaceToPlanCandidateAfterPlaceOutput struct {
 		Plan            func(childComplexity int) int
 		PlanCandidateID func(childComplexity int) int
 	}
@@ -122,16 +122,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddPlaceToPlanCandidate              func(childComplexity int, input model.AddPlaceToPlanCandidateInput) int
-		AddPlaceToPlanCandidateAfterAnyPlace func(childComplexity int, input *model.AddPlaceToPlanCandidateAfterAnyPlaceInput) int
-		ChangePlacesOrderInPlanCandidate     func(childComplexity int, input model.ChangePlacesOrderInPlanCandidateInput) int
-		CreatePlanByLocation                 func(childComplexity int, input model.CreatePlanByLocationInput) int
-		CreatePlanByPlace                    func(childComplexity int, input model.CreatePlanByPlaceInput) int
-		DeletePlaceFromPlanCandidate         func(childComplexity int, input model.DeletePlaceFromPlanCandidateInput) int
-		EditPlanTitleOfPlanCandidate         func(childComplexity int, input model.EditPlanTitleOfPlanCandidateInput) int
-		Ping                                 func(childComplexity int, message string) int
-		ReplacePlaceOfPlanCandidate          func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
-		SavePlanFromCandidate                func(childComplexity int, input model.SavePlanFromCandidateInput) int
+		AddPlaceToPlanCandidate           func(childComplexity int, input model.AddPlaceToPlanCandidateInput) int
+		AddPlaceToPlanCandidateAfterPlace func(childComplexity int, input *model.AddPlaceToPlanCandidateAfterPlaceInput) int
+		ChangePlacesOrderInPlanCandidate  func(childComplexity int, input model.ChangePlacesOrderInPlanCandidateInput) int
+		CreatePlanByLocation              func(childComplexity int, input model.CreatePlanByLocationInput) int
+		CreatePlanByPlace                 func(childComplexity int, input model.CreatePlanByPlaceInput) int
+		DeletePlaceFromPlanCandidate      func(childComplexity int, input model.DeletePlaceFromPlanCandidateInput) int
+		EditPlanTitleOfPlanCandidate      func(childComplexity int, input model.EditPlanTitleOfPlanCandidateInput) int
+		Ping                              func(childComplexity int, message string) int
+		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
+		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
 	}
 
 	Place struct {
@@ -228,7 +228,7 @@ type MutationResolver interface {
 	ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error)
 	SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error)
 	AddPlaceToPlanCandidate(ctx context.Context, input model.AddPlaceToPlanCandidateInput) (*model.AddPlaceToPlanCandidateOutput, error)
-	AddPlaceToPlanCandidateAfterAnyPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterAnyPlaceInput) (*model.AddPlaceToPlanCandidateAfterAnyPlaceOutput, error)
+	AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error)
 	DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error)
 	ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error)
 	EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error)
@@ -262,19 +262,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "AddPlaceToPlanCandidateAfterAnyPlaceOutput.plan":
-		if e.complexity.AddPlaceToPlanCandidateAfterAnyPlaceOutput.Plan == nil {
+	case "AddPlaceToPlanCandidateAfterPlaceOutput.plan":
+		if e.complexity.AddPlaceToPlanCandidateAfterPlaceOutput.Plan == nil {
 			break
 		}
 
-		return e.complexity.AddPlaceToPlanCandidateAfterAnyPlaceOutput.Plan(childComplexity), true
+		return e.complexity.AddPlaceToPlanCandidateAfterPlaceOutput.Plan(childComplexity), true
 
-	case "AddPlaceToPlanCandidateAfterAnyPlaceOutput.planCandidateId":
-		if e.complexity.AddPlaceToPlanCandidateAfterAnyPlaceOutput.PlanCandidateID == nil {
+	case "AddPlaceToPlanCandidateAfterPlaceOutput.planCandidateId":
+		if e.complexity.AddPlaceToPlanCandidateAfterPlaceOutput.PlanCandidateID == nil {
 			break
 		}
 
-		return e.complexity.AddPlaceToPlanCandidateAfterAnyPlaceOutput.PlanCandidateID(childComplexity), true
+		return e.complexity.AddPlaceToPlanCandidateAfterPlaceOutput.PlanCandidateID(childComplexity), true
 
 	case "AddPlaceToPlanCandidateOutput.plan":
 		if e.complexity.AddPlaceToPlanCandidateOutput.Plan == nil {
@@ -519,17 +519,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddPlaceToPlanCandidate(childComplexity, args["input"].(model.AddPlaceToPlanCandidateInput)), true
 
-	case "Mutation.addPlaceToPlanCandidateAfterAnyPlace":
-		if e.complexity.Mutation.AddPlaceToPlanCandidateAfterAnyPlace == nil {
+	case "Mutation.addPlaceToPlanCandidateAfterPlace":
+		if e.complexity.Mutation.AddPlaceToPlanCandidateAfterPlace == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addPlaceToPlanCandidateAfterAnyPlace_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addPlaceToPlanCandidateAfterPlace_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddPlaceToPlanCandidateAfterAnyPlace(childComplexity, args["input"].(*model.AddPlaceToPlanCandidateAfterAnyPlaceInput)), true
+		return e.complexity.Mutation.AddPlaceToPlanCandidateAfterPlace(childComplexity, args["input"].(*model.AddPlaceToPlanCandidateAfterPlaceInput)), true
 
 	case "Mutation.changePlacesOrderInPlanCandidate":
 		if e.complexity.Mutation.ChangePlacesOrderInPlanCandidate == nil {
@@ -1014,7 +1014,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputAddPlaceToPlanCandidateAfterAnyPlaceInput,
+		ec.unmarshalInputAddPlaceToPlanCandidateAfterPlaceInput,
 		ec.unmarshalInputAddPlaceToPlanCandidateInput,
 		ec.unmarshalInputAvailablePlacesForPlanInput,
 		ec.unmarshalInputCachedCreatedPlansInput,
@@ -1191,7 +1191,7 @@ type PlaceCategory {
     # ===========================================================
     addPlaceToPlanCandidate(input: AddPlaceToPlanCandidateInput!): AddPlaceToPlanCandidateOutput!
 
-    addPlaceToPlanCandidateAfterAnyPlace(input: AddPlaceToPlanCandidateAfterAnyPlaceInput): AddPlaceToPlanCandidateAfterAnyPlaceOutput!
+    addPlaceToPlanCandidateAfterPlace(input: AddPlaceToPlanCandidateAfterPlaceInput): AddPlaceToPlanCandidateAfterPlaceOutput!
 
     deletePlaceFromPlanCandidate(input: DeletePlaceFromPlanCandidateInput!): DeletePlaceFromPlanCandidateOutput!
 
@@ -1266,14 +1266,14 @@ type AddPlaceToPlanCandidateOutput {
     plan: Plan!
 }
 
-input AddPlaceToPlanCandidateAfterAnyPlaceInput {
+input AddPlaceToPlanCandidateAfterPlaceInput {
     planCandidateId: String!
     planId: String!
     placeId: String!
     previousPlaceId: String!
 }
 
-type AddPlaceToPlanCandidateAfterAnyPlaceOutput {
+type AddPlaceToPlanCandidateAfterPlaceOutput {
     planCandidateId: String!
     plan: Plan!
 }
@@ -1457,13 +1457,13 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_addPlaceToPlanCandidateAfterAnyPlace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addPlaceToPlanCandidateAfterPlace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.AddPlaceToPlanCandidateAfterAnyPlaceInput
+	var arg0 *model.AddPlaceToPlanCandidateAfterPlaceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOAddPlaceToPlanCandidateAfterAnyPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterAnyPlaceInput(ctx, tmp)
+		arg0, err = ec.unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1810,8 +1810,8 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCandidateId(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateAfterAnyPlaceOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCandidateId(ctx, field)
+func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput_planCandidateId(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateAfterPlaceOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_planCandidateId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1841,9 +1841,9 @@ func (ec *executionContext) _AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCand
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCandidateId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_planCandidateId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AddPlaceToPlanCandidateAfterAnyPlaceOutput",
+		Object:     "AddPlaceToPlanCandidateAfterPlaceOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1854,8 +1854,8 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOut
 	return fc, nil
 }
 
-func (ec *executionContext) _AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateAfterAnyPlaceOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx, field)
+func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.AddPlaceToPlanCandidateAfterPlaceOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1885,9 +1885,9 @@ func (ec *executionContext) _AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx
 	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AddPlaceToPlanCandidateAfterAnyPlaceOutput",
+		Object:     "AddPlaceToPlanCandidateAfterPlaceOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -3837,8 +3837,8 @@ func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidate(ctx co
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx, field)
+func (ec *executionContext) _Mutation_addPlaceToPlanCandidateAfterPlace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addPlaceToPlanCandidateAfterPlace(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3851,7 +3851,7 @@ func (ec *executionContext) _Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx c
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddPlaceToPlanCandidateAfterAnyPlace(rctx, fc.Args["input"].(*model.AddPlaceToPlanCandidateAfterAnyPlaceInput))
+		return ec.resolvers.Mutation().AddPlaceToPlanCandidateAfterPlace(rctx, fc.Args["input"].(*model.AddPlaceToPlanCandidateAfterPlaceInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3863,12 +3863,12 @@ func (ec *executionContext) _Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx c
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.AddPlaceToPlanCandidateAfterAnyPlaceOutput)
+	res := resTmp.(*model.AddPlaceToPlanCandidateAfterPlaceOutput)
 	fc.Result = res
-	return ec.marshalNAddPlaceToPlanCandidateAfterAnyPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx, field.Selections, res)
+	return ec.marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidateAfterPlace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -3877,11 +3877,11 @@ func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidateAfterAn
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "planCandidateId":
-				return ec.fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCandidateId(ctx, field)
+				return ec.fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_planCandidateId(ctx, field)
 			case "plan":
-				return ec.fieldContext_AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx, field)
+				return ec.fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AddPlaceToPlanCandidateAfterAnyPlaceOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type AddPlaceToPlanCandidateAfterPlaceOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -3891,7 +3891,7 @@ func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidateAfterAn
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addPlaceToPlanCandidateAfterAnyPlace_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_addPlaceToPlanCandidateAfterPlace_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8436,8 +8436,8 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputAddPlaceToPlanCandidateAfterAnyPlaceInput(ctx context.Context, obj interface{}) (model.AddPlaceToPlanCandidateAfterAnyPlaceInput, error) {
-	var it model.AddPlaceToPlanCandidateAfterAnyPlaceInput
+func (ec *executionContext) unmarshalInputAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, obj interface{}) (model.AddPlaceToPlanCandidateAfterPlaceInput, error) {
+	var it model.AddPlaceToPlanCandidateAfterPlaceInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -9243,24 +9243,24 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 
 // region    **************************** object.gotpl ****************************
 
-var addPlaceToPlanCandidateAfterAnyPlaceOutputImplementors = []string{"AddPlaceToPlanCandidateAfterAnyPlaceOutput"}
+var addPlaceToPlanCandidateAfterPlaceOutputImplementors = []string{"AddPlaceToPlanCandidateAfterPlaceOutput"}
 
-func (ec *executionContext) _AddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx context.Context, sel ast.SelectionSet, obj *model.AddPlaceToPlanCandidateAfterAnyPlaceOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, addPlaceToPlanCandidateAfterAnyPlaceOutputImplementors)
+func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, obj *model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addPlaceToPlanCandidateAfterPlaceOutputImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("AddPlaceToPlanCandidateAfterAnyPlaceOutput")
+			out.Values[i] = graphql.MarshalString("AddPlaceToPlanCandidateAfterPlaceOutput")
 		case "planCandidateId":
-			out.Values[i] = ec._AddPlaceToPlanCandidateAfterAnyPlaceOutput_planCandidateId(ctx, field, obj)
+			out.Values[i] = ec._AddPlaceToPlanCandidateAfterPlaceOutput_planCandidateId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "plan":
-			out.Values[i] = ec._AddPlaceToPlanCandidateAfterAnyPlaceOutput_plan(ctx, field, obj)
+			out.Values[i] = ec._AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9928,9 +9928,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "addPlaceToPlanCandidateAfterAnyPlace":
+		case "addPlaceToPlanCandidateAfterPlace":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addPlaceToPlanCandidateAfterAnyPlace(ctx, field)
+				return ec._Mutation_addPlaceToPlanCandidateAfterPlace(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11158,18 +11158,18 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterAnyPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.AddPlaceToPlanCandidateAfterAnyPlaceOutput) graphql.Marshaler {
-	return ec._AddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx, sel, &v)
+func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
+	return ec._AddPlaceToPlanCandidateAfterPlaceOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterAnyPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.AddPlaceToPlanCandidateAfterAnyPlaceOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._AddPlaceToPlanCandidateAfterAnyPlaceOutput(ctx, sel, v)
+	return ec._AddPlaceToPlanCandidateAfterPlaceOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAddPlaceToPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateInput(ctx context.Context, v interface{}) (model.AddPlaceToPlanCandidateInput, error) {
@@ -12170,11 +12170,11 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterAnyPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterAnyPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterAnyPlaceInput, error) {
+func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterPlaceInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputAddPlaceToPlanCandidateAfterAnyPlaceInput(ctx, v)
+	res, err := ec.unmarshalInputAddPlaceToPlanCandidateAfterPlaceInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

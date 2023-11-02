@@ -225,9 +225,9 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 	}, nil
 }
 
-// AddPlaceToPlanCandidateAfterAnyPlace is the resolver for the addPlaceToPlanCandidateAfterAnyPlace field.
-func (r *mutationResolver) AddPlaceToPlanCandidateAfterAnyPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterAnyPlaceInput) (*model.AddPlaceToPlanCandidateAfterAnyPlaceOutput, error) {
-	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateAfterAnyPlace - addPlaceToPlanCandidateAfterAnyPlace"))
+// AddPlaceToPlanCandidateAfterPlace is the resolver for the addPlaceToPlanCandidateAfterPlace field.
+func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error) {
+	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateAfterPlace - addPlaceToPlanCandidateAfterPlace"))
 }
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
