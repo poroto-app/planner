@@ -227,7 +227,33 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 
 // AddPlaceToPlanCandidateAfterPlace is the resolver for the addPlaceToPlanCandidateAfterPlace field.
 func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error) {
-	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateAfterPlace - addPlaceToPlanCandidateAfterPlace"))
+	s, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planInPlanCandidate, err := s.AddPlaceAfterPlace(ctx, input.PlanCandidateID, input.PlanID, input.PreviousPlaceID, input.PlaceID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while adding place to plan candidate: %v", err))
+		return nil, fmt.Errorf("could not add place to plan candidate")
+	}
+
+	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	if err != nil {
+		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planInPlanCandidate, planCandidate.MetaData.LocationStart)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.AddPlaceToPlanCandidateAfterPlaceOutput{
+		Plan: graphqlPlanInPlanCandidate,
+	}, nil
 }
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.

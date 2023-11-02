@@ -16,7 +16,7 @@ type PlanCandidateRepository interface {
 
 	AddPlan(ctx context.Context, planCandidateId string, plan *models.Plan) (*models.PlanCandidate, error)
 
-	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error
+	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error
 
 	RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error
 

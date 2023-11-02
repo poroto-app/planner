@@ -190,13 +190,36 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	return planCandidateUpdated, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
+func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
+		snapshot, err := tx.Get(doc)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return fmt.Errorf("plan[%s] not found in plan candidate[%s]", planId, planCandidateId)
+			}
+
+			return fmt.Errorf("error while getting plan[%s] in plan candidate[%s]: %v", planId, planCandidateId, err)
+		}
+
+		var planInCandidateEntity entity.PlanInCandidateEntity
+		if err = snapshot.DataTo(&planInCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+		}
+
+		var placeIdsOrderd []string
+		for _, id := range planInCandidateEntity.PlaceIdsOrdered {
+			placeIdsOrderd = append(placeIdsOrderd, id)
+			if id != previousPlaceId {
+				continue
+			}
+			placeIdsOrderd = append(placeIdsOrderd, place.Id)
+		}
+
 		if err := tx.Update(doc, []firestore.Update{
 			{
 				Path:  "place_ids_ordered",
-				Value: firestore.ArrayUnion(place.Id),
+				Value: placeIdsOrderd,
 			},
 			{
 				Path:  "updated_at",
