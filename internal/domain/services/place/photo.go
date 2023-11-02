@@ -99,3 +99,18 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 
 	return places
 }
+
+func (s Service) FetchPlacesInPlanCandidatePhotosAndSave(ctx context.Context, planCandidateId string, places ...models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+	googlePlaces := make([]models.GooglePlace, len(places))
+	for i, place := range places {
+		googlePlaces[i] = place.Google
+	}
+
+	googlePlaces = s.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
+
+	for i := 0; i < len(places); i++ {
+		places[i].Google = googlePlaces[i]
+	}
+
+	return places
+}
