@@ -190,32 +190,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 	return planCandidateUpdated, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
-	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
-		if err := tx.Update(doc, []firestore.Update{
-			{
-				Path:  "place_ids_ordered",
-				Value: firestore.ArrayUnion(place.Id),
-			},
-			{
-				Path:  "updated_at",
-				Value: firestore.ServerTimestamp,
-			},
-		}); err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("error while adding place to plan candidate: %v", err)
-	}
-
-	return nil
-}
-
-func (p *PlanCandidateFirestoreRepository) AddPlaceToPlanWithPreviousPlaceId(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
+func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
 		snapshot, err := tx.Get(doc)

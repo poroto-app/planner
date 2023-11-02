@@ -43,12 +43,7 @@ func (p PlanRepository) AddPlan(ctx context.Context, planCandidateId string, pla
 	panic("implement me")
 }
 
-func (p PlanRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, place models.Place) error {
-	// TODO: implement me
-	panic("implement me")
-}
-
-func (p PlanRepository) AddPlaceToPlanWithPreviousPlaceId(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
+func (p PlanRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
 	// TODO: implement me
 	panic("implement me")
 }

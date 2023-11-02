@@ -48,6 +48,9 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 		}
 	}
 
+	// 末尾のプレイスのIDを取得
+	lastPlaceId := planToUpdate.Places[len(planToUpdate.Places)].Id
+
 	googlePlaces := []models.GooglePlace{placeToAdd.Google}
 
 	// 画像を取得
@@ -64,7 +67,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 
 	// プランに指定された場所を追加
 	log.Printf("Adding place to plan candidate %v\n", planCandidateId)
-	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, placeToAdd.ToPlace()); err != nil {
+	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, lastPlaceId, placeToAdd.ToPlace()); err != nil {
 		return nil, fmt.Errorf("error while adding place to plan candidate: %v\n", err)
 	}
 	log.Printf("Successfully added place to plan candidate %v\n", planCandidateId)
@@ -85,9 +88,9 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	return plan, nil
 }
 
-// AddPlaceAfterAnyPlace プランに指定された場所を追加する
+// AddPlaceAfterPlace プランに指定された場所を追加する
 // すでに指定された場所が登録されている場合は、なにもしない
-func (s Service) AddPlaceAfterAnyPlace(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, placeId string) (*models.Plan, error) {
+func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, placeId string) (*models.Plan, error) {
 	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
@@ -141,7 +144,7 @@ func (s Service) AddPlaceAfterAnyPlace(ctx context.Context, planCandidateId stri
 
 	// プランに指定された場所を追加
 	log.Printf("Adding place to plan candidate %v\n", planCandidateId)
-	if err := s.planCandidateRepository.AddPlaceToPlanWithPreviousPlaceId(ctx, planCandidateId, planId, previousPlaceId, placeToAdd.ToPlace()); err != nil {
+	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, previousPlaceId, placeToAdd.ToPlace()); err != nil {
 		return nil, fmt.Errorf("error while adding place to plan candidate: %v", err)
 	}
 	log.Printf("Successfully added place to plan candidate %v\n", planCandidateId)
