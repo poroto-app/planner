@@ -49,7 +49,7 @@ func (s Service) AddPlace(ctx context.Context, planCandidateId string, planId st
 	}
 
 	// 末尾のプレイスのIDを取得
-	lastPlaceId := planToUpdate.Places[len(planToUpdate.Places)].Id
+	lastPlaceId := planToUpdate.Places[len(planToUpdate.Places)-1].Id
 
 	googlePlaces := []models.GooglePlace{placeToAdd.Google}
 
