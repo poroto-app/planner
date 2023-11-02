@@ -16,7 +16,7 @@ func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 	createPlanSessionId string,
-) ([]models.LocationCategory, error) {
+) ([]models.LocationCategoryWithPlaces, error) {
 	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
@@ -46,8 +46,7 @@ func (s Service) CategoriesNearLocation(
 	})
 
 	// 検索された場所のカテゴリとその写真を取得
-	categories := make([]models.LocationCategory, 0)
-	placesUsedOfCategory := make([]models.PlaceInPlanCandidate, 0)
+	categoriesWithPlaces := make([]models.LocationCategoryWithPlaces, 0)
 	for _, categoryPlaces := range placeCategoryGroups {
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
@@ -56,19 +55,43 @@ func (s Service) CategoriesNearLocation(
 
 		// すでに他のカテゴリで利用した場所は利用しない
 		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.PlaceInPlanCandidate) bool {
-			return placefilter.FindById(placesUsedOfCategory, place.Id) == nil
+			var placesAlreadyAdded []models.Place
+			for _, categoryWithPlaces := range categoriesWithPlaces {
+				for _, placeAlreadyAdded := range categoryWithPlaces.Places {
+					placesAlreadyAdded = append(placesAlreadyAdded, placeAlreadyAdded)
+				}
+			}
+
+			for _, placeAlreadyAdded := range placesAlreadyAdded {
+				if placeAlreadyAdded.Id == place.Id {
+					return false
+				}
+			}
+
+			return true
 		})
 
-		// カテゴリと関連の強い場所から順に写真を取得する
+		// カテゴリと関連の強い場所の最初の5件の写真を取得する
 		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
 		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
 			return placesSortedByCategoryIndex[i].Google.IndexOfCategory(*category) < placesSortedByCategoryIndex[j].Google.IndexOfCategory(*category)
 		})
+		if len(placesSortedByCategoryIndex) > 5 {
+			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:5]
+		}
 
-		categories = append(categories, *category)
+		// 場所の写真を取得する
+		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, createPlanSessionId, placesSortedByCategoryIndex...)
+
+		places := make([]models.Place, 0)
+		for _, place := range placesWithPhotos {
+			places = append(places, place.ToPlace())
+		}
+
+		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, places))
 	}
 
-	return categories, nil
+	return categoriesWithPlaces, nil
 }
 
 type groupPlacesByCategoryResult struct {
