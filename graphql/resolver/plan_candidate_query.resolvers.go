@@ -81,6 +81,11 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 	}, nil
 }
 
+// NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
+func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
+	panic(fmt.Errorf("not implemented: NearbyPlaceCategories - nearbyPlaceCategories"))
+}
+
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
 	s, err := plancandidate.NewService(ctx)
