@@ -8,6 +8,18 @@ import (
 	"strconv"
 )
 
+type AddPlaceToPlanCandidateAfterPlaceInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+	PreviousPlaceID string `json:"previousPlaceId"`
+}
+
+type AddPlaceToPlanCandidateAfterPlaceOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
+}
+
 type AddPlaceToPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`
