@@ -141,7 +141,7 @@ type MatchInterestsInput struct {
 }
 
 type NearbyLocationCategory struct {
-	ID              string   `json:"Id"`
+	ID              string   `json:"id"`
 	DisplayName     string   `json:"displayName"`
 	Places          []*Place `json:"places"`
 	DefaultPhotoURL string   `json:"defaultPhotoUrl"`

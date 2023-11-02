@@ -23,7 +23,7 @@ type LocationCategory {
 }
 
 type NearbyLocationCategory {
-    Id: String!
+    id: String!
     displayName: String!
     places: [Place!]!
     defaultPhotoUrl: String!

@@ -621,7 +621,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NearbyLocationCategory.DisplayName(childComplexity), true
 
-	case "NearbyLocationCategory.Id":
+	case "NearbyLocationCategory.id":
 		if e.complexity.NearbyLocationCategory.ID == nil {
 			break
 		}
@@ -1452,7 +1452,7 @@ type LocationCategory {
 }
 
 type NearbyLocationCategory {
-    Id: String!
+    id: String!
     displayName: String!
     places: [Place!]!
     defaultPhotoUrl: String!
@@ -3949,8 +3949,8 @@ func (ec *executionContext) fieldContext_Mutation_editPlanTitleOfPlanCandidate(c
 	return fc, nil
 }
 
-func (ec *executionContext) _NearbyLocationCategory_Id(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_NearbyLocationCategory_Id(ctx, field)
+func (ec *executionContext) _NearbyLocationCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3980,7 +3980,7 @@ func (ec *executionContext) _NearbyLocationCategory_Id(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_NearbyLocationCategory_Id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_NearbyLocationCategory_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "NearbyLocationCategory",
 		Field:      field,
@@ -4184,8 +4184,8 @@ func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_categories(ct
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "Id":
-				return ec.fieldContext_NearbyLocationCategory_Id(ctx, field)
+			case "id":
+				return ec.fieldContext_NearbyLocationCategory_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_NearbyLocationCategory_displayName(ctx, field)
 			case "places":
@@ -10098,8 +10098,8 @@ func (ec *executionContext) _NearbyLocationCategory(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("NearbyLocationCategory")
-		case "Id":
-			out.Values[i] = ec._NearbyLocationCategory_Id(ctx, field, obj)
+		case "id":
+			out.Values[i] = ec._NearbyLocationCategory_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
