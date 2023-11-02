@@ -40,6 +40,11 @@ type InterestCandidate {
     categories: [LocationCategory!]!
 }
 
+input MatchInterestsInput {
+    latitude: Float!
+    longitude: Float!
+}
+
 input PlacesToAddForPlanCandidateInput {
     planCandidateId: ID!
     planId: ID!
