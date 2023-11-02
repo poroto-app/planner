@@ -57,9 +57,7 @@ func (s Service) CategoriesNearLocation(
 		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.PlaceInPlanCandidate) bool {
 			var placesAlreadyAdded []models.Place
 			for _, categoryWithPlaces := range categoriesWithPlaces {
-				for _, placeAlreadyAdded := range categoryWithPlaces.Places {
-					placesAlreadyAdded = append(placesAlreadyAdded, placeAlreadyAdded)
-				}
+				placesAlreadyAdded = append(placesAlreadyAdded, categoryWithPlaces.Places...)
 			}
 
 			for _, placeAlreadyAdded := range placesAlreadyAdded {
