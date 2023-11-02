@@ -132,7 +132,7 @@ type ComplexityRoot struct {
 		DefaultPhotoURL func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
 		ID              func(childComplexity int) int
-		Photos          func(childComplexity int) int
+		Places          func(childComplexity int) int
 	}
 
 	NearbyPlaceCategoryOutput struct {
@@ -628,12 +628,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NearbyLocationCategory.ID(childComplexity), true
 
-	case "NearbyLocationCategory.photos":
-		if e.complexity.NearbyLocationCategory.Photos == nil {
+	case "NearbyLocationCategory.places":
+		if e.complexity.NearbyLocationCategory.Places == nil {
 			break
 		}
 
-		return e.complexity.NearbyLocationCategory.Photos(childComplexity), true
+		return e.complexity.NearbyLocationCategory.Places(childComplexity), true
 
 	case "NearbyPlaceCategoryOutput.categories":
 		if e.complexity.NearbyPlaceCategoryOutput.Categories == nil {
@@ -1454,7 +1454,7 @@ type LocationCategory {
 type NearbyLocationCategory {
     Id: String!
     displayName: String!
-    photos: [Image!]!
+    places: [Place!]!
     defaultPhotoUrl: String!
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `schema {
@@ -4037,8 +4037,8 @@ func (ec *executionContext) fieldContext_NearbyLocationCategory_displayName(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _NearbyLocationCategory_photos(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_NearbyLocationCategory_photos(ctx, field)
+func (ec *executionContext) _NearbyLocationCategory_places(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_places(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4051,7 +4051,7 @@ func (ec *executionContext) _NearbyLocationCategory_photos(ctx context.Context, 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Photos, nil
+		return obj.Places, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4063,12 +4063,12 @@ func (ec *executionContext) _NearbyLocationCategory_photos(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Image)
+	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_NearbyLocationCategory_photos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "NearbyLocationCategory",
 		Field:      field,
@@ -4076,14 +4076,26 @@ func (ec *executionContext) fieldContext_NearbyLocationCategory_photos(ctx conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "default":
-				return ec.fieldContext_Image_default(ctx, field)
-			case "small":
-				return ec.fieldContext_Image_small(ctx, field)
-			case "large":
-				return ec.fieldContext_Image_large(ctx, field)
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
 	}
 	return fc, nil
@@ -10096,8 +10108,8 @@ func (ec *executionContext) _NearbyLocationCategory(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "photos":
-			out.Values[i] = ec._NearbyLocationCategory_photos(ctx, field, obj)
+		case "places":
+			out.Values[i] = ec._NearbyLocationCategory_places(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
