@@ -225,6 +225,11 @@ func (r *mutationResolver) AddPlaceToPlanCandidate(ctx context.Context, input mo
 	}, nil
 }
 
+// AddPlaceToPlanCandidateInAnyOrder is the resolver for the AddPlaceToPlanCandidateInAnyOrder field.
+func (r *mutationResolver) AddPlaceToPlanCandidateInAnyOrder(ctx context.Context, input *model.AddPlaceToPlanCandidateInAnyOrderInput) (*model.AddPlaceToPlanCandidateInAnyOrderOutput, error) {
+	panic(fmt.Errorf("not implemented: AddPlaceToPlanCandidateInAnyOrder - AddPlaceToPlanCandidateInAnyOrder"))
+}
+
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
 	s, err := plancandidate.NewService(ctx)
