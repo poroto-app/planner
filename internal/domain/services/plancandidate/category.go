@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"log"
 	"poroto.app/poroto/planner/internal/domain/factory"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // TODO: PlanGeneratorServiceに持っていく
@@ -67,21 +64,6 @@ func (s Service) CategoriesNearLocation(
 		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
 			return placesSortedByCategoryIndex[i].Google.IndexOfCategory(*category) < placesSortedByCategoryIndex[j].Google.IndexOfCategory(*category)
 		})
-
-		//　カテゴリに属する場所のうち、写真が取得可能なものを取得
-		for _, place := range placesSortedByCategoryIndex {
-			// TODO: キャッシュ
-			placePhoto, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeLarge())
-			if err != nil {
-				log.Printf("error while fetching googlePlace photo: %v\n", err)
-				continue
-			}
-			if placePhoto != nil {
-				category.Photo = utils.StrCopyPointerValue(placePhoto)
-				placesUsedOfCategory = append(placesUsedOfCategory, place)
-				break
-			}
-		}
 
 		categories = append(categories, *category)
 	}
