@@ -107,8 +107,8 @@ func (s Service) FetchPlaceInPlanCandidateReviewsAndSave(ctx context.Context, pl
 
 	googlePlaces = s.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 
-	for i := 0; i < len(placeInPlanCandidates); i++ {
-		placeInPlanCandidates[i].Google = googlePlaces[i]
+	for i, googlePlace := range googlePlaces {
+		placeInPlanCandidates[i].Google = googlePlace
 	}
 
 	return placeInPlanCandidates
