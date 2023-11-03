@@ -152,6 +152,23 @@ type MatchInterestsInput struct {
 	Longitude float64 `json:"longitude"`
 }
 
+type NearbyLocationCategory struct {
+	ID              string   `json:"id"`
+	DisplayName     string   `json:"displayName"`
+	Places          []*Place `json:"places"`
+	DefaultPhotoURL string   `json:"defaultPhotoUrl"`
+}
+
+type NearbyPlaceCategoriesInput struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type NearbyPlaceCategoryOutput struct {
+	PlanCandidateID string                    `json:"planCandidateId"`
+	Categories      []*NearbyLocationCategory `json:"categories"`
+}
+
 type Place struct {
 	ID                    string               `json:"id"`
 	GooglePlaceID         *string              `json:"googlePlaceId,omitempty"`

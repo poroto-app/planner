@@ -71,11 +71,6 @@ type SavePlanFromCandidateOutput {
     plan: Plan!
 }
 
-input MatchInterestsInput {
-    latitude: Float!
-    longitude: Float!
-}
-
 input AddPlaceToPlanCandidateInput {
     planCandidateId: String!
     planId: String!

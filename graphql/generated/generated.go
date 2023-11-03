@@ -134,6 +134,18 @@ type ComplexityRoot struct {
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
 	}
 
+	NearbyLocationCategory struct {
+		DefaultPhotoURL func(childComplexity int) int
+		DisplayName     func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Places          func(childComplexity int) int
+	}
+
+	NearbyPlaceCategoryOutput struct {
+		Categories      func(childComplexity int) int
+		PlanCandidateID func(childComplexity int) int
+	}
+
 	Place struct {
 		Categories            func(childComplexity int) int
 		EstimatedStayDuration func(childComplexity int) int
@@ -190,6 +202,7 @@ type ComplexityRoot struct {
 		CachedCreatedPlans              func(childComplexity int, input model.CachedCreatedPlansInput) int
 		FirebaseUser                    func(childComplexity int, input *model.FirebaseUserInput) int
 		MatchInterests                  func(childComplexity int, input *model.MatchInterestsInput) int
+		NearbyPlaceCategories           func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
 		PlacesToAddForPlanCandidate     func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
 		PlacesToReplaceForPlanCandidate func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
 		Plan                            func(childComplexity int, id string) int
@@ -237,6 +250,7 @@ type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
 	CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error)
 	MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error)
+	NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
 	PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error)
 	PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error)
@@ -627,6 +641,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SavePlanFromCandidate(childComplexity, args["input"].(model.SavePlanFromCandidateInput)), true
 
+	case "NearbyLocationCategory.defaultPhotoUrl":
+		if e.complexity.NearbyLocationCategory.DefaultPhotoURL == nil {
+			break
+		}
+
+		return e.complexity.NearbyLocationCategory.DefaultPhotoURL(childComplexity), true
+
+	case "NearbyLocationCategory.displayName":
+		if e.complexity.NearbyLocationCategory.DisplayName == nil {
+			break
+		}
+
+		return e.complexity.NearbyLocationCategory.DisplayName(childComplexity), true
+
+	case "NearbyLocationCategory.id":
+		if e.complexity.NearbyLocationCategory.ID == nil {
+			break
+		}
+
+		return e.complexity.NearbyLocationCategory.ID(childComplexity), true
+
+	case "NearbyLocationCategory.places":
+		if e.complexity.NearbyLocationCategory.Places == nil {
+			break
+		}
+
+		return e.complexity.NearbyLocationCategory.Places(childComplexity), true
+
+	case "NearbyPlaceCategoryOutput.categories":
+		if e.complexity.NearbyPlaceCategoryOutput.Categories == nil {
+			break
+		}
+
+		return e.complexity.NearbyPlaceCategoryOutput.Categories(childComplexity), true
+
+	case "NearbyPlaceCategoryOutput.planCandidateId":
+		if e.complexity.NearbyPlaceCategoryOutput.PlanCandidateID == nil {
+			break
+		}
+
+		return e.complexity.NearbyPlaceCategoryOutput.PlanCandidateID(childComplexity), true
+
 	case "Place.categories":
 		if e.complexity.Place.Categories == nil {
 			break
@@ -864,6 +920,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.MatchInterests(childComplexity, args["input"].(*model.MatchInterestsInput)), true
 
+	case "Query.nearbyPlaceCategories":
+		if e.complexity.Query.NearbyPlaceCategories == nil {
+			break
+		}
+
+		args, err := ec.field_Query_nearbyPlaceCategories_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.NearbyPlaceCategories(childComplexity, args["input"].(model.NearbyPlaceCategoriesInput)), true
+
 	case "Query.placesToAddForPlanCandidate":
 		if e.complexity.Query.PlacesToAddForPlanCandidate == nil {
 			break
@@ -1025,6 +1093,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputEditPlanTitleOfPlanCandidateInput,
 		ec.unmarshalInputFirebaseUserInput,
 		ec.unmarshalInputMatchInterestsInput,
+		ec.unmarshalInputNearbyPlaceCategoriesInput,
 		ec.unmarshalInputPlacesToAddForPlanCandidateInput,
 		ec.unmarshalInputPlacesToReplaceForPlanCandidateInput,
 		ec.unmarshalInputPlansByLocationInput,
@@ -1250,11 +1319,6 @@ type SavePlanFromCandidateOutput {
     plan: Plan!
 }
 
-input MatchInterestsInput {
-    latitude: Float!
-    longitude: Float!
-}
-
 input AddPlaceToPlanCandidateInput {
     planCandidateId: String!
     planId: String!
@@ -1316,8 +1380,11 @@ type EditPlanTitleOfPlanCandidateOutput {
     # キャッシュされたプラン一覧を取得する
     cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 
+    # TODO: Delete
     # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
     matchInterests(input: MatchInterestsInput): InterestCandidate!
+
+    nearbyPlaceCategories(input: NearbyPlaceCategoriesInput!): NearbyPlaceCategoryOutput!
 
     # プランを作成可能な他の場所を取得する
     availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
@@ -1351,6 +1418,21 @@ type AvailablePlacesForPlan {
 type InterestCandidate {
     session: String!
     categories: [LocationCategory!]!
+}
+
+input MatchInterestsInput {
+    latitude: Float!
+    longitude: Float!
+}
+
+input NearbyPlaceCategoriesInput {
+    latitude: Float!
+    longitude: Float!
+}
+
+type NearbyPlaceCategoryOutput {
+    planCandidateId: ID!
+    categories: [NearbyLocationCategory!]!
 }
 
 input PlacesToAddForPlanCandidateInput {
@@ -1418,10 +1500,18 @@ type Transition {
     duration: Int!
 }
 
+# TODO: DELETE
 type LocationCategory {
     name: String!
     displayName: String!
     photo: String
+    defaultPhotoUrl: String!
+}
+
+type NearbyLocationCategory {
+    id: String!
+    displayName: String!
+    places: [Place!]!
     defaultPhotoUrl: String!
 }`, BuiltIn: false},
 	{Name: "../schema/schema.graphqls", Input: `schema {
@@ -1674,6 +1764,21 @@ func (ec *executionContext) field_Query_matchInterests_args(ctx context.Context,
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOMatchInterestsInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐMatchInterestsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_nearbyPlaceCategories_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NearbyPlaceCategoriesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4081,6 +4186,300 @@ func (ec *executionContext) fieldContext_Mutation_editPlanTitleOfPlanCandidate(c
 	return fc, nil
 }
 
+func (ec *executionContext) _NearbyLocationCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyLocationCategory_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyLocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NearbyLocationCategory_displayName(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_displayName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DisplayName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyLocationCategory_displayName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyLocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NearbyLocationCategory_places(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_places(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Places, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyLocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NearbyLocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyLocationCategory_defaultPhotoUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DefaultPhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyLocationCategory_defaultPhotoUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyLocationCategory",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NearbyPlaceCategoryOutput_planCandidateId(ctx context.Context, field graphql.CollectedField, obj *model.NearbyPlaceCategoryOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyPlaceCategoryOutput_planCandidateId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PlanCandidateID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_planCandidateId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyPlaceCategoryOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _NearbyPlaceCategoryOutput_categories(ctx context.Context, field graphql.CollectedField, obj *model.NearbyPlaceCategoryOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_NearbyPlaceCategoryOutput_categories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Categories, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.NearbyLocationCategory)
+	fc.Result = res
+	return ec.marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "NearbyPlaceCategoryOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_NearbyLocationCategory_id(ctx, field)
+			case "displayName":
+				return ec.fieldContext_NearbyLocationCategory_displayName(ctx, field)
+			case "places":
+				return ec.fieldContext_NearbyLocationCategory_places(ctx, field)
+			case "defaultPhotoUrl":
+				return ec.fieldContext_NearbyLocationCategory_defaultPhotoUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NearbyLocationCategory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Place_id(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Place_id(ctx, field)
 	if err != nil {
@@ -5565,6 +5964,67 @@ func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_matchInterests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_nearbyPlaceCategories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_nearbyPlaceCategories(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().NearbyPlaceCategories(rctx, fc.Args["input"].(model.NearbyPlaceCategoriesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.NearbyPlaceCategoryOutput)
+	fc.Result = res
+	return ec.marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_nearbyPlaceCategories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "planCandidateId":
+				return ec.fieldContext_NearbyPlaceCategoryOutput_planCandidateId(ctx, field)
+			case "categories":
+				return ec.fieldContext_NearbyPlaceCategoryOutput_categories(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type NearbyPlaceCategoryOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_nearbyPlaceCategories_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8962,6 +9422,44 @@ func (ec *executionContext) unmarshalInputMatchInterestsInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNearbyPlaceCategoriesInput(ctx context.Context, obj interface{}) (model.NearbyPlaceCategoriesInput, error) {
+	var it model.NearbyPlaceCategoriesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"latitude", "longitude"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "latitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Latitude = data
+		case "longitude":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Longitude = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPlacesToAddForPlanCandidateInput(ctx context.Context, obj interface{}) (model.PlacesToAddForPlanCandidateInput, error) {
 	var it model.PlacesToAddForPlanCandidateInput
 	asMap := map[string]interface{}{}
@@ -9979,6 +10477,104 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var nearbyLocationCategoryImplementors = []string{"NearbyLocationCategory"}
+
+func (ec *executionContext) _NearbyLocationCategory(ctx context.Context, sel ast.SelectionSet, obj *model.NearbyLocationCategory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, nearbyLocationCategoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NearbyLocationCategory")
+		case "id":
+			out.Values[i] = ec._NearbyLocationCategory_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "displayName":
+			out.Values[i] = ec._NearbyLocationCategory_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "places":
+			out.Values[i] = ec._NearbyLocationCategory_places(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "defaultPhotoUrl":
+			out.Values[i] = ec._NearbyLocationCategory_defaultPhotoUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var nearbyPlaceCategoryOutputImplementors = []string{"NearbyPlaceCategoryOutput"}
+
+func (ec *executionContext) _NearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, obj *model.NearbyPlaceCategoryOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, nearbyPlaceCategoryOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NearbyPlaceCategoryOutput")
+		case "planCandidateId":
+			out.Values[i] = ec._NearbyPlaceCategoryOutput_planCandidateId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "categories":
+			out.Values[i] = ec._NearbyPlaceCategoryOutput_categories(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var placeImplementors = []string{"Place"}
 
 func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, obj *model.Place) graphql.Marshaler {
@@ -10441,6 +11037,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_matchInterests(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "nearbyPlaceCategories":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_nearbyPlaceCategories(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -11524,6 +12142,79 @@ func (ec *executionContext) marshalNLocationCategory2ᚖporotoᚗappᚋporotoᚋ
 		return graphql.Null
 	}
 	return ec._LocationCategory(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx context.Context, sel ast.SelectionSet, v *model.NearbyLocationCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._NearbyLocationCategory(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx context.Context, v interface{}) (model.NearbyPlaceCategoriesInput, error) {
+	res, err := ec.unmarshalInputNearbyPlaceCategoriesInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v model.NearbyPlaceCategoryOutput) graphql.Marshaler {
+	return ec._NearbyPlaceCategoryOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v *model.NearbyPlaceCategoryOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._NearbyPlaceCategoryOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Place) graphql.Marshaler {
