@@ -48,11 +48,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
 		for _, placeInPlan := range plan.Places {
-			if placeInPlan.GooglePlaceId == nil {
-				return false
-			}
-
-			if *placeInPlan.GooglePlaceId == place.Id {
+			if placeInPlan.Id == place.Id {
 				return false
 			}
 		}
