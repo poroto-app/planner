@@ -11,7 +11,6 @@ type LocationCategory struct {
 	DisplayName           string
 	SubCategories         []string
 	DefaultPhoto          string
-	Photo                 *string
 	EstimatedStayDuration uint
 }
 
