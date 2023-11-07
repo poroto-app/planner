@@ -1,7 +1,9 @@
 name: deploy-dev-test
-run-name: Deploy Production by @${{ github.actor }}
+run-name: Deploy Development by @${{ github.actor }}
 on: push
 jobs:
+  build:
+    uses: ./.github/workflows/workflow_build.yaml
   deploy-cloud-functions-batch-delete-expired-plan-candidates:
     needs: build
     name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
