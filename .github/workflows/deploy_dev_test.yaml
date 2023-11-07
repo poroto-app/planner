@@ -1,25 +1,26 @@
 name: deploy-dev-test
 run-name: Deploy Production by @${{ github.actor }}
 on: push
-deploy-cloud-functions-batch-delete-expired-plan-candidates:
-  needs: build
-  name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
-  runs-on: ubuntu-latest
-  environment: ${{ inputs.environment }}
-  steps:
-    - uses: actions/checkout@v3
-    - uses: ./.github/actions/decrypt_secrets
-      with:
-        google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-        gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-        environment: ${{ inputs.environment }}
-    - name: Deploy Cloud Functions
-      uses: ./.github/actions/deploy_cloud_functions
-      with:
-        google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-        google_cloud_project_id: "poroto-dev"
-        function_name: 'delete-expired-plan-candidates'
-        entry_point: 'DeleteExpiredPlanCandidates'
-        runtime: 'go120'
-        description: 'batch task to delete expired plan candidates'
-        region: 'asia-northeast1'
+jobs:
+  deploy-cloud-functions-batch-delete-expired-plan-candidates:
+    needs: build
+    name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/decrypt_secrets
+        with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          environment: ${{ inputs.environment }}
+      - name: Deploy Cloud Functions
+        uses: ./.github/actions/deploy_cloud_functions
+        with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          google_cloud_project_id: "poroto-dev"
+          function_name: 'delete-expired-plan-candidates'
+          entry_point: 'DeleteExpiredPlanCandidates'
+          runtime: 'go120'
+          description: 'batch task to delete expired plan candidates'
+          region: 'asia-northeast1'
