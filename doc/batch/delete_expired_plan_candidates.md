@@ -2,12 +2,12 @@
 
 ## 概要
 
-| 項目 | 内容                                     |
-|------|----------------------------------------|
-| バッチ名 | delete_expired_plan_candidates         |
-| 実行場所 | Cloud Functions(Github Actionsによりデプロイ) |
-| 実行時間 | TODO                                   |
-| 実行間隔 | TODO                                   |
+| 項目 | 内容                                                                                                                                              |
+|------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| バッチ名 | delete_expired_plan_candidates                                                                                                                  |
+| 実行場所 | Cloud Functions(Github Actionsによりデプロイ)                                                                                                          |
+| 実行時間 | [4:00AM(JST)](https://github.com/poroto-app/infrastructure/blob/0dc06438fc35f6c503d04e9bd963a8cc20b1400d/terraform/development/scheduler.tf#L5) |
+| 実行間隔 | [毎日](https://github.com/poroto-app/infrastructure/blob/0dc06438fc35f6c503d04e9bd963a8cc20b1400d/terraform/development/scheduler.tf#L5)                                                                                                                                          |
 
 ## 実行目的
 
@@ -17,7 +17,6 @@
 
 - Firestore
   - `plan_candidates` コレクション
-  - `plan_search_results` コレクション
 
 ## ユーザー影響
 
