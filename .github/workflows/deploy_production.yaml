@@ -10,4 +10,5 @@ jobs:
     uses: ./.github/workflows/workflow_deploy.yaml
     with:
       environment: production
+      google_cloud_project_id: poroto-379005
     secrets: inherit

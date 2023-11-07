@@ -1,6 +1,12 @@
 name: "Deploy Cloud Functions"
 description: "Action to deploy cloud functions"
 inputs:
+  google_credentials_json:
+    description: 'Google Service Account Credential'
+    required: true
+  google_cloud_project_id:
+    description: 'Google Cloud Project ID'
+    required: true
   function_name:
     description: 'Cloud Function Name'
     required: true
@@ -13,6 +19,9 @@ inputs:
   description:
     description: 'Cloud Function Description'
     required: true
+  reigon:
+    description: 'Cloud Function Reign'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -21,13 +30,27 @@ runs:
       run: cp internal/interface/cloudfunctions/*.go ./
       shell: bash
     # SEE: https://github.com/google-github-actions/deploy-cloud-functions
-    - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
+    - name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
       with:
-        name: ${{ inputs.function_name }}
-        entry_point: ${{ inputs.entry_point }}
-        runtime: ${{ inputs.runtime }}
-        description: ${{ inputs.description }}
+        credentials_json: ${{ inputs.google_credentials_json }}
+    - name: 'Setup gcloud CLI'
+      uses: 'google-github-actions/setup-gcloud@v0.2.0'
+      with:
+        project_id: ${{ inputs.google_cloud_project_id }}
+        service_account_key: ${{ inputs.google_credentials_json }}
+    - id: 'deploy'
+      shell: bash
+      run: >-
+        gcloud functions deploy ${{ inputs.function_name }}
+        --gen2
+        --runtime=${{ inputs.runtime }}
+        --region=${{ inputs.region }}
+        --source=.
+        --entry-point=${{ inputs.entry_point }}
+        --trigger-http
+        --no-allow-unauthenticated
+        --set-env-vars GCP_PROJECT=${{ inputs.google_cloud_project_id }}
     - id: 'describe'
       run: gcloud functions describe ${{ inputs.function_name }}
       shell: bash

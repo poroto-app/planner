@@ -7,6 +7,10 @@ on:
         type: string
         description: deployment environment
         required: true
+      google_cloud_project_id:
+        type: string
+        description: Google Cloud Project ID
+        required: true
     secrets:
       GOOGLE_CREDENTIALS:
         required: true
@@ -30,6 +34,8 @@ jobs:
       - name: Deploy Cloud Functions
         uses: ./.github/actions/deploy_cloud_functions
         with:
+          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+          google_cloud_project_id: ${{ inputs.google_cloud_project_id }}
           function_name: 'delete-expired-plan-candidates'
           entry_point: 'DeleteExpiredPlanCandidates'
           runtime: 'go120'

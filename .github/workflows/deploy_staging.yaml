@@ -10,4 +10,5 @@ jobs:
     uses: ./.github/workflows/workflow_deploy.yaml
     with:
       environment: staging
+      google_cloud_project_id: poroto-staging
     secrets: inherit
