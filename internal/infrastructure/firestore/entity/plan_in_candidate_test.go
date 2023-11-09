@@ -72,7 +72,6 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 				c.entity.Name,
 				c.places,
 				c.entity.PlaceIdsOrdered,
-				c.entity.TimeInMinutes,
 			)
 			if diff := cmp.Diff(c.expected, result); diff != "" {
 				t.Errorf("FromPlanInCandidateEntity() mismatch (-want +got):\n%s", diff)

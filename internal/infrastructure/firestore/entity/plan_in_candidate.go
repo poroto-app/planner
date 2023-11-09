@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -12,8 +13,6 @@ type PlanInCandidateEntity struct {
 	Id              string   `firestore:"id"`
 	Name            string   `firestore:"name"`
 	PlaceIdsOrdered []string `firestore:"place_ids_ordered"`
-	// MEMO: Firestoreではuintをサポートしていないため，intにしている
-	TimeInMinutes int `firestore:"time_in_minutes"`
 }
 
 func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
@@ -29,7 +28,6 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 		Id:              plan.Id,
 		Name:            plan.Name,
 		PlaceIdsOrdered: placeIdsOrdered,
-		TimeInMinutes:   int(plan.TimeInMinutes),
 	}
 }
 
@@ -38,7 +36,6 @@ func FromPlanInCandidateEntity(
 	name string,
 	places []models.PlaceInPlanCandidate,
 	placeIdsOrdered []string,
-	timeInMinutes int,
 ) (*models.Plan, error) {
 	placesOrdered := make([]models.Place, len(placeIdsOrdered))
 	for i, placeIdOrdered := range placeIdsOrdered {
@@ -55,10 +52,9 @@ func FromPlanInCandidateEntity(
 	}
 
 	return &models.Plan{
-		Id:            id,
-		Name:          name,
-		Places:        placesOrdered,
-		TimeInMinutes: uint(timeInMinutes),
+		Id:     id,
+		Name:   name,
+		Places: placesOrdered,
 	}, nil
 }
 
