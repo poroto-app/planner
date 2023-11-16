@@ -17,7 +17,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		maps.PlaceTypeAquarium,
 		maps.PlaceTypeAmusementPark,
 		maps.PlaceTypeCafe,
-		maps.PlaceTypeMovieTheater,
 		maps.PlaceTypeMuseum,
 		maps.PlaceTypeRestaurant,
 		maps.PlaceTypeShoppingMall,
