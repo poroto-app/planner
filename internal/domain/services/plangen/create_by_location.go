@@ -178,7 +178,6 @@ func (s Service) findOrFetchPlaceById(
 		return place, true, nil
 	}
 
-	// TODO: キャッシュする
 	googlePlaceEntity, err := s.placesApi.FetchPlace(ctx, googleplaces.FetchPlaceRequest{
 		PlaceId:  googlePlaceId,
 		Language: "ja",
