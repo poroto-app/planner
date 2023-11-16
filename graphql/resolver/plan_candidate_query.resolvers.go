@@ -157,7 +157,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	}
 
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
-	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 10)
+	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 4)
 	if err != nil {
 		log.Println("error while fetching places to add: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -181,7 +181,7 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 10)
+	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 4)
 	if err != nil {
 		log.Println("error while fetching places to replace: ", err)
 		return nil, fmt.Errorf("internal server error")
