@@ -3,6 +3,7 @@ package places
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"googlemaps.github.io/maps"
@@ -12,6 +13,7 @@ import (
 // https://developers.google.com/maps/documentation/places/web-service/search-nearby
 // pageCount は 1 以上の整数で、ページング処理を行う回数を指定する。
 func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchRequest, pagesCount int) ([]maps.PlacesSearchResult, error) {
+	log.Printf("Places API Nearby Search: %+v\n", req)
 	if pagesCount < 1 {
 		pagesCount = 1
 	}

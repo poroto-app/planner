@@ -128,11 +128,14 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // imageSizeTypes が指定されている場合は，高画質の写真を取得する
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+// 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
+// https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
 
+	log.Printf("Places API Place Details for Photo: %s\n", placeId)
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -144,9 +147,14 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSi
 	}
 
 	ch := make(chan *placePhotoWithSize, len(resp.Photos)*len(imageSizeTypes))
-	for _, photo := range resp.Photos {
+	for iPhoto, photo := range resp.Photos {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+				if photoIndex >= maxPhotoCount {
+					ch <- nil
+					return
+				}
+
 				imageSize := imageSizeType.ImageSize()
 
 				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
@@ -156,6 +164,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSi
 					return
 				}
 
+				log.Printf("Places API Fetch Place Photo: %s\n", photo.PhotoReference)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
 					log.Printf("skipping photo because of error while fetching public image url: %v", err)
@@ -168,7 +177,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, imageSi
 					imageUrl:       *publicImageUrl,
 					size:           imageSizeType,
 				}
-			}(ctx, photo, imageSizeType, ch)
+			}(ctx, iPhoto, photo, imageSizeType, ch)
 		}
 	}
 

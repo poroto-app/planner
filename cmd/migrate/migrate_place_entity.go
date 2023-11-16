@@ -3,27 +3,16 @@ package main
 import (
 	"cloud.google.com/go/firestore"
 	"context"
-	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/env"
 	"time"
 )
 
 func init() {
-	env := os.Getenv("ENV")
-	if "" == env {
-		env = "development"
-	}
-
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
-	}
-
-	if err := godotenv.Load(".env." + env); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
-	}
+	env.LoadEnv()
 }
 
 // PlanEntity 2023/10/4

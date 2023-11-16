@@ -54,11 +54,13 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
+		plancandidate.CategoryNearLocationParams{
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			CreatePlanSessionId: createPlanSessionId,
 		},
-		createPlanSessionId,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
@@ -92,11 +94,13 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
+		plancandidate.CategoryNearLocationParams{
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			CreatePlanSessionId: createPlanSessionId,
 		},
-		createPlanSessionId,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
@@ -132,7 +136,7 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session)
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session, 4)
 	if err != nil {
 		log.Println("error while fetching candidate places: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -157,7 +161,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	}
 
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
-	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 10)
+	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 4)
 	if err != nil {
 		log.Println("error while fetching places to add: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -181,7 +185,7 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 10)
+	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 4)
 	if err != nil {
 		log.Println("error while fetching places to replace: ", err)
 		return nil, fmt.Errorf("internal server error")
