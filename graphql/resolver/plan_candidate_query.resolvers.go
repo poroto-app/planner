@@ -132,7 +132,7 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session)
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, input.Session, 4)
 	if err != nil {
 		log.Println("error while fetching candidate places: ", err)
 		return nil, fmt.Errorf("internal server error")
