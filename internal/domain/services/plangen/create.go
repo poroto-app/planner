@@ -13,6 +13,7 @@ import (
 
 const (
 	defaultMaxPlanDuration = 180
+	defaultMaxPlace        = 4
 )
 
 type CreatePlanPlacesParams struct {
@@ -23,10 +24,15 @@ type CreatePlanPlacesParams struct {
 	freeTime                     *int
 	createBasedOnCurrentLocation bool
 	shouldOpenWhileTraveling     bool
+	maxPlace                     int
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
 func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.PlaceInPlanCandidate, error) {
+	if params.maxPlace == 0 {
+		params.maxPlace = defaultMaxPlace
+	}
+
 	placesFiltered := params.places
 
 	// 現在、開いている場所のみに絞る
@@ -80,6 +86,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	for _, place := range placesSorted {
+		// プランに含まれる場所の数が上限に達したら終了
+		if len(placesInPlan) >= params.maxPlace {
+			log.Printf("skip place %s because the number of places in plan is over\n", place.Google.Name)
+			break
+		}
+
 		if place.Id == params.placeStart.Id {
 			continue
 		}
