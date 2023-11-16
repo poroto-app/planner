@@ -12,7 +12,7 @@ type FetchPlaceReviewRequest struct {
 }
 
 func (r PlacesApi) FetchPlaceReview(ctx context.Context, req FetchPlaceReviewRequest) (*[]maps.PlaceReview, error) {
-	log.Printf("Places API Fetch Place Review: %+v\n", req)
+	log.Printf("Places API Place Details for reviews: %s\n", req.PlaceId)
 
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID:  req.PlaceId,

@@ -88,6 +88,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	for _, place := range placesSorted {
 		// プランに含まれる場所の数が上限に達したら終了
 		if len(placesInPlan) >= params.maxPlace {
+			log.Printf("skip place %s because the number of places in plan is over\n", place.Google.Name)
 			break
 		}
 

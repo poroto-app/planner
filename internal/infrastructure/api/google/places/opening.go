@@ -14,7 +14,7 @@ type PlaceOpeningPeriod struct {
 }
 
 func (r PlacesApi) FetchPlaceOpeningPeriods(ctx context.Context, googlePlaceId string) ([]PlaceOpeningPeriod, error) {
-	log.Printf("Places API Fetch Place Opening Periods: %+v\n", googlePlaceId)
+	log.Printf("Places API Place Details for opening hours: %s\n", googlePlaceId)
 
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: googlePlaceId,

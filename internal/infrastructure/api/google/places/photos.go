@@ -131,12 +131,11 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
 func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
-	log.Printf("Places API Fetch Place Photos: %s\n", placeId)
-
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
 
+	log.Printf("Places API Place Details for Photo: %s\n", placeId)
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: placeId,
 		Fields: []maps.PlaceDetailsFieldMask{
@@ -148,13 +147,13 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 	}
 
 	ch := make(chan *placePhotoWithSize, len(resp.Photos)*len(imageSizeTypes))
-	for i, photo := range resp.Photos {
-		if i >= maxPhotoCount {
-			break
-		}
-
+	for iPhoto, photo := range resp.Photos {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+				if photoIndex >= maxPhotoCount {
+					ch <- nil
+				}
+
 				imageSize := imageSizeType.ImageSize()
 
 				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
@@ -164,6 +163,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 					return
 				}
 
+				log.Printf("Places API Fetch Place Photo: %s\n", photo.PhotoReference)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
 					log.Printf("skipping photo because of error while fetching public image url: %v", err)
@@ -176,7 +176,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 					imageUrl:       *publicImageUrl,
 					size:           imageSizeType,
 				}
-			}(ctx, photo, imageSizeType, ch)
+			}(ctx, iPhoto, photo, imageSizeType, ch)
 		}
 	}
 
