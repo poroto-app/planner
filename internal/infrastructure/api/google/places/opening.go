@@ -2,6 +2,7 @@ package places
 
 import (
 	"context"
+	"log"
 
 	"googlemaps.github.io/maps"
 )
@@ -13,6 +14,8 @@ type PlaceOpeningPeriod struct {
 }
 
 func (r PlacesApi) FetchPlaceOpeningPeriods(ctx context.Context, googlePlaceId string) ([]PlaceOpeningPeriod, error) {
+	log.Printf("Places API Fetch Place Opening Periods: %+v\n", googlePlaceId)
+
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID: googlePlaceId,
 		Fields: []maps.PlaceDetailsFieldMask{

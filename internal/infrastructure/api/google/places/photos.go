@@ -131,6 +131,8 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
 func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+	log.Printf("Places API Fetch Place Photos: %s\n", placeId)
+
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
