@@ -16,7 +16,12 @@ func (s Service) CategoriesNearLocation(
 	ctx context.Context,
 	location models.GeoLocation,
 	createPlanSessionId string,
+	nLimit int,
 ) ([]models.LocationCategoryWithPlaces, error) {
+	if nLimit <= 0 {
+		panic("nLimit must be greater than 0")
+	}
+
 	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
@@ -48,6 +53,11 @@ func (s Service) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categoriesWithPlaces := make([]models.LocationCategoryWithPlaces, 0)
 	for _, categoryPlaces := range placeCategoryGroups {
+		// 取得したカテゴリが上限に達したら終了
+		if len(categoriesWithPlaces) >= nLimit {
+			break
+		}
+
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
 			continue

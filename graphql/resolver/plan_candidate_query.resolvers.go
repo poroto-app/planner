@@ -59,6 +59,7 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 			Longitude: input.Longitude,
 		},
 		createPlanSessionId,
+		3,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
@@ -97,6 +98,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 			Longitude: input.Longitude,
 		},
 		createPlanSessionId,
+		3,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
