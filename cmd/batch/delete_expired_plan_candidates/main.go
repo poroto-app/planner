@@ -3,26 +3,14 @@ package main
 import (
 	"context"
 	"log"
-	"os"
+	"poroto.app/poroto/planner/internal/env"
 	"time"
 
-	"github.com/joho/godotenv"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 )
 
 func init() {
-	env := os.Getenv("ENV")
-	if "" == env {
-		env = "development"
-	}
-
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
-	}
-
-	if err := godotenv.Load(".env." + env); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
-	}
+	env.LoadEnv()
 }
 
 // 有効期限切れのプラン候補を削除する
