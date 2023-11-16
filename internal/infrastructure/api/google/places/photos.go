@@ -152,6 +152,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 			go func(ctx context.Context, photoIndex int, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
 				if photoIndex >= maxPhotoCount {
 					ch <- nil
+					return
 				}
 
 				imageSize := imageSizeType.ImageSize()
