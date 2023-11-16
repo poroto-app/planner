@@ -54,12 +54,13 @@ func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchIn
 
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
+		plancandidate.CategoryNearLocationParams{
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			CreatePlanSessionId: createPlanSessionId,
 		},
-		createPlanSessionId,
-		3,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
@@ -93,12 +94,13 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
+		plancandidate.CategoryNearLocationParams{
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			CreatePlanSessionId: createPlanSessionId,
 		},
-		createPlanSessionId,
-		3,
 	)
 	if err != nil {
 		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
