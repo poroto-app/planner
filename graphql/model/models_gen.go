@@ -212,6 +212,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
+	Thumbsup      int           `json:"thumbsup"`
 	AuthorID      *string       `json:"authorId,omitempty"`
 }
 

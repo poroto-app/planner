@@ -177,6 +177,7 @@ type ComplexityRoot struct {
 		ID            func(childComplexity int) int
 		Name          func(childComplexity int) int
 		Places        func(childComplexity int) int
+		Thumbsup      func(childComplexity int) int
 		TimeInMinutes func(childComplexity int) int
 		Transitions   func(childComplexity int) int
 	}
@@ -808,6 +809,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Places(childComplexity), true
+
+	case "Plan.thumbsup":
+		if e.complexity.Plan.Thumbsup == nil {
+			break
+		}
+
+		return e.complexity.Plan.Thumbsup(childComplexity), true
 
 	case "Plan.timeInMinutes":
 		if e.complexity.Plan.TimeInMinutes == nil {
@@ -1491,6 +1499,7 @@ type PlansByUserOutput {
     timeInMinutes: Int!
     description: String
     transitions: [Transition!]!
+    thumbsup: Int!
     authorId: String
 }
 
@@ -2010,6 +2019,8 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2114,6 +2125,8 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateOutput_plan(ctx 
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2235,6 +2248,8 @@ func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Co
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2339,6 +2354,8 @@ func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanCandidateOutput_
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2443,6 +2460,8 @@ func (ec *executionContext) fieldContext_CreatePlanByLocationOutput_plans(ctx co
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2547,6 +2566,8 @@ func (ec *executionContext) fieldContext_CreatePlanByPlaceOutput_plan(ctx contex
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2651,6 +2672,8 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -2755,6 +2778,8 @@ func (ec *executionContext) fieldContext_EditPlanTitleOfPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -5418,6 +5443,50 @@ func (ec *executionContext) fieldContext_Plan_transitions(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Plan_thumbsup(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_thumbsup(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Thumbsup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_thumbsup(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Plan_authorId(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Plan_authorId(ctx, field)
 	if err != nil {
@@ -5510,6 +5579,8 @@ func (ec *executionContext) fieldContext_PlansByLocationOutput_plans(ctx context
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -5611,6 +5682,8 @@ func (ec *executionContext) fieldContext_PlansByUserOutput_plans(ctx context.Con
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -6256,6 +6329,8 @@ func (ec *executionContext) fieldContext_Query_plan(ctx context.Context, field g
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -6327,6 +6402,8 @@ func (ec *executionContext) fieldContext_Query_plans(ctx context.Context, field 
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -6756,6 +6833,8 @@ func (ec *executionContext) fieldContext_ReplacePlaceOfPlanCandidateOutput_plan(
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -6816,6 +6895,8 @@ func (ec *executionContext) fieldContext_SavePlanFromCandidateOutput_plan(ctx co
 				return ec.fieldContext_Plan_description(ctx, field)
 			case "transitions":
 				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "thumbsup":
+				return ec.fieldContext_Plan_thumbsup(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
 			}
@@ -10802,6 +10883,11 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Plan_description(ctx, field, obj)
 		case "transitions":
 			out.Values[i] = ec._Plan_transitions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "thumbsup":
+			out.Values[i] = ec._Plan_thumbsup(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
