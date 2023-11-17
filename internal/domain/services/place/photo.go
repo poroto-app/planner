@@ -28,6 +28,7 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 			photos, err := s.placesApi.FetchPlacePhotos(
 				ctx,
 				place.PlaceId,
+				1,
 				api.ImageSizeTypeSmall,
 				api.ImageSizeTypeLarge,
 			)
