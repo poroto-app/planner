@@ -11,13 +11,32 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
+const (
+	defaultMaxCategory          = 3
+	defaultMaxPlacesPerCategory = 1
+)
+
+type CategoryNearLocationParams struct {
+	Location             models.GeoLocation
+	CreatePlanSessionId  string
+	MaxCategory          int
+	MaxPlacesPerCategory int
+}
+
 // TODO: PlanGeneratorServiceに持っていく
 func (s Service) CategoriesNearLocation(
 	ctx context.Context,
-	location models.GeoLocation,
-	createPlanSessionId string,
+	params CategoryNearLocationParams,
 ) ([]models.LocationCategoryWithPlaces, error) {
-	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, location)
+	if params.MaxCategory <= 0 {
+		params.MaxCategory = defaultMaxCategory
+	}
+
+	if params.MaxPlacesPerCategory <= 0 {
+		params.MaxPlacesPerCategory = defaultMaxPlacesPerCategory
+	}
+
+	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, params.Location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
@@ -27,7 +46,7 @@ func (s Service) CategoriesNearLocation(
 		places = append(places, factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace))
 	}
 
-	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, createPlanSessionId, places); err != nil {
+	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, params.CreatePlanSessionId, places); err != nil {
 		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
 	}
 
@@ -48,6 +67,11 @@ func (s Service) CategoriesNearLocation(
 	// 検索された場所のカテゴリとその写真を取得
 	categoriesWithPlaces := make([]models.LocationCategoryWithPlaces, 0)
 	for _, categoryPlaces := range placeCategoryGroups {
+		// 取得したカテゴリが上限に達したら終了
+		if len(categoriesWithPlaces) >= params.MaxCategory {
+			break
+		}
+
 		category := models.GetCategoryOfName(categoryPlaces.category)
 		if category == nil {
 			continue
@@ -69,17 +93,17 @@ func (s Service) CategoriesNearLocation(
 			return true
 		})
 
-		// カテゴリと関連の強い場所の最初の5件の写真を取得する
+		// カテゴリと関連の強い場所の最初の1件の写真を取得する
 		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
 		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
 			return placesSortedByCategoryIndex[i].Google.IndexOfCategory(*category) < placesSortedByCategoryIndex[j].Google.IndexOfCategory(*category)
 		})
-		if len(placesSortedByCategoryIndex) > 5 {
-			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:5]
+		if len(placesSortedByCategoryIndex) > params.MaxPlacesPerCategory {
+			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:params.MaxPlacesPerCategory]
 		}
 
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, createPlanSessionId, placesSortedByCategoryIndex...)
+		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
 
 		places := make([]models.Place, 0)
 		for _, place := range placesWithPhotos {

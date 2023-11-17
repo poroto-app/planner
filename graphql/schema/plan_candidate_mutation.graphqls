@@ -10,7 +10,6 @@ extend type Mutation {
     # ===========================================================
     # Edit
     # ===========================================================
-    addPlaceToPlanCandidate(input: AddPlaceToPlanCandidateInput!): AddPlaceToPlanCandidateOutput!
 
     addPlaceToPlanCandidateAfterPlace(input: AddPlaceToPlanCandidateAfterPlaceInput): AddPlaceToPlanCandidateAfterPlaceOutput!
 
@@ -68,17 +67,6 @@ input SavePlanFromCandidateInput {
 }
 
 type SavePlanFromCandidateOutput {
-    plan: Plan!
-}
-
-input AddPlaceToPlanCandidateInput {
-    planCandidateId: String!
-    planId: String!
-    placeId: String!
-}
-
-type AddPlaceToPlanCandidateOutput {
-    planCandidateId: String!
     plan: Plan!
 }
 

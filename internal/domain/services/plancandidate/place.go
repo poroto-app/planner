@@ -10,15 +10,16 @@ import (
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-const (
-	maxAddablePlaces = 10
-)
-
 // FetchCandidatePlaces はプランの候補となる場所を取得する
 func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
 	createPlanSessionId string,
+	nLimit int,
 ) (*[]models.Place, error) {
+	if nLimit <= 0 {
+		panic("nLimit must be greater than 0")
+	}
+
 	placesSaved, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,7 @@ func (s Service) FetchCandidatePlaces(
 
 		placesToSuggest = append(placesToSuggest, place.ToPlace())
 
-		if len(placesToSuggest) >= maxAddablePlaces {
+		if len(placesToSuggest) >= nLimit {
 			break
 		}
 	}

@@ -3,26 +3,15 @@ package main
 import (
 	"log"
 	"os"
+	"poroto.app/poroto/planner/internal/env"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
-	"github.com/joho/godotenv"
 	"poroto.app/poroto/planner/internal/interface/cloudfunctions"
 )
 
 func init() {
-	env := os.Getenv("ENV")
-	if "" == env {
-		env = "development"
-	}
-
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
-	}
-
-	if err := godotenv.Load(".env." + env); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
-	}
+	env.LoadEnv()
 
 	functions.HTTP("DeleteExpiredPlanCandidates", cloudfunctions.DeleteExpiredPlanCandidates)
 }
