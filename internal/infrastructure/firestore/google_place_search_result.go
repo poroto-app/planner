@@ -166,25 +166,6 @@ func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx cont
 	return photos, nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.GooglePlaceReviewEntity, error) {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId)
-	reviewsSnapshots, err := subCollectionReviews.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("error while getting reviews: %v", err)
-	}
-
-	var reviews []entity.GooglePlaceReviewEntity
-	for _, reviewSnapshot := range reviewsSnapshots {
-		var reviewEntity entity.GooglePlaceReviewEntity
-		if err = reviewSnapshot.DataTo(&reviewEntity); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to review entity: %v", err)
-		}
-		reviews = append(reviews, reviewEntity)
-	}
-
-	return reviews, nil
-}
-
 func (p GooglePlaceSearchResultRepository) subCollection(planCandidateId string) *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(subCollectionGooglePlaceSearchResults)
 }
