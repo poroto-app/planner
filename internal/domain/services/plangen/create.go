@@ -123,6 +123,15 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
+		// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
+		placeDetail, err := s.placeService.FetchPlaceDetail(ctx, place.Google)
+		if err != nil {
+			log.Printf("error while fetching place detail: %v\n", err)
+			continue
+		}
+
+		place.Google.PlaceDetail = placeDetail
+
 		// 予定の時間内に閉まってしまう場合はスキップ
 		isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
 		if err != nil {
