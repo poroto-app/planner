@@ -3,7 +3,7 @@ package entity
 import "poroto.app/poroto/planner/internal/domain/models"
 
 type GooglePlaceOpeningHoursEntity struct {
-	OpeningHoursPeriod []GooglePlaceOpeningPeriodEntity `firestore:"periods"`
+	OpeningHoursPeriods []GooglePlaceOpeningPeriodEntity `firestore:"periods"`
 }
 
 type GooglePlaceOpeningPeriodEntity struct {
@@ -25,13 +25,13 @@ func GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(periods []models.Goog
 	}
 
 	return GooglePlaceOpeningHoursEntity{
-		OpeningHoursPeriod: entities,
+		OpeningHoursPeriods: entities,
 	}
 }
 
 func (g GooglePlaceOpeningHoursEntity) ToGooglePlaceOpeningPeriods() []models.GooglePlaceOpeningPeriod {
 	var periods []models.GooglePlaceOpeningPeriod
-	for _, period := range g.OpeningHoursPeriod {
+	for _, period := range g.OpeningHoursPeriods {
 		periods = append(periods, models.GooglePlaceOpeningPeriod{
 			DayOfWeekOpen:  period.DayOfWeekOpen,
 			DayOfWeekClose: period.DayOfWeekClose,
