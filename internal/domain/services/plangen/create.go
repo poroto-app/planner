@@ -123,24 +123,27 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
-		placeDetail, err := s.placeService.FetchPlaceDetail(ctx, place.Google)
-		if err != nil {
-			log.Printf("error while fetching place detail: %v\n", err)
-			continue
-		}
+		if params.shouldOpenWhileTraveling && params.freeTime == nil {
+			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
+			placeDetail, err := s.placeService.FetchPlaceDetail(ctx, place.Google)
+			if err != nil {
+				log.Printf("error while fetching place detail: %v\n", err)
+				continue
+			}
 
-		place.Google.PlaceDetail = placeDetail
+			place.Google.PlaceDetail = placeDetail
 
-		// 予定の時間内に閉まってしまう場合はスキップ
-		isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
-		if err != nil {
-			log.Printf("error while checking opening hours: %v\n", err)
-		}
+			// 予定の時間内に閉まってしまう場合はスキップ
+			isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
+			if err != nil {
+				log.Printf("error while checking opening hours: %v\n", err)
+				continue
+			}
 
-		if params.shouldOpenWhileTraveling && params.freeTime != nil && !isOpeningWhilePlan {
-			log.Printf("skip place %s because it will be closed\n", place.Google.Name)
-			continue
+			if !isOpeningWhilePlan {
+				log.Printf("skip place %s because it will be closed\n", place.Google.Name)
+				continue
+			}
 		}
 
 		placesInPlan = append(placesInPlan, place)
