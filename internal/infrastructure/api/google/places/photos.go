@@ -17,8 +17,9 @@ type ImageSize struct {
 type ImageSizeType int
 
 type PlacePhoto struct {
-	Small *string
-	Large *string
+	PhotoReference string
+	Small          *string
+	Large          *string
 }
 
 type placePhotoWithSize struct {
@@ -180,6 +181,8 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []strin
 	var placePhotos []PlacePhoto
 	for _, photoReference := range photoReferences {
 		var placePhoto PlacePhoto
+		placePhoto.PhotoReference = photoReference
+
 		for _, placePhotoWithSize := range placePhotoWithSizes {
 			if placePhotoWithSize.photoReference != photoReference {
 				continue
