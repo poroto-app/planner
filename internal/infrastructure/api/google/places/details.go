@@ -7,14 +7,14 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-type FetchPlaceRequest struct {
+type FetchPlaceDetailRequest struct {
 	PlaceId  string
 	Language string
 }
 
 // FetchPlaceDetail は IDを指定することで、対応する場所の情報を取得する
 // 取得される内容は FindPlacesFromLocation と同じ
-func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceRequest) (*Place, error) {
+func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailRequest) (*Place, error) {
 	log.Println("Places API Place Details: ", req)
 
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
