@@ -15,9 +15,9 @@ type GooglePlace struct {
 	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int
-	OpeningHours     *[]GooglePlaceOpeningPeriod
 	Images           *[]Image
 	Reviews          *[]GooglePlaceReview
+	PlaceDetail      *GooglePlaceDetail
 }
 
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
@@ -32,11 +32,11 @@ func (g GooglePlace) IndexOfCategory(category LocationCategory) int {
 }
 
 func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
-	if g.OpeningHours == nil {
+	if g.PlaceDetail == nil || g.PlaceDetail.OpeningHours == nil {
 		return false, fmt.Errorf("opening hours is not set")
 	}
 
-	for _, openingPeriod := range *g.OpeningHours {
+	for _, openingPeriod := range *g.PlaceDetail.OpeningHours {
 		weekday := at.Weekday()
 		isOpeningPeriodOfToday := openingPeriod.DayOfWeekOpen == weekday.String()
 		if !isOpeningPeriodOfToday {

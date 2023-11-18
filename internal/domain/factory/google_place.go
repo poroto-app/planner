@@ -27,10 +27,10 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		}
 	}
 
-	var openingHours *[]models.GooglePlaceOpeningPeriod
+	var placeDetail *models.GooglePlaceDetail
 	if place.PlaceDetail != nil {
-		o := GooglePlaceOpeningPeriodsFromPlaceDetail(*place.PlaceDetail)
-		openingHours = &o
+		d := GooglePlaceDetailFromPlaceDetailEntity(*place.PlaceDetail)
+		placeDetail = &d
 	}
 
 	return models.GooglePlace{
@@ -48,7 +48,7 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		Images:           images,
 		Reviews:          reviews,
 		PriceLevel:       place.PriceLevel,
-		OpeningHours:     openingHours,
+		PlaceDetail:      placeDetail,
 	}
 }
 
