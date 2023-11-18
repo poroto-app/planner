@@ -124,12 +124,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 
 		// 予定の時間内に閉まってしまう場合はスキップ
-		if params.shouldOpenWhileTraveling && params.freeTime != nil && !s.isOpeningWithIn(
-			ctx,
-			place,
-			time.Now(),
-			time.Minute*time.Duration(*params.freeTime),
-		) {
+		isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
+		if err != nil {
+			log.Printf("error while checking opening hours: %v\n", err)
+		}
+
+		if params.shouldOpenWhileTraveling && params.freeTime != nil && !isOpeningWhilePlan {
 			log.Printf("skip place %s because it will be closed\n", place.Google.Name)
 			continue
 		}
