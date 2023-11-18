@@ -28,9 +28,9 @@ func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailReq
 			maps.PlaceDetailsFieldMaskRatings,
 			maps.PlaceDetailsFieldMaskUserRatingsTotal,
 			maps.PlaceDetailsFieldMaskPriceLevel,
-			maps.PlaceDetailsFieldMaskOpeningHours,
+			maps.PlaceDetailsFieldMaskReviews,
 			maps.PlaceDetailsFieldMaskPhotos,
-			maps.PlaceDetailsFieldMaskRatings,
+			maps.PlaceDetailsFieldMaskOpeningHours,
 		},
 	})
 	if err != nil {
