@@ -80,6 +80,31 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 	return places, nil
 }
 
+func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Context, planCandidateId string, googlePlaceId string, openingHours []models.GooglePlaceOpeningPeriod) error {
+	doc := p.doc(planCandidateId, googlePlaceId)
+
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(openingHours)
+		if err := tx.Update(doc, []firestore.Update{
+			{
+				Path:  "opening_hours",
+				Value: openingHoursEntity,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating opening hours: %v", err)
+		}
+
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while updating opening hours: %v", err)
+	}
+	return nil
+}
+
 // TODO: 個々の画像をIDで区別できるようにする
 func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId)

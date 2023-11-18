@@ -175,6 +175,13 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Contex
 		return fmt.Errorf("error while saving google place detail: %v", err)
 	}
 
+	// OpeningHoursを保存
+	if googlePlaceDetail.OpeningHours != nil {
+		if err := p.googlePlaceSearchResultRepository.updateOpeningHours(ctx, planCandidateId, googlePlaceId, *googlePlaceDetail.OpeningHours); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+	}
+
 	return nil
 }
 
