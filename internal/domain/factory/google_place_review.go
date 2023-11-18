@@ -11,13 +11,13 @@ func GooglePlaceReviewsFromPlaceDetail(placeDetail places.PlaceDetail) []models.
 	for _, review := range placeDetail.Reviews {
 		reviews = append(reviews, models.GooglePlaceReview{
 			Rating:                uint(review.Rating),
-			Text:                  utils.StrPointer(review.Text),
+			Text:                  utils.StrOmitEmpty(review.Text),
 			Time:                  review.Time,
 			AuthorName:            review.AuthorName,
-			AuthorUrl:             utils.StrPointer(review.AuthorURL),
-			AuthorProfileImageUrl: utils.StrPointer(review.AuthorProfilePhoto),
-			Language:              utils.StrPointer(review.Language),
-			OriginalLanguage:      utils.StrPointer(review.Language),
+			AuthorUrl:             utils.StrOmitEmpty(review.AuthorURL),
+			AuthorProfileImageUrl: utils.StrOmitEmpty(review.AuthorProfilePhoto),
+			Language:              utils.StrOmitEmpty(review.Language),
+			OriginalLanguage:      utils.StrOmitEmpty(review.Language),
 		})
 	}
 	return reviews
