@@ -11,7 +11,6 @@ import (
 	"google.golang.org/api/option"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
-	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
@@ -57,26 +56,25 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while getting place search results: %v", err)
 	}
 
-	photos, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
+	imageEntities, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching photos: %v", err)
+		return nil, fmt.Errorf("error while fetching image entities: %v", err)
+	}
+
+	images := make(map[string][]models.Image)
+	for _, imageEntity := range imageEntities {
+		images[imageEntity.GooglePlaceId] = append(images[imageEntity.GooglePlaceId], entity.FromImageEntity(imageEntity))
 	}
 
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
-		var placeEntity googleplaces.Place
-		if err = snapshot.DataTo(&placeEntity); err != nil {
+		var googlePlaceEntity entity.GooglePlaceEntity
+		if err = snapshot.DataTo(&googlePlaceEntity); err != nil {
 			return nil, fmt.Errorf("error while converting snapshot to place search result entity: %v", err)
 		}
 
-		var photosOfPlace []entity.ImageEntity
-		for _, photo := range photos {
-			if photo.GooglePlaceId == placeEntity.PlaceID {
-				photosOfPlace = append(photosOfPlace, photo)
-			}
-		}
-
-		places = append(places, factory.GooglePlaceFromPlaceEntity(placeEntity, photosOfPlace))
+		imagesOfPlace := images[googlePlaceEntity.PlaceID]
+		places = append(places, googlePlaceEntity.ToGooglePlace(&imagesOfPlace))
 	}
 
 	return places, nil
