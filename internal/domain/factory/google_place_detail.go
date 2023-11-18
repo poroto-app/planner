@@ -6,9 +6,12 @@ import (
 )
 
 func GooglePlaceDetailFromPlaceDetailEntity(placeDetail places.PlaceDetail) models.GooglePlaceDetail {
+	reviews := GooglePlaceReviewsFromPlaceDetail(placeDetail)
+
 	openingPeriods := GooglePlaceOpeningPeriodsFromPlaceDetail(placeDetail)
 
 	return models.GooglePlaceDetail{
+		Reviews:      reviews,
 		OpeningHours: &openingPeriods,
 	}
 }
