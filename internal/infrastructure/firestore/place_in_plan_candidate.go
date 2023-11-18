@@ -169,6 +169,15 @@ func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, p
 	return nil
 }
 
+func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
+	// レビューを保存
+	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, googlePlaceDetail.Reviews); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
+	return nil
+}
+
 func (p PlaceInPlanCandidateRepository) collectionPlaces(planCandidateId string) *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Collection(collectionPlacesInPlanCandidate)
 }

@@ -16,5 +16,7 @@ type PlaceInPlanCandidateRepository interface {
 
 	SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error
 
+	SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error
+
 	DeleteByPlanCandidateId(ctx context.Context, planCandidateId string) error
 }

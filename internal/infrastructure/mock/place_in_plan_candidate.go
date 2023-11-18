@@ -38,6 +38,11 @@ func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, p
 	panic("implement me")
 }
 
+func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Context, planCandidateId string) error {
 	delete(p.Data, planCandidateId)
 	return nil
