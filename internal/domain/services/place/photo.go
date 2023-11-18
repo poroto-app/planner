@@ -77,10 +77,10 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 // FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
 func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
-	var googlePlaceIdsWithPhotos []string
+	var googlePlaceIdsAlreadyHasImages []string
 	for _, place := range places {
 		if place.Images != nil && len(*place.Images) > 0 {
-			googlePlaceIdsWithPhotos = append(googlePlaceIdsWithPhotos, place.PlaceId)
+			googlePlaceIdsAlreadyHasImages = append(googlePlaceIdsAlreadyHasImages, place.PlaceId)
 		}
 	}
 
@@ -90,7 +90,8 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 	// 画像を保存
 	for _, place := range places {
 		// すでに写真が取得済みの場合は何もしない
-		if array.IsContain(googlePlaceIdsWithPhotos, place.PlaceId) {
+		alreadyHasImages := array.IsContain(googlePlaceIdsAlreadyHasImages, place.PlaceId)
+		if alreadyHasImages {
 			continue
 		}
 
