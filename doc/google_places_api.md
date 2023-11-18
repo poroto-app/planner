@@ -19,6 +19,7 @@ sequenceDiagram
     participant P as planner
     participant NS as Nearby Search
     participant PD as Place Details
+    participant PP as Place Photos
     P ->> NS: 周辺検索（10カテゴリ検索）
     NS ->> P: 周辺の場所（60件程度）
     alt ユーザーが場所を指定してプランを作成した場合
@@ -27,4 +28,5 @@ sequenceDiagram
     end
     P ->> PD: 場所の詳細情報（プランに含まれる12件程度）
     PD ->> P: 場所の詳細情報
+    P -->> PP: 場所の写真（Place DetailでPhoto Referenceを取得後でないと呼び出せない）
 ```
