@@ -25,11 +25,12 @@ func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceRequest) 
 			maps.PlaceDetailsFieldMaskName,
 			maps.PlaceDetailsFieldMaskTypes,
 			maps.PlaceDetailsFieldMaskGeometryLocation,
-			maps.PlaceDetailsFieldMaskOpeningHours,
-			maps.PlaceDetailsFieldMaskPhotos,
 			maps.PlaceDetailsFieldMaskRatings,
 			maps.PlaceDetailsFieldMaskUserRatingsTotal,
 			maps.PlaceDetailsFieldMaskPriceLevel,
+			maps.PlaceDetailsFieldMaskOpeningHours,
+			maps.PlaceDetailsFieldMaskPhotos,
+			maps.PlaceDetailsFieldMaskRatings,
 		},
 	})
 	if err != nil {
@@ -42,6 +43,7 @@ func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceRequest) 
 			photoReferences = append(photoReferences, photo.PhotoReference)
 		}
 	}
+
 	place := createPlace(
 		resp.PlaceID,
 		resp.Name,
@@ -53,6 +55,14 @@ func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceRequest) 
 		resp.UserRatingsTotal,
 		resp.PriceLevel,
 	)
+
+	placeDetail := createPlaceDetail(
+		resp.Reviews,
+		resp.Photos,
+		resp.OpeningHours,
+	)
+
+	place.PlaceDetail = &placeDetail
 
 	return &place, nil
 }
