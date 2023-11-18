@@ -117,7 +117,7 @@ func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Con
 	}
 
 	for _, review := range reviews {
-		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.ToGooglePlaceReviewEntity(review, googlePlaceId)); err != nil {
+		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.GooglePlaceReviewEntityFromGooglePlaceReview(review, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving review: %v", err)
 		}
 	}
