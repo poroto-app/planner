@@ -16,7 +16,6 @@ type GooglePlace struct {
 	Rating           float32
 	UserRatingsTotal int
 	Images           *[]Image
-	Reviews          *[]GooglePlaceReview
 	PlaceDetail      *GooglePlaceDetail
 }
 

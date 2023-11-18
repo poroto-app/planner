@@ -62,11 +62,6 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while fetching photos: %v", err)
 	}
 
-	reviews, err := p.fetchReviewsByPlanCandidateId(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching reviews: %v", err)
-	}
-
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
 		var placeEntity googleplaces.Place
@@ -81,18 +76,7 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 			}
 		}
 
-		var reviewsOfPlace []entity.GooglePlaceReviewEntity
-		for _, review := range reviews {
-			if review.GooglePlaceId == placeEntity.PlaceID {
-				reviewsOfPlace = append(reviewsOfPlace, review)
-			}
-		}
-
-		places = append(places, factory.GooglePlaceFromPlaceEntity(
-			placeEntity,
-			photosOfPlace,
-			reviewsOfPlace,
-		))
+		places = append(places, factory.GooglePlaceFromPlaceEntity(placeEntity, photosOfPlace))
 	}
 
 	return places, nil

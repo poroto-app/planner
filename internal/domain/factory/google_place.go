@@ -6,7 +6,7 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
-func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity.ImageEntity, reviewEntities []entity.GooglePlaceReviewEntity) models.GooglePlace {
+func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity.ImageEntity) models.GooglePlace {
 	var images *[]models.Image
 	if len(imageEntities) == 0 {
 		images = nil
@@ -14,16 +14,6 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		images = new([]models.Image)
 		for _, imageEntity := range imageEntities {
 			*images = append(*images, entity.FromImageEntity(imageEntity))
-		}
-	}
-
-	var reviews *[]models.GooglePlaceReview
-	if len(reviewEntities) == 0 {
-		reviews = nil
-	} else {
-		reviews = new([]models.GooglePlaceReview)
-		for _, reviewEntity := range reviewEntities {
-			*reviews = append(*reviews, entity.FromGooglePlaceReviewEntity(reviewEntity))
 		}
 	}
 
@@ -46,7 +36,6 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
 		Images:           images,
-		Reviews:          reviews,
 		PriceLevel:       place.PriceLevel,
 		PlaceDetail:      placeDetail,
 	}

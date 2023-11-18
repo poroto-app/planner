@@ -186,7 +186,7 @@ func (s Service) findOrFetchPlaceById(
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
-	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil, nil)
+	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil)
 	p := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
 
 	if err := s.placeRepository.Save(ctx, planCandidateId, p); err != nil {
