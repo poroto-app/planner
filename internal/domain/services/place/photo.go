@@ -75,6 +75,7 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 }
 
 // FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
+// 事前に FetchPlaceDetail で models.GooglePlaceDetail を取得しておく必要がある
 func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
 	var googlePlaceIdsAlreadyHasImages []string
