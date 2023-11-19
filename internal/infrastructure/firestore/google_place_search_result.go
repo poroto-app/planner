@@ -222,44 +222,38 @@ func (p GooglePlaceSearchResultRepository) updateOpeningHoursTx(tx *firestore.Tr
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, photo := range photos {
-			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo, googlePlaceId)
+func (p GooglePlaceSearchResultRepository) saveGooglePlacePhotosTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+	for _, photo := range photos {
+		photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo, googlePlaceId)
 
-			var updates []firestore.Update
-			if photoEntity.Small != nil {
-				updates = append(updates, firestore.Update{
-					Path:  "small",
-					Value: photoEntity.Small,
-				})
-			}
-			if photoEntity.Large != nil {
-				updates = append(updates, firestore.Update{
-					Path:  "large",
-					Value: photoEntity.Large,
-				})
-			}
-
-			// 画像が取得されていない場合は何もしない
-			if len(updates) == 0 {
-				continue
-			}
-
+		var updates []firestore.Update
+		if photoEntity.Small != nil {
 			updates = append(updates, firestore.Update{
-				Path:  "updated_at",
-				Value: firestore.ServerTimestamp,
+				Path:  "small",
+				Value: photoEntity.Small,
 			})
-
-			if err := tx.Update(p.subCollectionPhotos(planCandidateId).Doc(photoEntity.PhotoReference), updates); err != nil {
-				return fmt.Errorf("error while saving photo: %v", err)
-			}
 		}
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while saving images: %v", err)
-	}
+		if photoEntity.Large != nil {
+			updates = append(updates, firestore.Update{
+				Path:  "large",
+				Value: photoEntity.Large,
+			})
+		}
 
+		// 画像が取得されていない場合は何もしない
+		if len(updates) == 0 {
+			continue
+		}
+
+		updates = append(updates, firestore.Update{
+			Path:  "updated_at",
+			Value: firestore.ServerTimestamp,
+		})
+
+		if err := tx.Update(p.subCollectionPhotos(planCandidateId).Doc(photoEntity.PhotoReference), updates); err != nil {
+			return fmt.Errorf("error while saving photo: %v", err)
+		}
+	}
 	return nil
 }
 
