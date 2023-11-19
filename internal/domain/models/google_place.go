@@ -15,6 +15,7 @@ type GooglePlace struct {
 	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int
+	Photos           *[]GooglePlacePhoto
 	Images           *[]Image
 	PlaceDetail      *GooglePlaceDetail
 }
