@@ -1,6 +1,6 @@
 package models
 
-type GooglePlacePhotoReferences struct {
+type GooglePlacePhotoReference struct {
 	PhotoReference   string
 	Width            int
 	Height           int
