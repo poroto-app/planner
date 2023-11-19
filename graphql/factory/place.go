@@ -10,6 +10,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
+	// TODO: not nilな値にする
 	var images []*graphql.Image
 	for _, image := range place.Images {
 		images = append(images, &graphql.Image{
@@ -19,6 +20,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		})
 	}
 
+	// TODO: not nilな値にする
 	var googlePlaceReviews []*graphql.GooglePlaceReview
 	if place.GooglePlaceReviews != nil {
 		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(*place.GooglePlaceReviews))
