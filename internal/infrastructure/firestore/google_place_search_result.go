@@ -186,7 +186,7 @@ func (p GooglePlaceSearchResultRepository) fetchReviewsByGooglePlaceId(ctx conte
 }
 
 func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx context.Context, planCandidateId string) (*[]entity.GooglePlaceReviewEntity, error) {
-	snapshots, err := p.subCollectionPhotos(planCandidateId).Documents(ctx).GetAll()
+	snapshots, err := p.subCollectionReviews(planCandidateId).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting photos: %v", err)
 	}
