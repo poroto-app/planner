@@ -9,7 +9,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -42,7 +41,7 @@ func NewGooglePlaceSearchResultRepository(ctx context.Context) (*GooglePlaceSear
 
 func (p GooglePlaceSearchResultRepository) saveTx(tx *firestore.Transaction, planCandidateId string, googlePlace models.GooglePlace) error {
 	doc := p.doc(planCandidateId, googlePlace.PlaceId)
-	if err := tx.Set(doc, factory.PlaceEntityFromGooglePlace(googlePlace)); err != nil {
+	if err := tx.Set(doc, entity.GooglePlaceEntityFromGooglePlace(googlePlace)); err != nil {
 		return fmt.Errorf("error while saving place search result: %v", err)
 	}
 	return nil
