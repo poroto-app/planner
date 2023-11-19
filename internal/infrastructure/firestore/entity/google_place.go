@@ -49,6 +49,7 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity,
 		Longitude: g.Location.Longitude,
 	}
 
+	// PlaceDetailを取得
 	var placeDetail *models.GooglePlaceDetail
 	if g.OpeningHours != nil {
 		placeDetail = &models.GooglePlaceDetail{}
@@ -74,6 +75,7 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity,
 		placeDetail.Reviews = reviews
 	}
 
+	// 写真のURLを取得していた場合のみ写真を取得する
 	var photos []models.GooglePlacePhoto
 	for _, photo := range photoEntities {
 		photo := photo.ToGooglePlacePhoto()
@@ -82,7 +84,6 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity,
 		}
 	}
 
-	// TODO: Place Detailを復元する
 	return models.GooglePlace{
 		PlaceId:          g.PlaceID,
 		Name:             g.Name,
