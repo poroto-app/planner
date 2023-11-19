@@ -49,8 +49,6 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 	}, nil
 }
 
-// Save
-// TODO: 保存される対象がわかるようにする（レビュー等は保存されていない）
 func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		if err := p.saveTx(tx, planCandidateId, place); err != nil {
