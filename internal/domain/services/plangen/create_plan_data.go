@@ -58,7 +58,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			var places []models.Place
 			for i := 0; i < len(placesInPlanCandidate); i++ {
 				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
-					placesInPlanCandidate[i].Google.Images = &value.Images
+					placesInPlanCandidate[i].Google.Photos = value.photos
 					placesInPlanCandidate[i].Google.PlaceDetail = value.PlaceDetail
 				}
 				places = append(places, placesInPlanCandidate[i].ToPlace())
@@ -88,7 +88,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 type placeDetail struct {
 	PlaceId       string
 	GooglePlaceId string
-	Images        []models.Image
+	photos        *[]models.GooglePlacePhoto
 	PlaceDetail   *models.GooglePlaceDetail
 }
 
@@ -123,16 +123,15 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 				continue
 			}
 
-			var images []models.Image
-
-			if googlePlace.Images != nil {
-				images = *googlePlace.Images
+			var photos *[]models.GooglePlacePhoto
+			if googlePlace.Photos != nil {
+				photos = googlePlace.Photos
 			}
 
 			placeIdToPlaceDetail[place.Id] = placeDetail{
 				PlaceId:       place.Id,
 				GooglePlaceId: place.Google.PlaceId,
-				Images:        images,
+				photos:        photos,
 				PlaceDetail:   place.Google.PlaceDetail,
 			}
 

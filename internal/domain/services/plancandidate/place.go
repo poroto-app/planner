@@ -49,19 +49,22 @@ func (s Service) FetchCandidatePlaces(
 		}
 
 		// TODO: キャッシュする
-		thumbnailImageUrl, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeSmall())
+		// TODO: 大きいサイズの写真も取得する
+		thumbnail, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeSmall())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)
 			continue
 		}
 
-		image, err := models.NewImage(thumbnailImageUrl, nil)
-		if err != nil {
-			log.Printf("error while creating image: %v\n", err)
-			continue
+		place.Google.Photos = &[]models.GooglePlacePhoto{
+			{
+				PhotoReference: place.Google.PhotoReferences[0],
+				Width:          0,
+				Height:         0,
+				Small:          thumbnail.Small,
+				Large:          thumbnail.Small,
+			},
 		}
-
-		place.Google.Images = &[]models.Image{*image}
 
 		placesToSuggest = append(placesToSuggest, place.ToPlace())
 
