@@ -8,6 +8,25 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+// FetchPlace PlaceDetail APIを用いて場所の情報を取得する
+func (s Service) FetchPlace(ctx context.Context, googlePlaceId string) (*models.GooglePlace, error) {
+	placeDetailEntity, err := s.placesApi.FetchPlaceDetail(ctx, places.FetchPlaceDetailRequest{
+		PlaceId:  googlePlaceId,
+		Language: "ja",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if placeDetailEntity == nil {
+		return nil, fmt.Errorf("could not fetch google place detail: %v", googlePlaceId)
+	}
+
+	googlePlace := factory.GooglePlaceFromPlaceEntity(*placeDetailEntity, nil)
+
+	return &googlePlace, nil
+}
+
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
 func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する

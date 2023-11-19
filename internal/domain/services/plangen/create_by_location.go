@@ -11,7 +11,6 @@ import (
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func (s Service) CreatePlanByLocation(
@@ -81,6 +80,7 @@ func (s Service) CreatePlanByLocation(
 	// プラン作成の基準となる場所を選択
 	var placesRecommend []models.PlaceInPlanCandidate
 
+	// 指定された場所の情報を取得する
 	if googlePlaceId != nil {
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
 		place, found, err := s.findOrFetchPlaceById(ctx, createPlanSessionId, places, *googlePlaceId)
@@ -175,14 +175,12 @@ func (s Service) findOrFetchPlaceById(
 		}
 	}
 
+	// すでに取得されている場合はそれを返す
 	if place != nil {
 		return place, true, nil
 	}
 
-	googlePlaceEntity, err := s.placesApi.FetchPlaceDetail(ctx, googleplaces.FetchPlaceDetailRequest{
-		PlaceId:  googlePlaceId,
-		Language: "ja",
-	})
+	googlePlaceEntity, err := s.placeService.FetchPlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
@@ -191,9 +189,8 @@ func (s Service) findOrFetchPlaceById(
 		return nil, false, nil
 	}
 
-	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil)
-	p := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
-
+	// キャッシュする
+	p := googlePlaceEntity.ToPlaceInPlanCandidate(uuid.New().String())
 	if err := s.placeRepository.Save(ctx, planCandidateId, p); err != nil {
 		return nil, false, fmt.Errorf("error while saving place to PlaceInPlanCandidateRepository: %v\n", err)
 	}
