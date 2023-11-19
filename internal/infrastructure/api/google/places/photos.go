@@ -150,7 +150,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 					return
 				}
 
-				log.Printf("Places API Fetch Place Photo: %s\n", photoReference)
+				log.Printf("Places API Fetch Place Photo: %s\n", photoReference.PhotoReference)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
 					log.Printf("skipping photoReference because of error while fetching public image url: %v", err)
