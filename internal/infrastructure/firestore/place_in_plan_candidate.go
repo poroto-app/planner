@@ -51,19 +51,11 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 
 // Save
 // TODO: 保存される対象がわかるようにする（レビュー等は保存されていない）
-// TODO: saveTxとして、SavePlacesと処理を共通化する
 func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
-		if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
+		if err := p.saveTx(tx, planCandidateId, place); err != nil {
 			return fmt.Errorf("error while saving place in plan candidate: %v", err)
 		}
-
-		// Google Places APIの検索結果を保存
-		if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
-			return fmt.Errorf("error while saving google place: %v", err)
-		}
-
 		return nil
 	}); err != nil {
 		return fmt.Errorf("error while saving place in plan candidate: %v", err)
@@ -75,19 +67,27 @@ func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateI
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, place := range places {
-			doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
-			if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
+			if err := p.saveTx(tx, planCandidateId, place); err != nil {
 				return fmt.Errorf("error while saving place in plan candidate: %v", err)
-			}
-
-			// Google Places APIの検索結果を保存
-			if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
-				return fmt.Errorf("error while saving google place: %v", err)
 			}
 		}
 		return nil
 	}, firestore.MaxAttempts(3)); err != nil {
 		return fmt.Errorf("error while saving place in plan candidates: %v", err)
+	}
+
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) saveTx(tx *firestore.Transaction, planCandidateId string, place models.PlaceInPlanCandidate) error {
+	doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
+	if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
+		return fmt.Errorf("error while saving place in plan candidate: %v", err)
+	}
+
+	// Google Places APIの検索結果を保存
+	if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
+		return fmt.Errorf("error while saving google place: %v", err)
 	}
 
 	return nil
