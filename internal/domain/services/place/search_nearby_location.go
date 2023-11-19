@@ -56,6 +56,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		}(ctx, ch, placeType)
 	}
 
+	// TODO：検索した場所の重複を削除する
 	var placesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
