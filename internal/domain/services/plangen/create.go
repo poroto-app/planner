@@ -17,6 +17,7 @@ const (
 )
 
 type CreatePlanPlacesParams struct {
+	planCandidateId              string
 	locationStart                models.GeoLocation
 	placeStart                   models.PlaceInPlanCandidate
 	places                       []models.PlaceInPlanCandidate
@@ -29,6 +30,10 @@ type CreatePlanPlacesParams struct {
 
 // createPlanPlaces プランの候補地となる場所を作成する
 func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.PlaceInPlanCandidate, error) {
+	if params.planCandidateId == "" {
+		panic("planCandidateId is required")
+	}
+
 	if params.maxPlace == 0 {
 		params.maxPlace = defaultMaxPlace
 	}
@@ -125,7 +130,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 		if params.shouldOpenWhileTraveling && params.freeTime == nil {
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
-			placeDetail, err := s.placeService.FetchPlaceDetail(ctx, place.Google)
+			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, params.planCandidateId, place.Google)
 			if err != nil {
 				log.Printf("error while fetching place detail: %v\n", err)
 				continue

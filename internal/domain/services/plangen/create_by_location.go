@@ -118,6 +118,7 @@ func (s Service) CreatePlanByLocation(
 		planPlaces, err := s.createPlanPlaces(
 			ctx,
 			CreatePlanPlacesParams{
+				planCandidateId:              createPlanSessionId,
 				locationStart:                locationStart,
 				placeStart:                   placeRecommend,
 				places:                       placesFiltered,
