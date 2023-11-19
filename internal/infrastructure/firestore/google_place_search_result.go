@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
@@ -202,28 +203,23 @@ func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx con
 	return &reviews, nil
 }
 
-func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Context, planCandidateId string, googlePlaceId string, openingHours models.GooglePlaceOpeningHours) error {
+func (p GooglePlaceSearchResultRepository) updateOpeningHoursTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, openingHours models.GooglePlaceOpeningHours) error {
 	doc := p.doc(planCandidateId, googlePlaceId)
 
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(openingHours)
-		if err := tx.Update(doc, []firestore.Update{
-			{
-				Path:  "opening_hours",
-				Value: openingHoursEntity,
-			},
-			{
-				Path:  "updated_at",
-				Value: firestore.ServerTimestamp,
-			},
-		}); err != nil {
-			return fmt.Errorf("error while updating opening hours: %v", err)
-		}
-
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
+	openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(openingHours)
+	if err := tx.Update(doc, []firestore.Update{
+		{
+			Path:  "opening_hours",
+			Value: openingHoursEntity,
+		},
+		{
+			Path:  "updated_at",
+			Value: firestore.ServerTimestamp,
+		},
+	}); err != nil {
 		return fmt.Errorf("error while updating opening hours: %v", err)
 	}
+
 	return nil
 }
 
@@ -268,36 +264,32 @@ func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planC
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) savePhotoReferences(ctx context.Context, planCandidateId string, googlePlaceId string, photoReferences []models.GooglePlacePhotoReference) error {
+func (p GooglePlaceSearchResultRepository) savePhotoReferencesTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, photoReferences []models.GooglePlacePhotoReference) error {
 	for _, photoReference := range photoReferences {
-		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-			doc := p.subCollectionPhotos(planCandidateId).Doc(photoReference.PhotoReference)
-			if err := tx.Set(doc, entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference, googlePlaceId)); err != nil {
-				return fmt.Errorf("error while saving photo reference: %v", err)
-			}
-			return nil
-		}, firestore.MaxAttempts(3)); err != nil {
-			return fmt.Errorf("error while saving photo references: %v", err)
+		doc := p.subCollectionPhotos(planCandidateId).Doc(photoReference.PhotoReference)
+		if err := tx.Set(doc, entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference, googlePlaceId)); err != nil {
+			return fmt.Errorf("error while saving photo reference: %v", err)
 		}
+		return nil
 	}
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId)
-
-	snapshots, err := subCollectionReviews.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
+func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExistTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+	query := p.subCollectionReviews(planCandidateId).Where("google_place_id", "==", googlePlaceId).Limit(1)
+	snapshots, err := tx.Documents(query).GetAll()
 	if err != nil {
 		return fmt.Errorf("error while getting reviews: %v", err)
 	}
 
 	if len(snapshots) > 0 {
 		// すでにレビューが保存されている場合は何もしない
-		return fmt.Errorf("reviews already exist")
+		log.Printf("reviews already exist")
+		return nil
 	}
 
 	for _, review := range reviews {
-		if _, err := subCollectionReviews.NewDoc().Set(ctx, entity.GooglePlaceReviewEntityFromGooglePlaceReview(review, googlePlaceId)); err != nil {
+		if err := tx.Set(p.subCollectionReviews(planCandidateId).NewDoc(), entity.GooglePlaceReviewEntityFromGooglePlaceReview(review, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving review: %v", err)
 		}
 	}

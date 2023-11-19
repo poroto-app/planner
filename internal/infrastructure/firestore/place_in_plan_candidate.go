@@ -79,6 +79,33 @@ func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCand
 	return nil
 }
 
+func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// レビューを保存
+		if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExistTx(tx, planCandidateId, googlePlaceId, googlePlaceDetail.Reviews); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+
+		// OpeningHoursを保存
+		if googlePlaceDetail.OpeningHours != nil {
+			if err := p.googlePlaceSearchResultRepository.updateOpeningHoursTx(tx, planCandidateId, googlePlaceId, *googlePlaceDetail.OpeningHours); err != nil {
+				return fmt.Errorf("error while saving google place detail: %v", err)
+			}
+		}
+
+		// PhotoReferenceを保存
+		if err := p.googlePlaceSearchResultRepository.savePhotoReferencesTx(tx, planCandidateId, googlePlaceId, googlePlaceDetail.PhotoReferences); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
+	return nil
+}
+
 func (p PlaceInPlanCandidateRepository) saveTx(tx *firestore.Transaction, planCandidateId string, place models.PlaceInPlanCandidate) error {
 	doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
 	if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
@@ -88,6 +115,27 @@ func (p PlaceInPlanCandidateRepository) saveTx(tx *firestore.Transaction, planCa
 	// Google Places APIの検索結果を保存
 	if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
 		return fmt.Errorf("error while saving google place: %v", err)
+	}
+
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) savePlaceDetailTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, placeDetail models.GooglePlaceDetail) error {
+	// レビューを保存
+	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExistTx(tx, planCandidateId, googlePlaceId, placeDetail.Reviews); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
+	// OpeningHoursを保存
+	if placeDetail.OpeningHours != nil {
+		if err := p.googlePlaceSearchResultRepository.updateOpeningHoursTx(tx, planCandidateId, googlePlaceId, *placeDetail.OpeningHours); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+	}
+
+	// PhotoReferenceを保存
+	if err := p.googlePlaceSearchResultRepository.savePhotoReferencesTx(tx, planCandidateId, googlePlaceId, placeDetail.PhotoReferences); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
 	}
 
 	return nil
@@ -186,27 +234,6 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Contex
 	if err := p.googlePlaceSearchResultRepository.saveImages(ctx, planCandidateId, googlePlaceId, photos); err != nil {
 		return fmt.Errorf("error while saving google images: %v", err)
 	}
-	return nil
-}
-
-func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
-	// レビューを保存
-	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, googlePlaceDetail.Reviews); err != nil {
-		return fmt.Errorf("error while saving google place detail: %v", err)
-	}
-
-	// OpeningHoursを保存
-	if googlePlaceDetail.OpeningHours != nil {
-		if err := p.googlePlaceSearchResultRepository.updateOpeningHours(ctx, planCandidateId, googlePlaceId, *googlePlaceDetail.OpeningHours); err != nil {
-			return fmt.Errorf("error while saving google place detail: %v", err)
-		}
-	}
-
-	// PhotoReferenceを保存
-	if err := p.googlePlaceSearchResultRepository.savePhotoReferences(ctx, planCandidateId, googlePlaceId, googlePlaceDetail.PhotoReferences); err != nil {
-		return fmt.Errorf("error while saving google place detail: %v", err)
-	}
-
 	return nil
 }
 
