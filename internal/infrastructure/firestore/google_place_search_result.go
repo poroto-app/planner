@@ -1,16 +1,15 @@
 package firestore
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"os"
-
-	"cloud.google.com/go/firestore"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -234,7 +233,32 @@ func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planC
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, photo := range photos {
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo, googlePlaceId)
-			if err := tx.Set(subCollectionImages.Doc(photoEntity.PhotoReference), photoEntity); err != nil {
+
+			var updates []firestore.Update
+			if photoEntity.Small != nil {
+				updates = append(updates, firestore.Update{
+					Path:  "small",
+					Value: photoEntity.Small,
+				})
+			}
+			if photoEntity.Large != nil {
+				updates = append(updates, firestore.Update{
+					Path:  "large",
+					Value: photoEntity.Large,
+				})
+			}
+
+			// 画像が取得されていない場合は何もしない
+			if len(updates) == 0 {
+				continue
+			}
+
+			updates = append(updates, firestore.Update{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			})
+
+			if err := tx.Update(subCollectionImages.Doc(photoEntity.PhotoReference), updates); err != nil {
 				return fmt.Errorf("error while saving photo: %v", err)
 			}
 		}
