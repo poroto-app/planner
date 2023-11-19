@@ -186,6 +186,10 @@ func (s Service) findOrFetchPlaceById(
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
+	if googlePlaceEntity == nil {
+		return nil, false, nil
+	}
+
 	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil)
 	p := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
 
