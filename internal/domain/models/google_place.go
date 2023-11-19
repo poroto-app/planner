@@ -21,7 +21,7 @@ type GooglePlace struct {
 
 func (g GooglePlace) Images() []Image {
 	if g.Photos == nil {
-		return make([]Image, 0)
+		return nil
 	}
 
 	var images []Image
