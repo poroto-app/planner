@@ -94,6 +94,12 @@ func (s Service) FetchPlacesToReplace(
 		googlePlacesToAdd = append(googlePlacesToAdd, place.Google)
 	}
 
+	// 詳細情報を取得
+	googlePlacesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlacesToAdd)
+
+	// 画像を取得
+	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
+
 	var placesToAdd []models.Place
 	for _, place := range places {
 		for _, googlePlaceToAdd := range googlePlacesToAdd {
