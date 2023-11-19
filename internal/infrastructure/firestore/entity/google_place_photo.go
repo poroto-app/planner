@@ -29,6 +29,18 @@ func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePl
 	}
 }
 
+func GooglePlacePhotoEntityFromGooglePhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) GooglePlacePhotoEntity {
+	return GooglePlacePhotoEntity{
+		GooglePlaceId:    googlePlaceId,
+		PhotoReference:   googlePlacePhotoReference.PhotoReference,
+		Width:            googlePlacePhotoReference.Width,
+		Height:           googlePlacePhotoReference.Height,
+		HTMLAttributions: googlePlacePhotoReference.HTMLAttributions,
+		Small:            nil,
+		Large:            nil,
+	}
+}
+
 func (g GooglePlacePhotoEntity) ToGooglePlacePhoto() *models.GooglePlacePhoto {
 	// SmallもLargeもnilの場合は、画像を取得していないため nil にする
 	if g.Small == nil && g.Large == nil {

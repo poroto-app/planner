@@ -228,8 +228,6 @@ func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Contex
 }
 
 func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
-	subCollectionImages := p.subCollectionPhotos(planCandidateId)
-
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		for _, photo := range photos {
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo, googlePlaceId)
@@ -258,7 +256,7 @@ func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planC
 				Value: firestore.ServerTimestamp,
 			})
 
-			if err := tx.Update(subCollectionImages.Doc(photoEntity.PhotoReference), updates); err != nil {
+			if err := tx.Update(p.subCollectionPhotos(planCandidateId).Doc(photoEntity.PhotoReference), updates); err != nil {
 				return fmt.Errorf("error while saving photo: %v", err)
 			}
 		}
@@ -267,6 +265,21 @@ func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planC
 		return fmt.Errorf("error while saving images: %v", err)
 	}
 
+	return nil
+}
+
+func (p GooglePlaceSearchResultRepository) savePhotoReferences(ctx context.Context, planCandidateId string, googlePlaceId string, photoReferences []models.GooglePlacePhotoReference) error {
+	for _, photoReference := range photoReferences {
+		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+			doc := p.subCollectionPhotos(planCandidateId).Doc(photoReference.PhotoReference)
+			if err := tx.Set(doc, entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference, googlePlaceId)); err != nil {
+				return fmt.Errorf("error while saving photo reference: %v", err)
+			}
+			return nil
+		}, firestore.MaxAttempts(3)); err != nil {
+			return fmt.Errorf("error while saving photo references: %v", err)
+		}
+	}
 	return nil
 }
 

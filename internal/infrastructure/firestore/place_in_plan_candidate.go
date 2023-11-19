@@ -200,6 +200,11 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Contex
 		}
 	}
 
+	// PhotoReferenceを保存
+	if err := p.googlePlaceSearchResultRepository.savePhotoReferences(ctx, planCandidateId, googlePlaceId, googlePlaceDetail.PhotoReferences); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
 	return nil
 }
 
