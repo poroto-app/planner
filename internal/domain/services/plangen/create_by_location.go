@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"googlemaps.github.io/maps"
 	"poroto.app/poroto/planner/internal/domain/array"
-	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
@@ -45,7 +44,7 @@ func (s Service) CreatePlanByLocation(
 
 		var placesSearched []models.PlaceInPlanCandidate
 		for _, googlePlace := range googlePlaces {
-			place := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
+			place := googlePlace.ToPlaceInPlanCandidate(uuid.New().String())
 			placesSearched = append(placesSearched, place)
 		}
 

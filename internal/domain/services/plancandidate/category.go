@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/internal/domain/factory"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -43,7 +42,7 @@ func (s Service) CategoriesNearLocation(
 
 	places := make([]models.PlaceInPlanCandidate, 0)
 	for _, googlePlace := range placesSearched {
-		places = append(places, factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace))
+		places = append(places, googlePlace.ToPlaceInPlanCandidate(uuid.New().String()))
 	}
 
 	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, params.CreatePlanSessionId, places); err != nil {
