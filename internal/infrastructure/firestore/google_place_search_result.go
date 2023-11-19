@@ -263,7 +263,6 @@ func (p GooglePlaceSearchResultRepository) savePhotoReferencesTx(tx *firestore.T
 		if err := tx.Set(doc, entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving photo reference: %v", err)
 		}
-		return nil
 	}
 	return nil
 }
