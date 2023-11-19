@@ -9,7 +9,6 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
@@ -275,19 +274,18 @@ func (p GooglePlaceSearchResultRepository) savePhotoReferencesTx(tx *firestore.T
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) saveReviewsIfNotExistTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+func (p GooglePlaceSearchResultRepository) reviewAlreadySavedTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string) (*bool, error) {
 	query := p.subCollectionReviews(planCandidateId).Where("google_place_id", "==", googlePlaceId).Limit(1)
 	snapshots, err := tx.Documents(query).GetAll()
 	if err != nil {
-		return fmt.Errorf("error while getting reviews: %v", err)
+		return nil, fmt.Errorf("error while getting reviews: %v", err)
 	}
 
-	if len(snapshots) > 0 {
-		// すでにレビューが保存されている場合は何もしない
-		log.Printf("reviews already exist")
-		return nil
-	}
+	isAlreadySaved := len(snapshots) > 0
+	return &isAlreadySaved, nil
+}
 
+func (p GooglePlaceSearchResultRepository) saveReviewsTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
 	for _, review := range reviews {
 		if err := tx.Set(p.subCollectionReviews(planCandidateId).NewDoc(), entity.GooglePlaceReviewEntityFromGooglePlaceReview(review, googlePlaceId)); err != nil {
 			return fmt.Errorf("error while saving review: %v", err)
