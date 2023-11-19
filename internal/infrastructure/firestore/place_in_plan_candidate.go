@@ -162,13 +162,6 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Contex
 	return nil
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, reviews); err != nil {
-		return fmt.Errorf("error while saving google reviews: %v", err)
-	}
-	return nil
-}
-
 func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
 	// レビューを保存
 	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, googlePlaceDetail.Reviews); err != nil {

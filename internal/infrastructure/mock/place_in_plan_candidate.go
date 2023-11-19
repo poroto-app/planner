@@ -33,11 +33,6 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Contex
 	panic("implement me")
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
 	//TODO implement me
 	panic("implement me")
