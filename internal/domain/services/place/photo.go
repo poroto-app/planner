@@ -25,9 +25,9 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 				return
 			}
 
-			photoReferences := make([]string, len(place.PlaceDetail.Photos))
-			for i, photo := range place.PlaceDetail.Photos {
-				photoReferences[i] = photo.PhotoReference
+			photoReferences := make([]string, len(place.PlaceDetail.PhotoReferences))
+			for i, photoReference := range place.PlaceDetail.PhotoReferences {
+				photoReferences[i] = photoReference.PhotoReference
 			}
 
 			photos, err := s.placesApi.FetchPlacePhotos(

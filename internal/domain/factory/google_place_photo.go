@@ -5,16 +5,16 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func GooglePlacePhotosFromPlaceDetail(placeDetail places.PlaceDetail) []models.GooglePlacePhoto {
-	var photos []models.GooglePlacePhoto
-	for _, photo := range placeDetail.Photos {
-		photos = append(photos, models.GooglePlacePhoto{
-			PhotoReference:   photo.PhotoReference,
-			Width:            photo.Width,
-			Height:           photo.Height,
-			HTMLAttributions: photo.HTMLAttributions,
+func GooglePlacePhotoReferencesFromPlaceDetail(placeDetail places.PlaceDetail) []models.GooglePlacePhotoReferences {
+	var photoReferences []models.GooglePlacePhotoReferences
+	for _, photoReference := range placeDetail.Photos {
+		photoReferences = append(photoReferences, models.GooglePlacePhotoReferences{
+			PhotoReference:   photoReference.PhotoReference,
+			Width:            photoReference.Width,
+			Height:           photoReference.Height,
+			HTMLAttributions: photoReference.HTMLAttributions,
 		})
 	}
 
-	return photos
+	return photoReferences
 }
