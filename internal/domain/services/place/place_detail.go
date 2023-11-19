@@ -9,13 +9,9 @@ import (
 )
 
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
-func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlace models.GooglePlace) (*models.GooglePlaceDetail, error) {
-	if googlePlace.PlaceDetail != nil {
-		return nil, nil
-	}
-
+func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する
-	savedPlace, err := s.placeInPlanCandidateRepository.FindByGooglePlaceId(ctx, planCandidateId, googlePlace.PlaceId)
+	savedPlace, err := s.placeInPlanCandidateRepository.FindByGooglePlaceId(ctx, planCandidateId, googlePlaceId)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch google place detail: %v", err)
 	}
@@ -25,7 +21,7 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 	}
 
 	placeDetailEntity, err := s.placesApi.FetchPlaceDetail(ctx, places.FetchPlaceDetailRequest{
-		PlaceId:  googlePlace.PlaceId,
+		PlaceId:  googlePlaceId,
 		Language: "ja",
 	})
 	if err != nil {
@@ -33,13 +29,13 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 	}
 
 	if placeDetailEntity.PlaceDetail == nil {
-		return nil, fmt.Errorf("could not fetch google place detail: %v", googlePlace.PlaceId)
+		return nil, fmt.Errorf("could not fetch google place detail: %v", googlePlaceId)
 	}
 
 	placeDetail := factory.GooglePlaceDetailFromPlaceDetailEntity(*placeDetailEntity.PlaceDetail)
 
 	// キャッシュする
-	if err := s.placeInPlanCandidateRepository.SaveGooglePlaceDetail(ctx, planCandidateId, googlePlace.PlaceId, placeDetail); err != nil {
+	if err := s.placeInPlanCandidateRepository.SaveGooglePlaceDetail(ctx, planCandidateId, googlePlaceId, placeDetail); err != nil {
 		return nil, fmt.Errorf("could not save google place detail: %v", err)
 	}
 
@@ -55,7 +51,12 @@ func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId s
 	ch := make(chan *models.GooglePlace, len(places))
 	for _, place := range places {
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
-			placeDetail, err := s.FetchPlaceDetailAndSave(ctx, planCandidateId, place)
+			if place.PlaceDetail != nil {
+				ch <- &place
+				return
+			}
+
+			placeDetail, err := s.FetchPlaceDetailAndSave(ctx, planCandidateId, place.PlaceId)
 			if err != nil {
 				ch <- nil
 				return
