@@ -17,14 +17,8 @@ type ImageSize struct {
 
 type ImageSizeType int
 
-type PlacePhoto struct {
-	PhotoReference string
-	Small          *string
-	Large          *string
-}
-
 type placePhotoWithSize struct {
-	photoReference string
+	photoReference models.GooglePlacePhotoReference
 	imageUrl       string
 	size           ImageSizeType
 }
@@ -113,7 +107,8 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoRefe
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReferences[0].PhotoReference, r.apiKey)
+	photoReference := photoReferences[0]
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -123,20 +118,16 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoRefe
 		return nil, fmt.Errorf("error while fetching public image url: %w", err)
 	}
 
-	return &models.GooglePlacePhoto{
-		PhotoReference: photoReferences[0].PhotoReference,
-		Width:          photoReferences[0].Width,
-		Height:         photoReferences[0].Height,
-		Small:          publicImageUrl,
-		Large:          publicImageUrl,
-	}, nil
+	googlePhoto := photoReference.ToGooglePlacePhoto(publicImageUrl, publicImageUrl)
+	return &googlePhoto, nil
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // imageSizeTypes が指定されている場合は，高画質の写真を取得する
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+// TODO: 単一の画像だけを取得するようにする
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []models.GooglePlacePhotoReference, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]models.GooglePlacePhoto, error) {
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
@@ -144,7 +135,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []strin
 	ch := make(chan *placePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
 	for iPhoto, photoReference := range photoReferences {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photoIndex int, photoReference string, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
 				if photoIndex >= maxPhotoCount {
 					ch <- nil
 					return
@@ -152,7 +143,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []strin
 
 				imageSize := imageSizeType.ImageSize()
 
-				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference, r.apiKey)
+				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
 				if err != nil {
 					log.Printf("skipping photoReference because of error while building image url: %v", err)
 					ch <- nil
@@ -185,31 +176,26 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []strin
 		placePhotoWithSizes = append(placePhotoWithSizes, placePhotoWithSize)
 	}
 
-	var placePhotos []PlacePhoto
+	var placePhotos []models.GooglePlacePhoto
 	for _, photoReference := range photoReferences {
-		var placePhoto PlacePhoto
-		placePhoto.PhotoReference = photoReference
+		var photoUrlSmall, photoUrlLarge *string
 
 		for _, placePhotoWithSize := range placePhotoWithSizes {
-			if placePhotoWithSize.photoReference != photoReference {
-				continue
-			}
-
 			switch placePhotoWithSize.size {
 			case ImageSizeTypeLarge:
-				placePhoto.Large = &placePhotoWithSize.imageUrl
+				photoUrlLarge = &placePhotoWithSize.imageUrl
 			case ImageSizeTypeSmall:
-				placePhoto.Small = &placePhotoWithSize.imageUrl
+				photoUrlSmall = &placePhotoWithSize.imageUrl
 			default:
 				panic(fmt.Sprintf("invalid image size type: %v", placePhotoWithSize.size))
 			}
 		}
 
-		if placePhoto.Large == nil && placePhoto.Small == nil {
+		if photoUrlLarge == nil && photoUrlSmall == nil {
 			continue
 		}
 
-		placePhotos = append(placePhotos, placePhoto)
+		placePhotos = append(placePhotos, photoReference.ToGooglePlacePhoto(photoUrlSmall, photoUrlLarge))
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す

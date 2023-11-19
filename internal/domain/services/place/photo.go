@@ -25,14 +25,15 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 				return
 			}
 
-			photoReferences := make([]string, len(place.PlaceDetail.PhotoReferences))
-			for i, photoReference := range place.PlaceDetail.PhotoReferences {
-				photoReferences[i] = photoReference.PhotoReference
+			if place.PlaceDetail == nil || len(place.PlaceDetail.PhotoReferences) == 0 {
+				log.Printf("skip fetching place photos because photo references not found: %v\n", place.PlaceId)
+				ch <- place
+				return
 			}
 
-			photosEntities, err := s.placesApi.FetchPlacePhotos(
+			photos, err := s.placesApi.FetchPlacePhotos(
 				ctx,
-				photoReferences,
+				place.PlaceDetail.PhotoReferences,
 				1,
 				api.ImageSizeTypeSmall,
 				api.ImageSizeTypeLarge,
@@ -41,18 +42,6 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 				log.Printf("error while fetching place photos: %v\n", err)
 				ch <- place
 				return
-			}
-
-			// TODO: photoReferenceを渡すときにGooglePlacePhotoReference型にする
-			var photos []models.GooglePlacePhoto
-			for _, photoEntity := range photosEntities {
-				photos = append(photos, models.GooglePlacePhoto{
-					PhotoReference: photoEntity.PhotoReference,
-					Width:          0,
-					Height:         0,
-					Small:          photoEntity.Small,
-					Large:          photoEntity.Large,
-				})
 			}
 
 			place.Photos = &photos
