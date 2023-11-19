@@ -10,7 +10,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
-	// TODO: not nilな値にする
+	// TODO: not nil な値にする
 	var images []*graphql.Image
 	for _, image := range place.Images {
 		images = append(images, &graphql.Image{
@@ -19,14 +19,19 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 			Large:   image.Large,
 		})
 	}
+	if images == nil {
+		images = make([]*graphql.Image, 0)
+	}
 
-	// TODO: not nilな値にする
+	// TODO: not nil な値にする
 	var googlePlaceReviews []*graphql.GooglePlaceReview
 	if place.GooglePlaceReviews != nil {
 		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(*place.GooglePlaceReviews))
 		for i, review := range *place.GooglePlaceReviews {
 			googlePlaceReviews[i] = GooglePlaceReviewFromDomainModel(review)
 		}
+	} else {
+		googlePlaceReviews = make([]*graphql.GooglePlaceReview, 0)
 	}
 
 	var placeCategories []*graphql.PlaceCategory
