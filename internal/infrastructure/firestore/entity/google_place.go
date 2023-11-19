@@ -43,7 +43,7 @@ func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntit
 	}
 }
 
-func (g GooglePlaceEntity) ToGooglePlace(photos *[]models.GooglePlacePhoto) models.GooglePlace {
+func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity, reviewEntities []GooglePlaceReviewEntity) models.GooglePlace {
 	location := models.GeoLocation{
 		Latitude:  g.Location.Latitude,
 		Longitude: g.Location.Longitude,
@@ -53,9 +53,32 @@ func (g GooglePlaceEntity) ToGooglePlace(photos *[]models.GooglePlacePhoto) mode
 	if g.OpeningHours != nil {
 		placeDetail = &models.GooglePlaceDetail{}
 
+		// Opening Hoursを取得
 		if g.OpeningHours != nil {
 			o := g.OpeningHours.ToGooglePlaceOpeningHours()
 			placeDetail.OpeningHours = &o
+		}
+
+		// Photo Referenceを取得
+		var photoReferences []models.GooglePlacePhotoReference
+		for _, photo := range photoEntities {
+			photoReferences = append(photoReferences, photo.ToGooglePlacePhotoReference())
+		}
+		placeDetail.PhotoReferences = photoReferences
+
+		// Reviewを取得
+		var reviews []models.GooglePlaceReview
+		for _, reviewEntity := range reviewEntities {
+			reviews = append(reviews, reviewEntity.ToGooglePlaceReview())
+		}
+		placeDetail.Reviews = reviews
+	}
+
+	var photos []models.GooglePlacePhoto
+	for _, photo := range photoEntities {
+		photo := photo.ToGooglePlacePhoto()
+		if photo != nil {
+			photos = append(photos, *photo)
 		}
 	}
 
@@ -70,6 +93,7 @@ func (g GooglePlaceEntity) ToGooglePlace(photos *[]models.GooglePlacePhoto) mode
 		Rating:           g.Rating,
 		UserRatingsTotal: g.UserRatingsTotal,
 		PriceLevel:       g.PriceLevel,
-		Photos:           photos,
+		Photos:           &photos,
+		PlaceDetail:      placeDetail,
 	}
 }
