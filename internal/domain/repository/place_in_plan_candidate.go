@@ -12,7 +12,7 @@ type PlaceInPlanCandidateRepository interface {
 
 	FindByPlanCandidateId(ctx context.Context, planCandidateId string) (*[]models.PlaceInPlanCandidate, error)
 
-	SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error
+	SaveGooglePlacePhotos(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error
 

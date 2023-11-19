@@ -41,7 +41,7 @@ func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntit
 	}
 }
 
-func (g GooglePlaceEntity) ToGooglePlace(images *[]models.Image) models.GooglePlace {
+func (g GooglePlaceEntity) ToGooglePlace(photos *[]models.GooglePlacePhoto) models.GooglePlace {
 	location := models.GeoLocation{
 		Latitude:  g.Location.Latitude,
 		Longitude: g.Location.Longitude,
@@ -65,6 +65,6 @@ func (g GooglePlaceEntity) ToGooglePlace(images *[]models.Image) models.GooglePl
 		Rating:           g.Rating,
 		UserRatingsTotal: g.UserRatingsTotal,
 		PriceLevel:       g.PriceLevel,
-		Images:           images,
+		Photos:           photos,
 	}
 }

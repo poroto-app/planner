@@ -28,7 +28,7 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	panic("implement me")
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	//TODO implement me
 	panic("implement me")
 }

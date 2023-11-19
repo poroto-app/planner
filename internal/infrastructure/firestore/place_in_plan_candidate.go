@@ -155,8 +155,8 @@ func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Cont
 	return nil
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
-	if err := p.googlePlaceSearchResultRepository.saveImagesIfNotExist(ctx, planCandidateId, googlePlaceId, images); err != nil {
+func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+	if err := p.googlePlaceSearchResultRepository.saveImages(ctx, planCandidateId, googlePlaceId, photos); err != nil {
 		return fmt.Errorf("error while saving google images: %v", err)
 	}
 	return nil

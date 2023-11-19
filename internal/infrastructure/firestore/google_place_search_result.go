@@ -56,15 +56,18 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while getting place search results: %v", err)
 	}
 
-	imageEntities, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
+	// 写真を取得
+	photoEntities, err := p.fetchPhotosByPlanCandidateId(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching image entities: %v", err)
 	}
 
-	images := make(map[string][]models.Image)
-	for _, imageEntity := range imageEntities {
-		images[imageEntity.GooglePlaceId] = append(images[imageEntity.GooglePlaceId], entity.FromImageEntity(imageEntity))
+	photos := make(map[string][]models.GooglePlacePhoto)
+	for _, photoEntity := range photoEntities {
+		photos[photoEntity.GooglePlaceId] = append(photos[photoEntity.GooglePlaceId], photoEntity.ToGooglePlacePhoto())
 	}
+
+	// TODO: Place Detailを復元する
 
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
@@ -73,7 +76,7 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 			return nil, fmt.Errorf("error while converting snapshot to place search result entity: %v", err)
 		}
 
-		imagesOfPlace := images[googlePlaceEntity.PlaceID]
+		imagesOfPlace := photos[googlePlaceEntity.PlaceID]
 		places = append(places, googlePlaceEntity.ToGooglePlace(&imagesOfPlace))
 	}
 
@@ -105,24 +108,19 @@ func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Contex
 	return nil
 }
 
-// TODO: 個々の画像をIDで区別できるようにする
-func (p GooglePlaceSearchResultRepository) saveImagesIfNotExist(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+func (p GooglePlaceSearchResultRepository) saveImages(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	subCollectionImages := p.subCollectionPhotos(planCandidateId)
 
-	snapshots, err := subCollectionImages.Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
-	if err != nil {
-		return fmt.Errorf("error while getting images: %v", err)
-	}
-
-	if len(snapshots) > 0 {
-		// すでに画像が保存されている場合は何もしない
-		return fmt.Errorf("images already exist")
-	}
-
-	for _, image := range images {
-		if _, err := subCollectionImages.NewDoc().Set(ctx, entity.ToImageEntity(googlePlaceId, image)); err != nil {
-			return fmt.Errorf("error while saving image: %v", err)
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		for _, photo := range photos {
+			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo, googlePlaceId)
+			if err := tx.Set(subCollectionImages.Doc(photoEntity.PhotoReference), photoEntity); err != nil {
+				return fmt.Errorf("error while saving photo: %v", err)
+			}
 		}
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while saving images: %v", err)
 	}
 
 	return nil
@@ -170,16 +168,16 @@ func (p GooglePlaceSearchResultRepository) deleteByPlanCandidateIdTx(tx *firesto
 	return nil
 }
 
-func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.ImageEntity, error) {
+func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.GooglePlacePhotoEntity, error) {
 	subCollectionPhotos := p.subCollectionPhotos(planCandidateId)
 	photosSnapshots, err := subCollectionPhotos.Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error while getting photos: %v", err)
 	}
 
-	var photos []entity.ImageEntity
+	var photos []entity.GooglePlacePhotoEntity
 	for _, photoSnapshot := range photosSnapshots {
-		var photoEntity entity.ImageEntity
+		var photoEntity entity.GooglePlacePhotoEntity
 		if err = photoSnapshot.DataTo(&photoEntity); err != nil {
 			return nil, fmt.Errorf("error while converting snapshot to photo entity: %v", err)
 		}

@@ -15,7 +15,7 @@ type GooglePlacePhotoEntity struct {
 	Large            *string  `firestore:"large,omitempty"`
 }
 
-func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlaceId string, googlePlacePhoto models.GooglePlacePhoto) GooglePlacePhotoEntity {
+func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) GooglePlacePhotoEntity {
 	return GooglePlacePhotoEntity{
 		GooglePlaceId:    googlePlaceId,
 		PhotoReference:   googlePlacePhoto.PhotoReference,
