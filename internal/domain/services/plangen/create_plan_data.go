@@ -100,6 +100,9 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		for _, place := range param.places {
 			placeIdToPlace[place.Id] = place
 		}
+
+		// スタート地点（ユーザーが指定した場所 or スタート地点として選ばれた場所）も含める
+		placeIdToPlace[param.placeStart.Id] = param.placeStart
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する
