@@ -44,7 +44,7 @@ func (p PlaceInPlanCandidate) ToPlace() Place {
 		GooglePlaceId:      utils.StrOmitEmpty(p.Google.PlaceId),
 		Name:               p.Google.Name,
 		Location:           p.Google.Location,
-		Images:             *p.Google.Images(),
+		Images:             p.Google.Images(),
 		Categories:         GetCategoriesFromSubCategories(p.Google.Types),
 		GooglePlaceReviews: googlePlaceReviews,
 		PriceLevel:         p.Google.PriceLevel,

@@ -19,9 +19,9 @@ type GooglePlace struct {
 	PlaceDetail      *GooglePlaceDetail
 }
 
-func (g GooglePlace) Images() *[]Image {
+func (g GooglePlace) Images() []Image {
 	if g.Photos == nil {
-		return nil
+		return make([]Image, 0)
 	}
 
 	var images []Image
@@ -33,7 +33,7 @@ func (g GooglePlace) Images() *[]Image {
 		images = append(images, *image)
 	}
 
-	return &images
+	return images
 }
 
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
