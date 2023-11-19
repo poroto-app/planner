@@ -36,6 +36,13 @@ func (g GooglePlace) Images() []Image {
 	return images
 }
 
+func (g GooglePlace) ToPlaceInPlanCandidate(placeId string) PlaceInPlanCandidate {
+	return PlaceInPlanCandidate{
+		Id:     placeId,
+		Google: g,
+	}
+}
+
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
 func (g GooglePlace) IndexOfCategory(category LocationCategory) int {
 	for i, placeType := range g.Types {

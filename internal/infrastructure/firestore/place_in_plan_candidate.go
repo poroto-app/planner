@@ -128,6 +128,30 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	return &places, nil
 }
 
+func (p PlaceInPlanCandidateRepository) FindByGooglePlaceId(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.PlaceInPlanCandidate, error) {
+	snapshots, err := p.collectionPlaces(planCandidateId).Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
+	if err != nil && !errors.Is(err, iterator.Done) {
+		return nil, fmt.Errorf("error while getting place in plan candidates: %v", err)
+	}
+
+	if len(snapshots) == 0 {
+		return nil, nil
+	}
+
+	var place entity.PlaceInPlanCandidateEntity
+	if err := snapshots[0].DataTo(&place); err != nil {
+		return nil, fmt.Errorf("error while converting place in plan candidate: %v", err)
+	}
+
+	googlePlace, err := p.googlePlaceSearchResultRepository.findGooglePlace(ctx, planCandidateId, googlePlaceId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching google place: %v", err)
+	}
+
+	placeInPlanCandidate := googlePlace.ToPlaceInPlanCandidate(place.Id)
+	return &placeInPlanCandidate, nil
+}
+
 func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Context, planCandidateId string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		if err := p.googlePlaceSearchResultRepository.deleteByPlanCandidateIdTx(tx, planCandidateId); err != nil {
