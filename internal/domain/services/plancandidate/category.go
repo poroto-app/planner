@@ -101,6 +101,21 @@ func (s Service) CategoriesNearLocation(
 			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:params.MaxPlacesPerCategory]
 		}
 
+		// 場所の詳細情報を取得
+		var googlePlaces []models.GooglePlace
+		for _, place := range placesSortedByCategoryIndex {
+			googlePlaces = append(googlePlaces, place.Google)
+		}
+		googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
+		for i, place := range placesSortedByCategoryIndex {
+			for _, googlePlace := range googlePlaces {
+				if place.Google.PlaceId == googlePlace.PlaceId {
+					placesSortedByCategoryIndex[i].Google = googlePlace
+					break
+				}
+			}
+		}
+
 		// 場所の写真を取得する
 		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
 
