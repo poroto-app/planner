@@ -20,8 +20,10 @@ type GooglePlaceEntity struct {
 func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntity {
 	var openingHours *GooglePlaceOpeningHoursEntity
 	if place.PlaceDetail != nil {
-		o := GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(*place.PlaceDetail.OpeningHours)
-		openingHours = &o
+		if place.PlaceDetail.OpeningHours != nil {
+			o := GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(*place.PlaceDetail.OpeningHours)
+			openingHours = &o
+		}
 	}
 
 	return GooglePlaceEntity{
@@ -50,8 +52,11 @@ func (g GooglePlaceEntity) ToGooglePlace(photos *[]models.GooglePlacePhoto) mode
 	var placeDetail *models.GooglePlaceDetail
 	if g.OpeningHours != nil {
 		placeDetail = &models.GooglePlaceDetail{}
-		o := g.OpeningHours.ToGooglePlaceOpeningPeriods()
-		placeDetail.OpeningHours = &o
+
+		if g.OpeningHours != nil {
+			o := g.OpeningHours.ToGooglePlaceOpeningHours()
+			placeDetail.OpeningHours = &o
+		}
 	}
 
 	// TODO: Place Detailを復元する

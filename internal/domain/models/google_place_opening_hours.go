@@ -5,6 +5,10 @@ import (
 	"strconv"
 )
 
+type GooglePlaceOpeningHours struct {
+	Periods []GooglePlaceOpeningPeriod
+}
+
 type GooglePlaceOpeningPeriod struct {
 	DayOfWeekOpen  string
 	DayOfWeekClose string

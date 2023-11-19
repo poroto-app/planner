@@ -1,7 +1,7 @@
 package models
 
 type GooglePlaceDetail struct {
-	OpeningHours    *[]GooglePlaceOpeningPeriod
+	OpeningHours    *GooglePlaceOpeningHours
 	Reviews         []GooglePlaceReview
 	PhotoReferences []GooglePlacePhotoReference
 }

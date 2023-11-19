@@ -82,11 +82,11 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 	return places, nil
 }
 
-func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Context, planCandidateId string, googlePlaceId string, openingHours []models.GooglePlaceOpeningPeriod) error {
+func (p GooglePlaceSearchResultRepository) updateOpeningHours(ctx context.Context, planCandidateId string, googlePlaceId string, openingHours models.GooglePlaceOpeningHours) error {
 	doc := p.doc(planCandidateId, googlePlaceId)
 
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(openingHours)
+		openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(openingHours)
 		if err := tx.Update(doc, []firestore.Update{
 			{
 				Path:  "opening_hours",

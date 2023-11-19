@@ -13,9 +13,9 @@ type GooglePlaceOpeningPeriodEntity struct {
 	TimeClose      string `firestore:"close_time"`
 }
 
-func GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(periods []models.GooglePlaceOpeningPeriod) GooglePlaceOpeningHoursEntity {
+func GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(openingHours models.GooglePlaceOpeningHours) GooglePlaceOpeningHoursEntity {
 	var entities []GooglePlaceOpeningPeriodEntity
-	for _, period := range periods {
+	for _, period := range openingHours.Periods {
 		entities = append(entities, GooglePlaceOpeningPeriodEntity{
 			DayOfWeekOpen:  period.DayOfWeekOpen,
 			DayOfWeekClose: period.DayOfWeekClose,
@@ -29,7 +29,7 @@ func GooglePlaceOpeningsEntityFromGooglePlaceOpeningPeriod(periods []models.Goog
 	}
 }
 
-func (g GooglePlaceOpeningHoursEntity) ToGooglePlaceOpeningPeriods() []models.GooglePlaceOpeningPeriod {
+func (g GooglePlaceOpeningHoursEntity) ToGooglePlaceOpeningHours() models.GooglePlaceOpeningHours {
 	var periods []models.GooglePlaceOpeningPeriod
 	for _, period := range g.OpeningHoursPeriods {
 		periods = append(periods, models.GooglePlaceOpeningPeriod{
@@ -40,5 +40,7 @@ func (g GooglePlaceOpeningHoursEntity) ToGooglePlaceOpeningPeriods() []models.Go
 		})
 	}
 
-	return periods
+	return models.GooglePlaceOpeningHours{
+		Periods: periods,
+	}
 }

@@ -52,7 +52,7 @@ func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
 		return false, fmt.Errorf("opening hours is not set")
 	}
 
-	for _, openingPeriod := range *g.PlaceDetail.OpeningHours {
+	for _, openingPeriod := range g.PlaceDetail.OpeningHours.Periods {
 		weekday := at.Weekday()
 		isOpeningPeriodOfToday := openingPeriod.DayOfWeekOpen == weekday.String()
 		if !isOpeningPeriodOfToday {
