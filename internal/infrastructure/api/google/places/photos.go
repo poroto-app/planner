@@ -17,7 +17,7 @@ type ImageSize struct {
 
 type ImageSizeType int
 
-type placePhotoWithSize struct {
+type PlacePhotoWithSize struct {
 	photoReference models.GooglePlacePhotoReference
 	imageUrl       string
 	size           ImageSizeType
@@ -132,10 +132,11 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
 
-	ch := make(chan *placePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
+	ch := make(chan *PlacePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
 	for iPhoto, photoReference := range photoReferences {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, imageSizeType ImageSizeType, ch chan<- *PlacePhotoWithSize) {
+				// 画像取得数が上限に達した場合は、何もしない
 				if photoIndex >= maxPhotoCount {
 					ch <- nil
 					return
@@ -158,7 +159,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 					return
 				}
 
-				ch <- &placePhotoWithSize{
+				ch <- &PlacePhotoWithSize{
 					photoReference: photoReference,
 					imageUrl:       *publicImageUrl,
 					size:           imageSizeType,
@@ -167,13 +168,13 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 		}
 	}
 
-	var placePhotoWithSizes []*placePhotoWithSize
+	var placePhotoWithSizes []PlacePhotoWithSize
 	for i := 0; i < len(photoReferences)*len(imageSizeTypes); i++ {
 		placePhotoWithSize := <-ch
 		if placePhotoWithSize == nil {
 			continue
 		}
-		placePhotoWithSizes = append(placePhotoWithSizes, placePhotoWithSize)
+		placePhotoWithSizes = append(placePhotoWithSizes, *placePhotoWithSize)
 	}
 
 	var placePhotos []models.GooglePlacePhoto
@@ -181,6 +182,10 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 		var photoUrlSmall, photoUrlLarge *string
 
 		for _, placePhotoWithSize := range placePhotoWithSizes {
+			if placePhotoWithSize.photoReference.PhotoReference != photoReference.PhotoReference {
+				continue
+			}
+
 			switch placePhotoWithSize.size {
 			case ImageSizeTypeLarge:
 				photoUrlLarge = &placePhotoWithSize.imageUrl
