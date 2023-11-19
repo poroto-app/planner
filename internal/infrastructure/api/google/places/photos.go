@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type ImageSize struct {
@@ -107,12 +108,12 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所の画像を１件取得する
-func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize) (*PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoReference, imageSize ImageSize) (*models.GooglePlacePhoto, error) {
 	if len(photoReferences) == 0 {
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReferences[0], r.apiKey)
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReferences[0].PhotoReference, r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +123,10 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 		return nil, fmt.Errorf("error while fetching public image url: %w", err)
 	}
 
-	return &PlacePhoto{
-		PhotoReference: photoReferences[0],
+	return &models.GooglePlacePhoto{
+		PhotoReference: photoReferences[0].PhotoReference,
+		Width:          photoReferences[0].Width,
+		Height:         photoReferences[0].Height,
 		Small:          publicImageUrl,
 		Large:          publicImageUrl,
 	}, nil

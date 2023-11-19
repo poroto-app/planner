@@ -50,21 +50,17 @@ func (s Service) FetchCandidatePlaces(
 
 		// TODO: キャッシュする
 		// TODO: 大きいサイズの写真も取得する
-		thumbnail, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeSmall())
+		thumbnail, err := s.placesApi.FetchPlacePhoto([]models.GooglePlacePhotoReference{
+			{
+				PhotoReference: place.Google.PhotoReferences[0],
+			},
+		}, googleplaces.ImageSizeSmall())
 		if err != nil {
 			log.Printf("error while fetching place photo: %v\n", err)
 			continue
 		}
 
-		place.Google.Photos = &[]models.GooglePlacePhoto{
-			{
-				PhotoReference: place.Google.PhotoReferences[0],
-				Width:          0,
-				Height:         0,
-				Small:          thumbnail.Small,
-				Large:          thumbnail.Small,
-			},
-		}
+		place.Google.Photos = &[]models.GooglePlacePhoto{*thumbnail}
 
 		placesToSuggest = append(placesToSuggest, place.ToPlace())
 
