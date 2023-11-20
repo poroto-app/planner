@@ -2,6 +2,8 @@ name: deploy-production
 run-name: Deploy Production by @${{ github.actor }}
 on:
   push:
+    branches:
+      - main
 jobs:
   deploy-production:
     name: Deploy Production
