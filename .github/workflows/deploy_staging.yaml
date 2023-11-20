@@ -10,4 +10,5 @@ jobs:
       environment: staging
     secrets:
       GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      GOOGLE_CREDENTIALS_KMS: ${{ secrets.GOOGLE_CREDENTIALS }}
       GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_STAGING }}
