@@ -10,4 +10,6 @@ jobs:
     uses: ./.github/workflows/workflow_deploy.yaml
     with:
       environment: staging
-    secrets: inherit
+    secrets:
+      GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_STAGING }}
