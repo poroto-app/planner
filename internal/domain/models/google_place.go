@@ -48,14 +48,14 @@ func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
 			return false, fmt.Errorf("error while parsing opening time")
 		}
 
-		closingHour, err := openingPeriod.ClosingTimeHHMM()
+		closingTime, err := openingPeriod.ClosingTimeHHMM()
 		if err != nil {
 			return false, fmt.Errorf("error while parsing closing time")
 		}
 
 		today := time.Date(at.Year(), at.Month(), at.Day(), 0, 0, 0, 0, at.Location())
 		openingTimeAtToday := today.Add(time.Hour*time.Duration(openingTime.Hour) + time.Minute*time.Duration(openingTime.Minute))
-		closingTimeAtToday := today.Add(time.Hour*time.Duration(closingHour.Hour) + time.Minute*time.Duration(closingHour.Minute))
+		closingTimeAtToday := today.Add(time.Hour*time.Duration(closingTime.Hour) + time.Minute*time.Duration(closingTime.Minute))
 
 		if at.After(openingTimeAtToday) && at.Before(closingTimeAtToday) {
 			return true, nil
