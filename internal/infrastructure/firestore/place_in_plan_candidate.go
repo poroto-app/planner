@@ -49,19 +49,6 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 	}, nil
 }
 
-func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		if err := p.saveTx(tx, planCandidateId, place); err != nil {
-			return fmt.Errorf("error while saving place in plan candidate: %v", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("error while saving place in plan candidate: %v", err)
-	}
-
-	return nil
-}
-
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
 	for _, place := range places {
 		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {

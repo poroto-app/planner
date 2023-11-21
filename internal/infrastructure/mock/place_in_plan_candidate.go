@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -11,11 +12,6 @@ type PlaceInPlanCandidateRepository struct {
 
 func NewPlaceInPlanCandidateRepository(data map[string][]models.PlaceInPlanCandidate) *PlaceInPlanCandidateRepository {
 	return &PlaceInPlanCandidateRepository{Data: data}
-}
-
-func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
