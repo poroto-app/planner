@@ -52,8 +52,33 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
 	for _, place := range places {
 		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-			if err := p.saveTx(tx, planCandidateId, place); err != nil {
+			// 事前にレビューが保存されているかを確認
+			isReviewAlreadySaved, err := p.googlePlaceSearchResultRepository.reviewAlreadySavedTx(tx, planCandidateId, place.Google.PlaceId)
+			if err != nil {
+				return fmt.Errorf("error while checking review already saved: %v", err)
+			}
+
+			doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
+			if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
 				return fmt.Errorf("error while saving place in plan candidate: %v", err)
+			}
+
+			// Google Places APIの検索結果を保存
+			if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
+				return fmt.Errorf("error while saving google place: %v", err)
+			}
+
+			if place.Google.PlaceDetail != nil {
+				if err := p.savePlaceDetailTx(tx, planCandidateId, place.Google.PlaceId, *place.Google.PlaceDetail, *isReviewAlreadySaved); err != nil {
+					return fmt.Errorf("error while saving google place detail: %v", err)
+				}
+			}
+
+			// 写真を取得している場合は保存
+			if place.Google.Photos != nil {
+				if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -89,39 +114,6 @@ func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Contex
 	}, firestore.MaxAttempts(3)); err != nil {
 		return fmt.Errorf("error while saving google place photos: %v", err)
 	}
-	return nil
-}
-
-func (p PlaceInPlanCandidateRepository) saveTx(tx *firestore.Transaction, planCandidateId string, place models.PlaceInPlanCandidate) error {
-	// 事前にレビューが保存されているかを確認
-	isReviewAlreadySaved, err := p.googlePlaceSearchResultRepository.reviewAlreadySavedTx(tx, planCandidateId, place.Google.PlaceId)
-	if err != nil {
-		return fmt.Errorf("error while checking review already saved: %v", err)
-	}
-
-	doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
-	if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
-		return fmt.Errorf("error while saving place in plan candidate: %v", err)
-	}
-
-	// Google Places APIの検索結果を保存
-	if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
-		return fmt.Errorf("error while saving google place: %v", err)
-	}
-
-	if place.Google.PlaceDetail != nil {
-		if err := p.savePlaceDetailTx(tx, planCandidateId, place.Google.PlaceId, *place.Google.PlaceDetail, *isReviewAlreadySaved); err != nil {
-			return fmt.Errorf("error while saving google place detail: %v", err)
-		}
-	}
-
-	// 写真を取得している場合は保存
-	if place.Google.Photos != nil {
-		if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
