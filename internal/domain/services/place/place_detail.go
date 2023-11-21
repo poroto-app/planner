@@ -60,9 +60,9 @@ func (s Service) FetchPlacesDetail(ctx context.Context, places []models.GooglePl
 			continue
 		}
 
-		for i, place := range places {
+		for iPlace, place := range places {
 			if placeWithPlaceDetail.PlaceId == place.PlaceId {
-				places[i] = *placeWithPlaceDetail
+				places[iPlace] = *placeWithPlaceDetail
 			}
 		}
 	}
