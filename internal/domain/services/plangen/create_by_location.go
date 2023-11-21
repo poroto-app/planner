@@ -190,7 +190,7 @@ func (s Service) findOrFetchPlaceById(
 
 	// キャッシュする
 	p := googlePlaceEntity.ToPlaceInPlanCandidate(uuid.New().String())
-	if err := s.placeRepository.Save(ctx, planCandidateId, p); err != nil {
+	if err := s.placeRepository.SavePlaces(ctx, planCandidateId, []models.PlaceInPlanCandidate{p}); err != nil {
 		return nil, false, fmt.Errorf("error while saving place to PlaceInPlanCandidateRepository: %v\n", err)
 	}
 
