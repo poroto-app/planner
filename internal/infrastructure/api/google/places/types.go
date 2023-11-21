@@ -14,6 +14,13 @@ type Place struct {
 	Rating           float32  `firestore:"rating"`
 	UserRatingsTotal int      `firestore:"user_ratings_total"`
 	PriceLevel       int      `firestore:"price_level"`
+	PlaceDetail      *PlaceDetail
+}
+
+type PlaceDetail struct {
+	Reviews      []maps.PlaceReview
+	Photos       []maps.Photo
+	OpeningHours *maps.OpeningHours
 }
 
 type Location struct {
@@ -45,5 +52,17 @@ func createPlace(
 			Latitude:  geometry.Location.Lat,
 			Longitude: geometry.Location.Lng,
 		},
+	}
+}
+
+func createPlaceDetail(
+	reviews []maps.PlaceReview,
+	photos []maps.Photo,
+	openingHours *maps.OpeningHours,
+) PlaceDetail {
+	return PlaceDetail{
+		Reviews:      reviews,
+		Photos:       photos,
+		OpeningHours: openingHours,
 	}
 }

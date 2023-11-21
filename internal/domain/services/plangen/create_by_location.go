@@ -178,7 +178,7 @@ func (s Service) findOrFetchPlaceById(
 		return place, true, nil
 	}
 
-	googlePlaceEntity, err := s.placesApi.FetchPlace(ctx, googleplaces.FetchPlaceRequest{
+	googlePlaceEntity, err := s.placesApi.FetchPlaceDetail(ctx, googleplaces.FetchPlaceDetailRequest{
 		PlaceId:  googlePlaceId,
 		Language: "ja",
 	})

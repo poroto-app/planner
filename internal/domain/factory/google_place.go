@@ -27,6 +27,12 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		}
 	}
 
+	var placeDetail *models.GooglePlaceDetail
+	if place.PlaceDetail != nil {
+		d := GooglePlaceDetailFromPlaceDetailEntity(*place.PlaceDetail)
+		placeDetail = &d
+	}
+
 	return models.GooglePlace{
 		PlaceId: place.PlaceID,
 		Name:    place.Name,
@@ -42,6 +48,7 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		Images:           images,
 		Reviews:          reviews,
 		PriceLevel:       place.PriceLevel,
+		PlaceDetail:      placeDetail,
 	}
 }
 
