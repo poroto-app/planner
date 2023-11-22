@@ -4,6 +4,7 @@ import (
 	"context"
 	"googlemaps.github.io/maps"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -23,10 +24,39 @@ func (s Service) GetPlaceTypesToSearch() []maps.PlaceType {
 	}
 }
 
+// GetPlaceTypesToPreSearch　ユーザの希望するカテゴリを質問するために検索する
+func (s Service) GetPlaceTypesToPreSearch() []maps.PlaceType {
+	return []maps.PlaceType{
+		"",
+		// カテゴリをしていなかった場合にヒットしないようなカテゴリを検索
+		maps.PlaceTypeAmusementPark,
+		maps.PlaceTypeShoppingMall,
+		maps.PlaceTypeZoo,
+	}
+}
+
+// GetPlaceTypesToDetailSearch プランを作成するために詳細に複数のカテゴリの場所を検索する
+func (s Service) GetPlaceTypesToDetailSearch() []maps.PlaceType {
+	placeTypes := make([]string, len(s.GetPlaceTypesToSearch()))
+	for _, placeType := range s.GetPlaceTypesToSearch() {
+		placeTypes = append(placeTypes, string(placeType))
+	}
+
+	// 事前に検索した場所で無いところを検索する
+	var placeTypesToDetailSearch []maps.PlaceType
+	for _, placeType := range s.GetPlaceTypesToSearch() {
+		if !array.IsContain(placeTypes, string(placeType)) {
+			placeTypesToDetailSearch = append(placeTypesToDetailSearch, placeType)
+		}
+	}
+
+	return placeTypesToDetailSearch
+}
+
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
 func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, placeTypes []maps.PlaceType) ([]models.GooglePlace, error) {
-	placeTypesToSearch := s.GetPlaceTypesToSearch()
+	placeTypesToSearch := s.GetPlaceTypesToPreSearch()
 
 	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))
 	for _, placeType := range placeTypesToSearch {
