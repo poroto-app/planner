@@ -36,7 +36,7 @@ func (s Service) CategoriesNearLocation(
 		params.MaxPlacesPerCategory = defaultMaxPlacesPerCategory
 	}
 
-	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, params.Location)
+	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, params.Location, s.placeService.GetPlaceTypesToPreSearch())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}

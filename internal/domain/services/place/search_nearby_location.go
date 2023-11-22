@@ -55,9 +55,7 @@ func (s Service) GetPlaceTypesToDetailSearch() []maps.PlaceType {
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, placeTypes []maps.PlaceType) ([]models.GooglePlace, error) {
-	placeTypesToSearch := s.GetPlaceTypesToPreSearch()
-
+func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, placeTypesToSearch []maps.PlaceType) ([]models.GooglePlace, error) {
 	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))
 	for _, placeType := range placeTypesToSearch {
 		go func(ctx context.Context, ch chan<- *[]models.GooglePlace, placeType maps.PlaceType) {
