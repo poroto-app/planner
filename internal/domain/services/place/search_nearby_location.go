@@ -9,10 +9,8 @@ import (
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
-// また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]models.GooglePlace, error) {
-	var placeTypesToSearch = []maps.PlaceType{
+func (s Service) GetPlaceTypesToSearch() []maps.PlaceType {
+	return []maps.PlaceType{
 		"",
 		maps.PlaceTypeAquarium,
 		maps.PlaceTypeAmusementPark,
@@ -23,6 +21,12 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		maps.PlaceTypeSpa,
 		maps.PlaceTypeZoo,
 	}
+}
+
+// SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
+// また、特定のカテゴリに対して追加の検索を行う
+func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, placeTypes []maps.PlaceType) ([]models.GooglePlace, error) {
+	placeTypesToSearch := s.GetPlaceTypesToSearch()
 
 	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))
 	for _, placeType := range placeTypesToSearch {
