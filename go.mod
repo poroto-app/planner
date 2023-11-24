@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cloud.google.com/go/firestore v1.14.0
-	firebase.google.com/go/v4 v4.12.1
+	firebase.google.com/go/v4 v4.13.0
 	github.com/99designs/gqlgen v0.17.34
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
 	github.com/gin-contrib/cors v1.4.0
