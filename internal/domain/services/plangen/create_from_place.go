@@ -38,6 +38,7 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
+			planCandidateId:              createPlanSessionId,
 			locationStart:                placeStart.Location(),
 			placeStart:                   *placeStart,
 			places:                       *places,
