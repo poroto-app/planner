@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-
-	"googlemaps.github.io/maps"
 )
 
 type ImageSize struct {
@@ -19,8 +17,9 @@ type ImageSize struct {
 type ImageSizeType int
 
 type PlacePhoto struct {
-	Small *string
-	Large *string
+	PhotoReference string
+	Small          *string
+	Large          *string
 }
 
 type placePhotoWithSize struct {
@@ -130,26 +129,15 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 // imageSizeTypes が指定されている場合は，高画質の写真を取得する
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
 
-	log.Printf("Places API Place Details for Photo: %s\n", placeId)
-	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-		PlaceID: placeId,
-		Fields: []maps.PlaceDetailsFieldMask{
-			maps.PlaceDetailsFieldMaskPhotos,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	ch := make(chan *placePhotoWithSize, len(resp.Photos)*len(imageSizeTypes))
-	for iPhoto, photo := range resp.Photos {
+	ch := make(chan *placePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
+	for iPhoto, photoReference := range photoReferences {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photoIndex int, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photoReference string, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
 				if photoIndex >= maxPhotoCount {
 					ch <- nil
 					return
@@ -157,32 +145,32 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 
 				imageSize := imageSizeType.ImageSize()
 
-				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
+				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference, r.apiKey)
 				if err != nil {
-					log.Printf("skipping photo because of error while building image url: %v", err)
+					log.Printf("skipping photoReference because of error while building image url: %v", err)
 					ch <- nil
 					return
 				}
 
-				log.Printf("Places API Fetch Place Photo: %s\n", photo.PhotoReference)
+				log.Printf("Places API Fetch Place Photo: %s\n", photoReference)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
-					log.Printf("skipping photo because of error while fetching public image url: %v", err)
+					log.Printf("skipping photoReference because of error while fetching public image url: %v", err)
 					ch <- nil
 					return
 				}
 
 				ch <- &placePhotoWithSize{
-					photoReference: photo.PhotoReference,
+					photoReference: photoReference,
 					imageUrl:       *publicImageUrl,
 					size:           imageSizeType,
 				}
-			}(ctx, iPhoto, photo, imageSizeType, ch)
+			}(ctx, iPhoto, photoReference, imageSizeType, ch)
 		}
 	}
 
 	var placePhotoWithSizes []*placePhotoWithSize
-	for i := 0; i < len(resp.Photos)*len(imageSizeTypes); i++ {
+	for i := 0; i < len(photoReferences)*len(imageSizeTypes); i++ {
 		placePhotoWithSize := <-ch
 		if placePhotoWithSize == nil {
 			continue
@@ -191,10 +179,12 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 	}
 
 	var placePhotos []PlacePhoto
-	for _, photo := range resp.Photos {
+	for _, photoReference := range photoReferences {
 		var placePhoto PlacePhoto
+		placePhoto.PhotoReference = photoReference
+
 		for _, placePhotoWithSize := range placePhotoWithSizes {
-			if placePhotoWithSize.photoReference != photo.PhotoReference {
+			if placePhotoWithSize.photoReference != photoReference {
 				continue
 			}
 
@@ -216,7 +206,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
-	if len(resp.Photos) > 0 && len(placePhotos) == 0 {
+	if len(photoReferences) > 0 && len(placePhotos) == 0 {
 		return nil, fmt.Errorf("could not fetch any photos")
 	}
 
