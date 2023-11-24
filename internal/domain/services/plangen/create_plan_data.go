@@ -58,7 +58,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			var places []models.Place
 			for i := 0; i < len(placesInPlanCandidate); i++ {
 				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
-					placesInPlanCandidate[i].Google.Images = &value.Images
+					placesInPlanCandidate[i].Google.Photos = value.photos
 					placesInPlanCandidate[i].Google.PlaceDetail = value.PlaceDetail
 				}
 				places = append(places, placesInPlanCandidate[i].ToPlace())
@@ -88,7 +88,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 type placeDetail struct {
 	PlaceId       string
 	GooglePlaceId string
-	Images        []models.Image
+	photos        *[]models.GooglePlacePhoto
 	PlaceDetail   *models.GooglePlaceDetail
 }
 
@@ -100,6 +100,9 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		for _, place := range param.places {
 			placeIdToPlace[place.Id] = place
 		}
+
+		// スタート地点（ユーザーが指定した場所 or スタート地点として選ばれた場所）も含める
+		placeIdToPlace[param.placeStart.Id] = param.placeStart
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する
@@ -113,7 +116,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		googlePlaces = append(googlePlaces, place.Google)
 	}
 
-	googlePlaces = s.placeService.FetchPlacesDetail(ctx, googlePlaces)
+	googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
 
 	placeIdToPlaceDetail := make(map[string]placeDetail)
@@ -123,16 +126,15 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 				continue
 			}
 
-			var images []models.Image
-
-			if googlePlace.Images != nil {
-				images = *googlePlace.Images
+			var photos *[]models.GooglePlacePhoto
+			if googlePlace.Photos != nil {
+				photos = googlePlace.Photos
 			}
 
 			placeIdToPlaceDetail[place.Id] = placeDetail{
 				PlaceId:       place.Id,
 				GooglePlaceId: place.Google.PlaceId,
-				Images:        images,
+				photos:        photos,
 				PlaceDetail:   place.Google.PlaceDetail,
 			}
 

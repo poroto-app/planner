@@ -5,15 +5,15 @@ import (
 )
 
 type Place struct {
-	PlaceID          string   `firestore:"place_id"`
-	Name             string   `firestore:"name"`
-	Types            []string `firestore:"types"`
-	Location         Location `firestore:"location"`
-	PhotoReferences  []string `firestore:"photo_references"`
-	OpenNow          bool     `firestore:"open_now"`
-	Rating           float32  `firestore:"rating"`
-	UserRatingsTotal int      `firestore:"user_ratings_total"`
-	PriceLevel       int      `firestore:"price_level"`
+	PlaceID          string
+	Name             string
+	Types            []string
+	Location         Location
+	PhotoReferences  []string
+	OpenNow          bool
+	Rating           float32
+	UserRatingsTotal int
+	PriceLevel       int
 	PlaceDetail      *PlaceDetail
 }
 

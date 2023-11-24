@@ -8,10 +8,8 @@ import (
 	"github.com/google/uuid"
 	"googlemaps.github.io/maps"
 	"poroto.app/poroto/planner/internal/domain/array"
-	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 func (s Service) CreatePlanByLocation(
@@ -46,7 +44,7 @@ func (s Service) CreatePlanByLocation(
 
 		var placesSearched []models.PlaceInPlanCandidate
 		for _, googlePlace := range googlePlaces {
-			place := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
+			place := googlePlace.ToPlaceInPlanCandidate(uuid.New().String())
 			placesSearched = append(placesSearched, place)
 		}
 
@@ -81,6 +79,7 @@ func (s Service) CreatePlanByLocation(
 	// プラン作成の基準となる場所を選択
 	var placesRecommend []models.PlaceInPlanCandidate
 
+	// 指定された場所の情報を取得する
 	if googlePlaceId != nil {
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
 		place, found, err := s.findOrFetchPlaceById(ctx, createPlanSessionId, places, *googlePlaceId)
@@ -118,6 +117,7 @@ func (s Service) CreatePlanByLocation(
 		planPlaces, err := s.createPlanPlaces(
 			ctx,
 			CreatePlanPlacesParams{
+				planCandidateId:              createPlanSessionId,
 				locationStart:                locationStart,
 				placeStart:                   placeRecommend,
 				places:                       placesFiltered,
@@ -174,22 +174,23 @@ func (s Service) findOrFetchPlaceById(
 		}
 	}
 
+	// すでに取得されている場合はそれを返す
 	if place != nil {
 		return place, true, nil
 	}
 
-	googlePlaceEntity, err := s.placesApi.FetchPlaceDetail(ctx, googleplaces.FetchPlaceDetailRequest{
-		PlaceId:  googlePlaceId,
-		Language: "ja",
-	})
+	googlePlaceEntity, err := s.placeService.FetchPlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
-	googlePlace := factory.GooglePlaceFromPlaceEntity(*googlePlaceEntity, nil)
-	p := factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace)
+	if googlePlaceEntity == nil {
+		return nil, false, nil
+	}
 
-	if err := s.placeRepository.Save(ctx, planCandidateId, p); err != nil {
+	// キャッシュする
+	p := googlePlaceEntity.ToPlaceInPlanCandidate(uuid.New().String())
+	if err := s.placeRepository.SavePlaces(ctx, planCandidateId, []models.PlaceInPlanCandidate{p}); err != nil {
 		return nil, false, fmt.Errorf("error while saving place to PlaceInPlanCandidateRepository: %v\n", err)
 	}
 

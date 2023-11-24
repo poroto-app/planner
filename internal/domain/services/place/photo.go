@@ -19,20 +19,21 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 	for _, place := range places {
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- models.GooglePlace) {
 			// すでに写真がある場合は，何もしない
-			if place.Images != nil && len(*place.Images) > 0 {
-				log.Printf("skip fetching place photos because images already exist: %v\n", place.PlaceId)
+			if place.Photos != nil && len(*place.Photos) > 0 {
+				log.Printf("skip fetching place photos because photos already exist: %v\n", place.PlaceId)
 				ch <- place
 				return
 			}
 
-			photoReferences := make([]string, len(place.PlaceDetail.Photos))
-			for i, photo := range place.PlaceDetail.Photos {
-				photoReferences[i] = photo.PhotoReference
+			if place.PlaceDetail == nil || len(place.PlaceDetail.PhotoReferences) == 0 {
+				log.Printf("skip fetching place photos because photo references not found: %v\n", place.PlaceId)
+				ch <- place
+				return
 			}
 
 			photos, err := s.placesApi.FetchPlacePhotos(
 				ctx,
-				photoReferences,
+				place.PlaceDetail.PhotoReferences,
 				1,
 				api.ImageSizeTypeSmall,
 				api.ImageSizeTypeLarge,
@@ -43,18 +44,7 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 				return
 			}
 
-			var images []models.Image
-			for _, photo := range photos {
-				image, err := models.NewImage(photo.Small, photo.Large)
-				if err != nil {
-					log.Printf("error while creating image: %v\n", err)
-					continue
-				}
-
-				images = append(images, *image)
-			}
-
-			place.Images = &images
+			place.Photos = &photos
 			ch <- place
 		}(ctx, place, ch)
 	}
@@ -75,12 +65,12 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 }
 
 // FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
-// 事前に FetchPlaceDetail で models.GooglePlaceDetail を取得しておく必要がある
+// 事前に FetchPlaceDetailAndSave で models.GooglePlaceDetail を取得しておく必要がある
 func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
 	var googlePlaceIdsAlreadyHasImages []string
 	for _, place := range places {
-		if place.Images != nil && len(*place.Images) > 0 {
+		if place.Photos != nil && len(*place.Photos) > 0 {
 			googlePlaceIdsAlreadyHasImages = append(googlePlaceIdsAlreadyHasImages, place.PlaceId)
 		}
 	}
@@ -96,11 +86,11 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 			continue
 		}
 
-		if place.Images == nil || len(*place.Images) == 0 {
+		if place.Photos == nil || len(*place.Photos) == 0 {
 			continue
 		}
 
-		if err := s.placeInPlanCandidateRepository.SaveGoogleImages(ctx, planCandidateId, place.PlaceId, *place.Images); err != nil {
+		if err := s.placeInPlanCandidateRepository.SaveGooglePlacePhotos(ctx, planCandidateId, place.PlaceId, *place.Photos); err != nil {
 			continue
 		}
 	}

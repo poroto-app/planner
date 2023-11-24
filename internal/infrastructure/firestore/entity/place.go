@@ -21,7 +21,7 @@ func ToPlaceEntity(place models.Place) PlaceEntity {
 	if place.GooglePlaceReviews != nil {
 		googlePlaceReviews = new([]GooglePlaceReviewEntity)
 		for _, review := range *place.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, ToGooglePlaceReviewEntity(review, *place.GooglePlaceId))
+			*googlePlaceReviews = append(*googlePlaceReviews, GooglePlaceReviewEntityFromGooglePlaceReview(review, *place.GooglePlaceId))
 		}
 	}
 
@@ -52,7 +52,7 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 	if entity.GooglePlaceReviews != nil {
 		googlePlaceReviews = new([]models.GooglePlaceReview)
 		for _, review := range *entity.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, FromGooglePlaceReviewEntity(review))
+			*googlePlaceReviews = append(*googlePlaceReviews, review.ToGooglePlaceReview())
 		}
 	}
 

@@ -3,20 +3,9 @@ package factory
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
-func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity.ImageEntity) models.GooglePlace {
-	var images *[]models.Image
-	if len(imageEntities) == 0 {
-		images = nil
-	} else {
-		images = new([]models.Image)
-		for _, imageEntity := range imageEntities {
-			*images = append(*images, entity.FromImageEntity(imageEntity))
-		}
-	}
-
+func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.GooglePlacePhoto) models.GooglePlace {
 	var placeDetail *models.GooglePlaceDetail
 	if place.PlaceDetail != nil {
 		d := GooglePlaceDetailFromPlaceDetailEntity(*place.PlaceDetail)
@@ -35,25 +24,8 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, imageEntities []entity
 		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
-		Images:           images,
 		PriceLevel:       place.PriceLevel,
+		Photos:           photos,
 		PlaceDetail:      placeDetail,
-	}
-}
-
-func PlaceEntityFromGooglePlace(place models.GooglePlace) googleplaces.Place {
-	return googleplaces.Place{
-		PlaceID: place.PlaceId,
-		Name:    place.Name,
-		Types:   place.Types,
-		Location: googleplaces.Location{
-			Latitude:  place.Location.Latitude,
-			Longitude: place.Location.Longitude,
-		},
-		PhotoReferences:  place.PhotoReferences,
-		OpenNow:          place.OpenNow,
-		Rating:           place.Rating,
-		UserRatingsTotal: place.UserRatingsTotal,
-		PriceLevel:       place.PriceLevel,
 	}
 }

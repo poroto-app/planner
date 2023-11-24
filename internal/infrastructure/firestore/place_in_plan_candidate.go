@@ -49,29 +49,15 @@ func NewPlaceInPlanCandidateRepository(ctx context.Context) (*PlaceInPlanCandida
 	}, nil
 }
 
-func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
-		if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
-			return fmt.Errorf("error while saving place in plan candidate: %v", err)
-		}
-
-		// Google Places APIの検索結果を保存
-		if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
-			return fmt.Errorf("error while saving google place: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("error while saving place in plan candidate: %v", err)
-	}
-
-	return nil
-}
-
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, place := range places {
+	for _, place := range places {
+		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+			// 事前にレビューが保存されているかを確認
+			isReviewAlreadySaved, err := p.googlePlaceSearchResultRepository.reviewAlreadySavedTx(tx, planCandidateId, place.Google.PlaceId)
+			if err != nil {
+				return fmt.Errorf("error while checking review already saved: %v", err)
+			}
+
 			doc := p.collectionPlaces(planCandidateId).Doc(place.Id)
 			if err := tx.Set(doc, entity.ToPlaceInPlanCandidateEntity(place)); err != nil {
 				return fmt.Errorf("error while saving place in plan candidate: %v", err)
@@ -81,13 +67,82 @@ func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCand
 			if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
 				return fmt.Errorf("error while saving google place: %v", err)
 			}
+
+			if place.Google.PlaceDetail != nil {
+				if err := p.savePlaceDetailTx(tx, planCandidateId, place.Google.PlaceId, *place.Google.PlaceDetail, *isReviewAlreadySaved); err != nil {
+					return fmt.Errorf("error while saving google place detail: %v", err)
+				}
+			}
+
+			// 写真を取得している場合は保存
+			if place.Google.Photos != nil {
+				if err := p.googlePlaceSearchResultRepository.saveTx(tx, planCandidateId, place.Google); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}, firestore.MaxAttempts(3)); err != nil {
+			return fmt.Errorf("error while saving place in plan candidates: %v", err)
 		}
+	}
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		isReviewAlreadySaved, err := p.googlePlaceSearchResultRepository.reviewAlreadySavedTx(tx, planCandidateId, googlePlaceId)
+		if err != nil {
+			return fmt.Errorf("error while checking review already saved: %v", err)
+		}
+
+		if err := p.savePlaceDetailTx(tx, planCandidateId, googlePlaceId, googlePlaceDetail, *isReviewAlreadySaved); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+
 		return nil
 	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while saving place in plan candidates: %v", err)
+		return fmt.Errorf("error while saving google place detail: %v", err)
 	}
 
 	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		return p.saveGooglePlacePhotosTx(tx, planCandidateId, googlePlaceId, photos)
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while saving google place photos: %v", err)
+	}
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) savePlaceDetailTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, placeDetail models.GooglePlaceDetail, isReviewAlreadySaved bool) error {
+	// レビューを保存(レビューは一意性の判断ができないため、保存されていない場合のみ保存を行う)
+	// TODO: コンテンツや投稿日などで一意性を判断する
+	if !isReviewAlreadySaved {
+		if err := p.googlePlaceSearchResultRepository.saveReviewsTx(tx, planCandidateId, googlePlaceId, placeDetail.Reviews); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+	}
+
+	// OpeningHoursを保存
+	if placeDetail.OpeningHours != nil {
+		if err := p.googlePlaceSearchResultRepository.updateOpeningHoursTx(tx, planCandidateId, googlePlaceId, *placeDetail.OpeningHours); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+	}
+
+	// PhotoReferenceを保存
+	if err := p.googlePlaceSearchResultRepository.savePhotoReferencesTx(tx, planCandidateId, googlePlaceId, placeDetail.PhotoReferences); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
+	return nil
+}
+
+func (p PlaceInPlanCandidateRepository) saveGooglePlacePhotosTx(tx *firestore.Transaction, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+	return p.googlePlaceSearchResultRepository.saveGooglePlacePhotosTx(tx, planCandidateId, googlePlaceId, photos)
 }
 
 func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) (*[]models.PlaceInPlanCandidate, error) {
@@ -127,6 +182,30 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	return &places, nil
 }
 
+func (p PlaceInPlanCandidateRepository) FindByGooglePlaceId(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.PlaceInPlanCandidate, error) {
+	snapshots, err := p.collectionPlaces(planCandidateId).Where("google_place_id", "==", googlePlaceId).Limit(1).Documents(ctx).GetAll()
+	if err != nil && !errors.Is(err, iterator.Done) {
+		return nil, fmt.Errorf("error while getting place in plan candidates: %v", err)
+	}
+
+	if len(snapshots) == 0 {
+		return nil, nil
+	}
+
+	var place entity.PlaceInPlanCandidateEntity
+	if err := snapshots[0].DataTo(&place); err != nil {
+		return nil, fmt.Errorf("error while converting place in plan candidate: %v", err)
+	}
+
+	googlePlace, err := p.googlePlaceSearchResultRepository.findGooglePlace(ctx, planCandidateId, googlePlaceId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching google place: %v", err)
+	}
+
+	placeInPlanCandidate := googlePlace.ToPlaceInPlanCandidate(place.Id)
+	return &placeInPlanCandidate, nil
+}
+
 func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Context, planCandidateId string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		if err := p.googlePlaceSearchResultRepository.deleteByPlanCandidateIdTx(tx, planCandidateId); err != nil {
@@ -152,20 +231,6 @@ func (p PlaceInPlanCandidateRepository) DeleteByPlanCandidateId(ctx context.Cont
 		return fmt.Errorf("error while deleting place in plan candidates: %v", err)
 	}
 
-	return nil
-}
-
-func (p PlaceInPlanCandidateRepository) SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
-	if err := p.googlePlaceSearchResultRepository.saveImagesIfNotExist(ctx, planCandidateId, googlePlaceId, images); err != nil {
-		return fmt.Errorf("error while saving google images: %v", err)
-	}
-	return nil
-}
-
-func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
-	if err := p.googlePlaceSearchResultRepository.saveReviewsIfNotExist(ctx, planCandidateId, googlePlaceId, reviews); err != nil {
-		return fmt.Errorf("error while saving google reviews: %v", err)
-	}
 	return nil
 }
 

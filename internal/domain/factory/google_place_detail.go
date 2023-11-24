@@ -7,12 +7,12 @@ import (
 
 func GooglePlaceDetailFromPlaceDetailEntity(placeDetail places.PlaceDetail) models.GooglePlaceDetail {
 	reviews := GooglePlaceReviewsFromPlaceDetail(placeDetail)
-	photos := GooglePlacePhotosFromPlaceDetail(placeDetail)
-	openingPeriods := GooglePlaceOpeningPeriodsFromPlaceDetail(placeDetail)
+	photoReferences := GooglePlacePhotoReferencesFromPlaceDetail(placeDetail)
+	openingHours := GooglePlaceOpeningHoursFromPlaceDetail(placeDetail)
 
 	return models.GooglePlaceDetail{
-		Reviews:      reviews,
-		Photos:       photos,
-		OpeningHours: &openingPeriods,
+		Reviews:         reviews,
+		PhotoReferences: photoReferences,
+		OpeningHours:    openingHours,
 	}
 }

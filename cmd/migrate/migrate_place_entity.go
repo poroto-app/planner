@@ -72,7 +72,7 @@ type GooglePlaceReviewEntity struct {
 	OriginalLanguage *string `firestore:"original_language,omitempty"`
 }
 
-// 保存されたプランに含まれる場所の Photos, Thumbnail
+// 保存されたプランに含まれる場所の PhotoReferences, Thumbnail
 // プロパティを削除し、Imagesに書き換える
 func main() {
 	log.Println("Start migration")

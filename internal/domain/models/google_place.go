@@ -15,8 +15,32 @@ type GooglePlace struct {
 	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int
-	Images           *[]Image
+	Photos           *[]GooglePlacePhoto
 	PlaceDetail      *GooglePlaceDetail
+}
+
+func (g GooglePlace) Images() []Image {
+	if g.Photos == nil {
+		return nil
+	}
+
+	var images []Image
+	for _, photo := range *g.Photos {
+		image, err := NewImage(photo.Small, photo.Large)
+		if err != nil {
+			continue
+		}
+		images = append(images, *image)
+	}
+
+	return images
+}
+
+func (g GooglePlace) ToPlaceInPlanCandidate(placeId string) PlaceInPlanCandidate {
+	return PlaceInPlanCandidate{
+		Id:     placeId,
+		Google: g,
+	}
 }
 
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
@@ -35,7 +59,7 @@ func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
 		return false, fmt.Errorf("opening hours is not set")
 	}
 
-	for _, openingPeriod := range *g.PlaceDetail.OpeningHours {
+	for _, openingPeriod := range g.PlaceDetail.OpeningHours.Periods {
 		weekday := at.Weekday()
 		isOpeningPeriodOfToday := openingPeriod.DayOfWeekOpen == weekday.String()
 		if !isOpeningPeriodOfToday {

@@ -5,7 +5,11 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-func GooglePlaceOpeningPeriodsFromPlaceDetail(placeDetail places.PlaceDetail) []models.GooglePlaceOpeningPeriod {
+func GooglePlaceOpeningHoursFromPlaceDetail(placeDetail places.PlaceDetail) *models.GooglePlaceOpeningHours {
+	if placeDetail.OpeningHours == nil {
+		return nil
+	}
+
 	var openingPeriods []models.GooglePlaceOpeningPeriod
 	for _, period := range placeDetail.OpeningHours.Periods {
 		openingPeriods = append(openingPeriods, models.GooglePlaceOpeningPeriod{
@@ -15,5 +19,7 @@ func GooglePlaceOpeningPeriodsFromPlaceDetail(placeDetail places.PlaceDetail) []
 			ClosingTime:    period.Close.Time,
 		})
 	}
-	return openingPeriods
+	return &models.GooglePlaceOpeningHours{
+		Periods: openingPeriods,
+	}
 }
