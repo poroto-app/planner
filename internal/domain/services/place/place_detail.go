@@ -33,3 +33,39 @@ func (s Service) FetchPlaceDetail(ctx context.Context, place models.GooglePlace)
 
 	return &placeDetail, nil
 }
+
+func (s Service) FetchPlacesDetail(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
+	if len(places) == 0 {
+		return nil
+	}
+
+	ch := make(chan *models.GooglePlace, len(places))
+	for _, place := range places {
+		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
+			placeDetail, err := s.FetchPlaceDetail(ctx, place)
+			if err != nil {
+				ch <- nil
+				return
+			}
+
+			place.PlaceDetail = placeDetail
+
+			ch <- &place
+		}(ctx, place, ch)
+	}
+
+	for i := 0; i < len(places); i++ {
+		placeWithPlaceDetail := <-ch
+		if placeWithPlaceDetail == nil {
+			continue
+		}
+
+		for iPlace, place := range places {
+			if placeWithPlaceDetail.PlaceId == place.PlaceId {
+				places[iPlace] = *placeWithPlaceDetail
+			}
+		}
+	}
+
+	return places
+}

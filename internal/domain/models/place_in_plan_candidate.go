@@ -38,6 +38,11 @@ func (p PlaceInPlanCandidate) ToPlace() Place {
 		p.Google.Images = new([]Image)
 	}
 
+	var googlePlaceReviews *[]GooglePlaceReview
+	if p.Google.PlaceDetail != nil {
+		googlePlaceReviews = &p.Google.PlaceDetail.Reviews
+	}
+
 	return Place{
 		Id:                 p.Id,
 		GooglePlaceId:      utils.StrOmitEmpty(p.Google.PlaceId),
@@ -45,7 +50,7 @@ func (p PlaceInPlanCandidate) ToPlace() Place {
 		Location:           p.Google.Location,
 		Images:             *p.Google.Images,
 		Categories:         GetCategoriesFromSubCategories(p.Google.Types),
-		GooglePlaceReviews: p.Google.Reviews,
+		GooglePlaceReviews: googlePlaceReviews,
 		PriceLevel:         p.Google.PriceLevel,
 	}
 }

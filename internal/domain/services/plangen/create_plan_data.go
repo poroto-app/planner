@@ -59,7 +59,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			for i := 0; i < len(placesInPlanCandidate); i++ {
 				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
 					placesInPlanCandidate[i].Google.Images = &value.Images
-					placesInPlanCandidate[i].Google.Reviews = &value.Reviews
+					placesInPlanCandidate[i].Google.PlaceDetail = value.PlaceDetail
 				}
 				places = append(places, placesInPlanCandidate[i].ToPlace())
 			}
@@ -88,8 +88,8 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 type placeDetail struct {
 	PlaceId       string
 	GooglePlaceId string
-	Reviews       []models.GooglePlaceReview
 	Images        []models.Image
+	PlaceDetail   *models.GooglePlaceDetail
 }
 
 // fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
@@ -114,7 +114,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 	}
 
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
-	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
+	googlePlaces = s.placeService.FetchPlacesDetail(ctx, googlePlaces)
 
 	placeIdToPlaceDetail := make(map[string]placeDetail)
 	for _, place := range places {
@@ -123,12 +123,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 				continue
 			}
 
-			var reviews []models.GooglePlaceReview
 			var images []models.Image
-
-			if googlePlace.Reviews != nil {
-				reviews = *googlePlace.Reviews
-			}
 
 			if googlePlace.Images != nil {
 				images = *googlePlace.Images
@@ -137,8 +132,8 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 			placeIdToPlaceDetail[place.Id] = placeDetail{
 				PlaceId:       place.Id,
 				GooglePlaceId: place.Google.PlaceId,
-				Reviews:       reviews,
 				Images:        images,
+				PlaceDetail:   place.Google.PlaceDetail,
 			}
 
 			break

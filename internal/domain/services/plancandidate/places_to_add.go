@@ -75,9 +75,6 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// 写真を取得
 	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
-	// 口コミを取得
-	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
-
 	var placesToAdd []models.Place
 	for _, place := range placesFiltered {
 		for _, googlePlace := range googlePlacesToAdd {

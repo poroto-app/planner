@@ -62,11 +62,6 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while fetching photos: %v", err)
 	}
 
-	reviews, err := p.fetchReviewsByPlanCandidateId(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching reviews: %v", err)
-	}
-
 	var places []models.GooglePlace
 	for _, snapshot := range snapshots {
 		var placeEntity googleplaces.Place
@@ -81,18 +76,7 @@ func (p GooglePlaceSearchResultRepository) find(ctx context.Context, planCandida
 			}
 		}
 
-		var reviewsOfPlace []entity.GooglePlaceReviewEntity
-		for _, review := range reviews {
-			if review.GooglePlaceId == placeEntity.PlaceID {
-				reviewsOfPlace = append(reviewsOfPlace, review)
-			}
-		}
-
-		places = append(places, factory.GooglePlaceFromPlaceEntity(
-			placeEntity,
-			photosOfPlace,
-			reviewsOfPlace,
-		))
+		places = append(places, factory.GooglePlaceFromPlaceEntity(placeEntity, photosOfPlace))
 	}
 
 	return places, nil
@@ -180,25 +164,6 @@ func (p GooglePlaceSearchResultRepository) fetchPhotosByPlanCandidateId(ctx cont
 	}
 
 	return photos, nil
-}
-
-func (p GooglePlaceSearchResultRepository) fetchReviewsByPlanCandidateId(ctx context.Context, planCandidateId string) ([]entity.GooglePlaceReviewEntity, error) {
-	subCollectionReviews := p.subCollectionReviews(planCandidateId)
-	reviewsSnapshots, err := subCollectionReviews.Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("error while getting reviews: %v", err)
-	}
-
-	var reviews []entity.GooglePlaceReviewEntity
-	for _, reviewSnapshot := range reviewsSnapshots {
-		var reviewEntity entity.GooglePlaceReviewEntity
-		if err = reviewSnapshot.DataTo(&reviewEntity); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to review entity: %v", err)
-		}
-		reviews = append(reviews, reviewEntity)
-	}
-
-	return reviews, nil
 }
 
 func (p GooglePlaceSearchResultRepository) subCollection(planCandidateId string) *firestore.CollectionRef {

@@ -49,7 +49,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 
 			var places []models.GooglePlace
 			for _, place := range placesSearched {
-				places = append(places, factory.GooglePlaceFromPlaceEntity(place, nil, nil))
+				places = append(places, factory.GooglePlaceFromPlaceEntity(place, nil))
 			}
 
 			ch <- &places
