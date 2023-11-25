@@ -66,5 +66,21 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 		placesSearched = append(placesSearched, *searchResults...)
 	}
 
-	return placesSearched, nil
+	// 重複した場所を削除
+	var placesSearchedFiltered []models.GooglePlace
+	for _, place := range placesSearched {
+		isAlreadyAdded := false
+		for _, placeFiltered := range placesSearchedFiltered {
+			if place.PlaceId == placeFiltered.PlaceId {
+				isAlreadyAdded = true
+				break
+			}
+		}
+
+		if !isAlreadyAdded {
+			placesSearchedFiltered = append(placesSearchedFiltered, place)
+		}
+	}
+
+	return placesSearchedFiltered, nil
 }
