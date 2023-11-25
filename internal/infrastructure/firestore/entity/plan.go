@@ -42,8 +42,8 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 
 func FromPlanEntity(entity PlanEntity) models.Plan {
 	ps := make([]models.Place, len(entity.Places))
-	for i, place := range entity.Places {
-		ps[i] = FromPlaceEntity(place)
+	for i, placeEntity := range entity.Places {
+		ps[i] = placeEntity.ToPlace()
 	}
 
 	return models.Plan{
