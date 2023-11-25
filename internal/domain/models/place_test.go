@@ -5,50 +5,6 @@ import (
 	"testing"
 )
 
-func TestPlace_MainCategory(t *testing.T) {
-	cases := []struct {
-		name     string
-		place    Place
-		expected *LocationCategory
-	}{
-		{
-			name: "place has no category",
-			place: Place{
-				Categories: []LocationCategory{},
-			},
-			expected: nil,
-		},
-		{
-			name: "place has one category",
-			place: Place{
-				Categories: []LocationCategory{
-					CategoryAmusements,
-				},
-			},
-			expected: &CategoryAmusements,
-		},
-		{
-			name: "place has two categories and the first one is main category",
-			place: Place{
-				Categories: []LocationCategory{
-					CategoryAmusements,
-					CategoryBookStore,
-				},
-			},
-			expected: &CategoryAmusements,
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			actual := c.place.MainCategory()
-			if diff := cmp.Diff(c.expected, actual); diff != "" {
-				t.Errorf("MainCategory() mismatch (-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
 func TestPlace_EstimatedStayDuration(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -58,28 +14,32 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 		{
 			name: "place has no category",
 			place: Place{
-				Categories: []LocationCategory{},
+				Google: GooglePlace{
+					Types: []string{},
+				},
 			},
 			expected: 0,
 		},
 		{
 			name: "place has one category",
 			place: Place{
-				Categories: []LocationCategory{
-					{EstimatedStayDuration: 10},
+				Google: GooglePlace{
+					Types: []string{CategoryAmusements.SubCategories[0]},
 				},
 			},
-			expected: 10,
+			expected: CategoryAmusements.EstimatedStayDuration,
 		},
 		{
 			name: "place has two categories and return the estimated stay duration of the first one",
 			place: Place{
-				Categories: []LocationCategory{
-					{EstimatedStayDuration: 10},
-					{EstimatedStayDuration: 20},
+				Google: GooglePlace{
+					Types: []string{
+						CategoryBookStore.SubCategories[0],
+						CategoryAmusements.SubCategories[1],
+					},
 				},
 			},
-			expected: 10,
+			expected: CategoryBookStore.EstimatedStayDuration,
 		},
 	}
 
