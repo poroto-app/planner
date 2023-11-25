@@ -8,7 +8,6 @@ import (
 
 // PlanEntity は保存されたプランを示す
 // GeoHash はプランの最初の場所のGeoHashを示す（プランは小さい範囲で作られるため、どこをとってもあまり変わらない）
-// TimeInMinutes MEMO: Firestoreではuintをサポートしていないため，intにしている
 type PlanEntity struct {
 	Id        string        `firestore:"id"`
 	Name      string        `firestore:"name"`
