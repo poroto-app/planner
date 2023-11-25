@@ -1,7 +1,5 @@
 package models
 
-import "poroto.app/poroto/planner/internal/domain/utils"
-
 type PlaceInPlanCandidate struct {
 	Id     string
 	Google GooglePlace

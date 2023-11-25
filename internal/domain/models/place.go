@@ -40,5 +40,5 @@ func (p Place) EstimatedStayDuration() uint {
 // EstimatedPriceRange 価格帯を推定する
 func (p Place) EstimatedPriceRange() (priceRange *PriceRange) {
 	// TODO: 飲食店でprice_levelが0の場合は、価格帯が不明なので、nilを返す
-	return PriceRangeFromGooglePriceLevel(p.PriceLevel)
+	return PriceRangeFromGooglePriceLevel(p.Google.PriceLevel)
 }
