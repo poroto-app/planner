@@ -56,7 +56,7 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		ID:     plan.Id,
 		Name:   plan.Name,
 		Places: places,
-		// MOCK: transitionを利用し時間を計算する関数を実装する
+		// TODO: transitionを利用し時間を計算する関数を実装する
 		TimeInMinutes: 0,
 		Transitions:   graphqlTransitionEntities,
 		AuthorID:      plan.AuthorId,
