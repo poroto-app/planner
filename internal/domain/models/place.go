@@ -3,6 +3,7 @@ package models
 // Place 場所の情報
 type Place struct {
 	Id                 string               `json:"id"`
+	Google             GooglePlace          `json:"google"`
 	GooglePlaceId      *string              `json:"google_place_id"`
 	Name               string               `json:"name"`
 	Location           GeoLocation          `json:"location"`
@@ -10,6 +11,15 @@ type Place struct {
 	Categories         []LocationCategory   `json:"categories"`
 	GooglePlaceReviews *[]GooglePlaceReview `json:"google_place_reviews"`
 	PriceLevel         int                  `json:"price_level"`
+}
+
+func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
+	return Place{
+		Id:       placeId,
+		Google:   googlePlace,
+		Name:     googlePlace.Name,
+		Location: googlePlace.Location,
+	}
 }
 
 func (p Place) MainCategory() *LocationCategory {
