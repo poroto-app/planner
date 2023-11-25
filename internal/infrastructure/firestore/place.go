@@ -3,10 +3,13 @@ package firestore
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
 const (
@@ -31,8 +34,24 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 }
 
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
-	//TODO implement me
-	panic("implement me")
+	query := p.collectionPlaces().Where("google_place_id", "==", googlePlaceID).Limit(1)
+	iter := query.Documents(ctx)
+	doc, err := iter.Next()
+	if errors.Is(err, iterator.Done) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error while iterating documents: %v", err)
+	}
+
+	var placeEntity entity.PlaceEntity
+	if err := doc.DataTo(&placeEntity); err != nil {
+		return nil, fmt.Errorf("error while converting doc to entity: %v", err)
+	}
+
+	// TODO: Google Place の情報を取得する
+	place := placeEntity.ToPlace()
+	return &place, nil
 }
 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
