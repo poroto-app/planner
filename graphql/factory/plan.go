@@ -56,7 +56,7 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		ID:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
-		TimeInMinutes: int(plan.TimeInMinutes(transitions)),
+		TimeInMinutes: int(plan.TimeInMinutes(startLocation)),
 		Transitions:   graphqlTransitionEntities,
 		AuthorID:      plan.AuthorId,
 	}, nil

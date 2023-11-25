@@ -21,7 +21,8 @@ func (p Plan) Transitions(startLocation *GeoLocation) []Transition {
 	return CreateTransition(p.Places, startLocation)
 }
 
-func (p Plan) TimeInMinutes(transitions []Transition) uint {
+func (p Plan) TimeInMinutes(startLocation *GeoLocation) uint {
+	transitions := p.Transitions(startLocation)
 	var timeInMinute uint
 	for _, t := range transitions {
 		timeInMinute += t.Duration
