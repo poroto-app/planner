@@ -10,4 +10,8 @@ jobs:
     uses: ./.github/workflows/workflow_deploy.yaml
     with:
       environment: production
-    secrets: inherit
+    secrets:
+      GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      GOOGLE_CREDENTIALS_KMS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      # planner は staging用プロジェクトにデプロイする（無料枠に収めるため）
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_STAGING }}

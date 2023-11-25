@@ -29,7 +29,6 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			placesInPlanCandidate := param.places
 
 			placesInPlanCandidate = sortPlacesByDistanceFrom(param.locationStart, placesInPlanCandidate)
-			timeInPlan := planTimeFromPlaces(param.locationStart, placesInPlanCandidate)
 
 			// プランのタイトルを生成
 			chPlanTitle := make(chan string, 1)
@@ -58,17 +57,16 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			var places []models.Place
 			for i := 0; i < len(placesInPlanCandidate); i++ {
 				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
-					placesInPlanCandidate[i].Google.Images = &value.Images
-					placesInPlanCandidate[i].Google.Reviews = &value.Reviews
+					placesInPlanCandidate[i].Google.Photos = value.photos
+					placesInPlanCandidate[i].Google.PlaceDetail = value.PlaceDetail
 				}
 				places = append(places, placesInPlanCandidate[i].ToPlace())
 			}
 
 			ch <- &models.Plan{
-				Id:            uuid.New().String(),
-				Name:          title,
-				Places:        places,
-				TimeInMinutes: timeInPlan,
+				Id:     uuid.New().String(),
+				Name:   title,
+				Places: places,
 			}
 		}(ctx, param, ch)
 	}
@@ -88,8 +86,8 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 type placeDetail struct {
 	PlaceId       string
 	GooglePlaceId string
-	Reviews       []models.GooglePlaceReview
-	Images        []models.Image
+	photos        *[]models.GooglePlacePhoto
+	PlaceDetail   *models.GooglePlaceDetail
 }
 
 // fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
@@ -100,6 +98,9 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		for _, place := range param.places {
 			placeIdToPlace[place.Id] = place
 		}
+
+		// スタート地点（ユーザーが指定した場所 or スタート地点として選ばれた場所）も含める
+		placeIdToPlace[param.placeStart.Id] = param.placeStart
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する
@@ -113,8 +114,8 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		googlePlaces = append(googlePlaces, place.Google)
 	}
 
+	googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
-	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
 
 	placeIdToPlaceDetail := make(map[string]placeDetail)
 	for _, place := range places {
@@ -123,22 +124,16 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 				continue
 			}
 
-			var reviews []models.GooglePlaceReview
-			var images []models.Image
-
-			if googlePlace.Reviews != nil {
-				reviews = *googlePlace.Reviews
-			}
-
-			if googlePlace.Images != nil {
-				images = *googlePlace.Images
+			var photos *[]models.GooglePlacePhoto
+			if googlePlace.Photos != nil {
+				photos = googlePlace.Photos
 			}
 
 			placeIdToPlaceDetail[place.Id] = placeDetail{
 				PlaceId:       place.Id,
 				GooglePlaceId: place.Google.PlaceId,
-				Reviews:       reviews,
-				Images:        images,
+				photos:        photos,
+				PlaceDetail:   place.Google.PlaceDetail,
 			}
 
 			break

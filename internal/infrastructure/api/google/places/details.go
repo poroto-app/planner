@@ -7,14 +7,14 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-type FetchPlaceRequest struct {
+type FetchPlaceDetailRequest struct {
 	PlaceId  string
 	Language string
 }
 
-// FetchPlace は IDを指定することで、対応する場所の情報を取得する
+// FetchPlaceDetail は IDを指定することで、対応する場所の情報を取得する
 // 取得される内容は FindPlacesFromLocation と同じ
-func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Place, error) {
+func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailRequest) (*Place, error) {
 	log.Println("Places API Place Details: ", req)
 
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
@@ -25,11 +25,12 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 			maps.PlaceDetailsFieldMaskName,
 			maps.PlaceDetailsFieldMaskTypes,
 			maps.PlaceDetailsFieldMaskGeometryLocation,
-			maps.PlaceDetailsFieldMaskOpeningHours,
-			maps.PlaceDetailsFieldMaskPhotos,
 			maps.PlaceDetailsFieldMaskRatings,
 			maps.PlaceDetailsFieldMaskUserRatingsTotal,
 			maps.PlaceDetailsFieldMaskPriceLevel,
+			maps.PlaceDetailsFieldMaskReviews,
+			maps.PlaceDetailsFieldMaskPhotos,
+			maps.PlaceDetailsFieldMaskOpeningHours,
 		},
 	})
 	if err != nil {
@@ -42,6 +43,7 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 			photoReferences = append(photoReferences, photo.PhotoReference)
 		}
 	}
+
 	place := createPlace(
 		resp.PlaceID,
 		resp.Name,
@@ -53,6 +55,14 @@ func (r PlacesApi) FetchPlace(ctx context.Context, req FetchPlaceRequest) (*Plac
 		resp.UserRatingsTotal,
 		resp.PriceLevel,
 	)
+
+	placeDetail := createPlaceDetail(
+		resp.Reviews,
+		resp.Photos,
+		resp.OpeningHours,
+	)
+
+	place.PlaceDetail = &placeDetail
 
 	return &place, nil
 }

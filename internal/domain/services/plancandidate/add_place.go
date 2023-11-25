@@ -55,11 +55,6 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
 	log.Printf("Successfully fetched photos for places for plan candidate: %v\n", planCandidateId)
 
-	// レビューを取得
-	log.Printf("Fetching reviews for places for plan candidate: %v\n", planCandidateId)
-	googlePlaces = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlaces...)
-	log.Printf("Successfully fetched reviews for places for plan candidate: %v\n", planCandidateId)
-
 	placeToAdd.Google = googlePlaces[0]
 
 	// プランに指定された場所を追加

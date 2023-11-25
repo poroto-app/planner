@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/internal/domain/factory"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -43,7 +42,7 @@ func (s Service) CategoriesNearLocation(
 
 	places := make([]models.PlaceInPlanCandidate, 0)
 	for _, googlePlace := range placesSearched {
-		places = append(places, factory.PlaceInPlanCandidateFromGooglePlace(uuid.New().String(), googlePlace))
+		places = append(places, googlePlace.ToPlaceInPlanCandidate(uuid.New().String()))
 	}
 
 	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, params.CreatePlanSessionId, places); err != nil {
@@ -100,6 +99,21 @@ func (s Service) CategoriesNearLocation(
 		})
 		if len(placesSortedByCategoryIndex) > params.MaxPlacesPerCategory {
 			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:params.MaxPlacesPerCategory]
+		}
+
+		// 場所の詳細情報を取得
+		var googlePlaces []models.GooglePlace
+		for _, place := range placesSortedByCategoryIndex {
+			googlePlaces = append(googlePlaces, place.Google)
+		}
+		googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
+		for i, place := range placesSortedByCategoryIndex {
+			for _, googlePlace := range googlePlaces {
+				if place.Google.PlaceId == googlePlace.PlaceId {
+					placesSortedByCategoryIndex[i].Google = googlePlace
+					break
+				}
+			}
 		}
 
 		// 場所の写真を取得する

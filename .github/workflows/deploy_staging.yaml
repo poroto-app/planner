@@ -3,11 +3,14 @@ run-name: Deploy Staging by @${{ github.actor }}
 on:
   push:
     branches:
-      - develop
+      - develop 
 jobs:
   deploy-staging:
     name: Deploy Staging
     uses: ./.github/workflows/workflow_deploy.yaml
     with:
       environment: staging
-    secrets: inherit
+    secrets:
+      GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      GOOGLE_CREDENTIALS_KMS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS_STAGING }}

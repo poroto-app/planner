@@ -48,11 +48,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
 		for _, placeInPlan := range plan.Places {
-			if placeInPlan.GooglePlaceId == nil {
-				return false
-			}
-
-			if *placeInPlan.GooglePlaceId == place.Id {
+			if placeInPlan.Id == place.Id {
 				return false
 			}
 		}
@@ -72,11 +68,11 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 
 	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
 
+	// 場所の詳細情報を取得
+	googlePlacesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlacesToAdd)
+
 	// 写真を取得
 	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
-
-	// 口コミを取得
-	googlePlacesToAdd = s.placeService.FetchPlaceReviewsAndSave(ctx, planCandidateId, googlePlacesToAdd...)
 
 	var placesToAdd []models.Place
 	for _, place := range placesFiltered {

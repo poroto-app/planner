@@ -14,7 +14,7 @@ type GooglePlaceReviewEntity struct {
 	OriginalLanguage *string `firestore:"original_language,omitempty"`
 }
 
-func ToGooglePlaceReviewEntity(review models.GooglePlaceReview, googlePlaceId string) GooglePlaceReviewEntity {
+func GooglePlaceReviewEntityFromGooglePlaceReview(review models.GooglePlaceReview, googlePlaceId string) GooglePlaceReviewEntity {
 	return GooglePlaceReviewEntity{
 		GooglePlaceId:    googlePlaceId,
 		Rating:           int(review.Rating),
@@ -28,15 +28,15 @@ func ToGooglePlaceReviewEntity(review models.GooglePlaceReview, googlePlaceId st
 	}
 }
 
-func FromGooglePlaceReviewEntity(entity GooglePlaceReviewEntity) models.GooglePlaceReview {
+func (g GooglePlaceReviewEntity) ToGooglePlaceReview() models.GooglePlaceReview {
 	return models.GooglePlaceReview{
-		Rating:                uint(entity.Rating),
-		Text:                  entity.Text,
-		Time:                  entity.Time,
-		AuthorName:            entity.AuthorName,
-		AuthorUrl:             entity.AuthorUrl,
-		AuthorProfileImageUrl: entity.AuthorProfileUrl,
-		Language:              entity.Language,
-		OriginalLanguage:      entity.OriginalLanguage,
+		Rating:                uint(g.Rating),
+		Text:                  g.Text,
+		Time:                  g.Time,
+		AuthorName:            g.AuthorName,
+		AuthorUrl:             g.AuthorUrl,
+		AuthorProfileImageUrl: g.AuthorProfileUrl,
+		Language:              g.Language,
+		OriginalLanguage:      g.OriginalLanguage,
 	}
 }
