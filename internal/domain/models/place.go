@@ -2,15 +2,11 @@ package models
 
 // Place 場所の情報
 type Place struct {
-	Id                 string               `json:"id"`
-	Google             GooglePlace          `json:"google"`
-	GooglePlaceId      *string              `json:"google_place_id"`
-	Name               string               `json:"name"`
-	Location           GeoLocation          `json:"location"`
-	Images             []Image              `json:"images"`
-	Categories         []LocationCategory   `json:"categories"`
-	GooglePlaceReviews *[]GooglePlaceReview `json:"google_place_reviews"`
-	PriceLevel         int                  `json:"price_level"`
+	Id            string      `json:"id"`
+	Google        GooglePlace `json:"google"`
+	GooglePlaceId *string     `json:"google_place_id"`
+	Name          string      `json:"name"`
+	Location      GeoLocation `json:"location"`
 }
 
 func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
@@ -22,11 +18,15 @@ func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
 	}
 }
 
+func (p Place) Categories() []LocationCategory {
+	return GetCategoriesFromSubCategories(p.Google.Types)
+}
+
 func (p Place) MainCategory() *LocationCategory {
-	if len(p.Categories) == 0 {
+	if len(p.Categories()) == 0 {
 		return nil
 	}
-	return &p.Categories[0]
+	return &p.Categories()[0]
 }
 
 func (p Place) EstimatedStayDuration() uint {

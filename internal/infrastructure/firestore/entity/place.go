@@ -17,33 +17,10 @@ type PlaceEntity struct {
 }
 
 func ToPlaceEntity(place models.Place) PlaceEntity {
-	var googlePlaceReviews *[]GooglePlaceReviewEntity
-	if place.GooglePlaceReviews != nil {
-		googlePlaceReviews = new([]GooglePlaceReviewEntity)
-		for _, review := range *place.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, GooglePlaceReviewEntityFromGooglePlaceReview(review, *place.GooglePlaceId))
-		}
-	}
-
-	var images []ImageEntity
-	for _, image := range place.Images {
-		images = append(images, ToImageEntity(*place.GooglePlaceId, image))
-	}
-
-	var categories []string
-	for _, category := range place.Categories {
-		categories = append(categories, category.Name)
-	}
-
 	return PlaceEntity{
-		Id:                 place.Id,
-		GooglePlaceId:      place.GooglePlaceId,
-		Name:               place.Name,
-		Location:           ToGeoLocationEntity(place.Location),
-		Images:             images,
-		GooglePlaceReviews: googlePlaceReviews,
-		Categories:         categories,
-		PriceLevel:         place.PriceLevel,
+		Id:       place.Id,
+		Name:     place.Name,
+		Location: ToGeoLocationEntity(place.Location),
 	}
 }
 
@@ -70,13 +47,8 @@ func FromPlaceEntity(entity PlaceEntity) models.Place {
 	}
 
 	return models.Place{
-		Id:                 entity.Id,
-		GooglePlaceId:      entity.GooglePlaceId,
-		Name:               entity.Name,
-		Location:           FromGeoLocationEntity(entity.Location),
-		Images:             images,
-		GooglePlaceReviews: googlePlaceReviews,
-		Categories:         categories,
-		PriceLevel:         entity.PriceLevel,
+		Id:       entity.Id,
+		Name:     entity.Name,
+		Location: FromGeoLocationEntity(entity.Location),
 	}
 }
