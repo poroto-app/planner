@@ -11,7 +11,7 @@ type PlaceEntity struct {
 	Longitude float64 `firestore:"longitude"`
 }
 
-func ToPlaceEntity(place models.Place) PlaceEntity {
+func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	return PlaceEntity{
 		Id:        place.Id,
 		Name:      place.Name,

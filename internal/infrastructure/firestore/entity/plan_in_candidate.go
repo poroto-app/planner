@@ -20,7 +20,7 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 	placeIdsOrdered := make([]string, len(plan.Places))
 
 	for i, place := range plan.Places {
-		ps[i] = ToPlaceEntity(place)
+		ps[i] = NewPlaceEntityFromPlace(place)
 		placeIdsOrdered[i] = place.Id
 	}
 
