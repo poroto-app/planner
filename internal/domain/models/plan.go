@@ -20,3 +20,15 @@ func (p Plan) GetPlace(placeId string) *Place {
 func (p Plan) Transitions(startLocation *GeoLocation) []Transition {
 	return CreateTransition(p.Places, startLocation)
 }
+
+func (p Plan) TimeInMinutes(transitions []Transition) uint {
+	var timeInMinute uint
+	for _, t := range transitions {
+		timeInMinute += t.Duration
+	}
+
+	for _, place := range p.Places {
+		timeInMinute += place.EstimatedStayDuration()
+	}
+	return timeInMinute
+}

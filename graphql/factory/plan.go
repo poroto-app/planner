@@ -53,11 +53,10 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 	}
 
 	return &graphql.Plan{
-		ID:     plan.Id,
-		Name:   plan.Name,
-		Places: places,
-		// TODO: transitionを利用し時間を計算する関数を実装する
-		TimeInMinutes: 0,
+		ID:            plan.Id,
+		Name:          plan.Name,
+		Places:        places,
+		TimeInMinutes: int(plan.TimeInMinutes(transitions)),
 		Transitions:   graphqlTransitionEntities,
 		AuthorID:      plan.AuthorId,
 	}, nil
