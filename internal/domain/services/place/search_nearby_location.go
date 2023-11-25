@@ -49,13 +49,14 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 
 			var places []models.GooglePlace
 			for _, place := range placesSearched {
-				places = append(places, factory.GooglePlaceFromPlaceEntity(place, nil, nil))
+				places = append(places, factory.GooglePlaceFromPlaceEntity(place, nil))
 			}
 
 			ch <- &places
 		}(ctx, ch, placeType)
 	}
 
+	// TODO：検索した場所の重複を削除する
 	var placesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch

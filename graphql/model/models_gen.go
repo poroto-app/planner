@@ -20,17 +20,6 @@ type AddPlaceToPlanCandidateAfterPlaceOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
-type AddPlaceToPlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
-	PlaceID         string `json:"placeId"`
-}
-
-type AddPlaceToPlanCandidateOutput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	Plan            *Plan  `json:"plan"`
-}
-
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }

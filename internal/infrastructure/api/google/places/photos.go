@@ -7,8 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-
-	"googlemaps.github.io/maps"
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type ImageSize struct {
@@ -18,13 +17,8 @@ type ImageSize struct {
 
 type ImageSizeType int
 
-type PlacePhoto struct {
-	Small *string
-	Large *string
-}
-
-type placePhotoWithSize struct {
-	photoReference string
+type PlacePhotoWithSize struct {
+	photoReference models.GooglePlacePhotoReference
 	imageUrl       string
 	size           ImageSizeType
 }
@@ -108,12 +102,13 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所の画像を１件取得する
-func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize) (*string, error) {
+func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoReference, imageSize ImageSize) (*models.GooglePlacePhoto, error) {
 	if len(photoReferences) == 0 {
 		return nil, nil
 	}
 
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReferences[0], r.apiKey)
+	photoReference := photoReferences[0]
+	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -123,33 +118,25 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []string, imageSize ImageSize
 		return nil, fmt.Errorf("error while fetching public image url: %w", err)
 	}
 
-	return publicImageUrl, nil
+	googlePhoto := photoReference.ToGooglePlacePhoto(publicImageUrl, publicImageUrl)
+	return &googlePhoto, nil
 }
 
 // FetchPlacePhotos は，指定された場所の写真を全件取得する
 // imageSizeTypes が指定されている場合は，高画質の写真を取得する
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]PlacePhoto, error) {
+// TODO: 単一の画像だけを取得するようにする
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []models.GooglePlacePhotoReference, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]models.GooglePlacePhoto, error) {
 	if len(imageSizeTypes) == 0 {
 		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
 	}
 
-	log.Printf("Places API Place Details for Photo: %s\n", placeId)
-	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
-		PlaceID: placeId,
-		Fields: []maps.PlaceDetailsFieldMask{
-			maps.PlaceDetailsFieldMaskPhotos,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	ch := make(chan *placePhotoWithSize, len(resp.Photos)*len(imageSizeTypes))
-	for iPhoto, photo := range resp.Photos {
+	ch := make(chan *PlacePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
+	for iPhoto, photoReference := range photoReferences {
 		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photoIndex int, photo maps.Photo, imageSizeType ImageSizeType, ch chan<- *placePhotoWithSize) {
+			go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, imageSizeType ImageSizeType, ch chan<- *PlacePhotoWithSize) {
+				// 画像取得数が上限に達した場合は、何もしない
 				if photoIndex >= maxPhotoCount {
 					ch <- nil
 					return
@@ -157,66 +144,67 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, placeId string, maxPhot
 
 				imageSize := imageSizeType.ImageSize()
 
-				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photo.PhotoReference, r.apiKey)
+				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
 				if err != nil {
-					log.Printf("skipping photo because of error while building image url: %v", err)
+					log.Printf("skipping photoReference because of error while building image url: %v", err)
 					ch <- nil
 					return
 				}
 
-				log.Printf("Places API Fetch Place Photo: %s\n", photo.PhotoReference)
+				log.Printf("Places API Fetch Place Photo: %s\n", photoReference.PhotoReference)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
-					log.Printf("skipping photo because of error while fetching public image url: %v", err)
+					log.Printf("skipping photoReference because of error while fetching public image url: %v", err)
 					ch <- nil
 					return
 				}
 
-				ch <- &placePhotoWithSize{
-					photoReference: photo.PhotoReference,
+				ch <- &PlacePhotoWithSize{
+					photoReference: photoReference,
 					imageUrl:       *publicImageUrl,
 					size:           imageSizeType,
 				}
-			}(ctx, iPhoto, photo, imageSizeType, ch)
+			}(ctx, iPhoto, photoReference, imageSizeType, ch)
 		}
 	}
 
-	var placePhotoWithSizes []*placePhotoWithSize
-	for i := 0; i < len(resp.Photos)*len(imageSizeTypes); i++ {
+	var placePhotoWithSizes []PlacePhotoWithSize
+	for i := 0; i < len(photoReferences)*len(imageSizeTypes); i++ {
 		placePhotoWithSize := <-ch
 		if placePhotoWithSize == nil {
 			continue
 		}
-		placePhotoWithSizes = append(placePhotoWithSizes, placePhotoWithSize)
+		placePhotoWithSizes = append(placePhotoWithSizes, *placePhotoWithSize)
 	}
 
-	var placePhotos []PlacePhoto
-	for _, photo := range resp.Photos {
-		var placePhoto PlacePhoto
+	var placePhotos []models.GooglePlacePhoto
+	for _, photoReference := range photoReferences {
+		var photoUrlSmall, photoUrlLarge *string
+
 		for _, placePhotoWithSize := range placePhotoWithSizes {
-			if placePhotoWithSize.photoReference != photo.PhotoReference {
+			if placePhotoWithSize.photoReference.PhotoReference != photoReference.PhotoReference {
 				continue
 			}
 
 			switch placePhotoWithSize.size {
 			case ImageSizeTypeLarge:
-				placePhoto.Large = &placePhotoWithSize.imageUrl
+				photoUrlLarge = &placePhotoWithSize.imageUrl
 			case ImageSizeTypeSmall:
-				placePhoto.Small = &placePhotoWithSize.imageUrl
+				photoUrlSmall = &placePhotoWithSize.imageUrl
 			default:
 				panic(fmt.Sprintf("invalid image size type: %v", placePhotoWithSize.size))
 			}
 		}
 
-		if placePhoto.Large == nil && placePhoto.Small == nil {
+		if photoUrlLarge == nil && photoUrlSmall == nil {
 			continue
 		}
 
-		placePhotos = append(placePhotos, placePhoto)
+		placePhotos = append(placePhotos, photoReference.ToGooglePlacePhoto(photoUrlSmall, photoUrlLarge))
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す
-	if len(resp.Photos) > 0 && len(placePhotos) == 0 {
+	if len(photoReferences) > 0 && len(placePhotos) == 0 {
 		return nil, fmt.Errorf("could not fetch any photos")
 	}
 

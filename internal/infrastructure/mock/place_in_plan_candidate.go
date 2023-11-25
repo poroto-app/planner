@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -11,11 +12,6 @@ type PlaceInPlanCandidateRepository struct {
 
 func NewPlaceInPlanCandidateRepository(data map[string][]models.PlaceInPlanCandidate) *PlaceInPlanCandidateRepository {
 	return &PlaceInPlanCandidateRepository{Data: data}
-}
-
-func (p PlaceInPlanCandidateRepository) Save(ctx context.Context, planCandidateId string, place models.PlaceInPlanCandidate) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (p PlaceInPlanCandidateRepository) SavePlaces(ctx context.Context, planCandidateId string, places []models.PlaceInPlanCandidate) error {
@@ -28,12 +24,18 @@ func (p PlaceInPlanCandidateRepository) FindByPlanCandidateId(ctx context.Contex
 	panic("implement me")
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleImages(ctx context.Context, planCandidateId string, googlePlaceId string, images []models.Image) error {
+func (p PlaceInPlanCandidateRepository) FindByGooglePlaceId(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.PlaceInPlanCandidate, error) {
+	//TODO implement me
+	panic("implement me")
+
+}
+
+func (p PlaceInPlanCandidateRepository) SaveGooglePlacePhotos(ctx context.Context, planCandidateId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p PlaceInPlanCandidateRepository) SaveGoogleReviews(ctx context.Context, planCandidateId string, googlePlaceId string, reviews []models.GooglePlaceReview) error {
+func (p PlaceInPlanCandidateRepository) SaveGooglePlaceDetail(ctx context.Context, planCandidateId string, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
 	//TODO implement me
 	panic("implement me")
 }
