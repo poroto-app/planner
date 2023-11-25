@@ -29,7 +29,6 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			placesInPlanCandidate := param.places
 
 			placesInPlanCandidate = sortPlacesByDistanceFrom(param.locationStart, placesInPlanCandidate)
-			timeInPlan := planTimeFromPlaces(param.locationStart, placesInPlanCandidate)
 
 			// プランのタイトルを生成
 			chPlanTitle := make(chan string, 1)
@@ -65,10 +64,9 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			}
 
 			ch <- &models.Plan{
-				Id:            uuid.New().String(),
-				Name:          title,
-				Places:        places,
-				TimeInMinutes: timeInPlan,
+				Id:     uuid.New().String(),
+				Name:   title,
+				Places: places,
 			}
 		}(ctx, param, ch)
 	}

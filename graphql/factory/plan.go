@@ -3,6 +3,7 @@ package factory
 import (
 	"fmt"
 	"log"
+
 	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
@@ -55,7 +56,7 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		ID:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
-		TimeInMinutes: int(plan.TimeInMinutes),
+		TimeInMinutes: int(plan.TimeInMinutes(startLocation)),
 		Transitions:   graphqlTransitionEntities,
 		AuthorID:      plan.AuthorId,
 	}, nil
