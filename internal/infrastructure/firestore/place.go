@@ -55,8 +55,34 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 }
 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
-	//TODO implement me
-	panic("implement me")
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// 事前に保存する画像が存在するかを確認する
+		query := p.collectionPlaces().Where("google_place_id", "==", googlePlaceId).Limit(1)
+		iter := tx.Documents(query)
+		doc, err := iter.Next()
+		if errors.Is(err, iterator.Done) {
+			return fmt.Errorf("place not found: %s", googlePlaceId)
+		}
+		if err != nil {
+			return fmt.Errorf("error while iterating documents: %v", err)
+		}
+
+		var placeEntity entity.PlaceEntity
+		if err := doc.DataTo(&placeEntity); err != nil {
+			return fmt.Errorf("error while converting doc to entity: %v", err)
+		}
+
+		// 画像を保存する
+		if err := p.saveGooglePhotosTx(tx, placeEntity.Id, googlePlaceId, photos); err != nil {
+			return fmt.Errorf("error while saving google place photos: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while running transaction: %v", err)
+	}
+
+	return nil
 }
 
 func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error {
@@ -78,6 +104,29 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 	return &PlaceRepository{
 		client: client,
 	}, nil
+}
+
+// saveGooglePlaceTx はGoogle Places APIから取得された複数の画像を同時に保存する
+// 一枚でも保存できなかった場合はエラーを返す
+func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+	ch := make(chan *models.GooglePlacePhoto, len(photos))
+	for _, photo := range photos {
+		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhoto, googlePlaceId string, photo models.GooglePlacePhoto) {
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photo); err != nil {
+				ch <- nil
+			} else {
+				ch <- &photo
+			}
+		}(tx, ch, googlePlaceId, photo)
+	}
+
+	for i := 0; i < len(photos); i++ {
+		if photo := <-ch; photo == nil {
+			return fmt.Errorf("error while saving google place photo: %v", photos[i])
+		}
+	}
+
+	return nil
 }
 
 func (p PlaceRepository) collectionPlaces() *firestore.CollectionRef {
