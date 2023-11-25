@@ -20,13 +20,13 @@ func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	}
 }
 
-func FromPlaceEntity(entity PlaceEntity) models.Place {
+func (p PlaceEntity) ToPlace() models.Place {
 	return models.Place{
-		Id:   entity.Id,
-		Name: entity.Name,
+		Id:   p.Id,
+		Name: p.Name,
 		Location: models.GeoLocation{
-			Latitude:  entity.Latitude,
-			Longitude: entity.Longitude,
+			Latitude:  p.Latitude,
+			Longitude: p.Longitude,
 		},
 	}
 }
