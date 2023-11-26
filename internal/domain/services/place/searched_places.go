@@ -51,3 +51,12 @@ func (s Service) SaveSearchedPlaces(ctx context.Context, planCandidateId string,
 
 	return places, nil
 }
+
+func (s Service) FetchSearchedPlaces(ctx context.Context, planCandidateId string) ([]models.Place, error) {
+	places, err := s.placeRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching searched places for plan candidate: %v\n", err)
+	}
+
+	return places, nil
+}
