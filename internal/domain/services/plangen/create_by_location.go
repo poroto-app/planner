@@ -149,7 +149,7 @@ func (s Service) CreatePlanByLocation(
 			}
 
 			firstPlace := plan.Places[0]
-			if firstPlace.GooglePlaceId != nil && *firstPlace.GooglePlaceId == *googlePlaceId {
+			if firstPlace.Google.PlaceId == *googlePlaceId {
 				plans[0], plans[i] = plans[i], plans[0]
 				break
 			}
