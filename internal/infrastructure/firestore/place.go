@@ -42,8 +42,49 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 }
 
 func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, place models.Place) error {
-	//TODO implement me
-	panic("implement me")
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		placeEntity := entity.NewPlaceEntityFromPlace(place)
+		if err := tx.Set(p.docPlace(placeEntity.Id), placeEntity); err != nil {
+			return fmt.Errorf("error while saving place: %v", err)
+		}
+
+		// Google Place を保存する
+		googlePlaceEntity := entity.GooglePlaceEntityFromGooglePlace(place.Google)
+		if err := tx.Set(p.docGooglePlace(placeEntity.Id), googlePlaceEntity); err != nil {
+			return fmt.Errorf("error while saving google place: %v", err)
+		}
+
+		// Place Detail を保存する
+		if place.Google.PlaceDetail != nil {
+			// PhotoReferenceを保存する
+			if err := p.saveGooglePhotoReferencesTx(tx, placeEntity.Id, place.Google.PlaceDetail.PhotoReferences); err != nil {
+				return fmt.Errorf("error while saving google place photos: %v", err)
+			}
+
+			// Reviewを保存する
+			if err := p.saveGooglePlaceReviews(tx, placeEntity.Id, place.Google.PlaceDetail.Reviews); err != nil {
+				return fmt.Errorf("error while saving google place reviews: %v", err)
+			}
+
+			// 開店時間を更新する
+			if err := p.updateOpeningHours(tx, placeEntity.Id, *place.Google.PlaceDetail); err != nil {
+				return fmt.Errorf("error while updating opening hours: %v", err)
+			}
+		}
+
+		// Place Photo を保存する
+		if place.Google.Photos != nil {
+			if err := p.saveGooglePhotosTx(tx, placeEntity.Id, place.Google.PlaceId, *place.Google.Photos); err != nil {
+				return fmt.Errorf("error while saving google place photos: %v", err)
+			}
+		}
+
+		return nil
+	}, firestore.MaxAttempts(3)); err != nil {
+		return fmt.Errorf("error while running transaction: %v", err)
+	}
+
+	return nil
 }
 
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error) {
