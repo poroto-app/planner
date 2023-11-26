@@ -86,7 +86,7 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 		return nil, fmt.Errorf("error while finding places: %v", err)
 	}
 
-	plan, err := entity.FromPlanEntity(*planEntity, *places)
+	plan, err := planEntity.ToPlan(*places)
 	if err != nil {
 		return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
 	}
@@ -120,7 +120,7 @@ func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*
 
 	var plans []models.Plan
 	for _, planEntity := range planEntities {
-		plan, err := entity.FromPlanEntity(planEntity, *places)
+		plan, err := planEntity.ToPlan(*places)
 		if err != nil {
 			return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
 		}
@@ -172,7 +172,7 @@ func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *str
 
 	var plans []models.Plan
 	for _, planEntity := range planEntities {
-		plan, err := entity.FromPlanEntity(planEntity, *places)
+		plan, err := planEntity.ToPlan(*places)
 		if err != nil {
 			return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
 		}
@@ -224,7 +224,7 @@ func (p *PlanRepository) SortedByLocation(ctx context.Context, geoLocation model
 
 	var plans []models.Plan
 	for _, planEntity := range planEntities {
-		plan, err := entity.FromPlanEntity(planEntity, *places)
+		plan, err := planEntity.ToPlan(*places)
 		if err != nil {
 			return nil, nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
 		}

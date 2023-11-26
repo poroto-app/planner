@@ -41,9 +41,9 @@ func NewPlanEntityFromPlan(plan models.Plan) PlanEntity {
 	}
 }
 
-func FromPlanEntity(entity PlanEntity, places []models.Place) (*models.Plan, error) {
+func (p PlanEntity) ToPlan(places []models.Place) (*models.Plan, error) {
 	var placesInPlan []models.Place
-	for _, placeId := range entity.PlaceIds {
+	for _, placeId := range p.PlaceIds {
 		found := false
 		for _, place := range places {
 			if place.Id == placeId {
@@ -59,9 +59,9 @@ func FromPlanEntity(entity PlanEntity, places []models.Place) (*models.Plan, err
 	}
 
 	return &models.Plan{
-		Id:       entity.Id,
-		Name:     entity.Name,
+		Id:       p.Id,
+		Name:     p.Name,
 		Places:   places,
-		AuthorId: entity.AuthorId,
+		AuthorId: p.AuthorId,
 	}, nil
 }
