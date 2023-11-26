@@ -57,10 +57,7 @@ func (p *PlanCandidateFirestoreRepository) Create(ctx context.Context, planCandi
 			Id:        planCandidateId,
 			ExpiresAt: expiresAt,
 		}
-		if err := tx.Set(p.doc(planCandidateId), planCandidateEntity, firestore.Merge([]string{
-			"id",
-			"expires_at",
-		})); err != nil {
+		if err := tx.Set(p.doc(planCandidateId), planCandidateEntity); err != nil {
 			return fmt.Errorf("error while saving plan candidate: %v", err)
 		}
 
