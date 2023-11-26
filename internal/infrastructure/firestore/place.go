@@ -25,6 +25,22 @@ type PlaceRepository struct {
 	client *firestore.Client
 }
 
+func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
+	var options []option.ClientOption
+	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
+		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
+	}
+
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
+	}
+
+	return &PlaceRepository{
+		client: client,
+	}, nil
+}
+
 func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, places []models.Place) error {
 	//TODO implement me
 	panic("implement me")
@@ -112,22 +128,6 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	}
 
 	return nil
-}
-
-func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
-	var options []option.ClientOption
-	if os.Getenv("GCP_CREDENTIAL_FILE_PATH") != "" {
-		options = append(options, option.WithCredentialsFile(os.Getenv("GCP_CREDENTIAL_FILE_PATH")))
-	}
-
-	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT_ID"), options...)
-	if err != nil {
-		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
-	}
-
-	return &PlaceRepository{
-		client: client,
-	}, nil
 }
 
 func (p PlaceRepository) findByGooglePlaceIdTx(tx *firestore.Transaction, googlePlaceId string) (*entity.PlaceEntity, error) {
