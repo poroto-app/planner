@@ -95,7 +95,7 @@ func (s Service) FetchPlacesToReplace(
 	}
 
 	// 詳細情報を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlacesToAdd)
+	googlePlacesToAdd = s.placeService.FetchGooglePlacesDetailAndSave(ctx, planCandidateId, googlePlacesToAdd)
 
 	// 画像を取得
 	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)

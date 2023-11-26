@@ -99,7 +99,7 @@ func (s Service) CategoriesNearLocation(
 		for _, place := range placesSortedByCategoryIndex {
 			googlePlaces = append(googlePlaces, place.Google)
 		}
-		googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
+		googlePlaces = s.placeService.FetchGooglePlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
 		for i, place := range placesSortedByCategoryIndex {
 			for _, googlePlace := range googlePlaces {
 				if place.Google.PlaceId == googlePlace.PlaceId {

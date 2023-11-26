@@ -114,7 +114,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		googlePlaces = append(googlePlaces, place.Google)
 	}
 
-	googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
+	googlePlaces = s.placeService.FetchGooglePlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
 	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
 
 	placeIdToPlaceDetail := make(map[string]placeDetail)

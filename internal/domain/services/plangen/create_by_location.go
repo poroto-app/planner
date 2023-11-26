@@ -179,7 +179,7 @@ func (s Service) findOrFetchPlaceById(
 		return place, true, nil
 	}
 
-	googlePlaceEntity, err := s.placeService.FetchPlace(ctx, googlePlaceId)
+	googlePlaceEntity, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
