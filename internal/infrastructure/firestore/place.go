@@ -93,13 +93,18 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		err         error
 	}
 
+	type fetchGooglePlaceResult struct {
+		placeEntity entity.PlaceEntity
+		googlePlace *models.GooglePlace
+		err         error
+	}
+
 	// 各方向に 5km 以内の場所を取得
 	geohashPrecision := 5
 	geohashNeighbors := location.GeoHashOfNeighbors(uint(geohashPrecision))
 	// TODO: 重複がないかを確認する
 	geohashNeighbors = append(geohashNeighbors, location.GeoHash()[:geohashPrecision])
 
-	// 各方向
 	ch := make(chan findPlaceEntityByGeoHashResult, len(geohashNeighbors))
 	for _, geoHash := range geohashNeighbors {
 		go func(ch chan<- findPlaceEntityByGeoHashResult, geoHash string) {
@@ -146,10 +151,38 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		}
 	}
 
-	// TODO: 紐づくデータを取得
-	var places []models.Place
+	// Places APIの検索結果を取得
+	chGooglePlaces := make(chan fetchGooglePlaceResult, len(placeEntities))
 	for _, placeEntity := range placeEntities {
-		places = append(places, placeEntity.ToPlace())
+		go func(ch chan<- fetchGooglePlaceResult, placeEntity entity.PlaceEntity) {
+			googlePlace, err := p.fetchGooglePlace(ctx, placeEntity.GooglePlaceId)
+			if err != nil {
+				ch <- fetchGooglePlaceResult{
+					placeEntity: placeEntity,
+					googlePlace: nil,
+					err:         fmt.Errorf("error while fetching google place: %v", err),
+				}
+				return
+			}
+
+			ch <- fetchGooglePlaceResult{
+				placeEntity: placeEntity,
+				googlePlace: googlePlace,
+				err:         nil,
+			}
+		}(chGooglePlaces, placeEntity)
+	}
+
+	var places []models.Place
+	for i := 0; i < len(placeEntities); i++ {
+		result := <-chGooglePlaces
+		if result.err != nil {
+			return nil, result.err
+		}
+		if result.googlePlace != nil {
+			place := result.placeEntity.ToPlace(*result.googlePlace)
+			places = append(places, place)
+		}
 	}
 
 	return places, nil
@@ -171,8 +204,12 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 		return nil, fmt.Errorf("error while converting doc to entity: %v", err)
 	}
 
-	// TODO: Google Place の情報を取得する
-	place := placeEntity.ToPlace()
+	googlePlace, err := p.fetchGooglePlace(ctx, googlePlaceID)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching google place: %v", err)
+	}
+
+	place := placeEntity.ToPlace(*googlePlace)
 	return &place, nil
 }
 
@@ -232,6 +269,52 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	}
 
 	return nil
+}
+
+// fetchGooglePlace は placeId に紐づく Google Places API の検索結果を取得する
+func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (*models.GooglePlace, error) {
+	var googlePlaceEntity entity.GooglePlaceEntity
+	snapshotGooglePlace, err := p.docGooglePlace(placeId).Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while getting google place: %v", err)
+	}
+
+	if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to google place entity: %v", err)
+	}
+
+	// Reviewを取得する
+	var reviews []entity.GooglePlaceReviewEntity
+	snapshotsReviews, err := p.subCollectionGooglePlaceReview(placeId).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("error while getting google place reviews: %v", err)
+	}
+
+	for _, snapshotReview := range snapshotsReviews {
+		var review entity.GooglePlaceReviewEntity
+		if err := snapshotReview.DataTo(&review); err != nil {
+			return nil, fmt.Errorf("error while converting snapshot to google place review entity: %v", err)
+		}
+		reviews = append(reviews, review)
+	}
+
+	// Photoを取得する
+	var photos []entity.GooglePlacePhotoEntity
+	snapshotsPhotos, err := p.subCollectionGooglePlacePhoto(placeId).Documents(ctx).GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("error while getting google place photos: %v", err)
+	}
+
+	for _, snapshotPhoto := range snapshotsPhotos {
+		var photo entity.GooglePlacePhotoEntity
+		if err := snapshotPhoto.DataTo(&photo); err != nil {
+			return nil, fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)
+		}
+		photos = append(photos, photo)
+	}
+
+	googlePlace := googlePlaceEntity.ToGooglePlace(photos, reviews)
+	return &googlePlace, nil
 }
 
 func (p PlaceRepository) findByGooglePlaceIdTx(tx *firestore.Transaction, googlePlaceId string) (*entity.PlaceEntity, error) {

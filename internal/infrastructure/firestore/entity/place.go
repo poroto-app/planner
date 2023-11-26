@@ -28,10 +28,11 @@ func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	}
 }
 
-func (p PlaceEntity) ToPlace() models.Place {
+func (p PlaceEntity) ToPlace(googlePlace models.GooglePlace) models.Place {
 	return models.Place{
-		Id:   p.Id,
-		Name: p.Name,
+		Id:     p.Id,
+		Name:   p.Name,
+		Google: googlePlace,
 		Location: models.GeoLocation{
 			Latitude:  p.Latitude,
 			Longitude: p.Longitude,
