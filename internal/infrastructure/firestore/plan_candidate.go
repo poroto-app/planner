@@ -89,12 +89,12 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("error while finding placeId candidate: %v", err)
+		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
 	}
 
 	var planCandidateEntity entity.PlanCandidateEntity
 	if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to placeId candidate entity: %v", err)
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 	}
 
 	// TODO: 取得処理を並列化する
@@ -106,12 +106,12 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("error while finding placeId candidate meta data: %v", err)
+		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
 	}
 
 	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
 	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to placeId candidate meta data entity: %v", err)
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
 	}
 
 	// プランを取得
