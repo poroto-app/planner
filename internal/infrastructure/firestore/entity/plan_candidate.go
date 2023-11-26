@@ -29,7 +29,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.PlaceInPlanCandidate) models.PlanCandidate {
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
 	var plans []models.Plan
 	for _, planId := range entity.PlanIds {
 		for _, place := range planEntities {

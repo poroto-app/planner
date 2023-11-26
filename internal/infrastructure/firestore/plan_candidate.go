@@ -24,8 +24,8 @@ const (
 )
 
 type PlanCandidateFirestoreRepository struct {
-	client                         *firestore.Client
-	placeInPlanCandidateRepository *PlaceInPlanCandidateRepository
+	client          *firestore.Client
+	PlaceRepository *PlaceRepository
 }
 
 func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRepository, error) {
@@ -39,14 +39,14 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
 
-	placeInPlanCandidateRepository, err := NewPlaceInPlanCandidateRepository(ctx)
+	placeRepository, err := NewPlaceRepository(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing placeInPlanCandidateRepository: %v", err)
+		return nil, fmt.Errorf("error while initializing placeRepository: %v", err)
 	}
 
 	return &PlanCandidateFirestoreRepository{
-		client:                         client,
-		placeInPlanCandidateRepository: placeInPlanCandidateRepository,
+		client:          client,
+		PlaceRepository: placeRepository,
 	}, nil
 }
 
@@ -77,6 +77,11 @@ func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandida
 }
 
 func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
+	type findPlaceResult struct {
+		place *models.Place
+		err   error
+	}
+
 	doc := p.doc(planCandidateId)
 	snapshot, err := doc.Get(ctx)
 	if err != nil {
@@ -84,14 +89,15 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
+		return nil, fmt.Errorf("error while finding placeId candidate: %v", err)
 	}
 
 	var planCandidateEntity entity.PlanCandidateEntity
 	if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		return nil, fmt.Errorf("error while converting snapshot to placeId candidate entity: %v", err)
 	}
 
+	// TODO: 取得処理を並列化する
 	// プラン候補メタデータを取得
 	docMetaData := p.docMetaDataV1(planCandidateId)
 	snapshotMetaData, err := docMetaData.Get(ctx)
@@ -100,12 +106,12 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
+		return nil, fmt.Errorf("error while finding placeId candidate meta data: %v", err)
 	}
 
 	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
 	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		return nil, fmt.Errorf("error while converting snapshot to placeId candidate meta data entity: %v", err)
 	}
 
 	// プランを取得
@@ -118,18 +124,41 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	for _, snapshotPlan := range snapshotPlans {
 		var plan entity.PlanInCandidateEntity
 		if err = snapshotPlan.DataTo(&plan); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+			return nil, fmt.Errorf("error while converting snapshot to placeId entity: %v", err)
 		}
 		plans = append(plans, plan)
 	}
 
 	//　検索された場所を取得
-	places, err := p.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v", err)
+	chPlaces := make(chan findPlaceResult, len(planCandidateEntity.PlaceIdsSearched))
+	for _, placeId := range planCandidateEntity.PlaceIdsSearched {
+		go func(ch chan findPlaceResult, placeId string) {
+			place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
+			if err != nil {
+				ch <- findPlaceResult{
+					place: nil,
+					err:   fmt.Errorf("error while fetching place: %v", err),
+				}
+				return
+			}
+
+			ch <- findPlaceResult{
+				place: place,
+				err:   nil,
+			}
+		}(chPlaces, placeId)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places)
+	var places []models.Place
+	for range planCandidateEntity.PlaceIdsSearched {
+		result := <-chPlaces
+		if result.err != nil {
+			return nil, result.err
+		}
+		places = append(places, *result.place)
+	}
+
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, places)
 
 	return &planCandidate, nil
 }
