@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
@@ -230,6 +233,62 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 	return &place, nil
 }
 
+func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
+	type fetchPlaceResult struct {
+		placeEntity *models.Place
+		err         error
+	}
+
+	// PlanCandidateを取得する
+	snapshotPlanCandidate, err := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		return nil, fmt.Errorf("plan candidate not found by id: %s", planCandidateId)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error while getting plan candidate: %v", err)
+	}
+
+	var planCandidateEntity entity.PlanCandidateEntity
+	if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+	}
+
+	// 重複した場所が取得されないようにする
+	placeIdsSearchedForPlanCandidate := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
+
+	chPlace := make(chan fetchPlaceResult, len(placeIdsSearchedForPlanCandidate))
+	for _, placeId := range placeIdsSearchedForPlanCandidate {
+		go func(ch chan<- fetchPlaceResult, placeId string) {
+			place, err := p.findByPlaceId(ctx, placeId)
+			if err != nil {
+				ch <- fetchPlaceResult{
+					placeEntity: nil,
+					err:         fmt.Errorf("error while fetching place: %v", err),
+				}
+				return
+			}
+
+			ch <- fetchPlaceResult{
+				placeEntity: place,
+				err:         nil,
+			}
+		}(chPlace, placeId)
+	}
+
+	var places []models.Place
+	for i := 0; i < len(placeIdsSearchedForPlanCandidate); i++ {
+		result := <-chPlace
+		if result.err != nil {
+			return nil, result.err
+		}
+		if result.placeEntity != nil {
+			places = append(places, *result.placeEntity)
+		}
+	}
+
+	return places, nil
+}
+
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		// 事前に保存する画像が存在するかを確認する
@@ -286,6 +345,84 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	}
 
 	return nil
+}
+
+func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*models.Place, error) {
+	chPlace := make(chan *entity.PlaceEntity, 1)
+	chGooglePlace := make(chan *models.GooglePlace, 1)
+	chErr := make(chan error)
+
+	asyncProcesses := []func(){
+		func() {
+			// Placeを取得する
+			defer close(chPlace)
+
+			var placeEntity entity.PlaceEntity
+			snapshotPlace, err := p.docPlace(placeId).Get(ctx)
+			if err != nil {
+				chErr <- fmt.Errorf("error while getting place: %v", err)
+			}
+
+			if err := snapshotPlace.DataTo(&placeEntity); err != nil {
+				chErr <- fmt.Errorf("error while converting snapshot to place entity: %v", err)
+			}
+
+			chPlace <- &placeEntity
+		},
+		func() {
+			// Google Placeを取得する
+			defer close(chGooglePlace)
+
+			googlePlace, err := p.fetchGooglePlace(ctx, placeId)
+			if err != nil {
+				chErr <- fmt.Errorf("error while finding place by place id: %v", err)
+			}
+			if googlePlace == nil {
+				chGooglePlace <- nil
+				return
+			}
+
+			chGooglePlace <- googlePlace
+		},
+	}
+
+	chDone := make(chan bool)
+	var wg sync.WaitGroup
+	for _, asyncProcess := range asyncProcesses {
+		wg.Add(1)
+		go func(asyncProcess func()) {
+			defer wg.Done()
+			asyncProcess()
+		}(asyncProcess)
+	}
+
+	go func() {
+		wg.Wait()
+		close(chDone)
+	}()
+
+	var placeEntity *entity.PlaceEntity
+	var googlePlace *models.GooglePlace
+Loop:
+	for {
+		select {
+		case placeEntity = <-chPlace:
+			if placeEntity == nil {
+				return nil, fmt.Errorf("place is not found by place id: %s", placeId)
+			}
+		case googlePlace = <-chGooglePlace:
+			if googlePlace == nil {
+				return nil, fmt.Errorf("google place is not found by place id: %s", placeId)
+			}
+		case err := <-chErr:
+			return nil, err
+		case <-chDone:
+			break Loop
+		}
+	}
+
+	place := placeEntity.ToPlace(*googlePlace)
+	return &place, nil
 }
 
 // fetchGooglePlace は placeId に紐づく Google Places API の検索結果を取得する
@@ -504,6 +641,10 @@ func (p PlaceRepository) updateOpeningHours(tx *firestore.Transaction, placeId s
 
 func (p PlaceRepository) collectionPlaces() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlaces)
+}
+
+func (p PlaceRepository) docPlace(placeId string) *firestore.DocumentRef {
+	return p.client.Collection(collectionPlaces).Doc(placeId)
 }
 
 func (p PlaceRepository) docGooglePlace(placeId string) *firestore.DocumentRef {
