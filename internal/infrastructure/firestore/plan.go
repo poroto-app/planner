@@ -37,7 +37,7 @@ func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
 
 func (p *PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 	doc := p.doc(plan.Id)
-	if _, err := doc.Set(ctx, entity.ToPlanEntity(*plan)); err != nil {
+	if _, err := doc.Set(ctx, entity.NewPlanEntityFromPlan(*plan)); err != nil {
 		return fmt.Errorf("error while saving plan: %v", err)
 	}
 	return nil

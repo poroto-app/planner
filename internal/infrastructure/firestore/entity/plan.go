@@ -18,7 +18,7 @@ type PlanEntity struct {
 	AuthorId  *string   `firestore:"author_id,omitempty"`
 }
 
-func ToPlanEntity(plan models.Plan) PlanEntity {
+func NewPlanEntityFromPlan(plan models.Plan) PlanEntity {
 	var geohash *string
 	if len(plan.Places) > 0 {
 		value := plan.Places[0].Location.GeoHash()
