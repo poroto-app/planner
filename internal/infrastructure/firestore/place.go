@@ -59,19 +59,12 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		// 事前に保存する画像が存在するかを確認する
-		query := p.collectionPlaces().Where("google_place_id", "==", googlePlaceId).Limit(1)
-		iter := tx.Documents(query)
-		doc, err := iter.Next()
-		if errors.Is(err, iterator.Done) {
-			return fmt.Errorf("place not found: %s", googlePlaceId)
-		}
+		placeEntity, err := p.findByGooglePlaceIdTx(tx, googlePlaceId)
 		if err != nil {
-			return fmt.Errorf("error while iterating documents: %v", err)
+			return fmt.Errorf("error while finding place by google place id: %v", err)
 		}
-
-		var placeEntity entity.PlaceEntity
-		if err := doc.DataTo(&placeEntity); err != nil {
-			return fmt.Errorf("error while converting doc to entity: %v", err)
+		if placeEntity == nil {
+			return fmt.Errorf("place not found by google place id: %s", googlePlaceId)
 		}
 
 		// 画像を保存する
@@ -104,6 +97,25 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 	return &PlaceRepository{
 		client: client,
 	}, nil
+}
+
+func (p PlaceRepository) findByGooglePlaceIdTx(tx *firestore.Transaction, googlePlaceId string) (*entity.PlaceEntity, error) {
+	query := p.collectionPlaces().Where("google_place_id", "==", googlePlaceId).Limit(1)
+	iter := tx.Documents(query)
+	doc, err := iter.Next()
+	if errors.Is(err, iterator.Done) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("error while iterating documents: %v", err)
+	}
+
+	var placeEntity entity.PlaceEntity
+	if err := doc.DataTo(&placeEntity); err != nil {
+		return nil, fmt.Errorf("error while converting doc to entity: %v", err)
+	}
+
+	return &placeEntity, nil
 }
 
 // saveGooglePlaceTx はGoogle Places APIから取得された複数の画像を同時に保存する
