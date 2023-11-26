@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"time"
 
 	"google.golang.org/api/iterator"
@@ -130,8 +131,9 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	}
 
 	//　検索された場所を取得
-	chPlaces := make(chan findPlaceResult, len(planCandidateEntity.PlaceIdsSearched))
-	for _, placeId := range planCandidateEntity.PlaceIdsSearched {
+	placeIdsSearched := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
+	chPlaces := make(chan findPlaceResult, len(placeIdsSearched))
+	for _, placeId := range placeIdsSearched {
 		go func(ch chan findPlaceResult, placeId string) {
 			place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
 			if err != nil {
