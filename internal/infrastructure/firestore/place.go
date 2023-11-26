@@ -3,12 +3,14 @@ package firestore
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
@@ -86,8 +88,6 @@ func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceI
 }
 
 func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error {
-	//TODO implement me
-	panic("implement me")
 }
 
 func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
@@ -137,14 +137,14 @@ func (p PlaceRepository) docPlace(placeId string) *firestore.DocumentRef {
 	return p.client.Collection(collectionPlaces).Doc(placeId)
 }
 
-func (p PlaceRepository) subCollectionGooglePlace(googlePlaceId string) *firestore.CollectionRef {
-	return p.client.Collection(collectionPlaces).Doc(googlePlaceId).Collection(subCollectionGooglePlaces)
+func (p PlaceRepository) docGooglePlace(placeId string) *firestore.DocumentRef {
+	return p.client.Collection(collectionPlaces).Doc(placeId).Collection(subCollectionGooglePlaces).Doc("v1")
 }
 
-func (p PlaceRepository) subCollectionGooglePlaceReview(googlePlaceId string) *firestore.CollectionRef {
-	return p.client.Collection(collectionPlaces).Doc(googlePlaceId).Collection(subCollectionGoogleReviews)
+func (p PlaceRepository) subCollectionGooglePlaceReview(placeId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlaces).Doc(placeId).Collection(subCollectionGoogleReviews)
 }
 
-func (p PlaceRepository) subCollectionGooglePlacePhoto(googlePlaceId string) *firestore.CollectionRef {
-	return p.client.Collection(collectionPlaces).Doc(googlePlaceId).Collection(subCollectionGooglePhotos)
+func (p PlaceRepository) subCollectionGooglePlacePhoto(placeId string) *firestore.CollectionRef {
+	return p.client.Collection(collectionPlaces).Doc(placeId).Collection(subCollectionGooglePhotos)
 }
