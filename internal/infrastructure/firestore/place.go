@@ -88,8 +88,71 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, place mo
 }
 
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error) {
-	//TODO implement me
-	panic("implement me")
+	type findPlaceEntityByGeoHashResult struct {
+		placeEntity *[]entity.PlaceEntity
+		err         error
+	}
+
+	// 各方向に 5km 以内の場所を取得
+	geohashPrecision := 5
+	geohashNeighbors := location.GeoHashOfNeighbors(uint(geohashPrecision))
+	// TODO: 重複がないかを確認する
+	geohashNeighbors = append(geohashNeighbors, location.GeoHash()[:geohashPrecision])
+
+	// 各方向
+	ch := make(chan findPlaceEntityByGeoHashResult, len(geohashNeighbors))
+	for _, geoHash := range geohashNeighbors {
+		go func(ch chan<- findPlaceEntityByGeoHashResult, geoHash string) {
+			query := p.collectionPlaces().Where("geohash", ">=", geoHash).Where("geohash", "<=", geoHash+"\uf8ff")
+			query = query.Limit(50)
+			iter := query.Documents(ctx)
+			snapshots, err := iter.GetAll()
+			if err != nil {
+				ch <- findPlaceEntityByGeoHashResult{
+					placeEntity: nil,
+					err:         fmt.Errorf("error while getting place entities: %v", err),
+				}
+				return
+			}
+
+			var placeEntities []entity.PlaceEntity
+			for _, snapshot := range snapshots {
+				var placeEntity entity.PlaceEntity
+				if err := snapshot.DataTo(&placeEntity); err != nil {
+					ch <- findPlaceEntityByGeoHashResult{
+						placeEntity: nil,
+						err:         fmt.Errorf("error while converting snapshot to place entity: %v", err),
+					}
+					return
+				}
+				placeEntities = append(placeEntities, placeEntity)
+			}
+
+			ch <- findPlaceEntityByGeoHashResult{
+				placeEntity: &placeEntities,
+				err:         nil,
+			}
+		}(ch, geoHash)
+	}
+
+	var placeEntities []entity.PlaceEntity
+	for i := 0; i < len(geohashNeighbors); i++ {
+		result := <-ch
+		if result.err != nil {
+			return nil, result.err
+		}
+		if result.placeEntity != nil {
+			placeEntities = append(placeEntities, *result.placeEntity...)
+		}
+	}
+
+	// TODO: 紐づくデータを取得
+	var places []models.Place
+	for _, placeEntity := range placeEntities {
+		places = append(places, placeEntity.ToPlace())
+	}
+
+	return places, nil
 }
 
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
