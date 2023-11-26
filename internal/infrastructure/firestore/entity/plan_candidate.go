@@ -12,8 +12,8 @@ type PlanCandidateEntity struct {
 	PlanIds          []string  `firestore:"plan_ids"`
 	PlaceIdsSearched []string  `firestore:"place_ids_searched"`
 	ExpiresAt        time.Time `firestore:"expires_at"`
-	CreatedAt        time.Time `firestore:"created_at,serverTimestamp"`
-	UpdatedAt        time.Time `firestore:"updated_at,serverTimestamp"`
+	CreatedAt        time.Time `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt        time.Time `firestore:"updated_at,omitempty,serverTimestamp"`
 }
 
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
