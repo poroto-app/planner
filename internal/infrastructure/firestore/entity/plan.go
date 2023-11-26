@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -40,10 +41,27 @@ func NewPlanEntityFromPlan(plan models.Plan) PlanEntity {
 	}
 }
 
-func FromPlanEntity(entity PlanEntity) models.Plan {
-	return models.Plan{
+func FromPlanEntity(entity PlanEntity, places []models.Place) (*models.Plan, error) {
+	var placesInPlan []models.Place
+	for _, placeId := range entity.PlaceIds {
+		found := false
+		for _, place := range places {
+			if place.Id == placeId {
+				placesInPlan = append(placesInPlan, place)
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return nil, fmt.Errorf("place of id(%s) was not found", placeId)
+		}
+	}
+
+	return &models.Plan{
 		Id:       entity.Id,
 		Name:     entity.Name,
+		Places:   places,
 		AuthorId: entity.AuthorId,
-	}
+	}, nil
 }
