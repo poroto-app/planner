@@ -226,7 +226,7 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 		return nil, fmt.Errorf("error while converting doc to entity: %v", err)
 	}
 
-	googlePlace, err := p.fetchGooglePlace(ctx, googlePlaceID)
+	googlePlace, err := p.fetchGooglePlace(ctx, placeEntity.Id)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching google place: %v", err)
 	}
@@ -503,37 +503,42 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 	chPhotos := make(chan *[]entity.GooglePlacePhotoEntity, 1)
 	chErr := make(chan error)
 
+	defer close(chGooglePlace)
+	defer close(chReviews)
+	defer close(chPhotos)
+	defer close(chErr)
+
 	asyncProcesses := []func(){
 		func() {
 			// Google Placeを取得する
-			defer close(chGooglePlace)
-
-			var googlePlaceEntity entity.GooglePlaceEntity
 			snapshotGooglePlace, err := p.docGooglePlace(placeId).Get(ctx)
 			if err != nil {
 				chErr <- fmt.Errorf("error while getting google place: %v", err)
+				return
 			}
 
+			var googlePlaceEntity entity.GooglePlaceEntity
 			if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); err != nil {
 				chErr <- fmt.Errorf("error while converting snapshot to google place entity: %v", err)
+				return
 			}
 
 			chGooglePlace <- &googlePlaceEntity
 		},
 		func() {
 			// Reviewを取得する
-			defer close(chReviews)
-
-			var reviews []entity.GooglePlaceReviewEntity
 			snapshotsReviews, err := p.subCollectionGooglePlaceReview(placeId).Documents(ctx).GetAll()
 			if err != nil {
 				chErr <- fmt.Errorf("error while getting google place reviews: %v", err)
+				return
 			}
 
+			var reviews []entity.GooglePlaceReviewEntity
 			for _, snapshotReview := range snapshotsReviews {
 				var review entity.GooglePlaceReviewEntity
 				if err := snapshotReview.DataTo(&review); err != nil {
 					chErr <- fmt.Errorf("error while converting snapshot to google place review entity: %v", err)
+					return
 				}
 				reviews = append(reviews, review)
 			}
@@ -542,18 +547,18 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 		},
 		func() {
 			// Photoを取得する
-			defer close(chPhotos)
-
-			var photos []entity.GooglePlacePhotoEntity
 			snapshotsPhotos, err := p.subCollectionGooglePlacePhoto(placeId).Documents(ctx).GetAll()
 			if err != nil {
 				chErr <- fmt.Errorf("error while getting google place photoEntities: %v", err)
+				return
 			}
 
+			var photos []entity.GooglePlacePhotoEntity
 			for _, snapshotPhoto := range snapshotsPhotos {
 				var photo entity.GooglePlacePhotoEntity
 				if err := snapshotPhoto.DataTo(&photo); err != nil {
 					chErr <- fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)
+					return
 				}
 				photos = append(photos, photo)
 			}
