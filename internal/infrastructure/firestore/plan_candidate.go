@@ -159,7 +159,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(ctx context.Context, planCand
 			}
 		}
 
-		var planIds []string
+		var planIds []interface{}
 		for _, plan := range plans {
 			planIds = append(planIds, plan.Id)
 		}
@@ -169,7 +169,7 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(ctx context.Context, planCand
 		if err := tx.Update(docPlanCandidate, []firestore.Update{
 			{
 				Path:  "plan_ids",
-				Value: firestore.ArrayUnion(planIds),
+				Value: firestore.ArrayUnion(planIds...),
 			},
 			{
 				Path:  "updated_at",
