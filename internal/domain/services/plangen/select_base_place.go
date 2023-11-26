@@ -12,11 +12,11 @@ const (
 
 // selectBasePlace は，プランの起点となる場所を選択する
 func (s Service) selectBasePlace(
-	places []models.PlaceInPlanCandidate,
+	places []models.Place,
 	categoryNamesPreferred *[]string,
 	categoryNamesDisliked *[]string,
 	shouldOpenNow bool,
-) []models.PlaceInPlanCandidate {
+) []models.Place {
 	// ユーザーが拒否した場所は取り除く
 	if categoryNamesDisliked != nil {
 		categoriesDisliked := models.GetCategoriesFromSubCategories(*categoryNamesDisliked)
@@ -45,13 +45,13 @@ func (s Service) selectBasePlace(
 
 // selectByReview は，レビューの高い順に場所を選択する
 // categoriesPreferred が指定される場合は、同じカテゴリの場所が含まれないように選択する
-func selectByReview(places []models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+func selectByReview(places []models.Place) []models.Place {
 	// レビューの高い順にソート
 	sort.SliceStable(places, func(i, j int) bool {
 		return places[i].Google.Rating > places[j].Google.Rating
 	})
 
-	var placesSelected []models.PlaceInPlanCandidate
+	var placesSelected []models.Place
 	for _, place := range places {
 		// 既に選択済みの場所は除外
 		if isAlreadyAdded(place, placesSelected) {
@@ -86,19 +86,19 @@ func selectByReview(places []models.PlaceInPlanCandidate) []models.PlaceInPlanCa
 
 // selectByDistanceFromPlaces は，プラン間の内容が重複しないようにするため、既に選択された場所から遠い場所を選択する
 func selectByDistanceFromPlaces(
-	places []models.PlaceInPlanCandidate,
-	placesSelected []models.PlaceInPlanCandidate,
-) []models.PlaceInPlanCandidate {
+	places []models.Place,
+	placesSelected []models.Place,
+) []models.Place {
 	// 既に選択された場所から遠い順にソート
 	sort.SliceStable(places, func(i, j int) bool {
 		sumDistanceI := 0.0
 		for _, placeSelected := range placesSelected {
-			sumDistanceI += placeSelected.Location().DistanceInMeter(places[i].Location())
+			sumDistanceI += placeSelected.Location.DistanceInMeter(places[i].Location)
 		}
 
 		sumDistanceJ := 0.0
 		for _, placeSelected := range placesSelected {
-			sumDistanceJ += placeSelected.Location().DistanceInMeter(places[j].Location())
+			sumDistanceJ += placeSelected.Location.DistanceInMeter(places[j].Location)
 		}
 
 		return sumDistanceI > sumDistanceJ
@@ -116,7 +116,7 @@ func selectByDistanceFromPlaces(
 	return placesSelected
 }
 
-func isAlreadyAdded(place models.PlaceInPlanCandidate, places []models.PlaceInPlanCandidate) bool {
+func isAlreadyAdded(place models.Place, places []models.Place) bool {
 	for _, p := range places {
 		if p.Id == place.Id {
 			return true
@@ -127,13 +127,13 @@ func isAlreadyAdded(place models.PlaceInPlanCandidate, places []models.PlaceInPl
 
 // isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
 func isNearFromPlaces(
-	placeBase models.PlaceInPlanCandidate,
-	placesCompare []models.PlaceInPlanCandidate,
+	placeBase models.Place,
+	placesCompare []models.Place,
 	distance int,
 ) bool {
 	for _, placeCompare := range placesCompare {
-		locationOfPlaceBase := placeBase.Location()
-		locationOfPlaceCompare := placeCompare.Location()
+		locationOfPlaceBase := placeBase.Location
+		locationOfPlaceCompare := placeCompare.Location
 		distanceFromSelectedPlace := locationOfPlaceCompare.DistanceInMeter(locationOfPlaceBase)
 		if int(distanceFromSelectedPlace) < distance {
 			return true

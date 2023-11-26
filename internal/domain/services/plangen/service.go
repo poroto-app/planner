@@ -11,11 +11,11 @@ import (
 )
 
 type Service struct {
-	placesApi                  places.PlacesApi
-	placeService               place.Service
-	planCandidateRepository    repository.PlanCandidateRepository
-	placeRepository            repository.PlaceInPlanCandidateRepository
-	openaiChatCompletionClient openai.ChatCompletionClient
+	placesApi                      places.PlacesApi
+	placeService                   place.Service
+	planCandidateRepository        repository.PlanCandidateRepository
+	placeInPlanCandidateRepository repository.PlaceInPlanCandidateRepository
+	openaiChatCompletionClient     openai.ChatCompletionClient
 }
 
 func NewService(ctx context.Context) (*Service, error) {
@@ -45,10 +45,10 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 
 	return &Service{
-		placesApi:                  *placesApi,
-		placeService:               *placeService,
-		planCandidateRepository:    planCandidateRepository,
-		placeRepository:            *placeRepository,
-		openaiChatCompletionClient: *openaiChatCompletionClient,
+		placesApi:                      *placesApi,
+		placeService:                   *placeService,
+		planCandidateRepository:        planCandidateRepository,
+		placeInPlanCandidateRepository: *placeRepository,
+		openaiChatCompletionClient:     *openaiChatCompletionClient,
 	}, nil
 }
