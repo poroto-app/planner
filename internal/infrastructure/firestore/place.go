@@ -81,6 +81,37 @@ func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceI
 }
 
 func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// 事前に要素が存在するかを確認する
+		placeEntity, err := p.findByGooglePlaceIdTx(tx, googlePlaceId)
+		if err != nil {
+			return fmt.Errorf("error while finding place by google place id: %v", err)
+		}
+		if placeEntity == nil {
+			return fmt.Errorf("place not found by google place id: %s", googlePlaceId)
+		}
+
+		// PhotoReferenceを保存する
+		if err := p.saveGooglePhotoReferencesTx(tx, placeEntity.Id, detail.PhotoReferences); err != nil {
+			return fmt.Errorf("error while saving google place photos: %v", err)
+		}
+
+		// Reviewを保存する
+		if err := p.saveGooglePlaceReviews(tx, placeEntity.Id, detail.Reviews); err != nil {
+			return fmt.Errorf("error while saving google place reviews: %v", err)
+		}
+
+		// 開店時間を更新する
+		if err := p.updateOpeningHours(tx, placeEntity.Id, detail); err != nil {
+			return fmt.Errorf("error while updating opening hours: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while saving google place detail: %v", err)
+	}
+
+	return nil
 }
 
 func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
@@ -136,6 +167,21 @@ func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId s
 		if photo := <-ch; photo == nil {
 			return fmt.Errorf("error while saving google place photo: %v", photos[i])
 		}
+	}
+
+	return nil
+}
+
+func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, placeId string, photoReferences []models.GooglePlacePhotoReference) error {
+	ch := make(chan *models.GooglePlacePhotoReference, len(photoReferences))
+	for _, photoReference := range photoReferences {
+		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoReference); err != nil {
+				ch <- nil
+			} else {
+				ch <- &photoReference
+			}
+		}(tx, ch, placeId, photoReference)
 	}
 
 	return nil
