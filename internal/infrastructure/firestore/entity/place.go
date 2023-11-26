@@ -5,18 +5,20 @@ import (
 )
 
 type PlaceEntity struct {
-	Id        string  `firestore:"id"`
-	Name      string  `firestore:"name"`
-	Latitude  float64 `firestore:"latitude"`
-	Longitude float64 `firestore:"longitude"`
+	Id            string  `firestore:"id"`
+	Name          string  `firestore:"name"`
+	GooglePlaceId string  `firestore:"google_place_id"`
+	Latitude      float64 `firestore:"latitude"`
+	Longitude     float64 `firestore:"longitude"`
 }
 
 func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	return PlaceEntity{
-		Id:        place.Id,
-		Name:      place.Name,
-		Latitude:  place.Location.Latitude,
-		Longitude: place.Location.Longitude,
+		Id:            place.Id,
+		Name:          place.Name,
+		GooglePlaceId: place.Google.PlaceId,
+		Latitude:      place.Location.Latitude,
+		Longitude:     place.Location.Longitude,
 	}
 }
 
