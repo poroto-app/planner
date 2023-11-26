@@ -3,9 +3,8 @@ package plangen
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"googlemaps.github.io/maps"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"

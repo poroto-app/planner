@@ -43,14 +43,22 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		Longitude: input.Longitude,
 	}
 
-	session := uuid.New().String()
+	// プラン候補の作成
+	var planCandidateId string
 	if input.Session != nil {
-		session = *input.Session
+		planCandidateId = *input.Session
+	} else {
+		planCandidateId = uuid.New().String()
+		if err := planCandidateService.CreatePlanCandidate(ctx, planCandidateId); err != nil {
+			log.Printf("error while creating plan candidate: %v", err)
+			return nil, fmt.Errorf("internal server error")
+		}
 	}
 
+	// プランの作成
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
-		session,
+		planCandidateId,
 		locationStart,
 		input.GooglePlaceID,
 		&input.CategoriesPreferred,
@@ -59,45 +67,25 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		createBasedOnCurrentLocation,
 	)
 	if err != nil {
-		log.Println(err)
+		log.Printf("error while creating plan by location: %v", err)
+		return nil, fmt.Errorf("internal server error")
 	}
 
-	var categoriesPreferred, categoriesDisliked *[]models.LocationCategory
-	if input.CategoriesPreferred != nil {
-		var categories []models.LocationCategory
-		for _, categoryName := range input.CategoriesPreferred {
-			category := models.GetCategoryOfName(categoryName)
-			if category != nil {
-				categories = append(categories, *category)
-			}
-		}
-		categoriesPreferred = &categories
-	}
-
-	if input.CategoriesDisliked != nil {
-		var categories []models.LocationCategory
-		for _, categoryName := range input.CategoriesDisliked {
-			category := models.GetCategoryOfName(categoryName)
-			if category != nil {
-				categories = append(categories, *category)
-			}
-		}
-		categoriesDisliked = &categories
-	}
-
-	// TODO: ServiceではPlanではなくPlanCandidateを生成するようにし、保存まで行う
-	if err := planCandidateService.SavePlanCandidate(ctx, session, *plans, models.PlanCandidateMetaData{
-		CategoriesPreferred:           categoriesPreferred,
-		CategoriesRejected:            categoriesDisliked,
-		FreeTime:                      input.FreeTime,
-		CreatedBasedOnCurrentLocation: createBasedOnCurrentLocation,
-		LocationStart:                 &locationStart,
+	// 作成されたプランの保存
+	if err := planCandidateService.SavePlans(ctx, plancandidate.SavePlansInput{
+		PlanCandidateId:              planCandidateId,
+		Plans:                        *plans,
+		LocationStart:                &locationStart,
+		CategoryNamesPreferred:       &input.CategoriesPreferred,
+		CategoryNamesRejected:        &input.CategoriesDisliked,
+		FreeTime:                     input.FreeTime,
+		CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
 	}); err != nil {
-		log.Println("error while caching plan candidate: ", err)
+		log.Printf("error while saving plans of plan candidate(%s): %v", planCandidateId, err)
 	}
 
 	return &model.CreatePlanByLocationOutput{
-		Session: session,
+		Session: planCandidateId,
 		Plans:   factory.PlansFromDomainModel(plans, &locationStart),
 	}, nil
 }

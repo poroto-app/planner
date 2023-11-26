@@ -3,10 +3,9 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"sort"
-
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"sort"
 )
 
 const (
@@ -34,6 +33,12 @@ func (s Service) CategoriesNearLocation(
 		params.MaxPlacesPerCategory = defaultMaxPlacesPerCategory
 	}
 
+	// プラン候補を作成
+	if err := s.CreatePlanCandidate(ctx, params.CreatePlanSessionId); err != nil {
+		return nil, fmt.Errorf("error while creating plan candidate: %v\n", err)
+	}
+
+	// 付近の場所を検索
 	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, params.Location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
