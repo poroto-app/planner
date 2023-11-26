@@ -56,11 +56,9 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 
 	for _, c := range cases {
 		planCandidateRepository := mock.NewPlanCandidateRepository(c.planCandidates)
-		planSearchResultRepository := mock.NewPlaceInPlanCandidateRepository(c.places)
 
 		service := Service{
-			planCandidateRepository:        planCandidateRepository,
-			placeInPlanCandidateRepository: planSearchResultRepository,
+			planCandidateRepository: planCandidateRepository,
 		}
 
 		err := service.DeleteExpiredPlanCandidates(context.Background(), c.expiresAt)
