@@ -21,7 +21,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 	}
 
 	log.Printf("start searching places: %v\n", planCandidateId)
-	places, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	places, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +40,9 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 	}
 
 	var placeToReplace *models.Place
-	for _, place := range *places {
+	for _, place := range places {
 		if place.Id == placeIdToReplace {
-			p := place.ToPlace()
-			placeToReplace = &p
+			placeToReplace = &place
 			break
 		}
 	}
