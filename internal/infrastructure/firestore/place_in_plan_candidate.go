@@ -22,6 +22,7 @@ const (
 // PlaceInPlanCandidateRepository models.PlaceInPlanCandidate を管理するリポジトリ
 // 実際には models.PlaceInPlanCandidate#Google の内容を `google_place_search_result` コレクションの中に 保存し、
 // `places` コレクションの中で検索結果との対応関係を取る
+// TODO: 削除
 type PlaceInPlanCandidateRepository struct {
 	client                            *firestore.Client
 	googlePlaceSearchResultRepository *GooglePlaceSearchResultRepository
