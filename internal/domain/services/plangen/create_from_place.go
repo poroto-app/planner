@@ -62,7 +62,7 @@ func (s Service) CreatePlanFromPlace(
 
 	plan := plansCreated[0]
 
-	if _, err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, &plan); err != nil {
+	if err = s.planCandidateRepository.AddPlan(ctx, createPlanSessionId, plan); err != nil {
 		return nil, err
 	}
 

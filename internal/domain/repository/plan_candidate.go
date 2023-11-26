@@ -14,7 +14,7 @@ type PlanCandidateRepository interface {
 
 	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
 
-	AddPlan(ctx context.Context, planCandidateId string, plan *models.Plan) (*models.PlanCandidate, error)
+	AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error
 
 	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error
 

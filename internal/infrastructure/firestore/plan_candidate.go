@@ -161,17 +161,19 @@ func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context
 	return &planCandidateIds, nil
 }
 
-// TODO: errorだけを返すようにする
-func (p *PlanCandidateFirestoreRepository) AddPlan(
-	ctx context.Context,
-	planCandidateId string,
-	plan *models.Plan,
-) (*models.PlanCandidate, error) {
+func (p *PlanCandidateFirestoreRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		// プランを保存
-		docPlan := p.subCollectionPlans(planCandidateId).Doc(plan.Id)
-		if err := tx.Set(docPlan, entity.ToPlanInCandidateEntity(*plan)); err != nil {
-			return fmt.Errorf("error while saving plan[%s] in plan candidate[%s]: %v", plan.Id, planCandidateId, err)
+		for _, plan := range plans {
+			docPlan := p.subCollectionPlans(planCandidateId).Doc(plan.Id)
+			if err := tx.Set(docPlan, entity.ToPlanInCandidateEntity(plan)); err != nil {
+				return fmt.Errorf("error while saving plan[%s] in plan candidate[%s]: %v", plan.Id, planCandidateId, err)
+			}
+		}
+
+		var planIds []string
+		for _, plan := range plans {
+			planIds = append(planIds, plan.Id)
 		}
 
 		// 候補の最後に追加
@@ -179,7 +181,11 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 		if err := tx.Update(docPlanCandidate, []firestore.Update{
 			{
 				Path:  "plan_ids",
-				Value: firestore.ArrayUnion(plan.Id),
+				Value: firestore.ArrayUnion(planIds),
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
 			},
 		}); err != nil {
 			return err
@@ -188,14 +194,10 @@ func (p *PlanCandidateFirestoreRepository) AddPlan(
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error while adding plan to plan candidate: %v", err)
+		return fmt.Errorf("error while adding plan to plan candidate: %v", err)
 	}
 
-	planCandidateUpdated, err := p.Find(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
-	}
-	return planCandidateUpdated, nil
+	return nil
 }
 
 func (p *PlanCandidateFirestoreRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
