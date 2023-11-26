@@ -630,10 +630,11 @@ func (p PlaceRepository) findByGooglePlaceIdTx(tx *firestore.Transaction, google
 // 一枚でも保存できなかった場合はエラーを返す
 func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	ch := make(chan *models.GooglePlacePhoto, len(photos))
+	chErr := make(chan error)
 	for _, photo := range photos {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhoto, googlePlaceId string, photo models.GooglePlacePhoto) {
 			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photo); err != nil {
-				ch <- nil
+				chErr <- fmt.Errorf("error while saving google place photo: %v", err)
 			} else {
 				ch <- &photo
 			}
@@ -651,14 +652,26 @@ func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId s
 
 func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, placeId string, photoReferences []models.GooglePlacePhotoReference) error {
 	ch := make(chan *models.GooglePlacePhotoReference, len(photoReferences))
+	chErr := make(chan error)
 	for _, photoReference := range photoReferences {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
 			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoReference); err != nil {
-				ch <- nil
+				chErr <- fmt.Errorf("error while saving google place photo reference: %v", err)
 			} else {
 				ch <- &photoReference
 			}
 		}(tx, ch, placeId, photoReference)
+	}
+
+	for range photoReferences {
+		select {
+		case photoReference := <-ch:
+			if photoReference == nil {
+				return fmt.Errorf("error while saving google place photo reference: %v", photoReference)
+			}
+		case err := <-chErr:
+			return err
+		}
 	}
 
 	return nil
@@ -666,23 +679,29 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 
 func (p PlaceRepository) saveGooglePlaceReviews(tx *firestore.Transaction, placeId string, reviews []models.GooglePlaceReview) error {
 	ch := make(chan *models.GooglePlaceReview, len(reviews))
+	chErr := make(chan error)
 	for _, review := range reviews {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlaceReview, placeId string, review models.GooglePlaceReview) {
 			// 重複したレビューが保存されないように ID を MD5(Time+Text+Language) で生成する
 			// AuthorName 等は頻繁に変更される可能性があるため、IDには含めない
 			hashContent := fmt.Sprintf("%d-%s-%s", review.Time, utils.StrEmptyIfNil(review.Text), utils.StrEmptyIfNil(review.Language))
 			id := fmt.Sprintf("%x", md5.Sum([]byte(hashContent)))
-			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), review); err != nil {
-				ch <- nil
+			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), entity.GooglePlaceReviewEntityFromGooglePlaceReview(review)); err != nil {
+				chErr <- fmt.Errorf("error while saving google place review: %v", err)
 			} else {
 				ch <- &review
 			}
 		}(tx, ch, placeId, review)
 	}
 
-	for i := 0; i < len(reviews); i++ {
-		if review := <-ch; review == nil {
-			return fmt.Errorf("error while saving google place review: %v", reviews[i])
+	for range reviews {
+		select {
+		case review := <-ch:
+			if review == nil {
+				return fmt.Errorf("error while saving google place review: %v", review)
+			}
+		case err := <-chErr:
+			return err
 		}
 	}
 
