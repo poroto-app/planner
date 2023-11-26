@@ -12,6 +12,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
+	"sync"
 )
 
 const (
@@ -273,47 +274,112 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 // fetchGooglePlace は placeId に紐づく Google Places API の検索結果を取得する
 func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (*models.GooglePlace, error) {
-	var googlePlaceEntity entity.GooglePlaceEntity
-	snapshotGooglePlace, err := p.docGooglePlace(placeId).Get(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error while getting google place: %v", err)
+	chGooglePlace := make(chan *entity.GooglePlaceEntity, 1)
+	chReviews := make(chan *[]entity.GooglePlaceReviewEntity, 1)
+	chPhotos := make(chan *[]entity.GooglePlacePhotoEntity, 1)
+	chErr := make(chan error)
+
+	asyncProcesses := []func(){
+		func() {
+			// Google Placeを取得する
+			defer close(chGooglePlace)
+
+			var googlePlaceEntity entity.GooglePlaceEntity
+			snapshotGooglePlace, err := p.docGooglePlace(placeId).Get(ctx)
+			if err != nil {
+				chErr <- fmt.Errorf("error while getting google place: %v", err)
+			}
+
+			if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); err != nil {
+				chErr <- fmt.Errorf("error while converting snapshot to google place entity: %v", err)
+			}
+
+			chGooglePlace <- &googlePlaceEntity
+		},
+		func() {
+			// Reviewを取得する
+			defer close(chReviews)
+
+			var reviews []entity.GooglePlaceReviewEntity
+			snapshotsReviews, err := p.subCollectionGooglePlaceReview(placeId).Documents(ctx).GetAll()
+			if err != nil {
+				chErr <- fmt.Errorf("error while getting google place reviews: %v", err)
+			}
+
+			for _, snapshotReview := range snapshotsReviews {
+				var review entity.GooglePlaceReviewEntity
+				if err := snapshotReview.DataTo(&review); err != nil {
+					chErr <- fmt.Errorf("error while converting snapshot to google place review entity: %v", err)
+				}
+				reviews = append(reviews, review)
+			}
+
+			chReviews <- &reviews
+		},
+		func() {
+			// Photoを取得する
+			defer close(chPhotos)
+
+			var photos []entity.GooglePlacePhotoEntity
+			snapshotsPhotos, err := p.subCollectionGooglePlacePhoto(placeId).Documents(ctx).GetAll()
+			if err != nil {
+				chErr <- fmt.Errorf("error while getting google place photoEntities: %v", err)
+			}
+
+			for _, snapshotPhoto := range snapshotsPhotos {
+				var photo entity.GooglePlacePhotoEntity
+				if err := snapshotPhoto.DataTo(&photo); err != nil {
+					chErr <- fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)
+				}
+				photos = append(photos, photo)
+			}
+
+			chPhotos <- &photos
+		},
 	}
 
-	if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to google place entity: %v", err)
+	chDone := make(chan bool)
+	var wg sync.WaitGroup
+	for _, asyncProcess := range asyncProcesses {
+		wg.Add(1)
+		go func(asyncProcess func()) {
+			defer wg.Done()
+			asyncProcess()
+		}(asyncProcess)
 	}
 
-	// Reviewを取得する
-	var reviews []entity.GooglePlaceReviewEntity
-	snapshotsReviews, err := p.subCollectionGooglePlaceReview(placeId).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("error while getting google place reviews: %v", err)
-	}
+	go func() {
+		wg.Wait()
+		close(chDone)
+	}()
 
-	for _, snapshotReview := range snapshotsReviews {
-		var review entity.GooglePlaceReviewEntity
-		if err := snapshotReview.DataTo(&review); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to google place review entity: %v", err)
+	var googlePlaceEntity *entity.GooglePlaceEntity
+	var reviewEntities *[]entity.GooglePlaceReviewEntity
+	var photoEntities *[]entity.GooglePlacePhotoEntity
+Loop:
+	for {
+		select {
+		case googlePlaceEntity = <-chGooglePlace:
+			if googlePlaceEntity == nil {
+				return nil, fmt.Errorf("google place is nil")
+			}
+		case reviewEntities = <-chReviews:
+			if reviewEntities == nil {
+				return nil, fmt.Errorf("google place reviews is nil")
+			}
+		case photoEntities = <-chPhotos:
+			if photoEntities == nil {
+				return nil, fmt.Errorf("google place photos is nil")
+			}
+		case err := <-chErr:
+			return nil, err
+		case <-chDone:
+			break Loop
 		}
-		reviews = append(reviews, review)
 	}
 
-	// Photoを取得する
-	var photos []entity.GooglePlacePhotoEntity
-	snapshotsPhotos, err := p.subCollectionGooglePlacePhoto(placeId).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("error while getting google place photos: %v", err)
-	}
+	googlePlace := googlePlaceEntity.ToGooglePlace(*photoEntities, *reviewEntities)
 
-	for _, snapshotPhoto := range snapshotsPhotos {
-		var photo entity.GooglePlacePhotoEntity
-		if err := snapshotPhoto.DataTo(&photo); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)
-		}
-		photos = append(photos, photo)
-	}
-
-	googlePlace := googlePlaceEntity.ToGooglePlace(photos, reviews)
 	return &googlePlace, nil
 }
 
