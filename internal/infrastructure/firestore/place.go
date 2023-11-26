@@ -10,14 +10,12 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 	"sync"
-	"time"
 )
 
 const (
@@ -329,48 +327,35 @@ func (p PlaceRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, 
 		// 事前に要素が存在するかを確認する
 		docPlanCandidate := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId)
 		snapshotPlanCandidate, err := tx.Get(docPlanCandidate)
+		if status.Code(err) == codes.NotFound {
+			return fmt.Errorf("plan candidate not found by id: %s", planCandidateId)
+		}
 		if err != nil {
-			if status.Code(err) != codes.NotFound {
-				return fmt.Errorf("error while getting plan candidate: %v", err)
-			}
-
-			log.Printf("plan candidate not found by id: %s", planCandidateId)
+			return fmt.Errorf("error while getting plan candidate: %v", err)
 		}
 
-		if snapshotPlanCandidate.Exists() {
-			var planCandidateEntity entity.PlanCandidateEntity
-			if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
-				return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-			}
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
 
-			// 重複した場所が取得されないようにする
-			placeIdsSearched := planCandidateEntity.PlaceIdsSearched
-			placeIdsSearched = append(placeIdsSearched, placeIds...)
-			placeIdsSearched = array.StrArrayToSet(placeIdsSearched)
+		// 重複した場所が取得されないようにする
+		placeIdsSearched := planCandidateEntity.PlaceIdsSearched
+		placeIdsSearched = append(placeIdsSearched, placeIds...)
+		placeIdsSearched = array.StrArrayToSet(placeIdsSearched)
 
-			// 更新する
-			if err := tx.Update(docPlanCandidate, []firestore.Update{
-				{
-					Path:  "place_ids_searched",
-					Value: placeIdsSearched,
-				},
-				{
-					Path:  "updated_at",
-					Value: firestore.ServerTimestamp,
-				},
-			}); err != nil {
-				return fmt.Errorf("error while updating plan candidate: %v", err)
-			}
-		} else {
-			// 新規に作成する
-			planCandidateEntity := entity.PlanCandidateEntity{
-				Id:               planCandidateId,
-				PlaceIdsSearched: array.StrArrayToSet(placeIds),
-				UpdatedAt:        time.Now(),
-			}
-			if err := tx.Set(docPlanCandidate, planCandidateEntity); err != nil {
-				return fmt.Errorf("error while saving plan candidate: %v", err)
-			}
+		// 更新する
+		if err := tx.Update(docPlanCandidate, []firestore.Update{
+			{
+				Path:  "place_ids_searched",
+				Value: placeIdsSearched,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating plan candidate: %v", err)
 		}
 
 		return nil
