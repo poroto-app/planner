@@ -633,7 +633,8 @@ func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId s
 	chErr := make(chan error)
 	for _, photo := range photos {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhoto, googlePlaceId string, photo models.GooglePlacePhoto) {
-			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photo); err != nil {
+			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo)
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photoEntity); err != nil {
 				chErr <- fmt.Errorf("error while saving google place photo: %v", err)
 			} else {
 				ch <- &photo
@@ -655,7 +656,8 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 	chErr := make(chan error)
 	for _, photoReference := range photoReferences {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
-			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoReference); err != nil {
+			photoEntity := entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference)
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoEntity); err != nil {
 				chErr <- fmt.Errorf("error while saving google place photo reference: %v", err)
 			} else {
 				ch <- &photoReference
@@ -686,7 +688,9 @@ func (p PlaceRepository) saveGooglePlaceReviews(tx *firestore.Transaction, place
 			// AuthorName 等は頻繁に変更される可能性があるため、IDには含めない
 			hashContent := fmt.Sprintf("%d-%s-%s", review.Time, utils.StrEmptyIfNil(review.Text), utils.StrEmptyIfNil(review.Language))
 			id := fmt.Sprintf("%x", md5.Sum([]byte(hashContent)))
-			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), entity.GooglePlaceReviewEntityFromGooglePlaceReview(review)); err != nil {
+
+			reviewEntity := entity.GooglePlaceReviewEntityFromGooglePlaceReview(review)
+			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), reviewEntity); err != nil {
 				chErr <- fmt.Errorf("error while saving google place review: %v", err)
 			} else {
 				ch <- &review
