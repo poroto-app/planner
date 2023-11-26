@@ -40,6 +40,9 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 			plan, err := FromPlanInCandidateEntity(planId, place.Name, places, place.PlaceIdsOrdered)
 			if err != nil {
 				log.Printf("error while converting entity.PlanCandidateEntity to models.PlanCandidate: %v", err)
+
+				// 正しく変換できない場合は、そのPlanを無視する
+				continue
 			}
 
 			plans = append(plans, *plan)
