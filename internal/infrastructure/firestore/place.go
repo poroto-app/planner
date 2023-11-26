@@ -506,10 +506,6 @@ func (p PlaceRepository) collectionPlaces() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlaces)
 }
 
-func (p PlaceRepository) docPlace(placeId string) *firestore.DocumentRef {
-	return p.client.Collection(collectionPlaces).Doc(placeId)
-}
-
 func (p PlaceRepository) docGooglePlace(placeId string) *firestore.DocumentRef {
 	return p.client.Collection(collectionPlaces).Doc(placeId).Collection(subCollectionGooglePlaces).Doc("v1")
 }
