@@ -41,7 +41,7 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 	}, nil
 }
 
-func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, places []models.Place) error {
+func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, place models.Place) error {
 	//TODO implement me
 	panic("implement me")
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type PlaceRepository interface {
-	SavePlacesFromGooglePlaces(ctx context.Context, places []models.Place) error
+	SavePlacesFromGooglePlace(ctx context.Context, place models.Place) error
 
 	FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error)
 
