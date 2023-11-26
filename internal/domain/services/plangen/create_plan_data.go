@@ -82,13 +82,6 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	return plans
 }
 
-type placeDetail struct {
-	PlaceId       string
-	GooglePlaceId string
-	photos        *[]models.GooglePlacePhoto
-	PlaceDetail   *models.GooglePlaceDetail
-}
-
 // fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
 func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]models.Place {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
