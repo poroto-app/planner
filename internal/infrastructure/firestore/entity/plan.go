@@ -62,7 +62,7 @@ func (p PlanEntity) ToPlan(places []models.Place) (*models.Plan, error) {
 	return &models.Plan{
 		Id:       p.Id,
 		Name:     p.Name,
-		Places:   places,
+		Places:   placesInPlan,
 		AuthorId: p.AuthorId,
 	}, nil
 }
