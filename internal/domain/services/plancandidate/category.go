@@ -41,6 +41,9 @@ func (s Service) CategoriesNearLocation(
 
 	// 検索された場所を保存
 	places, err := s.placeService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving searched places: %v\n", err)
+	}
 
 	placesFiltered := places
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
