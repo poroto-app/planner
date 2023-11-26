@@ -129,6 +129,31 @@ func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId s
 	return nil
 }
 
+func (p PlaceRepository) saveGooglePlaceReviews(tx *firestore.Transaction, placeId string, reviews []models.GooglePlaceReview) error {
+	ch := make(chan *models.GooglePlaceReview, len(reviews))
+	for _, review := range reviews {
+		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlaceReview, placeId string, review models.GooglePlaceReview) {
+			// 重複したレビューが保存されないように ID を MD5(Time+Text+Language) で生成する
+			// AuthorName 等は頻繁に変更される可能性があるため、IDには含めない
+			hashContent := fmt.Sprintf("%d-%s-%s", review.Time, utils.StrEmptyIfNil(review.Text), utils.StrEmptyIfNil(review.Language))
+			id := fmt.Sprintf("%x", md5.Sum([]byte(hashContent)))
+			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), review); err != nil {
+				ch <- nil
+			} else {
+				ch <- &review
+			}
+		}(tx, ch, placeId, review)
+	}
+
+	for i := 0; i < len(reviews); i++ {
+		if review := <-ch; review == nil {
+			return fmt.Errorf("error while saving google place review: %v", reviews[i])
+		}
+	}
+
+	return nil
+}
+
 func (p PlaceRepository) collectionPlaces() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlaces)
 }
