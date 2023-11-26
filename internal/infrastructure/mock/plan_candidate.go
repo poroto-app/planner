@@ -17,7 +17,7 @@ func NewPlanCandidateRepository(data map[string]models.PlanCandidate) *PlanRepos
 	}
 }
 
-func (p PlanRepository) Save(cxt context.Context, planCandidate *models.PlanCandidate) error {
+func (p PlanRepository) Create(ctx context.Context, planCandidateId string, expiresAt time.Time) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -38,7 +38,7 @@ func (p PlanRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Ti
 	return &values, nil
 }
 
-func (p PlanRepository) AddPlan(ctx context.Context, planCandidateId string, plan *models.Plan) (*models.PlanCandidate, error) {
+func (p PlanRepository) AddPlan(ctx context.Context, planCandidateId string, plan ...models.Plan) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -54,6 +54,11 @@ func (p PlanRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId
 }
 
 func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p PlanRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {
 	//TODO implement me
 	panic("implement me")
 }

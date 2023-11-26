@@ -8,12 +8,16 @@ import (
 )
 
 type PlanCandidateRepository interface {
-	Save(cxt context.Context, planCandidate *models.PlanCandidate) error
+	// Create プラン候補を作成する
+	// この時点ではプランは保存されない
+	Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error
 
 	Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error)
 
 	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
 
+	// AddPlan プラン候補にプランを追加する
+	// 事前に models.PlanCandidate が保存されている必要がある
 	AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error
 
 	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error
@@ -21,6 +25,8 @@ type PlanCandidateRepository interface {
 	RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error
 
 	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error)
+
+	UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error
 
 	ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error
 

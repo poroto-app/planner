@@ -51,22 +51,17 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 	}, nil
 }
 
-func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandidate *models.PlanCandidate) error {
+func (p *PlanCandidateFirestoreRepository) Create(ctx context.Context, planCandidateId string, expiresAt time.Time) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		doc := p.doc(planCandidate.Id)
-		if err := tx.Set(doc, entity.ToPlanCandidateEntity(*planCandidate)); err != nil {
+		planCandidateEntity := entity.PlanCandidateEntity{
+			Id:        planCandidateId,
+			ExpiresAt: expiresAt,
+		}
+		if err := tx.Set(p.doc(planCandidateId), planCandidateEntity, firestore.Merge([]string{
+			"id",
+			"expires_at",
+		})); err != nil {
 			return fmt.Errorf("error while saving plan candidate: %v", err)
-		}
-
-		docMetaData := p.docMetaDataV1(planCandidate.Id)
-		if err := tx.Set(docMetaData, entity.ToPlanCandidateMetaDataV1Entity(planCandidate.MetaData)); err != nil {
-			return fmt.Errorf("error while saving plan candidate meta data: %v", err)
-		}
-
-		for _, plan := range planCandidate.Plans {
-			if err := tx.Set(p.subCollectionPlans(planCandidate.Id).Doc(plan.Id), entity.ToPlanInCandidateEntity(plan)); err != nil {
-				return fmt.Errorf("error while saving plan in plan candidate: %v", err)
-			}
 		}
 
 		return nil
@@ -78,12 +73,8 @@ func (p *PlanCandidateFirestoreRepository) Save(ctx context.Context, planCandida
 }
 
 func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
-	type findPlaceResult struct {
-		place *models.Place
-		err   error
-	}
-
 	doc := p.doc(planCandidateId)
+
 	snapshot, err := doc.Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
@@ -325,6 +316,21 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 	}
 
 	return plan, nil
+}
+
+func (p *PlanCandidateFirestoreRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		doc := p.docMetaDataV1(planCandidateId)
+		if err := tx.Set(doc, entity.ToPlanCandidateMetaDataV1Entity(meta)); err != nil {
+			return fmt.Errorf("error while saving plan candidate meta data: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while saving plan candidate meta data: %v", err)
+	}
+
+	return nil
 }
 
 func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, planCandidateId, planId, placeIdToBeReplaced string, placeToReplace models.Place) error {
