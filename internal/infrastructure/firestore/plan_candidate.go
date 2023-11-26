@@ -124,7 +124,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	for _, snapshotPlan := range snapshotPlans {
 		var plan entity.PlanInCandidateEntity
 		if err = snapshotPlan.DataTo(&plan); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to placeId entity: %v", err)
+			return nil, fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
 		}
 		plans = append(plans, plan)
 	}
