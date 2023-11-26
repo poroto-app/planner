@@ -53,6 +53,7 @@ func (p PlanEntity) ToPlan(places []models.Place) (*models.Plan, error) {
 			}
 		}
 
+		// プランに含まれる場所が見つからなかった場合はエラー
 		if !found {
 			return nil, fmt.Errorf("place of id(%s) was not found", placeId)
 		}
