@@ -1,14 +1,13 @@
 package firestore
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"os"
-
-	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -18,7 +17,8 @@ const (
 )
 
 type PlanRepository struct {
-	client *firestore.Client
+	client          *firestore.Client
+	placeRepository *PlaceRepository
 }
 
 func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
@@ -32,7 +32,15 @@ func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
 
-	return &PlanRepository{client: client}, nil
+	placeRepository, err := NewPlaceRepository(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
+	}
+
+	return &PlanRepository{
+		client:          client,
+		placeRepository: placeRepository,
+	}, nil
 }
 
 func (p *PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
