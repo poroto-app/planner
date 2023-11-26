@@ -28,6 +28,18 @@ func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	}
 }
 
+func NewPlaceEntityFromGooglePlace(placeId string, googlePlace models.GooglePlace) PlaceEntity {
+	return PlaceEntity{
+		Id:            placeId,
+		Name:          googlePlace.Name,
+		GooglePlaceId: googlePlace.PlaceId,
+		Latitude:      googlePlace.Location.Latitude,
+		Longitude:     googlePlace.Location.Longitude,
+		GeoHash:       googlePlace.Location.GeoHash(),
+		UpdatedAt:     time.Now(),
+	}
+}
+
 func (p PlaceEntity) ToPlace(googlePlace models.GooglePlace) models.Place {
 	return models.Place{
 		Id:     p.Id,
