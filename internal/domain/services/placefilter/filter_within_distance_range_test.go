@@ -1,7 +1,7 @@
 package placefilter
 
 import (
-	"reflect"
+	"github.com/google/go-cmp/cmp"
 	"testing"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -20,21 +20,17 @@ func TestFilterWithinDistanceRange(t *testing.T) {
 			name: "should filter places by distance range",
 			placesToFilter: []models.Place{
 				{
-					Google: models.GooglePlace{
-						Name: "Tokyo Sky Tree",
-						Location: models.GeoLocation{
-							Latitude:  35.710063,
-							Longitude: 139.8107,
-						},
+					Name: "Tokyo Sky Tree",
+					Location: models.GeoLocation{
+						Latitude:  35.710063,
+						Longitude: 139.8107,
 					},
 				},
 				{
-					Google: models.GooglePlace{
-						Name: "Tokyo Tower",
-						Location: models.GeoLocation{
-							Latitude:  35.658581,
-							Longitude: 139.745433,
-						},
+					Name: "Tokyo Tower",
+					Location: models.GeoLocation{
+						Latitude:  35.658581,
+						Longitude: 139.745433,
 					},
 				},
 			},
@@ -47,12 +43,10 @@ func TestFilterWithinDistanceRange(t *testing.T) {
 			endInMeter:   500,
 			expected: []models.Place{
 				{
-					Google: models.GooglePlace{
-						Name: "Tokyo Sky Tree",
-						Location: models.GeoLocation{
-							Latitude:  35.710063,
-							Longitude: 139.8107,
-						},
+					Name: "Tokyo Sky Tree",
+					Location: models.GeoLocation{
+						Latitude:  35.710063,
+						Longitude: 139.8107,
 					},
 				},
 			},
@@ -62,8 +56,8 @@ func TestFilterWithinDistanceRange(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			actual := FilterWithinDistanceRange(c.placesToFilter, c.currentLocation, c.startInMeter, c.endInMeter)
-			if !reflect.DeepEqual(c.expected, actual) {
-				t.Errorf("expected: %v\nactual: %v", c.expected, actual)
+			if diff := cmp.Diff(actual, c.expected); diff != "" {
+				t.Errorf("FilterWithinDistanceRange() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

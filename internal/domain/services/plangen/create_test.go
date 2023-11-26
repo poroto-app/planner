@@ -84,58 +84,46 @@ func TestSortPlacesByDistanceFrom(t *testing.T) {
 			places: []models.Place{
 				{
 					Id: "1",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  2,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  2,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "2",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  3,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  3,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "3",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  1,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  1,
+						Longitude: 0,
 					},
 				},
 			},
 			expected: []models.Place{
 				{
 					Id: "3",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  1,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  1,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "1",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  2,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  2,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "2",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  3,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  3,
+						Longitude: 0,
 					},
 				},
 			},
