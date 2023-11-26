@@ -30,7 +30,7 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
 func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する
-	savedPlace, err := s.placeInPlanCandidateRepository.FindByGooglePlaceId(ctx, planCandidateId, googlePlaceId)
+	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch google place detail: %v", err)
 	}
@@ -54,7 +54,7 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 	placeDetail := factory.GooglePlaceDetailFromPlaceDetailEntity(*placeDetailEntity.PlaceDetail)
 
 	// キャッシュする
-	if err := s.placeInPlanCandidateRepository.SaveGooglePlaceDetail(ctx, planCandidateId, googlePlaceId, placeDetail); err != nil {
+	if err := s.placeRepository.SaveGooglePlaceDetail(ctx, googlePlaceId, placeDetail); err != nil {
 		return nil, fmt.Errorf("could not save google place detail: %v", err)
 	}
 
