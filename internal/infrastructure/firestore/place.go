@@ -154,6 +154,27 @@ func (p PlaceRepository) saveGooglePlaceReviews(tx *firestore.Transaction, place
 	return nil
 }
 
+func (p PlaceRepository) updateOpeningHours(tx *firestore.Transaction, placeId string, placeDetail models.GooglePlaceDetail) error {
+	// 開店時間を更新
+	if placeDetail.OpeningHours != nil {
+		openingHoursEntity := entity.GooglePlaceOpeningsEntityFromGooglePlaceOpeningHours(*placeDetail.OpeningHours)
+		if err := tx.Update(p.docGooglePlace(placeId), []firestore.Update{
+			{
+				Path:  "opening_hours",
+				Value: openingHoursEntity,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while saving google place detail: %v", err)
+		}
+	}
+
+	return nil
+}
+
 func (p PlaceRepository) collectionPlaces() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlaces)
 }
