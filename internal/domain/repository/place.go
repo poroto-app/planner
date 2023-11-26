@@ -14,7 +14,13 @@ type PlaceRepository interface {
 
 	FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error)
 
+	// FindByPlanCandidateId は models.PlanCandidate に紐づく models.Place を取得する
+	FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error)
+
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error
+
+	// AddSearchedPlacesForPlanCandidate は models.PlanCandidate を作成するために検索した場所を保存する
+	AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error
 }
