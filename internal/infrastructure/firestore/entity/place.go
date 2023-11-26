@@ -2,15 +2,18 @@ package entity
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
 type PlaceEntity struct {
-	Id            string  `firestore:"id"`
-	Name          string  `firestore:"name"`
-	GooglePlaceId string  `firestore:"google_place_id"`
-	Latitude      float64 `firestore:"latitude"`
-	Longitude     float64 `firestore:"longitude"`
-	GeoHash       string  `firestore:"geohash"`
+	Id            string    `firestore:"id"`
+	Name          string    `firestore:"name"`
+	GooglePlaceId string    `firestore:"google_place_id"`
+	Latitude      float64   `firestore:"latitude"`
+	Longitude     float64   `firestore:"longitude"`
+	GeoHash       string    `firestore:"geohash"`
+	CreatedAt     time.Time `firestore:"created_at,serverTimestamp,omitempty"`
+	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
 }
 
 func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
@@ -21,6 +24,7 @@ func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 		Latitude:      place.Location.Latitude,
 		Longitude:     place.Location.Longitude,
 		GeoHash:       place.Location.GeoHash(),
+		UpdatedAt:     time.Now(),
 	}
 }
 
