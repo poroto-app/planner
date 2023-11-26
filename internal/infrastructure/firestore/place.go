@@ -256,37 +256,12 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 	// 重複した場所が取得されないようにする
 	placeIdsSearchedForPlanCandidate := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
 
-	chPlace := make(chan fetchPlaceResult, len(placeIdsSearchedForPlanCandidate))
-	for _, placeId := range placeIdsSearchedForPlanCandidate {
-		go func(ch chan<- fetchPlaceResult, placeId string) {
-			place, err := p.findByPlaceId(ctx, placeId)
-			if err != nil {
-				ch <- fetchPlaceResult{
-					placeEntity: nil,
-					err:         fmt.Errorf("error while fetching place: %v", err),
-				}
-				return
-			}
-
-			ch <- fetchPlaceResult{
-				placeEntity: place,
-				err:         nil,
-			}
-		}(chPlace, placeId)
+	places, err := p.findByPlaceIds(ctx, placeIdsSearchedForPlanCandidate)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
-	var places []models.Place
-	for i := 0; i < len(placeIdsSearchedForPlanCandidate); i++ {
-		result := <-chPlace
-		if result.err != nil {
-			return nil, result.err
-		}
-		if result.placeEntity != nil {
-			places = append(places, *result.placeEntity)
-		}
-	}
-
-	return places, nil
+	return *places, nil
 }
 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
@@ -389,6 +364,45 @@ func (p PlaceRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, 
 	}
 
 	return nil
+}
+
+// findByPlaceIds placeIds で指定された複数の場所を取得する
+// 　一つでも保存されていないものがあればエラーを返す
+func (p PlaceRepository) findByPlaceIds(ctx context.Context, placeIds []string) (*[]models.Place, error) {
+	chPlace := make(chan *models.Place, len(placeIds))
+	chErr := make(chan error)
+	defer close(chPlace)
+	defer close(chErr)
+
+	for _, placeId := range placeIds {
+		go func(ch chan<- *models.Place, chErr chan<- error, placeId string) {
+			place, err := p.findByPlaceId(ctx, placeId)
+			if err != nil {
+				chErr <- fmt.Errorf("error while fetching place: %v", err)
+				return
+			}
+
+			// 保存されていない場合はエラーを返す
+			if place == nil {
+				chErr <- fmt.Errorf("place not found by place id: %s", placeId)
+				return
+			}
+
+			ch <- place
+		}(chPlace, chErr, placeId)
+	}
+
+	var places []models.Place
+	for i := 0; i < len(placeIds); i++ {
+		select {
+		case place := <-chPlace:
+			places = append(places, *place)
+		case err := <-chErr:
+			return nil, err
+		}
+	}
+
+	return &places, nil
 }
 
 func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*models.Place, error) {

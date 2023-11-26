@@ -132,35 +132,12 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 
 	//　検索された場所を取得
 	placeIdsSearched := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
-	chPlaces := make(chan findPlaceResult, len(placeIdsSearched))
-	for _, placeId := range placeIdsSearched {
-		go func(ch chan findPlaceResult, placeId string) {
-			place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
-			if err != nil {
-				ch <- findPlaceResult{
-					place: nil,
-					err:   fmt.Errorf("error while fetching place: %v", err),
-				}
-				return
-			}
-
-			ch <- findPlaceResult{
-				place: place,
-				err:   nil,
-			}
-		}(chPlaces, placeId)
+	places, err := p.PlaceRepository.findByPlaceIds(ctx, placeIdsSearched)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
-	var places []models.Place
-	for range planCandidateEntity.PlaceIdsSearched {
-		result := <-chPlaces
-		if result.err != nil {
-			return nil, result.err
-		}
-		places = append(places, *result.place)
-	}
-
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, places)
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places)
 
 	return &planCandidate, nil
 }
