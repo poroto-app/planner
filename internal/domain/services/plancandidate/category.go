@@ -3,7 +3,6 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -40,14 +39,8 @@ func (s Service) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	places := make([]models.PlaceInPlanCandidate, 0)
-	for _, googlePlace := range placesSearched {
-		places = append(places, googlePlace.ToPlaceInPlanCandidate(uuid.New().String()))
-	}
-
-	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, params.CreatePlanSessionId, places); err != nil {
-		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
-	}
+	// 検索された場所を保存
+	places, err := s.placeService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
 
 	placesFiltered := places
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
@@ -77,7 +70,7 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.PlaceInPlanCandidate) bool {
+		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.Place) bool {
 			var placesAlreadyAdded []models.Place
 			for _, categoryWithPlaces := range categoriesWithPlaces {
 				placesAlreadyAdded = append(placesAlreadyAdded, categoryWithPlaces.Places...)
@@ -127,13 +120,13 @@ func (s Service) CategoriesNearLocation(
 
 type groupPlacesByCategoryResult struct {
 	category string
-	places   []models.PlaceInPlanCandidate
+	places   []models.Place
 }
 
 // groupPlacesByCategory は場所をカテゴリごとにグループ化する
 // 同じ場所が複数のカテゴリに含まれることがある
-func groupPlacesByCategory(placesToGroup []models.PlaceInPlanCandidate) []groupPlacesByCategoryResult {
-	locationsGroupByCategory := make(map[string][]models.PlaceInPlanCandidate, 0)
+func groupPlacesByCategory(placesToGroup []models.Place) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]models.Place, 0)
 	for _, place := range placesToGroup {
 		for _, subCategory := range place.Google.Types {
 			category := models.CategoryOfSubCategory(subCategory)
@@ -142,7 +135,7 @@ func groupPlacesByCategory(placesToGroup []models.PlaceInPlanCandidate) []groupP
 			}
 
 			if _, ok := locationsGroupByCategory[category.Name]; ok {
-				locationsGroupByCategory[category.Name] = []models.PlaceInPlanCandidate{}
+				locationsGroupByCategory[category.Name] = []models.Place{}
 			}
 
 			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], place)
