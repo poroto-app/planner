@@ -12,6 +12,7 @@ type PlanEntity struct {
 	Id        string    `firestore:"id"`
 	Name      string    `firestore:"name"`
 	GeoHash   *string   `firestore:"geohash,omitempty"`
+	PlaceIds  []string  `firestore:"place_ids"`
 	CreatedAt time.Time `firestore:"created_at,omitempty,serverTimestamp"`
 	UpdatedAt time.Time `firestore:"updated_at,omitempty"`
 	AuthorId  *string   `firestore:"author_id,omitempty"`
@@ -24,10 +25,16 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 		geohash = &value
 	}
 
+	placeIds := make([]string, len(plan.Places))
+	for i, place := range plan.Places {
+		placeIds[i] = place.Id
+	}
+
 	return PlanEntity{
 		Id:        plan.Id,
 		Name:      plan.Name,
 		GeoHash:   geohash,
+		PlaceIds:  placeIds,
 		AuthorId:  plan.AuthorId,
 		UpdatedAt: time.Now(),
 	}
