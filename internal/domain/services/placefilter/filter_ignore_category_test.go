@@ -9,12 +9,12 @@ import (
 func TestFilterIgnoreCategory(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []models.PlaceInPlanCandidate
-		expected       []models.PlaceInPlanCandidate
+		placesToFilter []models.Place
+		expected       []models.Place
 	}{
 		{
 			name: "should remove ignore category",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name:  "Museo Nacional de Bellas Artes",
@@ -28,7 +28,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 					},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name:  "Museo Nacional de Bellas Artes",
@@ -39,7 +39,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 		},
 		{
 			name: "ignore if place has at least one ignore category",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name:  "Museo Nacional de Bellas Artes",
@@ -53,7 +53,7 @@ func TestFilterIgnoreCategory(t *testing.T) {
 					},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name:  "Cafe",

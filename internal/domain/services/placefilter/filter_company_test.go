@@ -9,12 +9,12 @@ import (
 func TestFilterCompany(t *testing.T) {
 	cases := []struct {
 		name     string
-		places   []models.PlaceInPlanCandidate
-		expected []models.PlaceInPlanCandidate
+		places   []models.Place
+		expected []models.Place
 	}{
 		{
 			name: "should filter company",
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 					Google: models.GooglePlace{Name: "株式会社 Example"},
 				},
@@ -25,16 +25,16 @@ func TestFilterCompany(t *testing.T) {
 					Google: models.GooglePlace{Name: "Example（株）"},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{},
+			expected: []models.Place{},
 		},
 		{
 			name: "should not filter non-company",
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 					Google: models.GooglePlace{Name: "Example Example Example"},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{Name: "Example Example Example"},
 				},

@@ -9,14 +9,14 @@ import (
 func TestFilterByRating(t *testing.T) {
 	cases := []struct {
 		name                   string
-		placesToFilter         []models.PlaceInPlanCandidate
+		placesToFilter         []models.Place
 		lowestRating           float32
 		lowestUserRatingsTotal int
-		expected               []models.PlaceInPlanCandidate
+		expected               []models.Place
 	}{
 		{
 			name: "should filter by rating",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Rating:           2.9,
@@ -38,7 +38,7 @@ func TestFilterByRating(t *testing.T) {
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Rating:           3.0,
@@ -55,7 +55,7 @@ func TestFilterByRating(t *testing.T) {
 		},
 		{
 			name: "should filter by user ratings total",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Rating:           3.0,
@@ -77,7 +77,7 @@ func TestFilterByRating(t *testing.T) {
 			},
 			lowestRating:           3.0,
 			lowestUserRatingsTotal: 10,
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Rating:           3.0,

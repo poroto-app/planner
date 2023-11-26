@@ -10,15 +10,15 @@ import (
 func TestFilterWithinDistanceRange(t *testing.T) {
 	cases := []struct {
 		name            string
-		placesToFilter  []models.PlaceInPlanCandidate
+		placesToFilter  []models.Place
 		currentLocation models.GeoLocation
 		startInMeter    float64
 		endInMeter      float64
-		expected        []models.PlaceInPlanCandidate
+		expected        []models.Place
 	}{
 		{
 			name: "should filter places by distance range",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name: "Tokyo Sky Tree",
@@ -45,7 +45,7 @@ func TestFilterWithinDistanceRange(t *testing.T) {
 			},
 			startInMeter: 0,
 			endInMeter:   500,
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Name: "Tokyo Sky Tree",
