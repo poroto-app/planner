@@ -8,9 +8,12 @@ import (
 )
 
 type PlanCandidateEntity struct {
-	Id        string    `firestore:"id"`
-	PlanIds   []string  `firestore:"plan_ids"`
-	ExpiresAt time.Time `firestore:"expires_at"`
+	Id               string    `firestore:"id"`
+	PlanIds          []string  `firestore:"plan_ids"`
+	PlaceIdsSearched []string  `firestore:"place_ids_searched"`
+	ExpiresAt        time.Time `firestore:"expires_at"`
+	CreatedAt        time.Time `firestore:"created_at,serverTimestamp"`
+	UpdatedAt        time.Time `firestore:"updated_at,serverTimestamp"`
 }
 
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
