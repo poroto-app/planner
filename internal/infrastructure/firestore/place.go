@@ -234,11 +234,6 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 }
 
 func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
-	type fetchPlaceResult struct {
-		placeEntity *models.Place
-		err         error
-	}
-
 	// PlanCandidateを取得する
 	snapshotPlanCandidate, err := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId).Get(ctx)
 	if status.Code(err) == codes.NotFound {
