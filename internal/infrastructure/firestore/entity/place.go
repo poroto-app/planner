@@ -10,6 +10,7 @@ type PlaceEntity struct {
 	GooglePlaceId string  `firestore:"google_place_id"`
 	Latitude      float64 `firestore:"latitude"`
 	Longitude     float64 `firestore:"longitude"`
+	GeoHash       string  `firestore:"geohash"`
 }
 
 func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
@@ -19,6 +20,7 @@ func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 		GooglePlaceId: place.Google.PlaceId,
 		Latitude:      place.Location.Latitude,
 		Longitude:     place.Location.Longitude,
+		GeoHash:       place.Location.GeoHash(),
 	}
 }
 
