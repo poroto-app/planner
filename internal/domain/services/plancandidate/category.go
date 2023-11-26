@@ -117,14 +117,9 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
+		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
 
-		places := make([]models.Place, 0)
-		for _, place := range placesWithPhotos {
-			places = append(places, place.ToPlace())
-		}
-
-		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, places))
+		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, placesWithPhotos))
 	}
 
 	return categoriesWithPlaces, nil
