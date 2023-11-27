@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
-	"poroto.app/poroto/planner/internal/domain/array"
 	"time"
+
+	"poroto.app/poroto/planner/internal/domain/array"
 
 	"google.golang.org/api/iterator"
 
@@ -376,17 +378,20 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 }
 
 func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		for _, planCandidateId := range planCandidateIds {
-			// プラン候補メタデータを削除
-			docMetadata := p.docMetaDataV1(planCandidateId)
-			if err := tx.Delete(docMetadata); err != nil {
-				return fmt.Errorf("error while deleting plan candidate meta data[%s]: %v", planCandidateId, err)
-			}
-
+	for _, planCandidateId := range planCandidateIds {
+		log.Printf("Deleting plan candidate[%s]", planCandidateId)
+		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 			// プランを削除
+			// DocumentRefsは内部で参照を行う
+			// TransactionのルールではWriteの後にReadを行うことはできないため、削除処理の最初におこなう
+			log.Printf("Deleting plans of plan candidate[%s]", planCandidateId)
 			docIter := tx.DocumentRefs(p.subCollectionPlans(planCandidateId))
 			for {
+				if docIter == nil {
+					log.Printf("docIter of plan is nil: %s", planCandidateId)
+					break
+				}
+
 				doc, err := docIter.Next()
 				if err != nil {
 					if errors.Is(err, iterator.Done) {
@@ -395,19 +400,33 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 					return fmt.Errorf("error while iterating plans: %v", err)
 				}
 
+				log.Printf("Deleting plan[%s] of plan candidate[%s]", doc.ID, planCandidateId)
 				if err := tx.Delete(doc); err != nil {
 					return fmt.Errorf("error while deleting plan[%s]: %v", doc.ID, err)
 				}
+				log.Printf("Deleted plan[%s] of plan candidate[%s]", doc.ID, planCandidateId)
 			}
 
+			// プラン候補メタデータを削除
+			log.Printf("Deleting meta data of plan candidate[%s]", planCandidateId)
+			docMetadata := p.docMetaDataV1(planCandidateId)
+			if err := tx.Delete(docMetadata); err != nil {
+				return fmt.Errorf("error while deleting plan candidate meta data[%s]: %v", planCandidateId, err)
+			}
+			log.Printf("Deleted meta data of plan candidate[%s]", planCandidateId)
+
+			// プラン候補を削除
+			log.Printf("Deleting plan candidate[%s]", planCandidateId)
 			doc := p.doc(planCandidateId)
 			if err := tx.Delete(doc); err != nil {
 				return fmt.Errorf("error while deleting plan candidate[%s]: %v", planCandidateId, err)
 			}
+			log.Printf("Deleted plan candidate[%s]", planCandidateId)
+
+			return nil
+		}, firestore.MaxAttempts(3)); err != nil {
+			return fmt.Errorf("error while deleting plan candidates: %v", err)
 		}
-		return nil
-	}, firestore.MaxAttempts(3)); err != nil {
-		return fmt.Errorf("error while deleting plan candidates: %v", err)
 	}
 
 	return nil
