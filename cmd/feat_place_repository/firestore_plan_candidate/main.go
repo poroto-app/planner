@@ -58,7 +58,7 @@ func main() {
 	}
 
 	// プランを保存
-	if err := planCandidateRepository.AddPlan(context.Background(), planCandidateId, models.Plan{
+	plan := models.Plan{
 		Id:   "test_plan",
 		Name: "Text",
 		Places: []models.Place{
@@ -69,7 +69,8 @@ func main() {
 				Id: searchedPlaceIds[1],
 			},
 		},
-	}); err != nil {
+	}
+	if err := planCandidateRepository.AddPlan(context.Background(), planCandidateId, plan); err != nil {
 		log.Fatalf("error while saving plan: %v", err)
 	}
 
@@ -88,6 +89,19 @@ func main() {
 	}
 
 	log.Printf("plan candidate: %v", planCandidateSaved)
+
+	// 保存されたプラン候補の確認
+	if planCandidateSaved.Id != planCandidateId {
+		log.Fatalf("plan candidate id is not matched: %s != %s", planCandidateSaved.Id, planCandidateId)
+	}
+
+	if planCandidateSaved.Plans[0].Id != plan.Id {
+		log.Fatalf("plan id is not matched: %s != %s", planCandidateSaved.Plans[0].Id, "test_plan")
+	}
+
+	if planCandidateSaved.Plans[0].Places[0].Id != plan.Places[0].Id {
+		log.Fatalf("place id is not matched: %s != %s", planCandidateSaved.Plans[0].Places[0].Id, plan.Places[0].Id)
+	}
 
 	// プラン候補を削除
 	CleanUp(context.Background())
