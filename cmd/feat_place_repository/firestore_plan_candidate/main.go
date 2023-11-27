@@ -19,6 +19,18 @@ func init() {
 	env.LoadEnv()
 }
 
+/**
+ * このコードは、仮のプラン候補を用いて Firestore Plan Candidate Repository を利用するサンプルコードです。
+ *
+ * このコードを実行すると、以下の以下の動作が行われます。
+ * 1. プラン候補を作成する
+ * 2. プラン候補作成時に検索した場所のIDをプラン候補に紐づける
+ * 3. プランを保存する
+ * 4. メタデータを保存する
+ * 5. 保存したプラン候補を取得する
+ * 6. 保存したプラン候補の確認を行う
+ * 7. 保存したプラン候補を削除する（CleanUp）
+ **/
 func main() {
 	planCandidateRepository, err := repo.NewPlanCandidateRepository(context.Background())
 	if err != nil {

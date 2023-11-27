@@ -22,6 +22,17 @@ func init() {
 	env.LoadEnv()
 }
 
+/**
+ * このコードは、仮の Google Place ID を用いて Firestore Place Repository を利用するサンプルコードです。
+ *
+ * このコードを実行すると、以下の以下の動作が行われます。
+ * 1. Google Place ID を `TEST` とした Google Place の仮のデータを Firestore に保存する
+ * 2. Place Detail を保存する
+ * 3. 画像を保存する
+ * 4. 保存したデータを取得する
+ * 5. 保存したデータの確認を行う
+ * 6. 保存したデータを削除する（CleanUp）
+ **/
 func main() {
 	ctx := context.Background()
 
