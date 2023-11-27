@@ -1,21 +1,22 @@
 package firestore
 
 import (
-	"cloud.google.com/go/firestore"
 	"context"
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"os"
+	"sync"
+
+	"cloud.google.com/go/firestore"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"os"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
-	"sync"
 )
 
 const (
@@ -317,6 +318,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	return nil
 }
 
+// TODO: PlanCandidateRepository に移動する
 func (p PlaceRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		// 事前に要素が存在するかを確認する
