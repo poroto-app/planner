@@ -2,24 +2,30 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/env"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore"
+	repo "poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
 
-func main() {
-	env.LoadEnv()
+const (
+	planCandidateId = "test"
+)
 
-	planCandidateRepository, err := firestore.NewPlanCandidateRepository(context.Background())
+func init() {
+	env.LoadEnv()
+}
+
+func main() {
+	planCandidateRepository, err := repo.NewPlanCandidateRepository(context.Background())
 	if err != nil {
 		log.Fatalf("error while initializing plan candidate repository: %v", err)
 	}
 
 	// プラン候補を作成
-	planCandidateId := "test"
 	if err := planCandidateRepository.Create(context.Background(), planCandidateId, time.Now().Add(time.Hour*24*7)); err != nil {
 		log.Fatalf("error while creating plan candidate: %v", err)
 	}
@@ -70,4 +76,20 @@ func main() {
 	}
 
 	log.Printf("plan candidate: %v", planCandidateSaved)
+
+	// プラン候補を削除
+	CleanUp(context.Background())
+}
+
+func CleanUp(ctx context.Context) error {
+	planCandidateRepository, err := repo.NewPlanCandidateRepository(ctx)
+	if err != nil {
+		return fmt.Errorf("error while initializing plan candidate repository: %v", err)
+	}
+
+	if err := planCandidateRepository.DeleteAll(ctx, []string{planCandidateId}); err != nil {
+		return fmt.Errorf("error while deleting plan candidate: %v", err)
+	}
+
+	return nil
 }
