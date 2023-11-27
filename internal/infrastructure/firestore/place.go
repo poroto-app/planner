@@ -403,11 +403,12 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 	chGooglePlace := make(chan *models.GooglePlace, 1)
 	chErr := make(chan error)
 
+	defer close(chPlace)
+	defer close(chGooglePlace)
+
 	asyncProcesses := []func(){
 		func() {
 			// Placeを取得する
-			defer close(chPlace)
-
 			var placeEntity entity.PlaceEntity
 			snapshotPlace, err := p.docPlace(placeId).Get(ctx)
 			if err != nil {
@@ -422,8 +423,6 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 		},
 		func() {
 			// Google Placeを取得する
-			defer close(chGooglePlace)
-
 			googlePlace, err := p.fetchGooglePlace(ctx, placeId)
 			if err != nil {
 				chErr <- fmt.Errorf("error while finding place by place id: %v", err)
