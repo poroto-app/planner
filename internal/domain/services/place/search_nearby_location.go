@@ -15,10 +15,23 @@ const (
 	NearbySearchRadius = 2000
 )
 
+type SearchNearbyPlacesInput struct {
+	Location models.GeoLocation
+	Radius   int
+}
+
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, radius int) ([]models.GooglePlace, error) {
-	placesSaved, err := s.placeRepository.FindByLocation(ctx, location)
+func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlacesInput) ([]models.GooglePlace, error) {
+	if input.Location.Latitude == 0 || input.Location.Longitude == 0 {
+		panic("location is not specified")
+	}
+
+	if input.Radius == 0 {
+		input.Radius = NearbySearchRadius
+	}
+
+	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
@@ -26,7 +39,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 	// 検索箇所から半径 1000m 以内の場所を取得
 	var placesFiltered []models.Place
 	for _, place := range placesSaved {
-		if place.Location.DistanceInMeter(location) <= 1000 {
+		if place.Location.DistanceInMeter(input.Location) <= 1000 {
 			placesFiltered = append(placesFiltered, place)
 		}
 	}
@@ -53,8 +66,8 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 
 			placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &googleplaces.FindPlacesFromLocationRequest{
 				Location: googleplaces.Location{
-					Latitude:  location.Latitude,
-					Longitude: location.Longitude,
+					Latitude:  input.Location.Latitude,
+					Longitude: input.Location.Longitude,
 				},
 				Radius:      2000,
 				Language:    "ja",

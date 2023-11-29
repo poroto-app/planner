@@ -40,7 +40,7 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	// 付近の場所を検索
-	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, params.Location, place.NearbySearchRadius)
+	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: params.Location})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}

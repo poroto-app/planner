@@ -37,7 +37,7 @@ func (s Service) CreatePlanByLocation(
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, locationStart, place.NearbySearchRadius)
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: locationStart})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
 		}
