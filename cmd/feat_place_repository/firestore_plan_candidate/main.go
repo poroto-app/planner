@@ -104,7 +104,9 @@ func main() {
 	}
 
 	// プラン候補を削除
-	CleanUp(context.Background())
+	if err := CleanUp(context.Background()); err != nil {
+		log.Fatalf("error while cleaning up: %v", err)
+	}
 }
 
 func CleanUp(ctx context.Context) error {
