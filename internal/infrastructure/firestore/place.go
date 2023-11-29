@@ -57,6 +57,15 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 
 		if savedPlaceEntity != nil {
 			placeEntity = *savedPlaceEntity
+
+			// TODO: サービスの部分で取得処理を書く（保存しただけなのに、Service内で取得していない値が入るのは気持ち悪い）
+			// すでに保存されている Google Place の情報を取得する
+			gp, err := p.fetchGooglePlace(ctx, placeEntity.Id)
+			if err != nil {
+				return fmt.Errorf("error while fetching google place: %v", err)
+			}
+			googlePlace = *gp
+
 			return nil
 		}
 
