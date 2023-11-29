@@ -103,22 +103,10 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// 場所の詳細情報を取得
-		var googlePlaces []models.GooglePlace
-		for _, place := range placesSortedByCategoryIndex {
-			googlePlaces = append(googlePlaces, place.Google)
-		}
-		googlePlaces = s.placeService.FetchGooglePlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
-		for i, place := range placesSortedByCategoryIndex {
-			for _, googlePlace := range googlePlaces {
-				if place.Google.PlaceId == googlePlace.PlaceId {
-					placesSortedByCategoryIndex[i].Google = googlePlace
-					break
-				}
-			}
-		}
+		placesWithDetail := s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex)
 
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
+		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, params.CreatePlanSessionId, placesWithDetail...)
 
 		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, placesWithPhotos))
 	}
