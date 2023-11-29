@@ -185,7 +185,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 	chGooglePlaces := make(chan fetchGooglePlaceResult, len(placeEntities))
 	for _, placeEntity := range placeEntities {
 		go func(ch chan<- fetchGooglePlaceResult, placeEntity entity.PlaceEntity) {
-			googlePlace, err := p.fetchGooglePlace(ctx, placeEntity.GooglePlaceId)
+			googlePlace, err := p.fetchGooglePlace(ctx, placeEntity.Id)
 			if err != nil {
 				ch <- fetchGooglePlaceResult{
 					placeEntity: placeEntity,
