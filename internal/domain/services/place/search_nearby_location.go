@@ -2,30 +2,48 @@ package place
 
 import (
 	"context"
+	"fmt"
 	"googlemaps.github.io/maps"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+const (
+	NearbySearchRadius = 2000
+)
+
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]models.GooglePlace, error) {
-	// TODO: 付近で検索された結果を PlaceRepository から取得する
-	var placeTypesToSearch = []maps.PlaceType{
-		"",
-		maps.PlaceTypeAquarium,
-		maps.PlaceTypeAmusementPark,
-		maps.PlaceTypeCafe,
-		maps.PlaceTypeMuseum,
-		maps.PlaceTypeRestaurant,
-		maps.PlaceTypeShoppingMall,
-		maps.PlaceTypeSpa,
-		maps.PlaceTypeZoo,
+func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation, radius int) ([]models.GooglePlace, error) {
+	placesSaved, err := s.placeRepository.FindByLocation(ctx, location)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
 
-	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))
+	// 検索箇所から半径 1000m 以内の場所を取得
+	var placesFiltered []models.Place
+	for _, place := range placesSaved {
+		if place.Location.DistanceInMeter(location) <= 1000 {
+			placesFiltered = append(placesFiltered, place)
+		}
+	}
+
+	// 検索する必要のあるカテゴリを取得
+	placeTypeToPlaces := groupByPlaceType(placesFiltered, s.placeTypesToSearch())
+	var placeTypesToSearch []maps.PlaceType
+	for placeType, places := range placeTypeToPlaces {
+		// 5件以上の場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
+		if len(places) >= 5 {
+			log.Printf("skip searching place type %s because it has enough places", placeType)
+			continue
+		}
+		placeTypesToSearch = append(placeTypesToSearch, placeType)
+	}
+
+	ch := make(chan *[]models.GooglePlace, len(placeTypeToPlaces))
 	for _, placeType := range placeTypesToSearch {
 		go func(ctx context.Context, ch chan<- *[]models.GooglePlace, placeType maps.PlaceType) {
 			var placeTypePointer *maps.PlaceType
@@ -84,4 +102,32 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLoca
 	}
 
 	return placesSearchedFiltered, nil
+}
+
+func (s Service) placeTypesToSearch() []maps.PlaceType {
+	return []maps.PlaceType{
+		maps.PlaceTypeAquarium,
+		maps.PlaceTypeAmusementPark,
+		maps.PlaceTypeCafe,
+		maps.PlaceTypeMuseum,
+		maps.PlaceTypeRestaurant,
+		maps.PlaceTypeShoppingMall,
+		maps.PlaceTypeSpa,
+		maps.PlaceTypeZoo,
+	}
+}
+
+func groupByPlaceType(places []models.Place, placeTypes []maps.PlaceType) map[maps.PlaceType][]models.Place {
+	placesGroupedByPlaceType := make(map[maps.PlaceType][]models.Place)
+	for _, placeType := range placeTypes {
+		placesGroupedByPlaceType[placeType] = make([]models.Place, 0)
+
+		for _, place := range places {
+			if array.IsContain(place.Google.Types, string(placeType)) {
+				placesGroupedByPlaceType[placeType] = append(placesGroupedByPlaceType[placeType], place)
+			}
+		}
+	}
+
+	return placesGroupedByPlaceType
 }

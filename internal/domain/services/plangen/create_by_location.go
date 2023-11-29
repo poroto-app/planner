@@ -7,6 +7,7 @@ import (
 	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
@@ -36,7 +37,7 @@ func (s Service) CreatePlanByLocation(
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, locationStart)
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, locationStart, place.NearbySearchRadius)
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
 		}
