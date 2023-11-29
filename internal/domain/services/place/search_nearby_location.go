@@ -114,6 +114,11 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		placesSearched = append(placesSearched, *searchResults...)
 	}
 
+	// 検索された場所に加えて、キャッシュされた場所を追加
+	for _, place := range placesSaved {
+		placesSearched = append(placesSearched, place.Google)
+	}
+
 	// 重複した場所を削除
 	var placesSearchedFiltered []models.GooglePlace
 	for _, place := range placesSearched {
