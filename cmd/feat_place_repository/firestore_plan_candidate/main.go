@@ -53,7 +53,7 @@ func main() {
 		"0ZIll6UgUCgHLkrIv9Ze",
 		"0WXayBy5zKBCmcAgWz30",
 	}
-	if err := planCandidateRepository.PlaceRepository.AddSearchedPlacesForPlanCandidate(context.Background(), planCandidateId, searchedPlaceIds); err != nil {
+	if err := planCandidateRepository.AddSearchedPlacesForPlanCandidate(context.Background(), planCandidateId, searchedPlaceIds); err != nil {
 		log.Fatalf("error while adding searched places for plan candidate: %v", err)
 	}
 

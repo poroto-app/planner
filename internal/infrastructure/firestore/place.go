@@ -318,51 +318,6 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	return nil
 }
 
-// TODO: PlanCandidateRepository に移動する
-func (p PlaceRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
-	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		// 事前に要素が存在するかを確認する
-		docPlanCandidate := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId)
-		snapshotPlanCandidate, err := tx.Get(docPlanCandidate)
-		if status.Code(err) == codes.NotFound {
-			return fmt.Errorf("plan candidate not found by id: %s", planCandidateId)
-		}
-		if err != nil {
-			return fmt.Errorf("error while getting plan candidate: %v", err)
-		}
-
-		var planCandidateEntity entity.PlanCandidateEntity
-		if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
-			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-		}
-
-		// 重複した場所が取得されないようにする
-		placeIdsSearched := planCandidateEntity.PlaceIdsSearched
-		placeIdsSearched = append(placeIdsSearched, placeIds...)
-		placeIdsSearched = array.StrArrayToSet(placeIdsSearched)
-
-		// 更新する
-		if err := tx.Update(docPlanCandidate, []firestore.Update{
-			{
-				Path:  "place_ids_searched",
-				Value: placeIdsSearched,
-			},
-			{
-				Path:  "updated_at",
-				Value: firestore.ServerTimestamp,
-			},
-		}); err != nil {
-			return fmt.Errorf("error while updating plan candidate: %v", err)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("error while running transaction: %v", err)
-	}
-
-	return nil
-}
-
 // findByPlaceIds placeIds で指定された複数の場所を取得する
 // 　一つでも保存されていないものがあればエラーを返す
 func (p PlaceRepository) findByPlaceIds(ctx context.Context, placeIds []string) (*[]models.Place, error) {

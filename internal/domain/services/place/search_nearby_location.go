@@ -13,15 +13,15 @@ import (
 // また、特定のカテゴリに対して追加の検索を行う
 func (s Service) SearchNearbyPlaces(ctx context.Context, location models.GeoLocation) ([]models.GooglePlace, error) {
 	var placeTypesToSearch = []maps.PlaceType{
-		"",
-		maps.PlaceTypeAquarium,
-		maps.PlaceTypeAmusementPark,
+		//"",
+		//maps.PlaceTypeAquarium,
+		//maps.PlaceTypeAmusementPark,
 		maps.PlaceTypeCafe,
-		maps.PlaceTypeMuseum,
-		maps.PlaceTypeRestaurant,
-		maps.PlaceTypeShoppingMall,
-		maps.PlaceTypeSpa,
-		maps.PlaceTypeZoo,
+		//maps.PlaceTypeMuseum,
+		//maps.PlaceTypeRestaurant,
+		//maps.PlaceTypeShoppingMall,
+		//maps.PlaceTypeSpa,
+		//maps.PlaceTypeZoo,
 	}
 
 	ch := make(chan *[]models.GooglePlace, len(placeTypesToSearch))

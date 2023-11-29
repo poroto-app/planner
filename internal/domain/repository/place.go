@@ -20,7 +20,4 @@ type PlaceRepository interface {
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error
-
-	// AddSearchedPlacesForPlanCandidate は models.PlanCandidate を作成するために検索した場所を保存する
-	AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error
 }

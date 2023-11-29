@@ -45,7 +45,7 @@ func (s Service) SaveSearchedPlaces(ctx context.Context, planCandidateId string,
 	for _, place := range places {
 		placeIds = append(placeIds, place.Id)
 	}
-	if err := s.placeRepository.AddSearchedPlacesForPlanCandidate(ctx, planCandidateId, placeIds); err != nil {
+	if err := s.planCandidateRepository.AddSearchedPlacesForPlanCandidate(ctx, planCandidateId, placeIds); err != nil {
 		return nil, fmt.Errorf("error while adding searched places for plan candidate: %v\n", err)
 	}
 
