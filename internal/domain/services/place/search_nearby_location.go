@@ -11,13 +11,20 @@ import (
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
+// NearbySearchRadius NearbySearch で検索する際の半径
+// FilterSearchResultRadius 検索結果をフィルタリングするときの半径
+// IgnoreCategoryPlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
 const (
-	NearbySearchRadius = 2000
+	NearbySearchRadius       = 2000
+	FilterSearchResultRadius = 1000
+	IgnoreCategoryPlaceCount = 5
 )
 
 type SearchNearbyPlacesInput struct {
-	Location models.GeoLocation
-	Radius   int
+	Location                 models.GeoLocation
+	Radius                   uint
+	FilterSearchResultRadius float64
+	IgnoreCategoryPlaceCount uint
 }
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
@@ -31,6 +38,15 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		input.Radius = NearbySearchRadius
 	}
 
+	if input.FilterSearchResultRadius == 0 {
+		input.FilterSearchResultRadius = FilterSearchResultRadius
+	}
+
+	if input.IgnoreCategoryPlaceCount == 0 {
+		input.IgnoreCategoryPlaceCount = IgnoreCategoryPlaceCount
+	}
+
+	// キャッシュされた検索結果を取得
 	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
@@ -39,7 +55,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	// 検索箇所から半径 1000m 以内の場所を取得
 	var placesFiltered []models.Place
 	for _, place := range placesSaved {
-		if place.Location.DistanceInMeter(input.Location) <= 1000 {
+		if place.Location.DistanceInMeter(input.Location) <= input.FilterSearchResultRadius {
 			placesFiltered = append(placesFiltered, place)
 		}
 	}
@@ -49,7 +65,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	var placeTypesToSearch []maps.PlaceType
 	for placeType, places := range placeTypeToPlaces {
 		// 5件以上の場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
-		if len(places) >= 5 {
+		if len(places) >= int(input.IgnoreCategoryPlaceCount) {
 			log.Printf("skip searching place type %s because it has enough places", placeType)
 			continue
 		}
@@ -69,7 +85,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 					Latitude:  input.Location.Latitude,
 					Longitude: input.Location.Longitude,
 				},
-				Radius:      2000,
+				Radius:      input.Radius,
 				Language:    "ja",
 				Type:        placeTypePointer,
 				SearchCount: 1,
