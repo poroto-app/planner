@@ -123,6 +123,7 @@ type ComplexityRoot struct {
 		CreatePlanByPlace                 func(childComplexity int, input model.CreatePlanByPlaceInput) int
 		DeletePlaceFromPlanCandidate      func(childComplexity int, input model.DeletePlaceFromPlanCandidateInput) int
 		EditPlanTitleOfPlanCandidate      func(childComplexity int, input model.EditPlanTitleOfPlanCandidateInput) int
+		LikeToPlace                       func(childComplexity int, input model.LikeToPlaceInput) int
 		Ping                              func(childComplexity int, message string) int
 		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
@@ -227,10 +228,15 @@ type ComplexityRoot struct {
 		Name     func(childComplexity int) int
 		PhotoURL func(childComplexity int) int
 	}
+
+	LikeToPlaceOutput struct {
+		Like func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
 	Ping(ctx context.Context, message string) (string, error)
+	LikeToPlace(ctx context.Context, input model.LikeToPlaceInput) (*model.LikeToPlaceOutput, error)
 	CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error)
 	CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error)
 	ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error)
@@ -572,6 +578,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditPlanTitleOfPlanCandidate(childComplexity, args["input"].(model.EditPlanTitleOfPlanCandidateInput)), true
+
+	case "Mutation.likeToPlace":
+		if e.complexity.Mutation.LikeToPlace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_likeToPlace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LikeToPlace(childComplexity, args["input"].(model.LikeToPlaceInput)), true
 
 	case "Mutation.ping":
 		if e.complexity.Mutation.Ping == nil {
@@ -1049,6 +1067,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.PhotoURL(childComplexity), true
 
+	case "likeToPlaceOutput.like":
+		if e.complexity.LikeToPlaceOutput.Like == nil {
+			break
+		}
+
+		return e.complexity.LikeToPlaceOutput.Like(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -1074,6 +1099,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPlansByUserInput,
 		ec.unmarshalInputReplacePlaceOfPlanCandidateInput,
 		ec.unmarshalInputSavePlanFromCandidateInput,
+		ec.unmarshalInputlikeToPlaceInput,
 	)
 	first := true
 
@@ -1182,6 +1208,18 @@ type Image {
     large: String
 }
 `, BuiltIn: false},
+	{Name: "../schema/place_mutation.graphqls", Input: `extend type Mutation {
+    likeToPlace(input: likeToPlaceInput!): likeToPlaceOutput!
+}
+
+input likeToPlaceInput {
+    userId: String!
+    placeId: String!
+}
+
+type likeToPlaceOutput {
+    like: Boolean!
+}`, BuiltIn: false},
 	{Name: "../schema/place_type.graphqls", Input: `type Place {
     id: String!
     googlePlaceId: String
@@ -1592,6 +1630,21 @@ func (ec *executionContext) field_Mutation_editPlanTitleOfPlanCandidate_args(ctx
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_likeToPlace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LikeToPlaceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNlikeToPlaceInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3481,6 +3534,65 @@ func (ec *executionContext) fieldContext_Mutation_ping(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_ping_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_likeToPlace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_likeToPlace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LikeToPlace(rctx, fc.Args["input"].(model.LikeToPlaceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LikeToPlaceOutput)
+	fc.Result = res
+	return ec.marshalNlikeToPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_likeToPlace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "like":
+				return ec.fieldContext_likeToPlaceOutput_like(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type likeToPlaceOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_likeToPlace_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8730,6 +8842,50 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _likeToPlaceOutput_like(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_likeToPlaceOutput_like(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Like, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_likeToPlaceOutput_like(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "likeToPlaceOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -9524,6 +9680,44 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputlikeToPlaceInput(ctx context.Context, obj interface{}) (model.LikeToPlaceInput, error) {
+	var it model.LikeToPlaceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId", "placeId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "placeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlaceID = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -10134,6 +10328,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "ping":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_ping(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likeToPlace":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_likeToPlace(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11514,6 +11715,45 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
+var likeToPlaceOutputImplementors = []string{"likeToPlaceOutput"}
+
+func (ec *executionContext) _likeToPlaceOutput(ctx context.Context, sel ast.SelectionSet, obj *model.LikeToPlaceOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, likeToPlaceOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("likeToPlaceOutput")
+		case "like":
+			out.Values[i] = ec._likeToPlaceOutput_like(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
@@ -12582,6 +12822,25 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNlikeToPlaceInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInput(ctx context.Context, v interface{}) (model.LikeToPlaceInput, error) {
+	res, err := ec.unmarshalInputlikeToPlaceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNlikeToPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.LikeToPlaceOutput) graphql.Marshaler {
+	return ec._likeToPlaceOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNlikeToPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.LikeToPlaceOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._likeToPlaceOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterPlaceInput, error) {

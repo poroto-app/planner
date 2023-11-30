@@ -266,6 +266,15 @@ type User struct {
 	PhotoURL *string `json:"photoUrl,omitempty"`
 }
 
+type LikeToPlaceInput struct {
+	UserID  string `json:"userId"`
+	PlaceID string `json:"placeId"`
+}
+
+type LikeToPlaceOutput struct {
+	Like bool `json:"like"`
+}
+
 type ImageSize string
 
 const (
