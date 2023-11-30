@@ -147,7 +147,9 @@ type ComplexityRoot struct {
 		GoogleReviews         func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Images                func(childComplexity int) int
+		Likes                 func(childComplexity int) int
 		Location              func(childComplexity int) int
+		MyLike                func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		PriceRange            func(childComplexity int) int
 	}
@@ -692,12 +694,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Place.Images(childComplexity), true
 
+	case "Place.likes":
+		if e.complexity.Place.Likes == nil {
+			break
+		}
+
+		return e.complexity.Place.Likes(childComplexity), true
+
 	case "Place.location":
 		if e.complexity.Place.Location == nil {
 			break
 		}
 
 		return e.complexity.Place.Location(childComplexity), true
+
+	case "Place.myLike":
+		if e.complexity.Place.MyLike == nil {
+			break
+		}
+
+		return e.complexity.Place.MyLike(childComplexity), true
 
 	case "Place.name":
 		if e.complexity.Place.Name == nil {
@@ -1184,6 +1200,8 @@ type Image {
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
     priceRange: PriceRange
+    myLike: Boolean!
+    likes: Int!
 }
 
 type GeoLocation {
@@ -2015,6 +2033,10 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4105,6 +4127,10 @@ func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx conte
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4687,6 +4713,94 @@ func (ec *executionContext) fieldContext_Place_priceRange(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Place_myLike(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_myLike(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MyLike, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_myLike(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_likes(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_likes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Likes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_likes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlaceCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.PlaceCategory) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlaceCategory_id(ctx, field)
 	if err != nil {
@@ -4832,6 +4946,10 @@ func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_place
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -4896,6 +5014,10 @@ func (ec *executionContext) fieldContext_PlacesToReplaceForPlanCandidateOutput_p
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -5048,6 +5170,10 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -6653,6 +6779,10 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -6717,6 +6847,10 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_categories(ctx, field)
 			case "priceRange":
 				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "myLike":
+				return ec.fieldContext_Place_myLike(ctx, field)
+			case "likes":
+				return ec.fieldContext_Place_likes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
@@ -10298,6 +10432,16 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "priceRange":
 			out.Values[i] = ec._Place_priceRange(ctx, field, obj)
+		case "myLike":
+			out.Values[i] = ec._Place_myLike(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likes":
+			out.Values[i] = ec._Place_likes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
