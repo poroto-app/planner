@@ -168,8 +168,7 @@ type Place struct {
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 	Categories            []*PlaceCategory     `json:"categories"`
 	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
-	MyLike                bool                 `json:"myLike"`
-	Likes                 int                  `json:"likes"`
+	LikeUserIds           []string             `json:"likeUserIds,omitempty"`
 }
 
 type PlaceCategory struct {

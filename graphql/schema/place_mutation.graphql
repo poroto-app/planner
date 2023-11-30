@@ -1,0 +1,12 @@
+extend type Mutation {
+    likeToPlace(input: likeToPlaceInput!): likeToPlaceOutput!
+}
+
+input likeToPlaceInput {
+    userId: String!
+    placeId: String!
+}
+
+type likeToPlaceOutput {
+    like: Boolean!
+}
