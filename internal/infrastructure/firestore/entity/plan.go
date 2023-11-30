@@ -21,7 +21,7 @@ type PlanEntity struct {
 func ToPlanEntity(plan models.Plan) PlanEntity {
 	places := make([]PlaceEntity, len(plan.Places))
 	for i, place := range plan.Places {
-		places[i] = ToPlaceEntity(place)
+		places[i] = NewPlaceEntityFromPlace(place)
 	}
 
 	var geohash *string
@@ -42,8 +42,8 @@ func ToPlanEntity(plan models.Plan) PlanEntity {
 
 func FromPlanEntity(entity PlanEntity) models.Plan {
 	ps := make([]models.Place, len(entity.Places))
-	for i, place := range entity.Places {
-		ps[i] = FromPlaceEntity(place)
+	for i, placeEntity := range entity.Places {
+		ps[i] = placeEntity.ToPlace()
 	}
 
 	return models.Plan{

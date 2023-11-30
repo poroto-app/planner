@@ -9,7 +9,7 @@ func NewLocationCategoryWithPlaces(category LocationCategory, places []Place) Lo
 	var placesToAdd []Place
 	for _, place := range places {
 		// 画像がない場合は追加しない
-		if len(place.Images) == 0 {
+		if place.Google.Photos == nil || len(*place.Google.Photos) == 0 {
 			continue
 		}
 

@@ -69,7 +69,7 @@ func (s Service) FetchPlacesToReplace(
 	})
 
 	// 指定された場所と同じカテゴリの場所を選択
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories, true)
+	placesFiltered = placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories(), true)
 
 	// レビューの高い順でソート
 	sort.SliceStable(placesFiltered, func(i, j int) bool {
