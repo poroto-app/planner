@@ -395,11 +395,6 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 			if err != nil {
 				chErr <- fmt.Errorf("error while finding place by place id: %v", err)
 			}
-			if googlePlace == nil {
-				chGooglePlace <- nil
-				return
-			}
-
 			chGooglePlace <- googlePlace
 		},
 	}
@@ -554,7 +549,7 @@ Loop:
 		}
 	}
 
-	googlePlace := googlePlaceEntity.ToGooglePlace(*photoEntities, *reviewEntities)
+	googlePlace := googlePlaceEntity.ToGooglePlace(photoEntities, reviewEntities)
 
 	return &googlePlace, nil
 }
