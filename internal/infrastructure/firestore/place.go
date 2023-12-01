@@ -64,9 +64,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			if err != nil {
 				return fmt.Errorf("error while fetching google place: %v", err)
 			}
-			googlePlace = *gp
 
-			return nil
+			if gp != nil {
+				googlePlace = *gp
+				return nil
+			}
 		}
 
 		// 保存されていない場合は新規に保存する
