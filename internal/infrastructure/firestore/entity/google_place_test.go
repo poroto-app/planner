@@ -132,6 +132,35 @@ func TestGooglePlaceEntity_ToGooglePlace(t *testing.T) {
 				PlaceDetail: nil,
 			},
 		},
+		{
+			name: "Photo is nil if photoEntities is nil",
+			googlePlaceEntity: GooglePlaceEntity{
+				PlaceID: "place_id",
+			},
+			photoEntities: nil,
+			reviewEntities: &[]GooglePlaceReviewEntity{
+				{
+					AuthorName: "author_name",
+					AuthorUrl:  utils.StrPointer("https://example.com/author"),
+					Language:   utils.StrPointer("ja"),
+					Rating:     4.0,
+				},
+			},
+			expected: models.GooglePlace{
+				PlaceId: "place_id",
+				Photos:  nil,
+				PlaceDetail: &models.GooglePlaceDetail{
+					Reviews: []models.GooglePlaceReview{
+						{
+							AuthorName: "author_name",
+							AuthorUrl:  utils.StrPointer("https://example.com/author"),
+							Language:   utils.StrPointer("ja"),
+							Rating:     4.0,
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {

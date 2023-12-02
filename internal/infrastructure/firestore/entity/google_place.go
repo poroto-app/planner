@@ -101,7 +101,7 @@ func (g GooglePlaceEntity) toGooglePlaceDetail(photoEntities *[]GooglePlacePhoto
 }
 
 func (g GooglePlaceEntity) toGooglePlacePhotos(photoEntities *[]GooglePlacePhotoEntity) *[]models.GooglePlacePhoto {
-	if photoEntities == nil || len(*photoEntities) == 0 {
+	if photoEntities == nil {
 		return nil
 	}
 
@@ -111,6 +111,10 @@ func (g GooglePlaceEntity) toGooglePlacePhotos(photoEntities *[]GooglePlacePhoto
 		if p != nil {
 			photos = append(photos, *p)
 		}
+	}
+
+	if len(photos) == 0 {
+		return nil
 	}
 
 	return &photos
