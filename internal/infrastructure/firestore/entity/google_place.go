@@ -65,11 +65,10 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity
 }
 
 func (g GooglePlaceEntity) toGooglePlaceDetail(photoEntities *[]GooglePlacePhotoEntity, reviewEntities *[]GooglePlaceReviewEntity) *models.GooglePlaceDetail {
-	if g.OpeningHours == nil && photoEntities == nil && reviewEntities == nil {
-		return nil
-	}
-
-	if len(*photoEntities) == 0 && len(*reviewEntities) == 0 {
+	isOpeningHoursEmpty := g.OpeningHours == nil
+	isPhotoEmpty := photoEntities == nil || len(*photoEntities) == 0
+	isReviewEmpty := reviewEntities == nil || len(*reviewEntities) == 0
+	if isOpeningHoursEmpty && isPhotoEmpty && isReviewEmpty {
 		return nil
 	}
 
