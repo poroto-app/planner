@@ -49,11 +49,28 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity
 		Longitude: g.Location.Longitude,
 	}
 
-	// PlaceDetailを取得
-	var placeDetail *models.GooglePlaceDetail
-	if g.OpeningHours != nil {
-		placeDetail = &models.GooglePlaceDetail{}
+	return models.GooglePlace{
+		PlaceId:          g.PlaceID,
+		Name:             g.Name,
+		Types:            g.Types,
+		Location:         location,
+		PhotoReferences:  g.PhotoReferences,
+		OpenNow:          g.OpenNow,
+		Rating:           g.Rating,
+		UserRatingsTotal: g.UserRatingsTotal,
+		PriceLevel:       g.PriceLevel,
+		Photos:           g.toGooglePlacePhotos(photoEntities),
+		PlaceDetail:      g.toGooglePlaceDetail(photoEntities, reviewEntities),
+	}
+}
 
+func (g GooglePlaceEntity) toGooglePlaceDetail(photoEntities *[]GooglePlacePhotoEntity, reviewEntities *[]GooglePlaceReviewEntity) *models.GooglePlaceDetail {
+	if g.OpeningHours == nil && photoEntities == nil && reviewEntities == nil {
+		return nil
+	}
+
+	placeDetail := &models.GooglePlaceDetail{}
+	if g.OpeningHours != nil {
 		// Opening Hoursを取得
 		if g.OpeningHours != nil {
 			o := g.OpeningHours.ToGooglePlaceOpeningHours()
@@ -79,28 +96,21 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity
 		placeDetail.Reviews = reviews
 	}
 
+	return placeDetail
+}
+
+func (g GooglePlaceEntity) toGooglePlacePhotos(photoEntities *[]GooglePlacePhotoEntity) *[]models.GooglePlacePhoto {
+	if photoEntities == nil || len(*photoEntities) == 0 {
+		return nil
+	}
+
 	var photos []models.GooglePlacePhoto
-	if photoEntities != nil {
-		// 写真のURLを取得していた場合のみ写真を取得する
-		for _, photo := range *photoEntities {
-			photo := photo.ToGooglePlacePhoto()
-			if photo != nil {
-				photos = append(photos, *photo)
-			}
+	for _, photoEntity := range *photoEntities {
+		p := photoEntity.ToGooglePlacePhoto()
+		if p != nil {
+			photos = append(photos, *p)
 		}
 	}
 
-	return models.GooglePlace{
-		PlaceId:          g.PlaceID,
-		Name:             g.Name,
-		Types:            g.Types,
-		Location:         location,
-		PhotoReferences:  g.PhotoReferences,
-		OpenNow:          g.OpenNow,
-		Rating:           g.Rating,
-		UserRatingsTotal: g.UserRatingsTotal,
-		PriceLevel:       g.PriceLevel,
-		Photos:           &photos,
-		PlaceDetail:      placeDetail,
-	}
+	return &photos
 }
