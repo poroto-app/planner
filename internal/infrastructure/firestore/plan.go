@@ -1,14 +1,14 @@
 package firestore
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
-	"os"
-
-	"cloud.google.com/go/firestore"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
@@ -18,7 +18,8 @@ const (
 )
 
 type PlanRepository struct {
-	client *firestore.Client
+	client          *firestore.Client
+	placeRepository *PlaceRepository
 }
 
 func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
@@ -32,12 +33,20 @@ func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
 
-	return &PlanRepository{client: client}, nil
+	placeRepository, err := NewPlaceRepository(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
+	}
+
+	return &PlanRepository{
+		client:          client,
+		placeRepository: placeRepository,
+	}, nil
 }
 
 func (p *PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 	doc := p.doc(plan.Id)
-	if _, err := doc.Set(ctx, entity.ToPlanEntity(*plan)); err != nil {
+	if _, err := doc.Set(ctx, entity.NewPlanEntityFromPlan(*plan)); err != nil {
 		return fmt.Errorf("error while saving plan: %v", err)
 	}
 	return nil
@@ -72,8 +81,17 @@ func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan,
 		return nil, nil
 	}
 
-	plan := entity.FromPlanEntity(*planEntity)
-	return &plan, nil
+	places, err := p.placeRepository.findByPlaceIds(ctx, planEntity.PlaceIds)
+	if err != nil {
+		return nil, fmt.Errorf("error while finding places: %v", err)
+	}
+
+	plan, err := planEntity.ToPlan(*places)
+	if err != nil {
+		return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
+	}
+
+	return plan, nil
 }
 
 func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[]models.Plan, error) {
@@ -85,15 +103,28 @@ func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*
 		return nil, fmt.Errorf("error while getting plans: %v", err)
 	}
 
-	var plans []models.Plan
+	// Plan を取得
+	var planEntities []entity.PlanEntity
 	for _, snapshot := range snapshots {
 		var planEntity entity.PlanEntity
 		if err = snapshot.DataTo(&planEntity); err != nil {
 			return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 		}
+	}
 
-		plan := entity.FromPlanEntity(planEntity)
-		plans = append(plans, plan)
+	// Plan に含まれる Place　を一括で取得
+	places, err := p.findPlacesFromPlaceEntities(ctx, planEntities)
+	if err != nil {
+		return nil, fmt.Errorf("error while finding places: %v", err)
+	}
+
+	var plans []models.Plan
+	for _, planEntity := range planEntities {
+		plan, err := planEntity.ToPlan(*places)
+		if err != nil {
+			return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
+		}
+		plans = append(plans, *plan)
 	}
 
 	return &plans, nil
@@ -102,8 +133,8 @@ func (p *PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*
 // SortedByCreatedAt created_atで降順に並べたPlanを取得する
 // queryCursor(リストの最後の [models.Plan] のID)が指定されている場合は、そのcursor以降のPlanを取得する
 func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error) {
-	collection := p.collection()
-	query := collection.OrderBy("created_at", firestore.Desc).OrderBy("id", firestore.Desc)
+	// PlanEntityを取得
+	query := p.collection().OrderBy("created_at", firestore.Desc).OrderBy("id", firestore.Desc)
 	if queryCursor != nil {
 		plan, err := p.find(ctx, *queryCursor)
 		if err != nil {
@@ -123,15 +154,29 @@ func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *str
 		return nil, fmt.Errorf("error while getting plans: %v", err)
 	}
 
-	plans := make([]models.Plan, len(snapshots))
+	planEntities := make([]entity.PlanEntity, len(snapshots))
 	for i, snapshot := range snapshots {
 		var planEntity entity.PlanEntity
 		if err = snapshot.DataTo(&planEntity); err != nil {
 			return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 		}
 
-		plan := entity.FromPlanEntity(planEntity)
-		plans[i] = plan
+		planEntities[i] = planEntity
+	}
+
+	// Plan に含まれる Place　を一括で取得
+	places, err := p.findPlacesFromPlaceEntities(ctx, planEntities)
+	if err != nil {
+		return nil, fmt.Errorf("error while finding places: %v", err)
+	}
+
+	var plans []models.Plan
+	for _, planEntity := range planEntities {
+		plan, err := planEntity.ToPlan(*places)
+		if err != nil {
+			return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
+		}
+		plans = append(plans, *plan)
 	}
 
 	return &plans, nil
@@ -141,12 +186,11 @@ func (p *PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *str
 // TODO: 現在地から近い順に取得できるようにする
 // TODO: レビュー等の指標に基づいて取得できるようにする
 func (p *PlanRepository) SortedByLocation(ctx context.Context, geoLocation models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
-	collection := p.collection()
 
 	// 20km圏内のPlanを取得する
 	// SEE: https://en.wikipedia.org/wiki/Geohash#Digits_and_precision_in_km
 	geohash := geoLocation.GeoHash()
-	query := collection.Where("geohash", ">=", geohash[:4]).Where("geohash", "<=", geohash[:4]+"\uf8ff")
+	query := p.collection().Where("geohash", ">=", geohash[:4]).Where("geohash", "<=", geohash[:4]+"\uf8ff")
 
 	query = query.OrderBy("geohash", firestore.Desc)
 
@@ -161,19 +205,47 @@ func (p *PlanRepository) SortedByLocation(ctx context.Context, geoLocation model
 	}
 
 	var nextQueryCursor *string
-	plans := make([]models.Plan, len(snapshots))
+	planEntities := make([]entity.PlanEntity, len(snapshots))
 	for i, snapshot := range snapshots {
 		var planEntity entity.PlanEntity
 		if err = snapshot.DataTo(&planEntity); err != nil {
 			return nil, nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
 		}
 
-		plan := entity.FromPlanEntity(planEntity)
-		plans[i] = plan
+		planEntities[i] = planEntity
 		nextQueryCursor = planEntity.GeoHash
 	}
 
+	// Plan に含まれる Place　を一括で取得
+	places, err := p.findPlacesFromPlaceEntities(ctx, planEntities)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error while finding places: %v", err)
+	}
+
+	var plans []models.Plan
+	for _, planEntity := range planEntities {
+		plan, err := planEntity.ToPlan(*places)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
+		}
+		plans = append(plans, *plan)
+	}
+
 	return &plans, nextQueryCursor, nil
+}
+
+func (p *PlanRepository) findPlacesFromPlaceEntities(ctx context.Context, placeEntities []entity.PlanEntity) (*[]models.Place, error) {
+	var placeIds []string
+	for _, plan := range placeEntities {
+		placeIds = append(placeIds, plan.PlaceIds...)
+	}
+
+	places, err := p.placeRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIds))
+	if err != nil {
+		return nil, fmt.Errorf("error while finding places: %v", err)
+	}
+
+	return places, nil
 }
 
 func (p *PlanRepository) collection() *firestore.CollectionRef {

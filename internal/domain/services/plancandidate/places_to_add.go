@@ -28,12 +28,12 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		return nil, fmt.Errorf("plan not found")
 	}
 
-	placesSaved, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
 
-	placesFiltered := *placesSaved
+	placesFiltered := placesSearched
 
 	// 重複した場所を削除
 	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
@@ -46,7 +46,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// すでにプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.PlaceInPlanCandidate) bool {
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
 		for _, placeInPlan := range plan.Places {
 			if placeInPlan.Id == place.Id {
 				return false
@@ -61,30 +61,20 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	})
 
 	// TODO: すべてのカテゴリの場所が表示されるようにする
-	var googlePlacesToAdd []models.GooglePlace
-	for _, place := range placesFiltered {
-		googlePlacesToAdd = append(googlePlacesToAdd, place.Google)
-	}
-
-	googlePlacesToAdd = googlePlacesToAdd[:nLimit]
-
-	// 場所の詳細情報を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlacesToAdd)
-
-	// 写真を取得
-	googlePlacesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlacesToAdd...)
-
 	var placesToAdd []models.Place
 	for _, place := range placesFiltered {
-		for _, googlePlace := range googlePlacesToAdd {
-			if googlePlace.PlaceId != place.Google.PlaceId {
-				continue
-			}
-			place.Google = googlePlace
-			placesToAdd = append(placesToAdd, place.ToPlace())
+		if len(placesToAdd) >= int(nLimit) {
 			break
 		}
+
+		placesToAdd = append(placesToAdd, place)
 	}
+
+	// 場所の詳細情報を取得
+	placesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, placesToAdd)
+
+	// 写真を取得
+	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd...)
 
 	return placesToAdd, nil
 }

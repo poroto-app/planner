@@ -8,13 +8,13 @@ import (
 func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 	cases := []struct {
 		name       string
-		places     []models.PlaceInPlanCandidate
+		places     []models.Place
 		categories []models.LocationCategory
 		expected   bool
 	}{
 		{
 			name: "should return true when places has a place of category",
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Types: []string{models.CategoryAmusements.SubCategories[0]},
@@ -28,7 +28,7 @@ func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 		},
 		{
 			name: "should return false when places does not have a place of category",
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 					Google: models.GooglePlace{
 						Types: []string{models.CategoryAmusements.SubCategories[0]},
@@ -42,7 +42,7 @@ func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 		},
 		{
 			name: "should return true when places has a place of category",
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 
 					Google: models.GooglePlace{
@@ -72,8 +72,8 @@ func TestSortPlacesByDistanceFrom(t *testing.T) {
 	cases := []struct {
 		name     string
 		location models.GeoLocation
-		places   []models.PlaceInPlanCandidate
-		expected []models.PlaceInPlanCandidate
+		places   []models.Place
+		expected []models.Place
 	}{
 		{
 			name: "should return places sorted by distance from location",
@@ -81,61 +81,49 @@ func TestSortPlacesByDistanceFrom(t *testing.T) {
 				Latitude:  0,
 				Longitude: 0,
 			},
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{
 					Id: "1",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  2,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  2,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "2",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  3,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  3,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "3",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  1,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  1,
+						Longitude: 0,
 					},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Id: "3",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  1,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  1,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "1",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  2,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  2,
+						Longitude: 0,
 					},
 				},
 				{
 					Id: "2",
-					Google: models.GooglePlace{
-						Location: models.GeoLocation{
-							Latitude:  3,
-							Longitude: 0,
-						},
+					Location: models.GeoLocation{
+						Latitude:  3,
+						Longitude: 0,
 					},
 				},
 			},

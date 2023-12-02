@@ -11,7 +11,7 @@ import (
 
 // GeneratePlanTitle プランのタイトルを生成する
 // タイトルが生成できなかった場合は、nilを返す
-func (s Service) GeneratePlanTitle(places []models.PlaceInPlanCandidate) (*string, error) {
+func (s Service) GeneratePlanTitle(places []models.Place) (*string, error) {
 	placeNames := make([]string, len(places))
 	for i, place := range places {
 		var categoryNames []string

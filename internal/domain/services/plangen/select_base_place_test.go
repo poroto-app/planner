@@ -8,14 +8,14 @@ import (
 func TestIsAlreadyAdded(t *testing.T) {
 	cases := []struct {
 		name     string
-		place    models.PlaceInPlanCandidate
-		places   []models.PlaceInPlanCandidate
+		place    models.Place
+		places   []models.Place
 		expected bool
 	}{
 		{
 			name:  "should return true when place is already added",
-			place: models.PlaceInPlanCandidate{Id: "1"},
-			places: []models.PlaceInPlanCandidate{
+			place: models.Place{Id: "1"},
+			places: []models.Place{
 				{Id: "1"},
 				{Id: "2"},
 			},
@@ -23,8 +23,8 @@ func TestIsAlreadyAdded(t *testing.T) {
 		},
 		{
 			name:  "should return false when place is not added",
-			place: models.PlaceInPlanCandidate{Id: "3"},
-			places: []models.PlaceInPlanCandidate{
+			place: models.Place{Id: "3"},
+			places: []models.Place{
 				{Id: "1"},
 				{Id: "2"},
 			},

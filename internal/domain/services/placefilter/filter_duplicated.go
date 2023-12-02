@@ -5,9 +5,9 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func FilterDuplicated(placesToFilter []models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+func FilterDuplicated(placesToFilter []models.Place) []models.Place {
 	var placeIdsInResult []string
-	var placesFiltered []models.PlaceInPlanCandidate
+	var placesFiltered []models.Place
 	for _, place := range placesToFilter {
 		if !array.IsContain(placeIdsInResult, place.Id) {
 			placeIdsInResult = append(placeIdsInResult, place.Id)

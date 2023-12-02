@@ -4,8 +4,8 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func FilterPlaces(placesToFilter []models.PlaceInPlanCandidate, filterFunc func(place models.PlaceInPlanCandidate) bool) []models.PlaceInPlanCandidate {
-	values := make([]models.PlaceInPlanCandidate, 0)
+func FilterPlaces(placesToFilter []models.Place, filterFunc func(place models.Place) bool) []models.Place {
+	values := make([]models.Place, 0)
 	for _, place := range placesToFilter {
 		if filterFunc(place) {
 			values = append(values, place)

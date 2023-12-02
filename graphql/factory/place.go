@@ -3,6 +3,7 @@ package factory
 import (
 	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 func PlaceFromDomainModel(place *models.Place) *graphql.Place {
@@ -12,22 +13,24 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 
 	// TODO: not nil な値にする
 	var images []*graphql.Image
-	for _, image := range place.Images {
-		images = append(images, &graphql.Image{
-			Default: image.Default(),
-			Small:   image.Small,
-			Large:   image.Large,
-		})
-	}
-	if images == nil {
+	if place.Google.Photos != nil {
+		for _, photo := range *place.Google.Photos {
+			image := photo.ToImage()
+			images = append(images, &graphql.Image{
+				Default: image.Default(),
+				Small:   image.Small,
+				Large:   image.Large,
+			})
+		}
+	} else {
 		images = make([]*graphql.Image, 0)
 	}
 
 	// TODO: not nil な値にする
 	var googlePlaceReviews []*graphql.GooglePlaceReview
-	if place.GooglePlaceReviews != nil {
-		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(*place.GooglePlaceReviews))
-		for i, review := range *place.GooglePlaceReviews {
+	if place.Google.PlaceDetail != nil && place.Google.PlaceDetail.Reviews != nil {
+		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(place.Google.PlaceDetail.Reviews))
+		for i, review := range place.Google.PlaceDetail.Reviews {
 			googlePlaceReviews[i] = GooglePlaceReviewFromDomainModel(review)
 		}
 	} else {
@@ -35,7 +38,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 	}
 
 	var placeCategories []*graphql.PlaceCategory
-	for _, category := range place.Categories {
+	for _, category := range place.Categories() {
 		placeCategories = append(placeCategories, &graphql.PlaceCategory{
 			ID:   category.Name,
 			Name: category.DisplayName,
@@ -44,7 +47,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 
 	return &graphql.Place{
 		ID:            place.Id,
-		GooglePlaceID: place.GooglePlaceId,
+		GooglePlaceID: utils.StrPointer(place.Google.PlaceId),
 		Name:          place.Name,
 		Images:        images,
 		Location: &graphql.GeoLocation{

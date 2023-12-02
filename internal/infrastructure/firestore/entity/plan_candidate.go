@@ -8,9 +8,12 @@ import (
 )
 
 type PlanCandidateEntity struct {
-	Id        string    `firestore:"id"`
-	PlanIds   []string  `firestore:"plan_ids"`
-	ExpiresAt time.Time `firestore:"expires_at"`
+	Id               string    `firestore:"id"`
+	PlanIds          []string  `firestore:"plan_ids"`
+	PlaceIdsSearched []string  `firestore:"place_ids_searched"`
+	ExpiresAt        time.Time `firestore:"expires_at"`
+	CreatedAt        time.Time `firestore:"created_at,omitempty,serverTimestamp"`
+	UpdatedAt        time.Time `firestore:"updated_at,omitempty,serverTimestamp"`
 }
 
 func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
@@ -26,7 +29,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.PlaceInPlanCandidate) models.PlanCandidate {
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
 	var plans []models.Plan
 	for _, planId := range entity.PlanIds {
 		for _, place := range planEntities {
@@ -37,6 +40,9 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 			plan, err := FromPlanInCandidateEntity(planId, place.Name, places, place.PlaceIdsOrdered)
 			if err != nil {
 				log.Printf("error while converting entity.PlanCandidateEntity to models.PlanCandidate: %v", err)
+
+				// 正しく変換できない場合は、そのPlanを無視する
+				continue
 			}
 
 			plans = append(plans, *plan)
