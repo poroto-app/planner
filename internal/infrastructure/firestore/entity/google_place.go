@@ -72,10 +72,8 @@ func (g GooglePlaceEntity) toGooglePlaceDetail(photoEntities *[]GooglePlacePhoto
 	placeDetail := &models.GooglePlaceDetail{}
 	if g.OpeningHours != nil {
 		// Opening Hoursを取得
-		if g.OpeningHours != nil {
-			o := g.OpeningHours.ToGooglePlaceOpeningHours()
-			placeDetail.OpeningHours = &o
-		}
+		o := g.OpeningHours.ToGooglePlaceOpeningHours()
+		placeDetail.OpeningHours = &o
 	}
 
 	if photoEntities != nil {
