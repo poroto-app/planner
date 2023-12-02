@@ -18,3 +18,13 @@ func HasIntersection(a, b []string) bool {
 	}
 	return false
 }
+
+func StrArrayToSet(array []string) []string {
+	set := make([]string, 0)
+	for _, elem := range array {
+		if !IsContain(set, elem) {
+			set = append(set, elem)
+		}
+	}
+	return set
+}
