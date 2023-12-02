@@ -43,45 +43,10 @@ func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntit
 	}
 }
 
-func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity, reviewEntities []GooglePlaceReviewEntity) models.GooglePlace {
+func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity, reviewEntities *[]GooglePlaceReviewEntity) models.GooglePlace {
 	location := models.GeoLocation{
 		Latitude:  g.Location.Latitude,
 		Longitude: g.Location.Longitude,
-	}
-
-	// PlaceDetailを取得
-	var placeDetail *models.GooglePlaceDetail
-	if g.OpeningHours != nil {
-		placeDetail = &models.GooglePlaceDetail{}
-
-		// Opening Hoursを取得
-		if g.OpeningHours != nil {
-			o := g.OpeningHours.ToGooglePlaceOpeningHours()
-			placeDetail.OpeningHours = &o
-		}
-
-		// Photo Referenceを取得
-		var photoReferences []models.GooglePlacePhotoReference
-		for _, photo := range photoEntities {
-			photoReferences = append(photoReferences, photo.ToGooglePlacePhotoReference())
-		}
-		placeDetail.PhotoReferences = photoReferences
-
-		// Reviewを取得
-		var reviews []models.GooglePlaceReview
-		for _, reviewEntity := range reviewEntities {
-			reviews = append(reviews, reviewEntity.ToGooglePlaceReview())
-		}
-		placeDetail.Reviews = reviews
-	}
-
-	// 写真のURLを取得していた場合のみ写真を取得する
-	var photos []models.GooglePlacePhoto
-	for _, photo := range photoEntities {
-		photo := photo.ToGooglePlacePhoto()
-		if photo != nil {
-			photos = append(photos, *photo)
-		}
 	}
 
 	return models.GooglePlace{
@@ -94,7 +59,63 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities []GooglePlacePhotoEntity,
 		Rating:           g.Rating,
 		UserRatingsTotal: g.UserRatingsTotal,
 		PriceLevel:       g.PriceLevel,
-		Photos:           &photos,
-		PlaceDetail:      placeDetail,
+		Photos:           g.toGooglePlacePhotos(photoEntities),
+		PlaceDetail:      g.toGooglePlaceDetail(photoEntities, reviewEntities),
 	}
+}
+
+func (g GooglePlaceEntity) toGooglePlaceDetail(photoEntities *[]GooglePlacePhotoEntity, reviewEntities *[]GooglePlaceReviewEntity) *models.GooglePlaceDetail {
+	isOpeningHoursEmpty := g.OpeningHours == nil
+	isPhotoEmpty := photoEntities == nil || len(*photoEntities) == 0
+	isReviewEmpty := reviewEntities == nil || len(*reviewEntities) == 0
+	if isOpeningHoursEmpty && isPhotoEmpty && isReviewEmpty {
+		return nil
+	}
+
+	placeDetail := &models.GooglePlaceDetail{}
+	if g.OpeningHours != nil {
+		// Opening Hoursを取得
+		o := g.OpeningHours.ToGooglePlaceOpeningHours()
+		placeDetail.OpeningHours = &o
+	}
+
+	if photoEntities != nil {
+		// Photo Referenceを取得
+		var photoReferences []models.GooglePlacePhotoReference
+		for _, photo := range *photoEntities {
+			photoReferences = append(photoReferences, photo.ToGooglePlacePhotoReference())
+		}
+		placeDetail.PhotoReferences = photoReferences
+	}
+
+	if reviewEntities != nil {
+		// Reviewを取得
+		var reviews []models.GooglePlaceReview
+		for _, reviewEntity := range *reviewEntities {
+			reviews = append(reviews, reviewEntity.ToGooglePlaceReview())
+		}
+		placeDetail.Reviews = reviews
+	}
+
+	return placeDetail
+}
+
+func (g GooglePlaceEntity) toGooglePlacePhotos(photoEntities *[]GooglePlacePhotoEntity) *[]models.GooglePlacePhoto {
+	if photoEntities == nil {
+		return nil
+	}
+
+	var photos []models.GooglePlacePhoto
+	for _, photoEntity := range *photoEntities {
+		p := photoEntity.ToGooglePlacePhoto()
+		if p != nil {
+			photos = append(photos, *p)
+		}
+	}
+
+	if len(photos) == 0 {
+		return nil
+	}
+
+	return &photos
 }

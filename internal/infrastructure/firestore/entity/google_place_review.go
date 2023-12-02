@@ -3,7 +3,6 @@ package entity
 import "poroto.app/poroto/planner/internal/domain/models"
 
 type GooglePlaceReviewEntity struct {
-	GooglePlaceId    string  `firestore:"google_place_id"`
 	Rating           int     `firestore:"rating"`
 	Text             *string `firestore:"text,omitempty"`
 	Time             int     `firestore:"time"`
@@ -14,9 +13,8 @@ type GooglePlaceReviewEntity struct {
 	OriginalLanguage *string `firestore:"original_language,omitempty"`
 }
 
-func GooglePlaceReviewEntityFromGooglePlaceReview(review models.GooglePlaceReview, googlePlaceId string) GooglePlaceReviewEntity {
+func GooglePlaceReviewEntityFromGooglePlaceReview(review models.GooglePlaceReview) GooglePlaceReviewEntity {
 	return GooglePlaceReviewEntity{
-		GooglePlaceId:    googlePlaceId,
 		Rating:           int(review.Rating),
 		Text:             review.Text,
 		Time:             review.Time,

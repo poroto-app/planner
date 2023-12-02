@@ -11,21 +11,18 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
-	if place.Google.Photos == nil {
-		return nil
-	}
-
 	// TODO: not nil な値にする
 	var images []*graphql.Image
-	for _, photo := range *place.Google.Photos {
-		image := photo.ToImage()
-		images = append(images, &graphql.Image{
-			Default: image.Default(),
-			Small:   image.Small,
-			Large:   image.Large,
-		})
-	}
-	if images == nil {
+	if place.Google.Photos != nil {
+		for _, photo := range *place.Google.Photos {
+			image := photo.ToImage()
+			images = append(images, &graphql.Image{
+				Default: image.Default(),
+				Small:   image.Small,
+				Large:   image.Large,
+			})
+		}
+	} else {
 		images = make([]*graphql.Image, 0)
 	}
 
