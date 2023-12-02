@@ -28,6 +28,17 @@ func (p Place) MainCategory() *LocationCategory {
 	return &p.Categories()[0]
 }
 
+func (p Place) IsSameCategoryPlace(other Place) bool {
+	for _, categoryOfA := range p.Categories() {
+		for _, categoryOfB := range other.Categories() {
+			if categoryOfA.Name == categoryOfB.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (p Place) EstimatedStayDuration() uint {
 	categoryMain := p.MainCategory()
 	if categoryMain == nil {

@@ -22,15 +22,15 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 	}
 
 	log.Printf("Fetching searched places for plan candidate: %v\n", planCandidateId)
-	places, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, planCandidateId)
+	places, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf("Successfully fetched searched places for plan candidate: %v\n", planCandidateId)
 
-	// 追加する場所を取得する
-	var placeToAdd *models.PlaceInPlanCandidate
-	for _, place := range *places {
+	// 追加する場所を検索された場所一覧から取得する
+	var placeToAdd *models.Place
+	for _, place := range places {
 		if place.Id == placeId {
 			placeToAdd = &place
 			break
@@ -48,18 +48,15 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		}
 	}
 
-	googlePlaces := []models.GooglePlace{placeToAdd.Google}
-
 	// 画像を取得
 	log.Printf("Fetching photos and reviews for places for plan candidate: %v\n", planCandidateId)
-	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
+	placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, *placeToAdd)
+	placeToAdd = &placesWithPhoto[0]
 	log.Printf("Successfully fetched photos for places for plan candidate: %v\n", planCandidateId)
-
-	placeToAdd.Google = googlePlaces[0]
 
 	// プランに指定された場所を追加
 	log.Printf("Adding place to plan candidate %v\n", planCandidateId)
-	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, previousPlaceId, placeToAdd.ToPlace()); err != nil {
+	if err := s.planCandidateRepository.AddPlaceToPlan(ctx, planCandidateId, planId, previousPlaceId, *placeToAdd); err != nil {
 		return nil, fmt.Errorf("error while adding place to plan candidate: %v", err)
 	}
 	log.Printf("Successfully added place to plan candidate %v\n", planCandidateId)

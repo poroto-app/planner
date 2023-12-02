@@ -3,7 +3,6 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -40,13 +39,10 @@ func (s Service) CategoriesNearLocation(
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	places := make([]models.PlaceInPlanCandidate, 0)
-	for _, googlePlace := range placesSearched {
-		places = append(places, googlePlace.ToPlaceInPlanCandidate(uuid.New().String()))
-	}
-
-	if err := s.placeInPlanCandidateRepository.SavePlaces(ctx, params.CreatePlanSessionId, places); err != nil {
-		return nil, fmt.Errorf("error while saving places to cache: %v\n", err)
+	// 検索された場所を保存
+	places, err := s.placeService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving searched places: %v\n", err)
 	}
 
 	placesFiltered := places
@@ -77,7 +73,7 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.PlaceInPlanCandidate) bool {
+		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.Place) bool {
 			var placesAlreadyAdded []models.Place
 			for _, categoryWithPlaces := range categoriesWithPlaces {
 				placesAlreadyAdded = append(placesAlreadyAdded, categoryWithPlaces.Places...)
@@ -106,7 +102,7 @@ func (s Service) CategoriesNearLocation(
 		for _, place := range placesSortedByCategoryIndex {
 			googlePlaces = append(googlePlaces, place.Google)
 		}
-		googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
+		googlePlaces = s.placeService.FetchGooglePlacesDetailAndSave(ctx, params.CreatePlanSessionId, googlePlaces)
 		for i, place := range placesSortedByCategoryIndex {
 			for _, googlePlace := range googlePlaces {
 				if place.Google.PlaceId == googlePlace.PlaceId {
@@ -117,14 +113,9 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesInPlanCandidatePhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
+		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex...)
 
-		places := make([]models.Place, 0)
-		for _, place := range placesWithPhotos {
-			places = append(places, place.ToPlace())
-		}
-
-		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, places))
+		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, placesWithPhotos))
 	}
 
 	return categoriesWithPlaces, nil
@@ -132,13 +123,13 @@ func (s Service) CategoriesNearLocation(
 
 type groupPlacesByCategoryResult struct {
 	category string
-	places   []models.PlaceInPlanCandidate
+	places   []models.Place
 }
 
 // groupPlacesByCategory は場所をカテゴリごとにグループ化する
 // 同じ場所が複数のカテゴリに含まれることがある
-func groupPlacesByCategory(placesToGroup []models.PlaceInPlanCandidate) []groupPlacesByCategoryResult {
-	locationsGroupByCategory := make(map[string][]models.PlaceInPlanCandidate, 0)
+func groupPlacesByCategory(placesToGroup []models.Place) []groupPlacesByCategoryResult {
+	locationsGroupByCategory := make(map[string][]models.Place, 0)
 	for _, place := range placesToGroup {
 		for _, subCategory := range place.Google.Types {
 			category := models.CategoryOfSubCategory(subCategory)
@@ -147,7 +138,7 @@ func groupPlacesByCategory(placesToGroup []models.PlaceInPlanCandidate) []groupP
 			}
 
 			if _, ok := locationsGroupByCategory[category.Name]; ok {
-				locationsGroupByCategory[category.Name] = []models.PlaceInPlanCandidate{}
+				locationsGroupByCategory[category.Name] = []models.Place{}
 			}
 
 			locationsGroupByCategory[category.Name] = append(locationsGroupByCategory[category.Name], place)

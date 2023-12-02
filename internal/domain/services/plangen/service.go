@@ -14,7 +14,6 @@ type Service struct {
 	placesApi                  places.PlacesApi
 	placeService               place.Service
 	planCandidateRepository    repository.PlanCandidateRepository
-	placeRepository            repository.PlaceInPlanCandidateRepository
 	openaiChatCompletionClient openai.ChatCompletionClient
 }
 
@@ -34,11 +33,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeRepository, err := firestore.NewPlaceInPlanCandidateRepository(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("error while initializing place repository: %v", err)
-	}
-
 	openaiChatCompletionClient, err := openai.NewChatCompletionClient()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
@@ -48,7 +42,6 @@ func NewService(ctx context.Context) (*Service, error) {
 		placesApi:                  *placesApi,
 		placeService:               *placeService,
 		planCandidateRepository:    planCandidateRepository,
-		placeRepository:            *placeRepository,
 		openaiChatCompletionClient: *openaiChatCompletionClient,
 	}, nil
 }

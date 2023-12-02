@@ -1,5 +1,6 @@
 package models
 
+// TODO: 削除
 type PlaceInPlanCandidate struct {
 	Id     string
 	Google GooglePlace

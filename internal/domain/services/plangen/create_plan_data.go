@@ -11,30 +11,29 @@ import (
 
 type CreatePlanParams struct {
 	locationStart models.GeoLocation
-	placeStart    models.PlaceInPlanCandidate
-	places        []models.PlaceInPlanCandidate
+	placeStart    models.Place
+	places        []models.Place
 }
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
 func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
 	// レビュー・写真を取得する
 	performanceTimer := time.Now()
-	placeIdToPlaceDetailData := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
+	placeIdToPlaceWithPlaceDetail := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
 
 	ch := make(chan *models.Plan, len(params))
 
 	for _, param := range params {
 		go func(ctx context.Context, param CreatePlanParams, ch chan<- *models.Plan) {
-			placesInPlanCandidate := param.places
-
-			placesInPlanCandidate = sortPlacesByDistanceFrom(param.locationStart, placesInPlanCandidate)
+			// 出発地点から近い順に場所をめぐるように並び替え
+			placesSortedByDistance := sortPlacesByDistanceFrom(param.locationStart, param.places)
 
 			// プランのタイトルを生成
 			chPlanTitle := make(chan string, 1)
 			go func(ctx context.Context, chPlanTitle chan<- string) {
 				performanceTimer := time.Now()
-				title, err := s.GeneratePlanTitle(param.places)
+				title, err := s.GeneratePlanTitle(placesSortedByDistance)
 				if err != nil {
 					log.Printf("error while generating plan title: %v\n", err)
 					title = &param.placeStart.Google.Name
@@ -54,19 +53,19 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				title = param.placeStart.Google.Name
 			}
 
-			var places []models.Place
-			for i := 0; i < len(placesInPlanCandidate); i++ {
-				if value, ok := placeIdToPlaceDetailData[placesInPlanCandidate[i].Id]; ok {
-					placesInPlanCandidate[i].Google.Photos = value.photos
-					placesInPlanCandidate[i].Google.PlaceDetail = value.PlaceDetail
+			// プランに含まれる場所のレビューや写真をセットする
+			var placesInPlan []models.Place
+			for i, place := range param.places {
+				if value, ok := placeIdToPlaceWithPlaceDetail[place.Id]; ok {
+					param.places[i] = value
 				}
-				places = append(places, placesInPlanCandidate[i].ToPlace())
+				placesInPlan = append(placesInPlan, param.places[i])
 			}
 
 			ch <- &models.Plan{
 				Id:     uuid.New().String(),
 				Name:   title,
-				Places: places,
+				Places: placesInPlan,
 			}
 		}(ctx, param, ch)
 	}
@@ -83,17 +82,10 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	return plans
 }
 
-type placeDetail struct {
-	PlaceId       string
-	GooglePlaceId string
-	photos        *[]models.GooglePlacePhoto
-	PlaceDetail   *models.GooglePlaceDetail
-}
-
 // fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
-func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]placeDetail {
+func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]models.Place {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
-	placeIdToPlace := make(map[string]models.PlaceInPlanCandidate)
+	placeIdToPlace := make(map[string]models.Place)
 	for _, param := range params {
 		for _, place := range param.places {
 			placeIdToPlace[place.Id] = place
@@ -104,41 +96,17 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する
-	places := make([]models.PlaceInPlanCandidate, 0, len(placeIdToPlace))
+	placesToUpdate := make([]models.Place, 0, len(placeIdToPlace))
 	for _, place := range placeIdToPlace {
-		places = append(places, place)
+		placesToUpdate = append(placesToUpdate, place)
 	}
 
-	var googlePlaces []models.GooglePlace
-	for _, place := range places {
-		googlePlaces = append(googlePlaces, place.Google)
+	placesToUpdate = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, placesToUpdate)
+	placesToUpdate = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToUpdate...)
+
+	for _, place := range placesToUpdate {
+		placeIdToPlace[place.Id] = place
 	}
 
-	googlePlaces = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
-	googlePlaces = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
-
-	placeIdToPlaceDetail := make(map[string]placeDetail)
-	for _, place := range places {
-		for _, googlePlace := range googlePlaces {
-			if place.Google.PlaceId != googlePlace.PlaceId {
-				continue
-			}
-
-			var photos *[]models.GooglePlacePhoto
-			if googlePlace.Photos != nil {
-				photos = googlePlace.Photos
-			}
-
-			placeIdToPlaceDetail[place.Id] = placeDetail{
-				PlaceId:       place.Id,
-				GooglePlaceId: place.Google.PlaceId,
-				photos:        photos,
-				PlaceDetail:   place.Google.PlaceDetail,
-			}
-
-			break
-		}
-	}
-
-	return placeIdToPlaceDetail
+	return placeIdToPlace
 }
