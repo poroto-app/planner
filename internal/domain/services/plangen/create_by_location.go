@@ -14,8 +14,8 @@ import (
 func (s Service) CreatePlanByLocation(
 	ctx context.Context,
 	createPlanSessionId string,
-	locationStart models.GeoLocation,
-	// locationStart に対応する場所のID
+	baseLocation models.GeoLocation,
+	// baseLocation に対応する場所のID
 	// これが指定されると、対応する場所を起点としてプランを作成する
 	googlePlaceId *string,
 	categoryNamesPreferred *[]string,
@@ -37,7 +37,7 @@ func (s Service) CreatePlanByLocation(
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: locationStart})
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: baseLocation})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
 		}
@@ -97,6 +97,7 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
+		BaseLocation:           baseLocation,
 		Places:                 placesFiltered,
 		CategoryNamesPreferred: categoryNamesPreferred,
 		CategoryNamesDisliked:  categoryNamesDisliked,
@@ -119,7 +120,7 @@ func (s Service) CreatePlanByLocation(
 			ctx,
 			CreatePlanPlacesParams{
 				planCandidateId:              createPlanSessionId,
-				locationStart:                locationStart,
+				locationStart:                baseLocation,
 				placeStart:                   placeRecommend,
 				places:                       placesFiltered,
 				placesOtherPlansContain:      placesInPlan,
@@ -134,7 +135,7 @@ func (s Service) CreatePlanByLocation(
 		}
 
 		createPlanParams = append(createPlanParams, CreatePlanParams{
-			locationStart: locationStart,
+			locationStart: baseLocation,
 			placeStart:    placeRecommend,
 			places:        planPlaces,
 		})

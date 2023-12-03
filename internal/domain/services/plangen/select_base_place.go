@@ -8,14 +8,17 @@ import (
 
 const (
 	maxBasePlaceCount = 3
+	defaultRadius     = 800
 )
 
 type SelectBasePlaceInput struct {
+	BaseLocation           models.GeoLocation
 	Places                 []models.Place
 	CategoryNamesPreferred *[]string
 	CategoryNamesDisliked  *[]string
 	ShouldOpenNow          bool
 	MaxBasePlaceCount      int
+	Radius                 int
 }
 
 // SelectBasePlace は，プランの起点となる場所を選択する
@@ -24,7 +27,18 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 		input.MaxBasePlaceCount = maxBasePlaceCount
 	}
 
+	if input.Radius == 0 {
+		input.Radius = defaultRadius
+	}
+
+	if input.BaseLocation.IsZero() {
+		panic("base location is zero value")
+	}
+
 	places := input.Places
+
+	// スタート地点から800m圏外の場所を除外する
+	places = placefilter.FilterWithinDistanceRange(places, input.BaseLocation, 0, float64(input.Radius))
 
 	// ユーザーが拒否した場所は取り除く
 	if input.CategoryNamesDisliked != nil {
