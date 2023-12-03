@@ -5,6 +5,37 @@ import (
 	"testing"
 )
 
+func TestGeoLocation_IsZero(t *testing.T) {
+	cases := []struct {
+		name     string
+		location GeoLocation
+		expected bool
+	}{
+		{
+			name:     "Zero location",
+			location: GeoLocation{},
+			expected: true,
+		},
+		{
+			name: "Non-zero location",
+			location: GeoLocation{
+				Latitude:  35.658581,
+				Longitude: 139.745433,
+			},
+			expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := c.location.IsZero()
+			if result != c.expected {
+				t.Errorf("expected: %v\nactual: %v", c.expected, result)
+			}
+		})
+	}
+}
+
 func TestDistanceInMeter(t *testing.T) {
 	cases := []struct {
 		name      string
