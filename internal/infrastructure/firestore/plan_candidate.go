@@ -132,6 +132,36 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	return &planCandidate, nil
 }
 
+func (p *PlanCandidateFirestoreRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
+	doc := p.subCollectionPlans(planCandidateId).Doc(planId)
+
+	snapshot, err := doc.Get(ctx)
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("error while finding plan: %v", err)
+	}
+
+	var planInCandidateEntity entity.PlanInCandidateEntity
+	if err = snapshot.DataTo(&planInCandidateEntity); err != nil {
+		return nil, fmt.Errorf("error while converting snapshot to plan entity: %v", err)
+	}
+
+	places, err := p.PlaceRepository.findByPlaceIds(ctx, planInCandidateEntity.PlaceIdsOrdered)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching places: %v", err)
+	}
+
+	plan, err := planInCandidateEntity.ToPlan(*places)
+	if err != nil {
+		return nil, fmt.Errorf("error while converting plan entity to plan: %v", err)
+	}
+
+	return plan, nil
+}
+
 func (p *PlanCandidateFirestoreRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
 	var planCandidateIds []string
 

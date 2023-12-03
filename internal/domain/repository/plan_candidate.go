@@ -14,6 +14,8 @@ type PlanCandidateRepository interface {
 
 	Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error)
 
+	FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error)
+
 	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
 
 	// AddSearchedPlacesForPlanCandidate は models.PlanCandidate を作成するために検索した場所を保存する

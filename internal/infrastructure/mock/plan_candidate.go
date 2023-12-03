@@ -27,6 +27,11 @@ func (p PlanRepository) Find(ctx context.Context, planCandidateId string) (*mode
 	panic("implement me")
 }
 
+func (p PlanRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p PlanRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
 	var values []string
 	for _, value := range p.Data {
