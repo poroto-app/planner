@@ -10,20 +10,29 @@ const (
 	maxBasePlaceCount = 3
 )
 
-// selectBasePlace は，プランの起点となる場所を選択する
-func (s Service) selectBasePlace(
-	places []models.Place,
-	categoryNamesPreferred *[]string,
-	categoryNamesDisliked *[]string,
-	shouldOpenNow bool,
-) []models.Place {
+type SelectBasePlaceInput struct {
+	Places                 []models.Place
+	CategoryNamesPreferred *[]string
+	CategoryNamesDisliked  *[]string
+	ShouldOpenNow          bool
+	MaxBasePlaceCount      int
+}
+
+// SelectBasePlace は，プランの起点となる場所を選択する
+func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
+	if input.MaxBasePlaceCount == 0 {
+		input.MaxBasePlaceCount = maxBasePlaceCount
+	}
+
+	places := input.Places
+
 	// ユーザーが拒否した場所は取り除く
-	if categoryNamesDisliked != nil {
-		categoriesDisliked := models.GetCategoriesFromSubCategories(*categoryNamesDisliked)
+	if input.CategoryNamesDisliked != nil {
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
 	}
 
-	if shouldOpenNow {
+	if input.ShouldOpenNow {
 		places = placefilter.FilterByOpeningNow(places)
 	}
 

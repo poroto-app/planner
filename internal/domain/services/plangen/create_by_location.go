@@ -90,12 +90,19 @@ func (s Service) CreatePlanByLocation(
 		}
 	}
 
-	placesRecommend = append(placesRecommend, s.selectBasePlace(
-		placesFiltered,
-		categoryNamesPreferred,
-		categoryNamesDisliked,
-		createBasedOnCurrentLocation,
-	)...)
+	// 場所を指定してプランを作成する場合は、指定した場所も含めて３つの場所を基準にプランを作成する
+	maxBasePlaceCount := 3
+	if googlePlaceId != nil {
+		maxBasePlaceCount = 2
+	}
+
+	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
+		Places:                 placesFiltered,
+		CategoryNamesPreferred: categoryNamesPreferred,
+		CategoryNamesDisliked:  categoryNamesDisliked,
+		ShouldOpenNow:          false,
+		MaxBasePlaceCount:      maxBasePlaceCount,
+	})...)
 	for _, place := range placesRecommend {
 		log.Printf("place recommended: %s\n", place.Google.Name)
 	}
