@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	maxBasePlaceCount = 3
-	defaultRadius     = 800
+	defaultMaxBasePlaceCount = 3
+	defaultRadius            = 800
 )
 
 type SelectBasePlaceInput struct {
@@ -24,7 +24,7 @@ type SelectBasePlaceInput struct {
 // SelectBasePlace は，プランの起点となる場所を選択する
 func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 	if input.MaxBasePlaceCount == 0 {
-		input.MaxBasePlaceCount = maxBasePlaceCount
+		input.MaxBasePlaceCount = defaultMaxBasePlaceCount
 	}
 
 	if input.Radius == 0 {
@@ -52,15 +52,15 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 
 	// カテゴリごとにレビューの高い場所から選択する
 	placesSelected := selectByReview(places)
-	if len(placesSelected) == maxBasePlaceCount {
+	if len(placesSelected) == input.MaxBasePlaceCount {
 		return placesSelected
 	}
 
 	// 選択された場所から遠い場所を選択する
 	placesSelected = selectByDistanceFromPlaces(places, placesSelected)
 
-	if len(placesSelected) > maxBasePlaceCount {
-		return placesSelected[:maxBasePlaceCount]
+	if len(placesSelected) > input.MaxBasePlaceCount {
+		return placesSelected[:input.MaxBasePlaceCount]
 	}
 
 	return placesSelected
@@ -99,7 +99,7 @@ func selectByReview(places []models.Place) []models.Place {
 		}
 
 		placesSelected = append(placesSelected, place)
-		if len(placesSelected) == maxBasePlaceCount {
+		if len(placesSelected) == defaultMaxBasePlaceCount {
 			break
 		}
 	}
