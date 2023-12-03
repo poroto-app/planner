@@ -31,14 +31,9 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 	}
 }
 
-func FromPlanInCandidateEntity(
-	id string,
-	name string,
-	places []models.Place,
-	placeIdsOrdered []string,
-) (*models.Plan, error) {
-	placesOrdered := make([]models.Place, len(placeIdsOrdered))
-	for i, placeIdOrdered := range placeIdsOrdered {
+func (p PlanInCandidateEntity) ToPlan(places []models.Place) (*models.Plan, error) {
+	placesOrdered := make([]models.Place, len(p.PlaceIdsOrdered))
+	for i, placeIdOrdered := range p.PlaceIdsOrdered {
 		for _, place := range places {
 			if place.Id == placeIdOrdered {
 				placesOrdered[i] = place
@@ -47,13 +42,13 @@ func FromPlanInCandidateEntity(
 	}
 
 	// 整合性の確認
-	if err := validatePlaceEntity(placesOrdered, placeIdsOrdered); err != nil {
+	if err := validatePlaceEntity(placesOrdered, p.PlaceIdsOrdered); err != nil {
 		return nil, fmt.Errorf("places in plan candidate is invalid: %w", err)
 	}
 
 	return &models.Plan{
-		Id:     id,
-		Name:   name,
+		Id:     p.Id,
+		Name:   p.Name,
 		Places: placesOrdered,
 	}, nil
 }
