@@ -120,9 +120,12 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		plans = append(plans, plan)
 	}
 
-	//　検索された場所を取得
-	placeIdsSearched := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
-	places, err := p.PlaceRepository.findByPlaceIds(ctx, placeIdsSearched)
+	//　プランに含まれる場所を取得
+	var placeIdsInPlan []string
+	for _, plan := range plans {
+		placeIdsInPlan = append(placeIdsInPlan, plan.PlaceIdsOrdered...)
+	}
+	places, err := p.PlaceRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIdsInPlan))
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
