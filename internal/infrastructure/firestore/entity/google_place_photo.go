@@ -8,7 +8,6 @@ import (
 // GooglePlacePhotoEntity 場所の写真
 // models.GooglePlacePhoto だけでなく、 models.GooglePlacePhotoReference としても扱う（画像を取得しているかどうかの差のみのため）
 type GooglePlacePhotoEntity struct {
-	GooglePlaceId    string   `firestore:"google_place_id"`
 	PhotoReference   string   `firestore:"photo_reference"`
 	Width            int      `firestore:"width"`
 	Height           int      `firestore:"height"`
@@ -17,9 +16,8 @@ type GooglePlacePhotoEntity struct {
 	Large            *string  `firestore:"large,omitempty"`
 }
 
-func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) GooglePlacePhotoEntity {
+func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePlacePhoto) GooglePlacePhotoEntity {
 	return GooglePlacePhotoEntity{
-		GooglePlaceId:    googlePlaceId,
 		PhotoReference:   googlePlacePhoto.PhotoReference,
 		Width:            googlePlacePhoto.Width,
 		Height:           googlePlacePhoto.Height,
@@ -29,9 +27,8 @@ func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePl
 	}
 }
 
-func GooglePlacePhotoEntityFromGooglePhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) GooglePlacePhotoEntity {
+func GooglePlacePhotoEntityFromGooglePhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference) GooglePlacePhotoEntity {
 	return GooglePlacePhotoEntity{
-		GooglePlaceId:    googlePlaceId,
 		PhotoReference:   googlePlacePhotoReference.PhotoReference,
 		Width:            googlePlacePhotoReference.Width,
 		Height:           googlePlacePhotoReference.Height,

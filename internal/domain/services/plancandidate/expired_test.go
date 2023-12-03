@@ -13,12 +13,10 @@ import (
 
 func TestDeleteExpiredPlanCandidates(t *testing.T) {
 	cases := []struct {
-		name                       string
-		expiresAt                  time.Time
-		planCandidates             map[string]models.PlanCandidate
-		places                     map[string][]models.PlaceInPlanCandidate
-		expectedPlanCandidates     map[string]models.PlanCandidate
-		expectedPlaceSearchResults map[string][]models.PlaceInPlanCandidate
+		name                   string
+		expiresAt              time.Time
+		planCandidates         map[string]models.PlanCandidate
+		expectedPlanCandidates map[string]models.PlanCandidate
 	}{
 		{
 			name:      "expired plan candidates are deleted",
@@ -37,30 +35,20 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
-			places: map[string][]models.PlaceInPlanCandidate{
-				"planCandidate1": {{Id: "place1"}},
-				"planCandidate2": {{Id: "place2"}},
-				"planCandidate3": {{Id: "place3"}},
-			},
 			expectedPlanCandidates: map[string]models.PlanCandidate{
 				"planCandidate3": {
 					Id:        "planCandidate3",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
-			expectedPlaceSearchResults: map[string][]models.PlaceInPlanCandidate{
-				"planCandidate3": {{Id: "place3"}},
-			},
 		},
 	}
 
 	for _, c := range cases {
 		planCandidateRepository := mock.NewPlanCandidateRepository(c.planCandidates)
-		planSearchResultRepository := mock.NewPlaceInPlanCandidateRepository(c.places)
 
 		service := Service{
-			planCandidateRepository:        planCandidateRepository,
-			placeInPlanCandidateRepository: planSearchResultRepository,
+			planCandidateRepository: planCandidateRepository,
 		}
 
 		err := service.DeleteExpiredPlanCandidates(context.Background(), c.expiresAt)
@@ -70,10 +58,6 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 
 		if diff := cmp.Diff(c.expectedPlanCandidates, c.planCandidates); diff != "" {
 			t.Errorf("unexpected plan candidates (-want +got):\n%s", diff)
-		}
-
-		if diff := cmp.Diff(c.expectedPlaceSearchResults, c.places); diff != "" {
-			t.Errorf("unexpected place search results (-want +got):\n%s", diff)
 		}
 	}
 }

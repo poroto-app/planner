@@ -20,7 +20,7 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 	placeIdsOrdered := make([]string, len(plan.Places))
 
 	for i, place := range plan.Places {
-		ps[i] = ToPlaceEntity(place)
+		ps[i] = NewPlaceEntityFromPlace(place)
 		placeIdsOrdered[i] = place.Id
 	}
 
@@ -34,20 +34,20 @@ func ToPlanInCandidateEntity(plan models.Plan) PlanInCandidateEntity {
 func FromPlanInCandidateEntity(
 	id string,
 	name string,
-	places []models.PlaceInPlanCandidate,
+	places []models.Place,
 	placeIdsOrdered []string,
 ) (*models.Plan, error) {
 	placesOrdered := make([]models.Place, len(placeIdsOrdered))
 	for i, placeIdOrdered := range placeIdsOrdered {
 		for _, place := range places {
 			if place.Id == placeIdOrdered {
-				placesOrdered[i] = place.ToPlace()
+				placesOrdered[i] = place
 			}
 		}
 	}
 
 	// 整合性の確認
-	if err := validatePlaceInPlanCandidateEntity(placesOrdered, placeIdsOrdered); err != nil {
+	if err := validatePlaceEntity(placesOrdered, placeIdsOrdered); err != nil {
 		return nil, fmt.Errorf("places in plan candidate is invalid: %w", err)
 	}
 
@@ -58,8 +58,8 @@ func FromPlanInCandidateEntity(
 	}, nil
 }
 
-// validatePlaceInPlanCandidateEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
-func validatePlaceInPlanCandidateEntity(places []models.Place, placeIdsOrdered []string) error {
+// validatePlaceEntity はプラン候補内プランの場所一覧と順序指定のID配列の整合性をチェックする
+func validatePlaceEntity(places []models.Place, placeIdsOrdered []string) error {
 	// 順序指定ID配列の数が正しいかどうか　を確認
 	if len(places) != len(placeIdsOrdered) {
 		return fmt.Errorf("the length of placeIdsOrdered is invalid")

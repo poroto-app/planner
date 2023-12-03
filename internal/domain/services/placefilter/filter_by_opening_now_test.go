@@ -9,12 +9,12 @@ import (
 func TestFilterByOpeningNow(t *testing.T) {
 	cases := []struct {
 		name           string
-		placesToFilter []models.PlaceInPlanCandidate
-		expected       []models.PlaceInPlanCandidate
+		placesToFilter []models.Place
+		expected       []models.Place
 	}{
 		{
 			name: "should filter places by opening now",
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{OpenNow: true},
@@ -24,7 +24,7 @@ func TestFilterByOpeningNow(t *testing.T) {
 					Google: models.GooglePlace{OpenNow: false},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{OpenNow: true},

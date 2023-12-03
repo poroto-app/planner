@@ -2,81 +2,52 @@ package entity
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
-// PlaceEntity
 type PlaceEntity struct {
-	Id                 string                     `firestore:"id"`
-	GooglePlaceId      *string                    `firestore:"google_place_id"`
-	Name               string                     `firestore:"name"`
-	Location           GeoLocationEntity          `firestore:"location"`
-	Images             []ImageEntity              `firestore:"images"`
-	GooglePlaceReviews *[]GooglePlaceReviewEntity `firestore:"google_place_reviews,omitempty"`
-	Categories         []string                   `firestore:"categories"`
-	PriceLevel         int                        `firestore:"price_level"`
+	Id            string    `firestore:"id"`
+	Name          string    `firestore:"name"`
+	GooglePlaceId string    `firestore:"google_place_id"`
+	Latitude      float64   `firestore:"latitude"`
+	Longitude     float64   `firestore:"longitude"`
+	GeoHash       string    `firestore:"geohash"`
+	CreatedAt     time.Time `firestore:"created_at,serverTimestamp,omitempty"`
+	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
 }
 
-func ToPlaceEntity(place models.Place) PlaceEntity {
-	var googlePlaceReviews *[]GooglePlaceReviewEntity
-	if place.GooglePlaceReviews != nil {
-		googlePlaceReviews = new([]GooglePlaceReviewEntity)
-		for _, review := range *place.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, GooglePlaceReviewEntityFromGooglePlaceReview(review, *place.GooglePlaceId))
-		}
-	}
-
-	var images []ImageEntity
-	for _, image := range place.Images {
-		images = append(images, ToImageEntity(*place.GooglePlaceId, image))
-	}
-
-	var categories []string
-	for _, category := range place.Categories {
-		categories = append(categories, category.Name)
-	}
-
+func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
 	return PlaceEntity{
-		Id:                 place.Id,
-		GooglePlaceId:      place.GooglePlaceId,
-		Name:               place.Name,
-		Location:           ToGeoLocationEntity(place.Location),
-		Images:             images,
-		GooglePlaceReviews: googlePlaceReviews,
-		Categories:         categories,
-		PriceLevel:         place.PriceLevel,
+		Id:            place.Id,
+		Name:          place.Name,
+		GooglePlaceId: place.Google.PlaceId,
+		Latitude:      place.Location.Latitude,
+		Longitude:     place.Location.Longitude,
+		GeoHash:       place.Location.GeoHash(),
+		UpdatedAt:     time.Now(),
 	}
 }
 
-func FromPlaceEntity(entity PlaceEntity) models.Place {
-	var googlePlaceReviews *[]models.GooglePlaceReview
-	if entity.GooglePlaceReviews != nil {
-		googlePlaceReviews = new([]models.GooglePlaceReview)
-		for _, review := range *entity.GooglePlaceReviews {
-			*googlePlaceReviews = append(*googlePlaceReviews, review.ToGooglePlaceReview())
-		}
+func NewPlaceEntityFromGooglePlace(placeId string, googlePlace models.GooglePlace) PlaceEntity {
+	return PlaceEntity{
+		Id:            placeId,
+		Name:          googlePlace.Name,
+		GooglePlaceId: googlePlace.PlaceId,
+		Latitude:      googlePlace.Location.Latitude,
+		Longitude:     googlePlace.Location.Longitude,
+		GeoHash:       googlePlace.Location.GeoHash(),
+		UpdatedAt:     time.Now(),
 	}
+}
 
-	var images []models.Image
-	for _, image := range entity.Images {
-		images = append(images, FromImageEntity(image))
-	}
-
-	var categories []models.LocationCategory
-	for _, category := range entity.Categories {
-		c := models.GetCategoryOfName(category)
-		if c != nil {
-			categories = append(categories, *c)
-		}
-	}
-
+func (p PlaceEntity) ToPlace(googlePlace models.GooglePlace) models.Place {
 	return models.Place{
-		Id:                 entity.Id,
-		GooglePlaceId:      entity.GooglePlaceId,
-		Name:               entity.Name,
-		Location:           FromGeoLocationEntity(entity.Location),
-		Images:             images,
-		GooglePlaceReviews: googlePlaceReviews,
-		Categories:         categories,
-		PriceLevel:         entity.PriceLevel,
+		Id:     p.Id,
+		Name:   p.Name,
+		Google: googlePlace,
+		Location: models.GeoLocation{
+			Latitude:  p.Latitude,
+			Longitude: p.Longitude,
+		},
 	}
 }

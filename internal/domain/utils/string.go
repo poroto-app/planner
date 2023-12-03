@@ -11,6 +11,13 @@ func StrOmitEmpty(s string) *string {
 	return &s
 }
 
+func StrEmptyIfNil(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
 func StrCopyPointerValue(s *string) *string {
 	if s == nil {
 		return nil

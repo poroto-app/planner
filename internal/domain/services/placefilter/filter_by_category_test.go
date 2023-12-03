@@ -11,14 +11,14 @@ func TestFuncFilterByCategory(t *testing.T) {
 	cases := []struct {
 		name                   string
 		includeGivenCategories bool
-		placesToFilter         []models.PlaceInPlanCandidate
+		placesToFilter         []models.Place
 		categories             []models.LocationCategory
-		expected               []models.PlaceInPlanCandidate
+		expected               []models.Place
 	}{
 		{
 			name:                   "should filter places by category and include given categories",
 			includeGivenCategories: true,
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{Types: []string{"museum"}},
@@ -34,7 +34,7 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"museum"},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{Types: []string{"museum"}},
@@ -44,7 +44,7 @@ func TestFuncFilterByCategory(t *testing.T) {
 		{
 			name:                   "should filter places by category and exclude given categories",
 			includeGivenCategories: false,
-			placesToFilter: []models.PlaceInPlanCandidate{
+			placesToFilter: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{Types: []string{"museum"}},
@@ -60,7 +60,7 @@ func TestFuncFilterByCategory(t *testing.T) {
 					SubCategories: []string{"atm"},
 				},
 			},
-			expected: []models.PlaceInPlanCandidate{
+			expected: []models.Place{
 				{
 					Id:     "Place_1",
 					Google: models.GooglePlace{Types: []string{"museum"}},

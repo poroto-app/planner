@@ -20,7 +20,7 @@ func (s Service) FetchCandidatePlaces(
 		panic("nLimit must be greater than 0")
 	}
 
-	placesSaved, err := s.placeInPlanCandidateRepository.FindByPlanCandidateId(ctx, createPlanSessionId)
+	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (s Service) FetchCandidatePlaces(
 		return nil, err
 	}
 
-	placesFiltered := *placesSaved
+	placesFiltered := placesSearched
 	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
 	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
@@ -62,7 +62,7 @@ func (s Service) FetchCandidatePlaces(
 
 		place.Google.Photos = &[]models.GooglePlacePhoto{*thumbnail}
 
-		placesToSuggest = append(placesToSuggest, place.ToPlace())
+		placesToSuggest = append(placesToSuggest, place)
 
 		if len(placesToSuggest) >= nLimit {
 			break

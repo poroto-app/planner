@@ -3,12 +3,11 @@ package plangen
 import (
 	"context"
 	"fmt"
-	"log"
-
-	"github.com/google/uuid"
 	"googlemaps.github.io/maps"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
@@ -25,35 +24,30 @@ func (s Service) CreatePlanByLocation(
 	createBasedOnCurrentLocation bool,
 ) (*[]models.Plan, error) {
 	// 付近の場所を検索
-	var places []models.PlaceInPlanCandidate
+	var places []models.Place
 
-	//　キャッシュがあれば利用する
-	placesSaved, err := s.placeRepository.FindByPlanCandidateId(ctx, createPlanSessionId)
+	// すでに検索を行っている場合はその結果を取得
+	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
-		log.Printf("error while fetching places from cache: %v\n", err)
-	} else if placesSaved != nil {
+		log.Printf("error while fetching searched places for plan candidate %v: %v\n", createPlanSessionId, err)
+	} else if placesSearched != nil {
 		log.Printf("use cached places[%v]\n", createPlanSessionId)
-		places = *placesSaved
+		places = placesSearched
 	}
 
+	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, locationStart)
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: locationStart})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
 		}
 
-		var placesSearched []models.PlaceInPlanCandidate
-		for _, googlePlace := range googlePlaces {
-			place := googlePlace.ToPlaceInPlanCandidate(uuid.New().String())
-			placesSearched = append(placesSearched, place)
+		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
+		if err != nil {
+			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
 		}
 
-		if err := s.placeRepository.SavePlaces(ctx, createPlanSessionId, placesSearched); err != nil {
-			log.Printf("error while saving places to cache: %v\n", err)
-		}
-		log.Printf("saved %d places[%v]\n", len(places), createPlanSessionId)
-
-		places = placesSearched
+		places = placesSaved
 	}
 
 	placesFiltered := places
@@ -77,7 +71,7 @@ func (s Service) CreatePlanByLocation(
 	log.Printf("places filtered: %v\n", len(placesFiltered))
 
 	// プラン作成の基準となる場所を選択
-	var placesRecommend []models.PlaceInPlanCandidate
+	var placesRecommend []models.Place
 
 	// 指定された場所の情報を取得する
 	if googlePlaceId != nil {
@@ -109,7 +103,7 @@ func (s Service) CreatePlanByLocation(
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	var createPlanParams []CreatePlanParams
 	for _, placeRecommend := range placesRecommend {
-		var placesInPlan []models.PlaceInPlanCandidate
+		var placesInPlan []models.Place
 		for _, createPlanParam := range createPlanParams {
 			placesInPlan = append(placesInPlan, createPlanParam.places...)
 		}
@@ -149,7 +143,7 @@ func (s Service) CreatePlanByLocation(
 			}
 
 			firstPlace := plan.Places[0]
-			if firstPlace.GooglePlaceId != nil && *firstPlace.GooglePlaceId == *googlePlaceId {
+			if firstPlace.Google.PlaceId == *googlePlaceId {
 				plans[0], plans[i] = plans[i], plans[0]
 				break
 			}
@@ -164,9 +158,9 @@ func (s Service) CreatePlanByLocation(
 func (s Service) findOrFetchPlaceById(
 	ctx context.Context,
 	planCandidateId string,
-	placesSearched []models.PlaceInPlanCandidate,
+	placesSearched []models.Place,
 	googlePlaceId string,
-) (place *models.PlaceInPlanCandidate, found bool, err error) {
+) (place *models.Place, found bool, err error) {
 	for _, placeSearched := range placesSearched {
 		if placeSearched.Google.PlaceId == googlePlaceId {
 			place = &placeSearched
@@ -179,7 +173,7 @@ func (s Service) findOrFetchPlaceById(
 		return place, true, nil
 	}
 
-	googlePlaceEntity, err := s.placeService.FetchPlace(ctx, googlePlaceId)
+	googlePlaceEntity, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
@@ -189,12 +183,16 @@ func (s Service) findOrFetchPlaceById(
 	}
 
 	// キャッシュする
-	p := googlePlaceEntity.ToPlaceInPlanCandidate(uuid.New().String())
-	if err := s.placeRepository.SavePlaces(ctx, planCandidateId, []models.PlaceInPlanCandidate{p}); err != nil {
-		return nil, false, fmt.Errorf("error while saving place to PlaceInPlanCandidateRepository: %v\n", err)
+	places, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{*googlePlaceEntity})
+	if err != nil {
+		return nil, false, fmt.Errorf("error while saving searched places: %v", err)
 	}
 
-	place = &p
+	if len(places) == 0 {
+		return nil, false, fmt.Errorf("could not save searched places")
+	}
+
+	place = &places[0]
 
 	return place, false, nil
 }

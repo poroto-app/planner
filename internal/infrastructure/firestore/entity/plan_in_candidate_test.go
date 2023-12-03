@@ -11,7 +11,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 	cases := []struct {
 		name     string
 		entity   PlanInCandidateEntity
-		places   []models.PlaceInPlanCandidate
+		places   []models.Place
 		expected *models.Plan
 	}{
 		{
@@ -19,7 +19,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			entity: PlanInCandidateEntity{
 				PlaceIdsOrdered: []string{"02", "01"},
 			},
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{Id: "01"},
 				{Id: "02"},
 			},
@@ -35,7 +35,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			entity: PlanInCandidateEntity{
 				PlaceIdsOrdered: []string{"01", "01"},
 			},
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{Id: "01"},
 				{Id: "02"},
 			},
@@ -46,7 +46,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			entity: PlanInCandidateEntity{
 				PlaceIdsOrdered: []string{"10", "20"},
 			},
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{Id: "01"},
 				{Id: "02"},
 			},
@@ -57,7 +57,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 			entity: PlanInCandidateEntity{
 				PlaceIdsOrdered: []string{"01", "02", "03"},
 			},
-			places: []models.PlaceInPlanCandidate{
+			places: []models.Place{
 				{Id: "01"},
 				{Id: "02"},
 			},
@@ -128,7 +128,7 @@ func TestValidatePlanInCandidateEntity(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			err := validatePlaceInPlanCandidateEntity(
+			err := validatePlaceEntity(
 				c.places,
 				c.placeIdsOrdered,
 			)

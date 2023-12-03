@@ -3,13 +3,14 @@ package place
 import (
 	"context"
 	"fmt"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// FetchPlace PlaceDetail APIを用いて場所の情報を取得する
-func (s Service) FetchPlace(ctx context.Context, googlePlaceId string) (*models.GooglePlace, error) {
+// FetchGooglePlace PlaceDetail APIを用いて場所の情報を取得する
+func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*models.GooglePlace, error) {
 	placeDetailEntity, err := s.placesApi.FetchPlaceDetail(ctx, places.FetchPlaceDetailRequest{
 		PlaceId:  googlePlaceId,
 		Language: "ja",
@@ -30,7 +31,7 @@ func (s Service) FetchPlace(ctx context.Context, googlePlaceId string) (*models.
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
 func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する
-	savedPlace, err := s.placeInPlanCandidateRepository.FindByGooglePlaceId(ctx, planCandidateId, googlePlaceId)
+	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch google place detail: %v", err)
 	}
@@ -54,15 +55,15 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 	placeDetail := factory.GooglePlaceDetailFromPlaceDetailEntity(*placeDetailEntity.PlaceDetail)
 
 	// キャッシュする
-	if err := s.placeInPlanCandidateRepository.SaveGooglePlaceDetail(ctx, planCandidateId, googlePlaceId, placeDetail); err != nil {
+	if err := s.placeRepository.SaveGooglePlaceDetail(ctx, googlePlaceId, placeDetail); err != nil {
 		return nil, fmt.Errorf("could not save google place detail: %v", err)
 	}
 
 	return &placeDetail, nil
 }
 
-// FetchPlacesDetailAndSave 複数の場所の Place Detail 情報を並行に取得し、保存する
-func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.GooglePlace) []models.GooglePlace {
+// FetchGooglePlacesDetailAndSave 複数の場所の Place Detail 情報を並行に取得し、保存する
+func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.GooglePlace) []models.GooglePlace {
 	if len(places) == 0 {
 		return nil
 	}
@@ -71,6 +72,7 @@ func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId s
 	for _, place := range places {
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
 			if place.PlaceDetail != nil {
+				log.Printf("skip fetching place detail because place detail already exist: %v\n", place.PlaceId)
 				ch <- &place
 				return
 			}
@@ -98,6 +100,21 @@ func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId s
 				places[iPlace] = *placeWithPlaceDetail
 			}
 		}
+	}
+
+	return places
+}
+
+func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+	googlePlaces := make([]models.GooglePlace, len(places))
+	for i, place := range places {
+		googlePlaces[i] = place.Google
+	}
+
+	googlePlaces = s.FetchGooglePlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
+
+	for i, googlePlace := range googlePlaces {
+		places[i].Google = googlePlace
 	}
 
 	return places

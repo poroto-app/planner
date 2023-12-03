@@ -32,6 +32,19 @@ func TestStrOmitEmpty(t *testing.T) {
 	}
 }
 
+func TestStrEmptyIfNil(t *testing.T) {
+	input := "test"
+	result := StrEmptyIfNil(&input)
+	if result != "test" {
+		t.Errorf("StrEmptyIfNil(%v) = %v, want %v", "test", result, "test")
+	}
+
+	result = StrEmptyIfNil(nil)
+	if result != "" {
+		t.Errorf("StrEmptyIfNil(%v) = %v, want %v", "nil", result, "")
+	}
+}
+
 func TestStrCopyPointerValue(t *testing.T) {
 	input := "test"
 	result := StrCopyPointerValue(&input)

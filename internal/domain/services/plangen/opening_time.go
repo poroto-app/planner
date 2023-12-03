@@ -7,7 +7,7 @@ import (
 )
 
 // isOpeningWithIn は，指定された場所が指定された時間内に開いているかを判定する
-func (s Service) isOpeningWithIn(place models.PlaceInPlanCandidate, startTime time.Time, duration time.Duration) (bool, error) {
+func (s Service) isOpeningWithIn(place models.Place, startTime time.Time, duration time.Duration) (bool, error) {
 	isOpeningAtStartTime, err := place.Google.IsOpening(startTime)
 	if err != nil {
 		return false, fmt.Errorf("error while checking opening hours: %v", err)

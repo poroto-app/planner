@@ -70,3 +70,39 @@ func TestIsContain(t *testing.T) {
 		})
 	}
 }
+
+func TestStrArrayToSet(t *testing.T) {
+	cases := []struct {
+		name     string
+		array    []string
+		expected []string
+	}{
+		{
+			name:     "no duplicate",
+			array:    []string{"a", "b", "c"},
+			expected: []string{"a", "b", "c"},
+		}, {
+			name:     "has duplicate",
+			array:    []string{"a", "b", "c", "a"},
+			expected: []string{"a", "b", "c"},
+		}, {
+			name:     "empty array",
+			array:    []string{},
+			expected: []string{},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			result := StrArrayToSet(c.array)
+			if len(result) != len(c.expected) {
+				t.Errorf("expected: %v, result: %v", c.expected, result)
+			}
+			for i, elem := range result {
+				if elem != c.expected[i] {
+					t.Errorf("expected: %v, result: %v", c.expected, result)
+				}
+			}
+		})
+	}
+}

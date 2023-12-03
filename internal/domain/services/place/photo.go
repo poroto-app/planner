@@ -8,9 +8,9 @@ import (
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// FetchPlacesPhotos は，指定された場所の写真を一括で取得する
+// FetchGooglePlacesPhotos は，指定された場所の写真を一括で取得する
 // すでに写真がある場合は，何もしない
-func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
+func (s Service) FetchGooglePlacesPhotos(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
 	if len(places) == 0 {
 		return places
 	}
@@ -64,9 +64,9 @@ func (s Service) FetchPlacesPhotos(ctx context.Context, places []models.GooglePl
 	return places
 }
 
-// FetchPlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
+// FetchGooglePlacesPhotosAndSave は，指定された場所の写真を一括で取得し，保存する
 // 事前に FetchPlaceDetailAndSave で models.GooglePlaceDetail を取得しておく必要がある
-func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
+func (s Service) FetchGooglePlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.GooglePlace) []models.GooglePlace {
 	// 写真が取得されていない場所のみ、画像が保存されるようにする
 	var googlePlaceIdsAlreadyHasImages []string
 	for _, place := range places {
@@ -76,7 +76,7 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 	}
 
 	// 画像を取得
-	places = s.FetchPlacesPhotos(ctx, places)
+	places = s.FetchGooglePlacesPhotos(ctx, places)
 
 	// 画像を保存
 	for _, place := range places {
@@ -90,7 +90,7 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 			continue
 		}
 
-		if err := s.placeInPlanCandidateRepository.SaveGooglePlacePhotos(ctx, planCandidateId, place.PlaceId, *place.Photos); err != nil {
+		if err := s.placeRepository.SaveGooglePlacePhotos(ctx, place.PlaceId, *place.Photos); err != nil {
 			continue
 		}
 	}
@@ -98,13 +98,13 @@ func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId s
 	return places
 }
 
-func (s Service) FetchPlacesInPlanCandidatePhotosAndSave(ctx context.Context, planCandidateId string, places ...models.PlaceInPlanCandidate) []models.PlaceInPlanCandidate {
+func (s Service) FetchPlacesPhotosAndSave(ctx context.Context, planCandidateId string, places ...models.Place) []models.Place {
 	googlePlaces := make([]models.GooglePlace, len(places))
 	for i, place := range places {
 		googlePlaces[i] = place.Google
 	}
 
-	googlePlaces = s.FetchPlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
+	googlePlaces = s.FetchGooglePlacesPhotosAndSave(ctx, planCandidateId, googlePlaces...)
 
 	for i, googlePlace := range googlePlaces {
 		places[i].Google = googlePlace
