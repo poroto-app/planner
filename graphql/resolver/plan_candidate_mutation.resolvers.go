@@ -284,5 +284,29 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 
 // AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
 func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: AutoReorderPlacesInPlanCandidate - autoReorderPlacesInPlanCandidate"))
+	planCandidateService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planUpdated, err := planCandidateService.AutoReorderPlaces(ctx, plancandidate.AutoReorderPlacesInput{
+		PlanCandidateId: input.PlanCandidateID,
+		PlanId:          input.PlanID,
+	})
+	if err != nil {
+		log.Println(fmt.Errorf("error while auto reordering places in plan candidate: %v", err))
+		return nil, fmt.Errorf("could not auto reorder places in plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated, nil)
+	if err != nil {
+		log.Printf("error while converting plan to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.AutoReorderPlacesInPlanCandidateOutput{
+		PlanCandidateID: input.PlanCandidateID,
+		Plan:            graphqlPlanInPlanCandidate,
+	}, nil
 }
