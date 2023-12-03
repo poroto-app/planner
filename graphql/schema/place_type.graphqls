@@ -8,7 +8,7 @@ type Place {
     googleReviews: [GooglePlaceReview!]
     categories: [PlaceCategory!]!
     priceRange: PriceRange
-    likeCount: int!
+    likeCount: Int!
 }
 
 type GeoLocation {
