@@ -281,3 +281,8 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
 }
+
+// AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
+func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: AutoReorderPlacesInPlanCandidate - autoReorderPlacesInPlanCandidate"))
+}
