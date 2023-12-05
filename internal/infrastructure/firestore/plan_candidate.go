@@ -476,7 +476,7 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 	return nil
 }
 
-func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, planId string, placeId string, like bool) error {
+func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	//TODO implement me
 	return nil
 }

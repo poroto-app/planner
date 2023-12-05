@@ -35,5 +35,5 @@ type PlanCandidateRepository interface {
 
 	DeleteAll(ctx context.Context, planCandidateIds []string) error
 
-	UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, planId string, placeId string, like bool) error
+	UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error
 }
