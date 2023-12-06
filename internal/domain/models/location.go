@@ -11,7 +11,7 @@ type GeoLocation struct {
 	Longitude float64 `json:"longitude"`
 }
 
-// IsZero はゼロ地値かどうかを判定する
+// IsZero はゼロ値かどうかを判定する
 func (g GeoLocation) IsZero() bool {
 	return g.Latitude == 0.0 && g.Longitude == 0.0
 }
