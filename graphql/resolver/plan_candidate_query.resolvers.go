@@ -127,7 +127,6 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	// TODO: レスポンスの型を []models.Place にする
 	var places []*model.Place
 	for _, place := range placesToAdd {
 		p := factory.PlaceFromDomainModel(&place)
@@ -155,7 +154,6 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	// TODO: レスポンスの型を []models.Place にする
 	var places []*model.Place
 	for _, place := range placesToReplace {
 		p := factory.PlaceFromDomainModel(&place)
