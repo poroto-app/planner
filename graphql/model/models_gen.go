@@ -150,12 +150,12 @@ type NearbyPlaceCategoryOutput struct {
 
 type Place struct {
 	ID                    string               `json:"id"`
-	GooglePlaceID         *string              `json:"googlePlaceId,omitempty"`
+	GooglePlaceID         string               `json:"googlePlaceId"`
 	Name                  string               `json:"name"`
 	Location              *GeoLocation         `json:"location"`
 	Images                []*Image             `json:"images"`
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
-	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
+	GoogleReviews         []*GooglePlaceReview `json:"googleReviews"`
 	Categories            []*PlaceCategory     `json:"categories"`
 	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
 }

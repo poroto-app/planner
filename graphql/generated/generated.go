@@ -1142,12 +1142,12 @@ type Image {
 `, BuiltIn: false},
 	{Name: "../schema/place_type.graphqls", Input: `type Place {
     id: String!
-    googlePlaceId: String
+    googlePlaceId: String!
     name: String!
     location: GeoLocation!
     images: [Image!]!
     estimatedStayDuration: Int!
-    googleReviews: [GooglePlaceReview!]
+    googleReviews: [GooglePlaceReview!]!
     categories: [PlaceCategory!]!
     priceRange: PriceRange
 }
@@ -4158,11 +4158,14 @@ func (ec *executionContext) _Place_googlePlaceId(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_googlePlaceId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4389,11 +4392,14 @@ func (ec *executionContext) _Place_googleReviews(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.GooglePlaceReview)
 	fc.Result = res
-	return ec.marshalOGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx, field.Selections, res)
+	return ec.marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_googleReviews(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9965,6 +9971,9 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "googlePlaceId":
 			out.Values[i] = ec._Place_googlePlaceId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "name":
 			out.Values[i] = ec._Place_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -9987,6 +9996,9 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "googleReviews":
 			out.Values[i] = ec._Place_googleReviews(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "categories":
 			out.Values[i] = ec._Place_categories(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -11313,6 +11325,50 @@ func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplann
 	return ec._GeoLocation(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GooglePlaceReview) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx context.Context, sel ast.SelectionSet, v *model.GooglePlaceReview) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -12180,53 +12236,6 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
-}
-
-func (ec *executionContext) marshalOGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GooglePlaceReview) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
