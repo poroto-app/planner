@@ -3,7 +3,9 @@ package places
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/utils"
 
 	"googlemaps.github.io/maps"
 )
@@ -11,6 +13,7 @@ import (
 type PlacesApi struct {
 	apiKey     string
 	mapsClient *maps.Client
+	logger     *zap.Logger
 }
 
 func NewPlacesApi() (*PlacesApi, error) {
@@ -25,9 +28,14 @@ func NewPlacesApi() (*PlacesApi, error) {
 		return nil, fmt.Errorf("error while initializing maps api client: %v", err)
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "PlacesApi",
+	})
+
 	return &PlacesApi{
 		apiKey:     apiKey,
 		mapsClient: c,
+		logger:     logger,
 	}, nil
 }
 
