@@ -17,7 +17,7 @@ extend type Query {
 }
 
 type CachedCreatedPlans {
-    plans: [Plan!]
+    plans: [Plan!]!
     createdBasedOnCurrentLocation: Boolean!
 }
 

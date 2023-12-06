@@ -29,7 +29,7 @@ type AvailablePlacesForPlanInput struct {
 }
 
 type CachedCreatedPlans struct {
-	Plans                         []*Plan `json:"plans,omitempty"`
+	Plans                         []*Plan `json:"plans"`
 	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
 }
 

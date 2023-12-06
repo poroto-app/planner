@@ -1314,7 +1314,7 @@ type EditPlanTitleOfPlanCandidateOutput {
 }
 
 type CachedCreatedPlans {
-    plans: [Plan!]
+    plans: [Plan!]!
     createdBasedOnCurrentLocation: Boolean!
 }
 
@@ -1980,11 +1980,14 @@ func (ec *executionContext) _CachedCreatedPlans_plans(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalOPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9310,6 +9313,9 @@ func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("CachedCreatedPlans")
 		case "plans":
 			out.Values[i] = ec._CachedCreatedPlans_plans(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "createdBasedOnCurrentLocation":
 			out.Values[i] = ec._CachedCreatedPlans_createdBasedOnCurrentLocation(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12259,53 +12265,6 @@ func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋg
 		return graphql.Null
 	}
 	return ec._Place(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Plan) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
