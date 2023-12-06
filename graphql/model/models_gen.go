@@ -124,21 +124,11 @@ type Image struct {
 	Large   *string `json:"large,omitempty"`
 }
 
-type InterestCandidate struct {
-	Session    string              `json:"session"`
-	Categories []*LocationCategory `json:"categories"`
-}
-
 type LocationCategory struct {
 	Name            string  `json:"name"`
 	DisplayName     string  `json:"displayName"`
 	Photo           *string `json:"photo,omitempty"`
 	DefaultPhotoURL string  `json:"defaultPhotoUrl"`
-}
-
-type MatchInterestsInput struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
 }
 
 type NearbyLocationCategory struct {

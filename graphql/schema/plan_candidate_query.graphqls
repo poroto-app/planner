@@ -3,10 +3,6 @@ extend type Query {
     # キャッシュされたプラン一覧を取得する
     cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 
-    # TODO: Delete
-    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
-    matchInterests(input: MatchInterestsInput): InterestCandidate!
-
     nearbyPlaceCategories(input: NearbyPlaceCategoriesInput!): NearbyPlaceCategoryOutput!
 
     # プランを作成可能な他の場所を取得する
@@ -36,16 +32,6 @@ input AvailablePlacesForPlanInput {
 
 type AvailablePlacesForPlan {
     places: [Place!]!
-}
-
-type InterestCandidate {
-    session: String!
-    categories: [LocationCategory!]!
-}
-
-input MatchInterestsInput {
-    latitude: Float!
-    longitude: Float!
 }
 
 input NearbyPlaceCategoriesInput {

@@ -104,11 +104,6 @@ type ComplexityRoot struct {
 		Small   func(childComplexity int) int
 	}
 
-	InterestCandidate struct {
-		Categories func(childComplexity int) int
-		Session    func(childComplexity int) int
-	}
-
 	LocationCategory struct {
 		DefaultPhotoURL func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
@@ -195,7 +190,6 @@ type ComplexityRoot struct {
 		AvailablePlacesForPlan          func(childComplexity int, input model.AvailablePlacesForPlanInput) int
 		CachedCreatedPlans              func(childComplexity int, input model.CachedCreatedPlansInput) int
 		FirebaseUser                    func(childComplexity int, input *model.FirebaseUserInput) int
-		MatchInterests                  func(childComplexity int, input *model.MatchInterestsInput) int
 		NearbyPlaceCategories           func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
 		PlacesToAddForPlanCandidate     func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
 		PlacesToReplaceForPlanCandidate func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
@@ -242,7 +236,6 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
 	CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error)
-	MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error)
 	NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
 	PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error)
@@ -457,20 +450,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Image.Small(childComplexity), true
-
-	case "InterestCandidate.categories":
-		if e.complexity.InterestCandidate.Categories == nil {
-			break
-		}
-
-		return e.complexity.InterestCandidate.Categories(childComplexity), true
-
-	case "InterestCandidate.session":
-		if e.complexity.InterestCandidate.Session == nil {
-			break
-		}
-
-		return e.complexity.InterestCandidate.Session(childComplexity), true
 
 	case "LocationCategory.defaultPhotoUrl":
 		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
@@ -875,18 +854,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FirebaseUser(childComplexity, args["input"].(*model.FirebaseUserInput)), true
 
-	case "Query.matchInterests":
-		if e.complexity.Query.MatchInterests == nil {
-			break
-		}
-
-		args, err := ec.field_Query_matchInterests_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.MatchInterests(childComplexity, args["input"].(*model.MatchInterestsInput)), true
-
 	case "Query.nearbyPlaceCategories":
 		if e.complexity.Query.NearbyPlaceCategories == nil {
 			break
@@ -1058,7 +1025,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDeletePlaceFromPlanCandidateInput,
 		ec.unmarshalInputEditPlanTitleOfPlanCandidateInput,
 		ec.unmarshalInputFirebaseUserInput,
-		ec.unmarshalInputMatchInterestsInput,
 		ec.unmarshalInputNearbyPlaceCategoriesInput,
 		ec.unmarshalInputPlacesToAddForPlanCandidateInput,
 		ec.unmarshalInputPlacesToReplaceForPlanCandidateInput,
@@ -1334,10 +1300,6 @@ type EditPlanTitleOfPlanCandidateOutput {
     # キャッシュされたプラン一覧を取得する
     cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
 
-    # TODO: Delete
-    # TODO: NearByPlaceCategories等のアプリケーションに依存しない名前にする
-    matchInterests(input: MatchInterestsInput): InterestCandidate!
-
     nearbyPlaceCategories(input: NearbyPlaceCategoriesInput!): NearbyPlaceCategoryOutput!
 
     # プランを作成可能な他の場所を取得する
@@ -1367,16 +1329,6 @@ input AvailablePlacesForPlanInput {
 
 type AvailablePlacesForPlan {
     places: [Place!]!
-}
-
-type InterestCandidate {
-    session: String!
-    categories: [LocationCategory!]!
-}
-
-input MatchInterestsInput {
-    latitude: Float!
-    longitude: Float!
 }
 
 input NearbyPlaceCategoriesInput {
@@ -1688,21 +1640,6 @@ func (ec *executionContext) field_Query_firebaseUser_args(ctx context.Context, r
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_matchInterests_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.MatchInterestsInput
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOMatchInterestsInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐMatchInterestsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3145,104 +3082,6 @@ func (ec *executionContext) fieldContext_Image_large(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _InterestCandidate_session(ctx context.Context, field graphql.CollectedField, obj *model.InterestCandidate) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_InterestCandidate_session(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Session, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_InterestCandidate_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "InterestCandidate",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _InterestCandidate_categories(ctx context.Context, field graphql.CollectedField, obj *model.InterestCandidate) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_InterestCandidate_categories(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Categories, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.LocationCategory)
-	fc.Result = res
-	return ec.marshalNLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLocationCategoryᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_InterestCandidate_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "InterestCandidate",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "name":
-				return ec.fieldContext_LocationCategory_name(ctx, field)
-			case "displayName":
-				return ec.fieldContext_LocationCategory_displayName(ctx, field)
-			case "photo":
-				return ec.fieldContext_LocationCategory_photo(ctx, field)
-			case "defaultPhotoUrl":
-				return ec.fieldContext_LocationCategory_defaultPhotoUrl(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LocationCategory", field.Name)
 		},
 	}
 	return fc, nil
@@ -5677,67 +5516,6 @@ func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_cachedCreatedPlans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_matchInterests(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_matchInterests(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MatchInterests(rctx, fc.Args["input"].(*model.MatchInterestsInput))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.InterestCandidate)
-	fc.Result = res
-	return ec.marshalNInterestCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_matchInterests(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "session":
-				return ec.fieldContext_InterestCandidate_session(ctx, field)
-			case "categories":
-				return ec.fieldContext_InterestCandidate_categories(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type InterestCandidate", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_matchInterests_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -9111,44 +8889,6 @@ func (ec *executionContext) unmarshalInputFirebaseUserInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputMatchInterestsInput(ctx context.Context, obj interface{}) (model.MatchInterestsInput, error) {
-	var it model.MatchInterestsInput
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"latitude", "longitude"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "latitude":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Latitude = data
-		case "longitude":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
-			data, err := ec.unmarshalNFloat2float64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Longitude = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputNearbyPlaceCategoriesInput(ctx context.Context, obj interface{}) (model.NearbyPlaceCategoriesInput, error) {
 	var it model.NearbyPlaceCategoriesInput
 	asMap := map[string]interface{}{}
@@ -9953,50 +9693,6 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
-var interestCandidateImplementors = []string{"InterestCandidate"}
-
-func (ec *executionContext) _InterestCandidate(ctx context.Context, sel ast.SelectionSet, obj *model.InterestCandidate) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, interestCandidateImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("InterestCandidate")
-		case "session":
-			out.Values[i] = ec._InterestCandidate_session(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "categories":
-			out.Values[i] = ec._InterestCandidate_categories(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var locationCategoryImplementors = []string{"LocationCategory"}
 
 func (ec *executionContext) _LocationCategory(ctx context.Context, sel ast.SelectionSet, obj *model.LocationCategory) graphql.Marshaler {
@@ -10691,28 +10387,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_cachedCreatedPlans(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "matchInterests":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_matchInterests(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -11733,74 +11407,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNInterestCandidate2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx context.Context, sel ast.SelectionSet, v model.InterestCandidate) graphql.Marshaler {
-	return ec._InterestCandidate(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNInterestCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐInterestCandidate(ctx context.Context, sel ast.SelectionSet, v *model.InterestCandidate) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._InterestCandidate(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.LocationCategory) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLocationCategory(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLocationCategory(ctx context.Context, sel ast.SelectionSet, v *model.LocationCategory) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._LocationCategory(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -12637,14 +12243,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOMatchInterestsInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐMatchInterestsInput(ctx context.Context, v interface{}) (*model.MatchInterestsInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputMatchInterestsInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
