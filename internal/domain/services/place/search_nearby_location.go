@@ -3,8 +3,8 @@ package place
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"googlemaps.github.io/maps"
-	"log"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -66,7 +66,11 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	for placeType, places := range placeTypeToPlaces {
 		// 5件以上の場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
 		if len(places) >= int(input.IgnoreCategoryPlaceCount) {
-			log.Printf("skip searching place type %s because it has enough places", placeType)
+			s.logger.Info(
+				"skip searching place type because it has enough places",
+				zap.String("placeType", string(placeType)),
+				zap.Int("places", len(places)),
+			)
 			continue
 		}
 		placeTypesToSearch = append(placeTypesToSearch, placeType)
@@ -91,8 +95,13 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 				SearchCount: 1,
 			})
 			if err != nil {
+				// TODO: channelを用いてエラーハンドリングする
 				ch <- nil
-				log.Printf("error while fetching google_places with type %s: %v\n", placeType, err)
+				s.logger.Warn(
+					"error while fetching google_places",
+					zap.String("placeType", string(placeType)),
+					zap.Error(err),
+				)
 			}
 
 			var places []models.GooglePlace

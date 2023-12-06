@@ -3,7 +3,10 @@ package place
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"os"
 	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
 )
@@ -12,6 +15,7 @@ type Service struct {
 	placesApi               places.PlacesApi
 	placeRepository         repository.PlaceRepository
 	planCandidateRepository repository.PlanCandidateRepository
+	logger                  *zap.Logger
 }
 
 func NewPlaceService(ctx context.Context) (*Service, error) {
@@ -30,9 +34,15 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 		return nil, err
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag:        "PlaceService",
+		Production: os.Getenv("ENV") != "development",
+	})
+
 	return &Service{
 		placesApi:               *placesApi,
 		placeRepository:         *placeRepository,
 		planCandidateRepository: planCandidateRepository,
+		logger:                  logger,
 	}, nil
 }
