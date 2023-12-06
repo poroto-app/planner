@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -29,6 +30,7 @@ const (
 type PlanCandidateFirestoreRepository struct {
 	client          *firestore.Client
 	PlaceRepository *PlaceRepository
+	logger          *zap.Logger
 }
 
 func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRepository, error) {
@@ -47,9 +49,14 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 		return nil, fmt.Errorf("error while initializing placeRepository: %v", err)
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "Firestore PlanCandidateRepository",
+	})
+
 	return &PlanCandidateFirestoreRepository{
 		client:          client,
 		PlaceRepository: placeRepository,
+		logger:          logger,
 	}, nil
 }
 
@@ -423,16 +430,25 @@ func (p *PlanCandidateFirestoreRepository) ReplacePlace(ctx context.Context, pla
 
 func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	for _, planCandidateId := range planCandidateIds {
-		log.Printf("Deleting plan candidate[%s]", planCandidateId)
+		p.logger.Info(
+			"start deleting plan candidate",
+			zap.String("planCandidateId", planCandidateId),
+		)
 		if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 			// プランを削除
 			// DocumentRefsは内部で参照を行う
 			// TransactionのルールではWriteの後にReadを行うことはできないため、削除処理の最初におこなう
-			log.Printf("Deleting plans of plan candidate[%s]", planCandidateId)
+			p.logger.Info(
+				"start deleting plans",
+				zap.String("planCandidateId", planCandidateId),
+			)
 			docIter := tx.DocumentRefs(p.subCollectionPlans(planCandidateId))
 			for {
 				if docIter == nil {
-					log.Printf("docIter of plan is nil: %s", planCandidateId)
+					p.logger.Info(
+						"docIter of plan is nil",
+						zap.String("planCandidateId", planCandidateId),
+					)
 					break
 				}
 
@@ -444,28 +460,48 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 					return fmt.Errorf("error while iterating plans: %v", err)
 				}
 
-				log.Printf("Deleting plan[%s] of plan candidate[%s]", doc.ID, planCandidateId)
+				p.logger.Info(
+					"start deleting plan",
+					zap.String("planId", doc.ID),
+					zap.String("planCandidateId", planCandidateId),
+				)
 				if err := tx.Delete(doc); err != nil {
 					return fmt.Errorf("error while deleting plan[%s]: %v", doc.ID, err)
 				}
-				log.Printf("Deleted plan[%s] of plan candidate[%s]", doc.ID, planCandidateId)
+				p.logger.Info(
+					"successfully deleted plan",
+					zap.String("planId", doc.ID),
+					zap.String("planCandidateId", planCandidateId),
+				)
 			}
 
 			// プラン候補メタデータを削除
-			log.Printf("Deleting meta data of plan candidate[%s]", planCandidateId)
+			p.logger.Info(
+				"start deleting plan candidate meta data",
+				zap.String("planCandidateId", planCandidateId),
+			)
 			docMetadata := p.docMetaDataV1(planCandidateId)
 			if err := tx.Delete(docMetadata); err != nil {
 				return fmt.Errorf("error while deleting plan candidate meta data[%s]: %v", planCandidateId, err)
 			}
-			log.Printf("Deleted meta data of plan candidate[%s]", planCandidateId)
+			p.logger.Info(
+				"successfully deleted plan candidate meta data",
+				zap.String("planCandidateId", planCandidateId),
+			)
 
 			// プラン候補を削除
-			log.Printf("Deleting plan candidate[%s]", planCandidateId)
+			p.logger.Info(
+				"start deleting plan candidate",
+				zap.String("planCandidateId", planCandidateId),
+			)
 			doc := p.doc(planCandidateId)
 			if err := tx.Delete(doc); err != nil {
 				return fmt.Errorf("error while deleting plan candidate[%s]: %v", planCandidateId, err)
 			}
-			log.Printf("Deleted plan candidate[%s]", planCandidateId)
+			p.logger.Info(
+				"successfully deleted plan candidate",
+				zap.String("planCandidateId", planCandidateId),
+			)
 
 			return nil
 		}, firestore.MaxAttempts(3)); err != nil {
