@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	"log"
 	"time"
 )
 
@@ -21,7 +20,7 @@ func (s Service) DeleteExpiredPlanCandidates(ctx context.Context, expiresAt time
 	}
 
 	if len(*expiredPlanCandidateIds) == 0 {
-		log.Println("No expired plan candidates found")
+		s.logger.Info("No expired plan candidates found")
 		return nil
 	}
 
