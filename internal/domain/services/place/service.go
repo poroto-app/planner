@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	"os"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -35,8 +34,7 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 	}
 
 	logger, err := utils.NewLogger(utils.LoggerOption{
-		Tag:        "PlaceService",
-		Production: os.Getenv("ENV") != "development",
+		Tag: "PlaceService",
 	})
 
 	return &Service{

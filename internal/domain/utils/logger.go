@@ -1,15 +1,18 @@
 package utils
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"os"
+)
 
 type LoggerOption struct {
-	Tag        string
-	Production bool
+	Tag string
 }
 
 func NewLogger(option LoggerOption) (*zap.Logger, error) {
 	var logger *zap.Logger
-	if option.Production {
+	if os.Getenv("ENV") == "production" {
 		l, err := zap.NewProduction()
 		if err != nil {
 			return nil, err
@@ -17,7 +20,12 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 
 		logger = l
 	} else {
-		l, err := zap.NewDevelopment()
+		dc := zap.NewDevelopmentConfig()
+		dc.Encoding = "console"
+		dc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		dc.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+		l, err := dc.Build()
 		if err != nil {
 			return nil, err
 		}

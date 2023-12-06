@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	"os"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/utils"
@@ -43,8 +42,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	}
 
 	logger, err := utils.NewLogger(utils.LoggerOption{
-		Tag:        "PlanGenService",
-		Production: os.Getenv("ENV") != "development",
+		Tag: "PlanGenService",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing logger: %v", err)
