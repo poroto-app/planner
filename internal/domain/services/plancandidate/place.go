@@ -2,7 +2,7 @@ package plancandidate
 
 import (
 	"context"
-	"log"
+	"go.uber.org/zap"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -56,7 +56,12 @@ func (s Service) FetchCandidatePlaces(
 			},
 		}, googleplaces.ImageSizeSmall())
 		if err != nil {
-			log.Printf("error while fetching place photo: %v\n", err)
+			s.logger.Warn(
+				"error while fetching place photo",
+				zap.String("placeId", place.Id),
+				zap.String("planCandidateId", createPlanSessionId),
+				zap.Error(err),
+			)
 			continue
 		}
 
