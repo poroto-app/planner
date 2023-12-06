@@ -3,7 +3,7 @@ package plan
 import (
 	"context"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/utils"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -31,11 +31,18 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 	planSaved, err := s.planRepository.Find(ctx, planId)
 	if err != nil {
 		// ログに出力するが、エラーは返さない
-		log.Println(fmt.Errorf("error while finding plan(%v): %v", planId, err))
+		s.logger.Warn(
+			"error while finding plan",
+			zap.String("planId", planId),
+			zap.Error(err),
+		)
 	}
 
 	if planSaved != nil {
-		log.Printf("plan(%v) already exists. skip saving plan", planId)
+		s.logger.Info(
+			"plan already exists. skip saving plan",
+			zap.String("planId", planId),
+		)
 		return planSaved, nil
 	}
 
