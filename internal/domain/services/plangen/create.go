@@ -3,7 +3,7 @@ package plangen
 import (
 	"context"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"sort"
 	"time"
 
@@ -93,7 +93,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	for _, place := range placesSorted {
 		// プランに含まれる場所の数が上限に達したら終了
 		if len(placesInPlan) >= params.maxPlace {
-			log.Printf("skip place %s because the number of places in plan is over\n", place.Google.Name)
+			s.logger.Debug(
+				"skip place because the number of places in plan is over",
+				zap.String("place", place.Google.Name),
+				zap.Int("maxPlace", params.maxPlace),
+				zap.Int("placesInPlan", len(placesInPlan)),
+			)
 			break
 		}
 
@@ -108,7 +113,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			models.CategoryCafe,
 		}
 		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Google.Types, categoriesFood) {
-			log.Printf("skip place %s because the cafe or restaurant is already in plan\n", place.Google.Name)
+			s.logger.Debug(
+				"skip place because the cafe or restaurant is already in plan",
+				zap.String("place", place.Google.Name),
+			)
 			continue
 		}
 
@@ -118,13 +126,23 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 		// 予定の時間内に収まらない場合はスキップ
 		if params.freeTime != nil && timeInPlan > uint(*params.freeTime) {
-			log.Printf("skip place %s because it will be over time\n", place.Google.Name)
+			s.logger.Debug(
+				"skip place because it will be over time",
+				zap.String("place", place.Google.Name),
+				zap.Uint("timeInPlan", timeInPlan),
+				zap.Int("freeTime", *params.freeTime),
+			)
 			continue
 		}
 
 		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
 		if params.freeTime == nil && timeInPlan > defaultMaxPlanDuration {
-			log.Printf("skip place %s because it will be over time\n", place.Google.Name)
+			s.logger.Debug(
+				"skip place because it will be over time",
+				zap.String("place", place.Google.Name),
+				zap.Uint("timeInPlan", timeInPlan),
+				zap.Int("defaultMaxPlanDuration", defaultMaxPlanDuration),
+			)
 			continue
 		}
 
@@ -132,7 +150,11 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
 			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, params.planCandidateId, place.Google.PlaceId)
 			if err != nil {
-				log.Printf("error while fetching place detail: %v\n", err)
+				s.logger.Warn(
+					"error while fetching place detail",
+					zap.String("place", place.Google.Name),
+					zap.Error(err),
+				)
 				continue
 			}
 
@@ -141,12 +163,19 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			// 予定の時間内に閉まってしまう場合はスキップ
 			isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
 			if err != nil {
-				log.Printf("error while checking opening hours: %v\n", err)
+				s.logger.Warn(
+					"error while checking opening hours",
+					zap.String("place", place.Google.Name),
+					zap.Error(err),
+				)
 				continue
 			}
 
 			if !isOpeningWhilePlan {
-				log.Printf("skip place %s because it will be closed\n", place.Google.Name)
+				s.logger.Debug(
+					"skip place because it will be closed",
+					zap.String("place", place.Google.Name),
+				)
 				continue
 			}
 		}
