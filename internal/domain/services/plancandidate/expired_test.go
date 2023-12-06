@@ -2,6 +2,7 @@ package plancandidate
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"testing"
 	"time"
 
@@ -47,8 +48,10 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 	for _, c := range cases {
 		planCandidateRepository := mock.NewPlanCandidateRepository(c.planCandidates)
 
+		logger, _ := zap.NewDevelopment()
 		service := Service{
 			planCandidateRepository: planCandidateRepository,
+			logger:                  logger,
 		}
 
 		err := service.DeleteExpiredPlanCandidates(context.Background(), c.expiresAt)
