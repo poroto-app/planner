@@ -46,6 +46,9 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "Firestore PlaceRepository",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
 
 	return &PlaceRepository{
 		client: client,

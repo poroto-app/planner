@@ -31,6 +31,9 @@ func NewPlacesApi() (*PlacesApi, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "PlacesApi",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
 
 	return &PlacesApi{
 		apiKey:     apiKey,
