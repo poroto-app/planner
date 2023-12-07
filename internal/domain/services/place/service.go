@@ -36,6 +36,9 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "PlaceService",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
 
 	return &Service{
 		placesApi:               *placesApi,

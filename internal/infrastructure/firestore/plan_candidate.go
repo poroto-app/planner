@@ -52,6 +52,9 @@ func NewPlanCandidateRepository(ctx context.Context) (*PlanCandidateFirestoreRep
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "Firestore PlanCandidateRepository",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
 
 	return &PlanCandidateFirestoreRepository{
 		client:          client,

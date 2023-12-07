@@ -40,6 +40,9 @@ func NewUserRepository(ctx context.Context) (*UserRepository, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "Firestore UserRepository",
 	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
 
 	return &UserRepository{
 		client: client,
