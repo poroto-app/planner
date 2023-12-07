@@ -29,7 +29,7 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
+func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place, likedPlaceIds []string) models.PlanCandidate {
 	var plans []models.Plan
 	for _, planId := range entity.PlanIds {
 		for _, place := range planEntities {
@@ -50,9 +50,10 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 	}
 
 	return models.PlanCandidate{
-		Id:        entity.Id,
-		Plans:     plans,
-		MetaData:  FromPlanCandidateMetaDataV1Entity(metaData),
-		ExpiresAt: entity.ExpiresAt,
+		Id:            entity.Id,
+		Plans:         plans,
+		MetaData:      FromPlanCandidateMetaDataV1Entity(metaData),
+		ExpiresAt:     entity.ExpiresAt,
+		LikedPlaceIds: likedPlaceIds,
 	}
 }

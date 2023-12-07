@@ -127,7 +127,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places)
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places, nil)
 
 	return &planCandidate, nil
 }
