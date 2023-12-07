@@ -1,8 +1,9 @@
 package entity
 
 import (
-	"poroto.app/poroto/planner/internal/domain/models"
 	"time"
+
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type PlaceEntity struct {
@@ -14,6 +15,7 @@ type PlaceEntity struct {
 	GeoHash       string    `firestore:"geohash"`
 	CreatedAt     time.Time `firestore:"created_at,serverTimestamp,omitempty"`
 	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
+	LikeCount     uint      `firestore:"like_count"`
 }
 
 func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {
