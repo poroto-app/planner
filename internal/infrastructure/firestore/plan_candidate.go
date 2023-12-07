@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -72,62 +73,161 @@ func (p *PlanCandidateFirestoreRepository) Create(ctx context.Context, planCandi
 }
 
 func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
-	doc := p.doc(planCandidateId)
+	chPlanCandidate := make(chan *entity.PlanCandidateEntity, 1)
+	chMetaData := make(chan *entity.PlanCandidateMetaDataV1Entity, 1)
+	chPlans := make(chan *[]entity.PlanInCandidateEntity, 1)
+	chPlaces := make(chan *[]models.Place, 1)
+	chErr := make(chan error)
+	chDone := make(chan bool)
 
-	snapshot, err := doc.Get(ctx)
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, nil
+	var wg sync.WaitGroup
+
+	// PlanCandidateEntityを取得
+	wg.Add(1)
+	go func(ctx context.Context, ch chan *entity.PlanCandidateEntity, planCandidateId string) {
+		defer wg.Done()
+		log.Printf("Start fetching plan candidate[%s]", planCandidateId)
+
+		snapshot, err := p.doc(planCandidateId).Get(ctx)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				chPlanCandidate <- nil
+				return
+			}
+
+			chErr <- fmt.Errorf("error while finding plan candidate: %v", err)
+			return
 		}
 
-		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
-	}
-
-	var planCandidateEntity entity.PlanCandidateEntity
-	if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
-	}
-
-	// TODO: 取得処理を並列化する
-	// プラン候補メタデータを取得
-	docMetaData := p.docMetaDataV1(planCandidateId)
-	snapshotMetaData, err := docMetaData.Get(ctx)
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, nil
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
+			chErr <- fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 		}
 
-		return nil, fmt.Errorf("error while finding plan candidate meta data: %v", err)
-	}
+		chPlanCandidate <- &planCandidateEntity
+		log.Printf("End fetching plan candidate[%s]", planCandidateId)
+	}(ctx, chPlanCandidate, planCandidateId)
 
-	var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-	if err = snapshotMetaData.DataTo(&planCandidateMetaDataEntity); err != nil {
-		return nil, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
-	}
+	// メタデータを取得
+	wg.Add(1)
+	go func(ctx context.Context, ch chan *entity.PlanCandidateMetaDataV1Entity, planCandidateId string) {
+		defer wg.Done()
+		log.Printf("Start fetching plan candidate meta data[%s]", planCandidateId)
 
-	// プランを取得
-	snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching plans: %v", err)
-	}
+		snapshot, err := p.docMetaDataV1(planCandidateId).Get(ctx)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				ch <- nil
+				return
+			}
 
-	var plans []entity.PlanInCandidateEntity
-	for _, snapshotPlan := range snapshotPlans {
-		var plan entity.PlanInCandidateEntity
-		if err = snapshotPlan.DataTo(&plan); err != nil {
-			return nil, fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
+			chErr <- fmt.Errorf("error while finding plan candidate meta data: %v", err)
+			return
 		}
-		plans = append(plans, plan)
+
+		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
+		if err = snapshot.DataTo(&planCandidateMetaDataEntity); err != nil {
+			chErr <- fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		}
+
+		ch <- &planCandidateMetaDataEntity
+		log.Printf("End fetching plan candidate meta data[%s]", planCandidateId)
+	}(ctx, chMetaData, planCandidateId)
+
+	wg.Add(1)
+	go func(ctx context.Context, chPlans chan *[]entity.PlanInCandidateEntity, chPlaces chan *[]models.Place, planCandidateId string) {
+		defer wg.Done()
+
+		// プラン候補に含まれるプランを取得
+		log.Printf("Start fetching plans of plan candidate[%s]", planCandidateId)
+		snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
+		if err != nil {
+			chErr <- fmt.Errorf("error while fetching plans: %v", err)
+			return
+		}
+
+		var plans []entity.PlanInCandidateEntity
+		for _, snapshotPlan := range snapshotPlans {
+			var plan entity.PlanInCandidateEntity
+			if err = snapshotPlan.DataTo(&plan); err != nil {
+				chErr <- fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
+				return
+			}
+			plans = append(plans, plan)
+		}
+
+		chPlans <- &plans
+		log.Printf("End fetching plans of plan candidate[%s]", planCandidateId)
+
+		//　プランに含まれる場所を取得
+		log.Printf("Start fetching places of plan candidate[%s]", planCandidateId)
+		var placeIdsInPlan []string
+		for _, plan := range plans {
+			placeIdsInPlan = append(placeIdsInPlan, plan.PlaceIdsOrdered...)
+		}
+		places, err := p.PlaceRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIdsInPlan))
+		if err != nil {
+			chErr <- fmt.Errorf("error while fetching places: %v", err)
+			return
+		}
+
+		chPlaces <- places
+		log.Printf("End fetching places of plan candidate[%s]", planCandidateId)
+	}(ctx, chPlans, chPlaces, planCandidateId)
+
+	go func() {
+		wg.Wait()
+		log.Printf("End async fetching plan candidate[%s]", planCandidateId)
+		close(chDone)
+	}()
+
+	var planCandidateEntity *entity.PlanCandidateEntity
+	var planCandidateMetaDataEntity *entity.PlanCandidateMetaDataV1Entity
+	var plans *[]entity.PlanInCandidateEntity
+	var places *[]models.Place
+Loop:
+	for {
+		select {
+		case planCandidateEntity = <-chPlanCandidate:
+			if planCandidateEntity == nil {
+				return nil, nil
+			}
+		case planCandidateMetaDataEntity = <-chMetaData:
+			if planCandidateMetaDataEntity == nil {
+				return nil, fmt.Errorf("plan candidate meta data not found: %s", planCandidateId)
+			}
+		case plans = <-chPlans:
+			if plans == nil {
+				return nil, fmt.Errorf("plans not found: %s", planCandidateId)
+			}
+		case places = <-chPlaces:
+			if places == nil {
+				return nil, fmt.Errorf("places not found: %s", planCandidateId)
+			}
+		case err := <-chErr:
+			return nil, err
+		case <-chDone:
+			break Loop
+		}
 	}
 
-	//　検索された場所を取得
-	placeIdsSearched := array.StrArrayToSet(planCandidateEntity.PlaceIdsSearched)
-	places, err := p.PlaceRepository.findByPlaceIds(ctx, placeIdsSearched)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching places: %v", err)
+	if planCandidateEntity == nil {
+		return nil, nil
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places)
+	if planCandidateMetaDataEntity == nil {
+		return nil, fmt.Errorf("plan candidate meta data not found: %s", planCandidateId)
+	}
+
+	if plans == nil {
+		return nil, fmt.Errorf("plans not found: %s", planCandidateId)
+	}
+
+	if places == nil {
+		return nil, fmt.Errorf("places not found: %s", planCandidateId)
+	}
+
+	planCandidate := entity.FromPlanCandidateEntity(*planCandidateEntity, *planCandidateMetaDataEntity, *plans, *places)
 
 	return &planCandidate, nil
 }

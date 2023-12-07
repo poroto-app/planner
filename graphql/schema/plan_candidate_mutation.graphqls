@@ -21,6 +21,8 @@ extend type Mutation {
 
     # プラン内の経路を自動で並び替える
     autoReorderPlacesInPlanCandidate(input: AutoReorderPlacesInPlanCandidateInput!): AutoReorderPlacesInPlanCandidateOutput!
+
+    likeToPlaceInPlanCandidate(input: LikeToPlaceInPlanCandidateInput!): LikeToPlaceInPlanCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -126,5 +128,16 @@ input AutoReorderPlacesInPlanCandidateInput {
 
 type AutoReorderPlacesInPlanCandidateOutput {
     planCandidateId: String!
+    plan: Plan!
+}
+
+input LikeToPlaceInPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanCandidateOutput {
     plan: Plan!
 }
