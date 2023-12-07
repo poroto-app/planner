@@ -127,7 +127,13 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		return nil, fmt.Errorf("error while fetching places: %v", err)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places, nil)
+	var likedPlaceIds []string
+	for _, p := range *places {
+		if p.LikeCount > 0 {
+			likedPlaceIds = append(likedPlaceIds, p.Id)
+		}
+	}
+	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places, likedPlaceIds)
 
 	return &planCandidate, nil
 }
