@@ -133,7 +133,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			likedPlaceIds = append(likedPlaceIds, p.Id)
 		}
 	}
-	planCandidate := entity.FromPlanCandidateEntity(planCandidateEntity, planCandidateMetaDataEntity, plans, *places, likedPlaceIds)
+	planCandidate := planCandidateEntity.ToPlanCandidate(planCandidateMetaDataEntity, plans, *places, likedPlaceIds)
 
 	return &planCandidate, nil
 }

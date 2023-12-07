@@ -16,7 +16,7 @@ type PlanCandidateEntity struct {
 	UpdatedAt        time.Time `firestore:"updated_at,omitempty,serverTimestamp"`
 }
 
-func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
+func NewPlanCandidateEntityFromPlanCandidate(planCandidate models.PlanCandidate) PlanCandidateEntity {
 	plansIds := make([]string, len(planCandidate.Plans))
 	for i, plan := range planCandidate.Plans {
 		plansIds[i] = plan.Id
@@ -29,9 +29,9 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place, likedPlaceIds []string) models.PlanCandidate {
+func (p PlanCandidateEntity) ToPlanCandidate(metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place, likedPlaceIds []string) models.PlanCandidate {
 	var plans []models.Plan
-	for _, planId := range entity.PlanIds {
+	for _, planId := range p.PlanIds {
 		for _, place := range planEntities {
 			if place.Id != planId {
 				continue
@@ -50,10 +50,10 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 	}
 
 	return models.PlanCandidate{
-		Id:            entity.Id,
+		Id:            p.Id,
 		Plans:         plans,
 		MetaData:      FromPlanCandidateMetaDataV1Entity(metaData),
-		ExpiresAt:     entity.ExpiresAt,
+		ExpiresAt:     p.ExpiresAt,
 		LikedPlaceIds: likedPlaceIds,
 	}
 }
