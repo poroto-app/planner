@@ -281,3 +281,8 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
 }
+
+// LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
+func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: LikeToPlaceInPlanCandidate - likeToPlaceInPlanCandidate"))
+}

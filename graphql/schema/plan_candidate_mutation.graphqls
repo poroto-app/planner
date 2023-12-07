@@ -18,6 +18,8 @@ extend type Mutation {
     replacePlaceOfPlanCandidate(input: ReplacePlaceOfPlanCandidateInput!): ReplacePlaceOfPlanCandidateOutput!
 
     editPlanTitleOfPlanCandidate(input: EditPlanTitleOfPlanCandidateInput!): EditPlanTitleOfPlanCandidateOutput!
+
+    likeToPlaceInPlanCandidate(input: LikeToPlaceInPlanCandidateInput!): LikeToPlaceInPlanCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -113,5 +115,16 @@ input EditPlanTitleOfPlanCandidateInput {
 
 type EditPlanTitleOfPlanCandidateOutput {
     planCandidateId: String!
+    plan: Plan!
+}
+
+input LikeToPlaceInPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanCandidateOutput {
     plan: Plan!
 }

@@ -129,6 +129,17 @@ type InterestCandidate struct {
 	Categories []*LocationCategory `json:"categories"`
 }
 
+type LikeToPlaceInPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+	Like            bool   `json:"like"`
+}
+
+type LikeToPlaceInPlanCandidateOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type LocationCategory struct {
 	Name            string  `json:"name"`
 	DisplayName     string  `json:"displayName"`
@@ -168,6 +179,7 @@ type Place struct {
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
 	Categories            []*PlaceCategory     `json:"categories"`
 	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
+	LikeCount             int                  `json:"likeCount"`
 }
 
 type PlaceCategory struct {
@@ -202,6 +214,7 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	AuthorID      *string       `json:"authorId,omitempty"`
+	LikedPlaceIds []string      `json:"likedPlaceIds"`
 }
 
 type PlansByLocationInput struct {
