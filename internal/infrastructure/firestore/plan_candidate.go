@@ -606,6 +606,10 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 	return nil
 }
 
+func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
+	//TODO implement me
+	return nil
+}
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {
 	return p.client.Collection(collectionPlanCandidates)
 }
