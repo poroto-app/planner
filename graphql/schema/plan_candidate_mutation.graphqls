@@ -18,6 +18,11 @@ extend type Mutation {
     replacePlaceOfPlanCandidate(input: ReplacePlaceOfPlanCandidateInput!): ReplacePlaceOfPlanCandidateOutput!
 
     editPlanTitleOfPlanCandidate(input: EditPlanTitleOfPlanCandidateInput!): EditPlanTitleOfPlanCandidateOutput!
+
+    # プラン内の経路を自動で並び替える
+    autoReorderPlacesInPlanCandidate(input: AutoReorderPlacesInPlanCandidateInput!): AutoReorderPlacesInPlanCandidateOutput!
+
+    likeToPlaceInPlanCandidate(input: LikeToPlaceInPlanCandidateInput!): LikeToPlaceInPlanCandidateOutput!
 }
 
 input CreatePlanByLocationInput {
@@ -113,5 +118,26 @@ input EditPlanTitleOfPlanCandidateInput {
 
 type EditPlanTitleOfPlanCandidateOutput {
     planCandidateId: String!
+    plan: Plan!
+}
+
+input AutoReorderPlacesInPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+}
+
+type AutoReorderPlacesInPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input LikeToPlaceInPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanCandidateOutput {
     plan: Plan!
 }

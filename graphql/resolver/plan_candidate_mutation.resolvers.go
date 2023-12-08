@@ -281,3 +281,37 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
 }
+
+// AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
+func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
+	planCandidateService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planUpdated, err := planCandidateService.AutoReorderPlaces(ctx, plancandidate.AutoReorderPlacesInput{
+		PlanCandidateId: input.PlanCandidateID,
+		PlanId:          input.PlanID,
+	})
+	if err != nil {
+		log.Println(fmt.Errorf("error while auto reordering places in plan candidate: %v", err))
+		return nil, fmt.Errorf("could not auto reorder places in plan candidate")
+	}
+
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated, nil)
+	if err != nil {
+		log.Printf("error while converting plan to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.AutoReorderPlacesInPlanCandidateOutput{
+		PlanCandidateID: input.PlanCandidateID,
+		Plan:            graphqlPlanInPlanCandidate,
+	}, nil
+}
+
+// LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
+func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: LikeToPlaceInPlanCandidate - likeToPlaceInPlanCandidate"))
+}

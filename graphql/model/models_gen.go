@@ -20,6 +20,16 @@ type AddPlaceToPlanCandidateAfterPlaceOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
+type AutoReorderPlacesInPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+}
+
+type AutoReorderPlacesInPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
+}
+
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }
@@ -29,7 +39,7 @@ type AvailablePlacesForPlanInput struct {
 }
 
 type CachedCreatedPlans struct {
-	Plans                         []*Plan `json:"plans,omitempty"`
+	Plans                         []*Plan `json:"plans"`
 	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
 }
 
@@ -124,9 +134,15 @@ type Image struct {
 	Large   *string `json:"large,omitempty"`
 }
 
-type InterestCandidate struct {
-	Session    string              `json:"session"`
-	Categories []*LocationCategory `json:"categories"`
+type LikeToPlaceInPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+	Like            bool   `json:"like"`
+}
+
+type LikeToPlaceInPlanCandidateOutput struct {
+	Plan *Plan `json:"plan"`
 }
 
 type LocationCategory struct {
@@ -134,11 +150,6 @@ type LocationCategory struct {
 	DisplayName     string  `json:"displayName"`
 	Photo           *string `json:"photo,omitempty"`
 	DefaultPhotoURL string  `json:"defaultPhotoUrl"`
-}
-
-type MatchInterestsInput struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
 }
 
 type NearbyLocationCategory struct {
@@ -160,14 +171,15 @@ type NearbyPlaceCategoryOutput struct {
 
 type Place struct {
 	ID                    string               `json:"id"`
-	GooglePlaceID         *string              `json:"googlePlaceId,omitempty"`
+	GooglePlaceID         string               `json:"googlePlaceId"`
 	Name                  string               `json:"name"`
 	Location              *GeoLocation         `json:"location"`
 	Images                []*Image             `json:"images"`
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
-	GoogleReviews         []*GooglePlaceReview `json:"googleReviews,omitempty"`
+	GoogleReviews         []*GooglePlaceReview `json:"googleReviews"`
 	Categories            []*PlaceCategory     `json:"categories"`
 	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
+	LikeCount             int                  `json:"likeCount"`
 }
 
 type PlaceCategory struct {
@@ -202,6 +214,7 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	AuthorID      *string       `json:"authorId,omitempty"`
+	LikedPlaceIds []string      `json:"likedPlaceIds"`
 }
 
 type PlansByLocationInput struct {

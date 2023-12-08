@@ -11,6 +11,11 @@ type GeoLocation struct {
 	Longitude float64 `json:"longitude"`
 }
 
+// IsZero はゼロ値かどうかを判定する
+func (g GeoLocation) IsZero() bool {
+	return g.Latitude == 0.0 && g.Longitude == 0.0
+}
+
 // DistanceInMeter 2点間距離(メートル)
 // SEE: https://www.geodatasource.com/developers/go
 func (g GeoLocation) DistanceInMeter(another GeoLocation) float64 {
