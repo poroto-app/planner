@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"os"
 	"sync"
 
@@ -28,6 +29,7 @@ const (
 
 type PlaceRepository struct {
 	client *firestore.Client
+	logger *zap.Logger
 }
 
 func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
@@ -41,8 +43,16 @@ func NewPlaceRepository(ctx context.Context) (*PlaceRepository, error) {
 		return nil, fmt.Errorf("error while initializing firestore client: %v", err)
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "Firestore PlaceRepository",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
+
 	return &PlaceRepository{
 		client: client,
+		logger: logger,
 	}, nil
 }
 

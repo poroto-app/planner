@@ -4,12 +4,14 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
 )
 
@@ -20,6 +22,7 @@ const (
 type PlanRepository struct {
 	client          *firestore.Client
 	placeRepository *PlaceRepository
+	logger          *zap.Logger
 }
 
 func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
@@ -38,9 +41,17 @@ func NewPlanRepository(ctx context.Context) (*PlanRepository, error) {
 		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "Firestore PlanRepository",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
+
 	return &PlanRepository{
 		client:          client,
 		placeRepository: placeRepository,
+		logger:          logger,
 	}, nil
 }
 

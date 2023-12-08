@@ -14,6 +14,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mmcloughlin/geohash v0.10.0
 	github.com/vektah/gqlparser/v2 v2.5.10
+	go.uber.org/zap v1.10.0
 	google.golang.org/api v0.152.0
 	google.golang.org/grpc v1.59.0
 	googlemaps.github.io/maps v1.7.0
@@ -64,7 +65,6 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
-	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect

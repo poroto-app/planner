@@ -2,7 +2,7 @@ package plangen
 
 import (
 	"context"
-	"log"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,7 +20,11 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	// レビュー・写真を取得する
 	performanceTimer := time.Now()
 	placeIdToPlaceWithPlaceDetail := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
-	log.Printf("fetching reviews and images took %v\n", time.Since(performanceTimer))
+	s.logger.Info(
+		"fetching reviews and images",
+		zap.String("planCandidateId", planCandidateId),
+		zap.Duration("duration", time.Since(performanceTimer)),
+	)
 
 	ch := make(chan *models.Plan, len(params))
 
@@ -35,10 +39,18 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				performanceTimer := time.Now()
 				title, err := s.GeneratePlanTitle(placesSortedByDistance)
 				if err != nil {
-					log.Printf("error while generating plan title: %v\n", err)
+					s.logger.Warn(
+						"error while generating plan title",
+						zap.String("planCandidateId", planCandidateId),
+						zap.Error(err),
+					)
 					title = &param.placeStart.Google.Name
 				}
-				log.Printf("generating plan title took %v\n", time.Since(performanceTimer))
+				s.logger.Info(
+					"generating plan title",
+					zap.String("planCandidateId", planCandidateId),
+					zap.Duration("duration", time.Since(performanceTimer)),
+				)
 				chPlanTitle <- *title
 			}(ctx, chPlanTitle)
 
@@ -49,7 +61,10 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			case title = <-chPlanTitle:
 				chTitleTimeOut.Stop()
 			case <-chTitleTimeOut.C:
-				log.Printf("timeout while generating plan title\n")
+				s.logger.Warn(
+					"timeout while generating plan title",
+					zap.String("planCandidateId", planCandidateId),
+				)
 				title = param.placeStart.Google.Name
 			}
 

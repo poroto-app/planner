@@ -3,7 +3,7 @@ package places
 import (
 	"context"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"path"
@@ -146,15 +146,28 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 
 				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
 				if err != nil {
-					log.Printf("skipping photoReference because of error while building image url: %v", err)
+					// TODO: channelにエラーを送信するようにする
+					r.logger.Warn(
+						"skipping photoReference because of error while building image url",
+						zap.Error(err),
+						zap.String("photoReference", photoReference.PhotoReference),
+					)
 					ch <- nil
 					return
 				}
 
-				log.Printf("Places API Fetch Place Photo: %s\n", photoReference.PhotoReference)
+				r.logger.Info(
+					"Places API Fetch Place Photo",
+					zap.String("photoReference", photoReference.PhotoReference),
+				)
 				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
 				if err != nil {
-					log.Printf("skipping photoReference because of error while fetching public image url: %v", err)
+					// TODO: channelにエラーを送信するようにする
+					r.logger.Warn(
+						"skipping photoReference because of error while fetching public image url",
+						zap.Error(err),
+						zap.String("photoReference", photoReference.PhotoReference),
+					)
 					ch <- nil
 					return
 				}

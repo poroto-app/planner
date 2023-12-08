@@ -3,8 +3,10 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -15,6 +17,7 @@ type Service struct {
 	placeService               place.Service
 	planCandidateRepository    repository.PlanCandidateRepository
 	openaiChatCompletionClient openai.ChatCompletionClient
+	logger                     *zap.Logger
 }
 
 func NewService(ctx context.Context) (*Service, error) {
@@ -38,10 +41,18 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing openai chat completion client: %v", err)
 	}
 
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "PlanGenService",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing logger: %v", err)
+	}
+
 	return &Service{
 		placesApi:                  *placesApi,
 		placeService:               *placeService,
 		planCandidateRepository:    planCandidateRepository,
 		openaiChatCompletionClient: *openaiChatCompletionClient,
+		logger:                     logger,
 	}, nil
 }

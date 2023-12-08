@@ -3,7 +3,7 @@ package place
 import (
 	"context"
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -72,7 +72,10 @@ func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandida
 	for _, place := range places {
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
 			if place.PlaceDetail != nil {
-				log.Printf("skip fetching place detail because place detail already exist: %v\n", place.PlaceId)
+				s.logger.Info(
+					"skip fetching place detail because place detail already exist",
+					zap.String("placeId", place.PlaceId),
+				)
 				ch <- &place
 				return
 			}
