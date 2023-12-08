@@ -99,3 +99,50 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 		})
 	}
 }
+
+// ==============================================================
+// Mocks
+// ==============================================================
+func NewMockPlaceShinjukuStation() Place {
+	return Place{
+		Id:   "sinjuku-station",
+		Name: "新宿駅",
+		Location: GeoLocation{
+			Latitude:  35.6899573,
+			Longitude: 139.7005071,
+		},
+	}
+}
+
+func NewMockPlaceIsetan() Place {
+	return Place{
+		Id:   "isetan",
+		Name: "伊勢丹 新宿店",
+		Location: GeoLocation{
+			Latitude:  35.6916532,
+			Longitude: 139.7046449,
+		},
+	}
+}
+
+func NewMockPlaceShinjukuGyoen() Place {
+	return Place{
+		Id:   "shinjuku-gyoen",
+		Name: "新宿御苑",
+		Location: GeoLocation{
+			Latitude:  35.6867668,
+			Longitude: 139.7123842,
+		},
+	}
+}
+
+func NewMockPlaceTakashimaya() Place {
+	return Place{
+		Id:   "takashimaya",
+		Name: "新宿高島屋",
+		Location: GeoLocation{
+			Latitude:  35.6875312,
+			Longitude: 139.7022521,
+		},
+	}
+}

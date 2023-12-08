@@ -67,12 +67,7 @@ func TestFromPlanInCandidateEntity(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			result, _ := FromPlanInCandidateEntity(
-				c.entity.Id,
-				c.entity.Name,
-				c.places,
-				c.entity.PlaceIdsOrdered,
-			)
+			result, _ := c.entity.ToPlan(c.places)
 			if diff := cmp.Diff(c.expected, result); diff != "" {
 				t.Errorf("FromPlanInCandidateEntity() mismatch (-want +got):\n%s", diff)
 			}
