@@ -15,7 +15,7 @@ require (
 	github.com/mmcloughlin/geohash v0.10.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	go.uber.org/zap v1.10.0
-	google.golang.org/api v0.152.0
+	google.golang.org/api v0.153.0
 	google.golang.org/grpc v1.59.0
 	googlemaps.github.io/maps v1.7.0
 )
