@@ -3,10 +3,11 @@ package models
 import "time"
 
 type PlanCandidate struct {
-	Id        string
-	Plans     []Plan
-	MetaData  PlanCandidateMetaData
-	ExpiresAt time.Time
+	Id            string
+	Plans         []Plan
+	MetaData      PlanCandidateMetaData
+	ExpiresAt     time.Time
+	LikedPlaceIds []string
 }
 
 func (p PlanCandidate) HasPlace(placeId string) bool {

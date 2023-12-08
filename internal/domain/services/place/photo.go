@@ -2,7 +2,7 @@ package place
 
 import (
 	"context"
-	"log"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -20,13 +20,19 @@ func (s Service) FetchGooglePlacesPhotos(ctx context.Context, places []models.Go
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- models.GooglePlace) {
 			// すでに写真がある場合は，何もしない
 			if place.Photos != nil && len(*place.Photos) > 0 {
-				log.Printf("skip fetching place photos because photos already exist: %v\n", place.PlaceId)
+				s.logger.Info(
+					"skip fetching place photos because photos already exist",
+					zap.String("placeId", place.PlaceId),
+				)
 				ch <- place
 				return
 			}
 
 			if place.PlaceDetail == nil || len(place.PlaceDetail.PhotoReferences) == 0 {
-				log.Printf("skip fetching place photos because photo references not found: %v\n", place.PlaceId)
+				s.logger.Info(
+					"skip fetching place photos because photo references not found",
+					zap.String("placeId", place.PlaceId),
+				)
 				ch <- place
 				return
 			}
@@ -39,7 +45,12 @@ func (s Service) FetchGooglePlacesPhotos(ctx context.Context, places []models.Go
 				api.ImageSizeTypeLarge,
 			)
 			if err != nil {
-				log.Printf("error while fetching place photos: %v\n", err)
+				// TODO: channelを用いてエラーハンドリングする
+				s.logger.Warn(
+					"error while fetching place photos",
+					zap.String("placeId", place.PlaceId),
+					zap.Error(err),
+				)
 				ch <- place
 				return
 			}

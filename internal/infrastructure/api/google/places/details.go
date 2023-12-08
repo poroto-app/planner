@@ -2,8 +2,7 @@ package places
 
 import (
 	"context"
-	"log"
-
+	"go.uber.org/zap"
 	"googlemaps.github.io/maps"
 )
 
@@ -15,7 +14,11 @@ type FetchPlaceDetailRequest struct {
 // FetchPlaceDetail は IDを指定することで、対応する場所の情報を取得する
 // 取得される内容は FindPlacesFromLocation と同じ
 func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailRequest) (*Place, error) {
-	log.Println("Places API Place Details: ", req)
+	r.logger.Info(
+		"Places API Place Details",
+		zap.String("placeId", req.PlaceId),
+		zap.String("language", req.Language),
+	)
 
 	resp, err := r.mapsClient.PlaceDetails(ctx, &maps.PlaceDetailsRequest{
 		PlaceID:  req.PlaceId,

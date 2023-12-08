@@ -7,37 +7,60 @@ import (
 )
 
 const (
-	maxBasePlaceCount = 3
+	defaultMaxBasePlaceCount = 3
+	defaultRadius            = 800
 )
 
-// selectBasePlace は，プランの起点となる場所を選択する
-func (s Service) selectBasePlace(
-	places []models.Place,
-	categoryNamesPreferred *[]string,
-	categoryNamesDisliked *[]string,
-	shouldOpenNow bool,
-) []models.Place {
+type SelectBasePlaceInput struct {
+	BaseLocation           models.GeoLocation
+	Places                 []models.Place
+	CategoryNamesPreferred *[]string
+	CategoryNamesDisliked  *[]string
+	ShouldOpenNow          bool
+	MaxBasePlaceCount      int
+	Radius                 int
+}
+
+// SelectBasePlace は，プランの起点となる場所を選択する
+func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
+	if input.MaxBasePlaceCount == 0 {
+		input.MaxBasePlaceCount = defaultMaxBasePlaceCount
+	}
+
+	if input.Radius == 0 {
+		input.Radius = defaultRadius
+	}
+
+	if input.BaseLocation.IsZero() {
+		panic("base location is zero value")
+	}
+
+	places := input.Places
+
+	// スタート地点から800m圏外の場所を除外する
+	places = placefilter.FilterWithinDistanceRange(places, input.BaseLocation, 0, float64(input.Radius))
+
 	// ユーザーが拒否した場所は取り除く
-	if categoryNamesDisliked != nil {
-		categoriesDisliked := models.GetCategoriesFromSubCategories(*categoryNamesDisliked)
+	if input.CategoryNamesDisliked != nil {
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
 	}
 
-	if shouldOpenNow {
+	if input.ShouldOpenNow {
 		places = placefilter.FilterByOpeningNow(places)
 	}
 
 	// カテゴリごとにレビューの高い場所から選択する
 	placesSelected := selectByReview(places)
-	if len(placesSelected) == maxBasePlaceCount {
+	if len(placesSelected) == input.MaxBasePlaceCount {
 		return placesSelected
 	}
 
 	// 選択された場所から遠い場所を選択する
 	placesSelected = selectByDistanceFromPlaces(places, placesSelected)
 
-	if len(placesSelected) > maxBasePlaceCount {
-		return placesSelected[:maxBasePlaceCount]
+	if len(placesSelected) > input.MaxBasePlaceCount {
+		return placesSelected[:input.MaxBasePlaceCount]
 	}
 
 	return placesSelected
@@ -76,7 +99,7 @@ func selectByReview(places []models.Place) []models.Place {
 		}
 
 		placesSelected = append(placesSelected, place)
-		if len(placesSelected) == maxBasePlaceCount {
+		if len(placesSelected) == defaultMaxBasePlaceCount {
 			break
 		}
 	}

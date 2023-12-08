@@ -42,46 +42,6 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	}, nil
 }
 
-// MatchInterests is the resolver for the matchInterests field.
-func (r *queryResolver) MatchInterests(ctx context.Context, input *model.MatchInterestsInput) (*model.InterestCandidate, error) {
-	service, err := plancandidate.NewService(ctx)
-	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	createPlanSessionId := uuid.New().String()
-
-	categoriesSearched, err := service.CategoriesNearLocation(
-		ctx,
-		plancandidate.CategoryNearLocationParams{
-			Location: models.GeoLocation{
-				Latitude:  input.Latitude,
-				Longitude: input.Longitude,
-			},
-			CreatePlanSessionId: createPlanSessionId,
-		},
-	)
-	if err != nil {
-		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	var categories = []*model.LocationCategory{}
-	for _, categorySearched := range categoriesSearched {
-		categories = append(categories, &model.LocationCategory{
-			Name:            categorySearched.Category.Name,
-			DisplayName:     categorySearched.Category.DisplayName,
-			DefaultPhotoURL: categorySearched.Category.DefaultPhoto,
-		})
-	}
-
-	return &model.InterestCandidate{
-		Session:    createPlanSessionId,
-		Categories: categories,
-	}, nil
-}
-
 // NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
 func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
 	service, err := plancandidate.NewService(ctx)
@@ -167,7 +127,6 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	// TODO: レスポンスの型を []models.Place にする
 	var places []*model.Place
 	for _, place := range placesToAdd {
 		p := factory.PlaceFromDomainModel(&place)
@@ -195,7 +154,6 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	// TODO: レスポンスの型を []models.Place にする
 	var places []*model.Place
 	for _, place := range placesToReplace {
 		p := factory.PlaceFromDomainModel(&place)

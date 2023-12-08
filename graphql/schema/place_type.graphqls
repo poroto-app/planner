@@ -1,13 +1,14 @@
 type Place {
     id: String!
-    googlePlaceId: String
+    googlePlaceId: String!
     name: String!
     location: GeoLocation!
     images: [Image!]!
     estimatedStayDuration: Int!
-    googleReviews: [GooglePlaceReview!]
+    googleReviews: [GooglePlaceReview!]!
     categories: [PlaceCategory!]!
     priceRange: PriceRange
+    likeCount: Int!
 }
 
 type GeoLocation {

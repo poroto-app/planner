@@ -32,12 +32,12 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
 	var plans []models.Plan
 	for _, planId := range entity.PlanIds {
-		for _, place := range planEntities {
-			if place.Id != planId {
+		for _, planEntity := range planEntities {
+			if planEntity.Id != planId {
 				continue
 			}
 
-			plan, err := FromPlanInCandidateEntity(planId, place.Name, places, place.PlaceIdsOrdered)
+			plan, err := planEntity.ToPlan(places)
 			if err != nil {
 				log.Printf("error while converting entity.PlanCandidateEntity to models.PlanCandidate: %v", err)
 

@@ -49,3 +49,57 @@ func TestGetPlace(t *testing.T) {
 		})
 	}
 }
+
+func TestPlan_PlacesReorderedToMinimizeDistance(t *testing.T) {
+	cases := []struct {
+		name     string
+		plan     Plan
+		expected []Place
+	}{
+		{
+			name: "should start with first place",
+			plan: Plan{
+				Places: []Place{
+					NewMockPlaceShinjukuStation(),
+				},
+			},
+			expected: []Place{
+				NewMockPlaceShinjukuStation(),
+			},
+		},
+		{
+			name: "should return places reordered to minimize distance from first place",
+			plan: Plan{
+				Places: []Place{
+					// 新宿駅
+					NewMockPlaceShinjukuStation(),
+					// 伊勢丹
+					NewMockPlaceIsetan(),
+					// 新宿御苑
+					NewMockPlaceShinjukuGyoen(),
+					// 高島屋
+					NewMockPlaceTakashimaya(),
+				},
+			},
+			expected: []Place{
+				// 新宿駅
+				NewMockPlaceShinjukuStation(),
+				// 高島屋
+				NewMockPlaceTakashimaya(),
+				// 伊勢丹
+				NewMockPlaceIsetan(),
+				// 新宿御苑
+				NewMockPlaceShinjukuGyoen(),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			actual := c.plan.PlacesReorderedToMinimizeDistance()
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
