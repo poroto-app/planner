@@ -282,6 +282,11 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 	panic(fmt.Errorf("not implemented: EditPlanTitleOfPlanCandidate - editPlanTitleOfPlanCandidate"))
 }
 
+// AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
+func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: AutoReorderPlacesInPlanCandidate - autoReorderPlacesInPlanCandidate"))
+}
+
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
 	panic(fmt.Errorf("not implemented: LikeToPlaceInPlanCandidate - likeToPlaceInPlanCandidate"))
