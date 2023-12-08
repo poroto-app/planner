@@ -2,10 +2,11 @@ package models
 
 // Place 場所の情報
 type Place struct {
-	Id       string      `json:"id"`
-	Google   GooglePlace `json:"google"`
-	Name     string      `json:"name"`
-	Location GeoLocation `json:"location"`
+	Id        string      `json:"id"`
+	Google    GooglePlace `json:"google"`
+	Name      string      `json:"name"`
+	Location  GeoLocation `json:"location"`
+	LikeCount uint        `json:"like_count"`
 }
 
 func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
