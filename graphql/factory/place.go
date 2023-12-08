@@ -3,7 +3,6 @@ package factory
 import (
 	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 func PlaceFromDomainModel(place *models.Place) *graphql.Place {
@@ -11,7 +10,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		return nil
 	}
 
-	// TODO: not nil な値にする
 	var images []*graphql.Image
 	if place.Google.Photos != nil {
 		for _, photo := range *place.Google.Photos {
@@ -23,10 +21,10 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 			})
 		}
 	} else {
+		// not nil な値にする
 		images = make([]*graphql.Image, 0)
 	}
 
-	// TODO: not nil な値にする
 	var googlePlaceReviews []*graphql.GooglePlaceReview
 	if place.Google.PlaceDetail != nil && place.Google.PlaceDetail.Reviews != nil {
 		googlePlaceReviews = make([]*graphql.GooglePlaceReview, len(place.Google.PlaceDetail.Reviews))
@@ -34,6 +32,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 			googlePlaceReviews[i] = GooglePlaceReviewFromDomainModel(review)
 		}
 	} else {
+		// not nil な値にする
 		googlePlaceReviews = make([]*graphql.GooglePlaceReview, 0)
 	}
 
@@ -47,7 +46,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 
 	return &graphql.Place{
 		ID:            place.Id,
-		GooglePlaceID: utils.StrPointer(place.Google.PlaceId),
+		GooglePlaceID: place.Google.PlaceId,
 		Name:          place.Name,
 		Images:        images,
 		Location: &graphql.GeoLocation{
