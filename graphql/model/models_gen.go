@@ -20,6 +20,16 @@ type AddPlaceToPlanCandidateAfterPlaceOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
+type AutoReorderPlacesInPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+}
+
+type AutoReorderPlacesInPlanCandidateOutput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	Plan            *Plan  `json:"plan"`
+}
+
 type AvailablePlacesForPlan struct {
 	Places []*Place `json:"places"`
 }
@@ -124,6 +134,17 @@ type Image struct {
 	Large   *string `json:"large,omitempty"`
 }
 
+type LikeToPlaceInPlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	PlanID          string `json:"planId"`
+	PlaceID         string `json:"placeId"`
+	Like            bool   `json:"like"`
+}
+
+type LikeToPlaceInPlanCandidateOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type LocationCategory struct {
 	Name            string  `json:"name"`
 	DisplayName     string  `json:"displayName"`
@@ -158,6 +179,7 @@ type Place struct {
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews"`
 	Categories            []*PlaceCategory     `json:"categories"`
 	PriceRange            *PriceRange          `json:"priceRange,omitempty"`
+	LikeCount             int                  `json:"likeCount"`
 }
 
 type PlaceCategory struct {
@@ -192,6 +214,7 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	AuthorID      *string       `json:"authorId,omitempty"`
+	LikedPlaceIds []string      `json:"likedPlaceIds"`
 }
 
 type PlansByLocationInput struct {

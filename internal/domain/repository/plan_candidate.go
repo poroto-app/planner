@@ -14,6 +14,8 @@ type PlanCandidateRepository interface {
 
 	Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error)
 
+	FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error)
+
 	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
 
 	// AddSearchedPlacesForPlanCandidate は models.PlanCandidate を作成するために検索した場所を保存する
@@ -27,6 +29,7 @@ type PlanCandidateRepository interface {
 
 	RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error
 
+	// TODO: errorだけを返すようにする
 	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error)
 
 	UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error
