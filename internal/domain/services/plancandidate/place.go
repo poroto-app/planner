@@ -2,7 +2,6 @@ package plancandidate
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"sort"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -47,20 +46,8 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		// TODO: キャッシュする
-		// TODO: 大きいサイズの写真も取得する
-		thumbnail, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences)
-		if err != nil {
-			s.logger.Warn(
-				"error while fetching place photo",
-				zap.String("placeId", place.Id),
-				zap.String("planCandidateId", createPlanSessionId),
-				zap.Error(err),
-			)
-			continue
-		}
-
-		place.Google.Photos = &[]models.GooglePlacePhoto{*thumbnail}
+		placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, place)
+		place = placesWithPhoto[0]
 
 		placesToSuggest = append(placesToSuggest, place)
 
