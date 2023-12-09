@@ -7,9 +7,9 @@ import (
 )
 
 func GooglePlacePhotoReferencesFromPlaceDetail(placeDetail places.PlaceDetail) []models.GooglePlacePhotoReference {
-	var photoReferences []models.GooglePlacePhotoReference
-	for _, photo := range placeDetail.Photos {
-		photoReferences = append(photoReferences, GooglePlacePhotoReferenceFromPhoto(photo))
+	photoReferences := make([]models.GooglePlacePhotoReference, len(placeDetail.Photos))
+	for i, photo := range placeDetail.Photos {
+		photoReferences[i] = GooglePlacePhotoReferenceFromPhoto(photo)
 	}
 
 	return photoReferences
