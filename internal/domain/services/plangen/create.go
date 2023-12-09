@@ -148,7 +148,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 		if params.shouldOpenWhileTraveling && params.freeTime == nil {
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
-			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, params.planCandidateId, place.Google.PlaceId)
+			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
 			if err != nil {
 				s.logger.Warn(
 					"error while fetching place detail",

@@ -29,7 +29,7 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 }
 
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
-func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
+func (s Service) FetchPlaceDetailAndSave(ctx context.Context, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する
 	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
 	if err != nil {
@@ -63,7 +63,7 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 }
 
 // FetchGooglePlacesDetailAndSave 複数の場所の Place Detail 情報を並行に取得し、保存する
-func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.GooglePlace) []models.GooglePlace {
+func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, places []models.GooglePlace) []models.GooglePlace {
 	if len(places) == 0 {
 		return nil
 	}
@@ -80,7 +80,7 @@ func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandida
 				return
 			}
 
-			placeDetail, err := s.FetchPlaceDetailAndSave(ctx, planCandidateId, place.PlaceId)
+			placeDetail, err := s.FetchPlaceDetailAndSave(ctx, place.PlaceId)
 			if err != nil {
 				ch <- nil
 				return
@@ -108,13 +108,13 @@ func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandida
 	return places
 }
 
-func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
+func (s Service) FetchPlacesDetailAndSave(ctx context.Context, places []models.Place) []models.Place {
 	googlePlaces := make([]models.GooglePlace, len(places))
 	for i, place := range places {
 		googlePlaces[i] = place.Google
 	}
 
-	googlePlaces = s.FetchGooglePlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
+	googlePlaces = s.FetchGooglePlacesDetailAndSave(ctx, googlePlaces)
 
 	for i, googlePlace := range googlePlaces {
 		places[i].Google = googlePlace

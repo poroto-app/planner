@@ -104,7 +104,7 @@ func (s Service) CategoriesNearLocation(
 		}
 
 		// 場所の詳細情報を取得
-		placesWithDetail := s.placeService.FetchPlacesDetailAndSave(ctx, params.CreatePlanSessionId, placesSortedByCategoryIndex)
+		placesWithDetail := s.placeService.FetchPlacesDetailAndSave(ctx, placesSortedByCategoryIndex)
 
 		// 場所の写真を取得する
 		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, placesWithDetail...)
