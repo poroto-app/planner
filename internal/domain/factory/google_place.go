@@ -22,9 +22,6 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 		// Nearby Search で取得した場合は PhotoReference がある
 		photoReferences = make([]models.GooglePlacePhotoReference, len(place.PhotoReferences))
 		for i, photo := range place.PhotoReferences {
-			if photo.PhotoReference == "" {
-				continue
-			}
 			photoReferences[i] = GooglePlacePhotoReferenceFromPhoto(photo)
 		}
 	}
