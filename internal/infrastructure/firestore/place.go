@@ -111,6 +111,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			if err := p.updateOpeningHours(tx, placeEntity.Id, *googlePlace.PlaceDetail); err != nil {
 				return fmt.Errorf("error while updating opening hours: %v", err)
 			}
+		} else if len(googlePlace.PhotoReferences) != 0 {
+			// Nearby Searchで画像を取得している場合は保存する
+			if err := p.saveGooglePhotoReferencesTx(tx, placeEntity.Id, googlePlace.PhotoReferences); err != nil {
+				return fmt.Errorf("error while saving google place photos: %v", err)
+			}
 		}
 
 		// Place Photo を保存する
