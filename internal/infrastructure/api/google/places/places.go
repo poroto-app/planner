@@ -72,20 +72,17 @@ func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFr
 	// Getting places nearby
 	var places []Place
 	for _, place := range placeSearchResults {
-		var photoReferences []string
-		for _, photo := range place.Photos {
-			photoReferences = append(photoReferences, photo.PhotoReference)
-		}
-
 		places = append(places, createPlace(
 			place.PlaceID,
 			place.Name,
 			place.Types,
 			place.Geometry,
-			photoReferences,
+			place.Photos,
 			place.OpeningHours != nil && place.OpeningHours.OpenNow != nil && *place.OpeningHours.OpenNow,
 			place.Rating,
 			place.UserRatingsTotal,
+			utils.StrOmitEmpty(place.FormattedAddress),
+			utils.StrOmitEmpty(place.Vicinity),
 			place.PriceLevel,
 		))
 	}
