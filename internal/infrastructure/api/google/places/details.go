@@ -13,7 +13,7 @@ type FetchPlaceDetailRequest struct {
 }
 
 // FetchPlaceDetail は IDを指定することで、対応する場所の情報を取得する
-// 取得される内容は FindPlacesFromLocation と同じ
+// 取得される内容は NearbySearch と同じ
 func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailRequest) (*Place, error) {
 	r.logger.Info(
 		"Places API Place Details",

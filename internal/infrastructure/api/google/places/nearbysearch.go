@@ -10,7 +10,7 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-type FindPlacesFromLocationRequest struct {
+type NearbySearchRequest struct {
 	Location    Location
 	Radius      uint
 	Language    string
@@ -18,7 +18,7 @@ type FindPlacesFromLocationRequest struct {
 	SearchCount int
 }
 
-func (r PlacesApi) FindPlacesFromLocation(ctx context.Context, req *FindPlacesFromLocationRequest) ([]Place, error) {
+func (r PlacesApi) NearbySearch(ctx context.Context, req *NearbySearchRequest) ([]Place, error) {
 	var placeType maps.PlaceType
 	if req.Type != nil {
 		placeType = *req.Type

@@ -84,7 +84,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 				placeTypePointer = &placeType
 			}
 
-			placesSearched, err := s.placesApi.FindPlacesFromLocation(ctx, &googleplaces.FindPlacesFromLocationRequest{
+			placesSearched, err := s.placesApi.NearbySearch(ctx, &googleplaces.NearbySearchRequest{
 				Location: googleplaces.Location{
 					Latitude:  input.Location.Latitude,
 					Longitude: input.Location.Longitude,
