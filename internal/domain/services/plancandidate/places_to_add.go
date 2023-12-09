@@ -74,7 +74,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	placesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, placesToAdd)
 
 	// 写真を取得
-	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd...)
+	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToAdd...)
 
 	return placesToAdd, nil
 }
