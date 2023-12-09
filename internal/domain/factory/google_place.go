@@ -25,6 +25,8 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
 		PriceLevel:       place.PriceLevel,
+		FormattedAddress: place.FormattedAddress,
+		Vicinity:         place.Vicinity,
 		Photos:           photos,
 		PlaceDetail:      placeDetail,
 	}
