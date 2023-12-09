@@ -7,7 +7,6 @@ import (
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // FetchCandidatePlaces はプランの候補となる場所を取得する
@@ -50,7 +49,7 @@ func (s Service) FetchCandidatePlaces(
 
 		// TODO: キャッシュする
 		// TODO: 大きいサイズの写真も取得する
-		thumbnail, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences, googleplaces.ImageSizeSmall())
+		thumbnail, err := s.placesApi.FetchPlacePhoto(place.Google.PhotoReferences)
 		if err != nil {
 			s.logger.Warn(
 				"error while fetching place photo",

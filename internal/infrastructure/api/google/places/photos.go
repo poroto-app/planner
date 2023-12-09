@@ -15,50 +15,15 @@ type ImageSize struct {
 	Height uint
 }
 
-type ImageSizeType int
-
 type PlacePhotoWithSize struct {
 	photoReference models.GooglePlacePhotoReference
 	imageUrl       string
-	size           ImageSizeType
 }
 
 const (
-	imgMaxHeightLarge = 1000
-	imgMaxWidthLarge  = 1000
-	imgMaxHeightSmall = 400
-	imgMaxWidthSmall  = 400
+	imgMaxHeight = 2000
+	imgMaxWidth  = 2000
 )
-
-const (
-	ImageSizeTypeLarge ImageSizeType = iota
-	ImageSizeTypeSmall
-)
-
-func ImageSizeLarge() ImageSize {
-	return ImageSize{
-		Width:  imgMaxWidthLarge,
-		Height: imgMaxHeightLarge,
-	}
-}
-
-func ImageSizeSmall() ImageSize {
-	return ImageSize{
-		Width:  imgMaxWidthSmall,
-		Height: imgMaxHeightSmall,
-	}
-}
-
-func (i ImageSizeType) ImageSize() ImageSize {
-	switch i {
-	case ImageSizeTypeLarge:
-		return ImageSizeLarge()
-	case ImageSizeTypeSmall:
-		return ImageSizeSmall()
-	default:
-		panic(fmt.Sprintf("invalid image size type: %v", i))
-	}
-}
 
 func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
 	u, err := url.Parse("https://maps.googleapis.com")
@@ -102,13 +67,13 @@ func fetchPublicImageUrl(photoUrl string) (*string, error) {
 }
 
 // FetchPlacePhoto は，指定された場所の画像を１件取得する
-func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoReference, imageSize ImageSize) (*models.GooglePlacePhoto, error) {
+func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoReference) (*models.GooglePlacePhoto, error) {
 	if len(photoReferences) == 0 {
 		return nil, nil
 	}
 
 	photoReference := photoReferences[0]
-	imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
+	imgUrl, err := imgUrlBuilder(imgMaxWidth, imgMaxHeight, photoReference.PhotoReference, r.apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -126,94 +91,71 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoRefe
 // imageSizeTypes が指定されている場合は，高画質の写真を取得する
 // 画像取得は呼び出し料金が高いため、複数の場所の写真を取得するときは注意
 // https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=ja#places-photo-new
-// TODO: 単一の画像だけを取得するようにする
-func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []models.GooglePlacePhotoReference, maxPhotoCount int, imageSizeTypes ...ImageSizeType) ([]models.GooglePlacePhoto, error) {
-	if len(imageSizeTypes) == 0 {
-		imageSizeTypes = []ImageSizeType{ImageSizeTypeLarge}
-	}
-
-	ch := make(chan *PlacePhotoWithSize, len(photoReferences)*len(imageSizeTypes))
+func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []models.GooglePlacePhotoReference, maxPhotoCount int) ([]models.GooglePlacePhoto, error) {
+	ch := make(chan *PlacePhotoWithSize, len(photoReferences))
 	for iPhoto, photoReference := range photoReferences {
-		for _, imageSizeType := range imageSizeTypes {
-			go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, imageSizeType ImageSizeType, ch chan<- *PlacePhotoWithSize) {
-				// 画像取得数が上限に達した場合は、何もしない
-				if photoIndex >= maxPhotoCount {
-					ch <- nil
-					return
+		go func(ctx context.Context, photoIndex int, photoReference models.GooglePlacePhotoReference, ch chan<- *PlacePhotoWithSize) {
+			// 画像取得数が上限に達した場合は、何もしない
+			if photoIndex >= maxPhotoCount {
+				ch <- nil
+				return
+			}
+
+			var imageSize ImageSize
+			if photoReference.Width > imgMaxWidth || photoReference.Height > imgMaxHeight {
+				imageSize = ImageSize{
+					Width:  imgMaxWidth,
+					Height: imgMaxHeight,
 				}
-
-				imageSize := imageSizeType.ImageSize()
-
-				imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
-				if err != nil {
-					// TODO: channelにエラーを送信するようにする
-					r.logger.Warn(
-						"skipping photoReference because of error while building image url",
-						zap.Error(err),
-						zap.String("photoReference", photoReference.PhotoReference),
-					)
-					ch <- nil
-					return
+			} else {
+				imageSize = ImageSize{
+					Width:  uint(photoReference.Width),
+					Height: uint(photoReference.Height),
 				}
+			}
 
-				r.logger.Info(
-					"Places API Fetch Place Photo",
+			imgUrl, err := imgUrlBuilder(imageSize.Width, imageSize.Height, photoReference.PhotoReference, r.apiKey)
+			if err != nil {
+				// TODO: channelにエラーを送信するようにする
+				r.logger.Warn(
+					"skipping photoReference because of error while building image url",
+					zap.Error(err),
 					zap.String("photoReference", photoReference.PhotoReference),
 				)
-				publicImageUrl, err := fetchPublicImageUrl(imgUrl)
-				if err != nil {
-					// TODO: channelにエラーを送信するようにする
-					r.logger.Warn(
-						"skipping photoReference because of error while fetching public image url",
-						zap.Error(err),
-						zap.String("photoReference", photoReference.PhotoReference),
-					)
-					ch <- nil
-					return
-				}
+				ch <- nil
+				return
+			}
 
-				ch <- &PlacePhotoWithSize{
-					photoReference: photoReference,
-					imageUrl:       *publicImageUrl,
-					size:           imageSizeType,
-				}
-			}(ctx, iPhoto, photoReference, imageSizeType, ch)
-		}
+			r.logger.Info(
+				"Places API Fetch Place Photo",
+				zap.String("photoReference", photoReference.PhotoReference),
+			)
+			publicImageUrl, err := fetchPublicImageUrl(imgUrl)
+			if err != nil {
+				// TODO: channelにエラーを送信するようにする
+				r.logger.Warn(
+					"skipping photoReference because of error while fetching public image url",
+					zap.Error(err),
+					zap.String("photoReference", photoReference.PhotoReference),
+				)
+				ch <- nil
+				return
+			}
+
+			ch <- &PlacePhotoWithSize{
+				photoReference: photoReference,
+				imageUrl:       *publicImageUrl,
+			}
+		}(ctx, iPhoto, photoReference, ch)
 	}
 
-	var placePhotoWithSizes []PlacePhotoWithSize
-	for i := 0; i < len(photoReferences)*len(imageSizeTypes); i++ {
+	var placePhotos []models.GooglePlacePhoto
+	for i := 0; i < len(photoReferences); i++ {
 		placePhotoWithSize := <-ch
 		if placePhotoWithSize == nil {
 			continue
 		}
-		placePhotoWithSizes = append(placePhotoWithSizes, *placePhotoWithSize)
-	}
-
-	var placePhotos []models.GooglePlacePhoto
-	for _, photoReference := range photoReferences {
-		var photoUrlSmall, photoUrlLarge *string
-
-		for _, placePhotoWithSize := range placePhotoWithSizes {
-			if placePhotoWithSize.photoReference.PhotoReference != photoReference.PhotoReference {
-				continue
-			}
-
-			switch placePhotoWithSize.size {
-			case ImageSizeTypeLarge:
-				photoUrlLarge = &placePhotoWithSize.imageUrl
-			case ImageSizeTypeSmall:
-				photoUrlSmall = &placePhotoWithSize.imageUrl
-			default:
-				panic(fmt.Sprintf("invalid image size type: %v", placePhotoWithSize.size))
-			}
-		}
-
-		if photoUrlLarge == nil && photoUrlSmall == nil {
-			continue
-		}
-
-		placePhotos = append(placePhotos, photoReference.ToGooglePlacePhoto(photoUrlSmall, photoUrlLarge))
+		placePhotos = append(placePhotos, placePhotoWithSize.photoReference.ToGooglePlacePhoto(nil, &placePhotoWithSize.imageUrl))
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す

@@ -5,7 +5,6 @@ import (
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	api "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
 // FetchGooglePlacesPhotos は，指定された場所の写真を一括で取得する
@@ -37,13 +36,7 @@ func (s Service) FetchGooglePlacesPhotos(ctx context.Context, places []models.Go
 				return
 			}
 
-			photos, err := s.placesApi.FetchPlacePhotos(
-				ctx,
-				place.PlaceDetail.PhotoReferences,
-				1,
-				api.ImageSizeTypeSmall,
-				api.ImageSizeTypeLarge,
-			)
+			photos, err := s.placesApi.FetchPlacePhotos(ctx, place.PlaceDetail.PhotoReferences, 1)
 			if err != nil {
 				// TODO: channelを用いてエラーハンドリングする
 				s.logger.Warn(
