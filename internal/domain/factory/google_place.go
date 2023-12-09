@@ -15,14 +15,17 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 	var photoReferences []models.GooglePlacePhotoReference
 	if photos != nil {
 		photoReferences = make([]models.GooglePlacePhotoReference, len(*photos))
-		for _, photo := range *photos {
-			photoReferences = append(photoReferences, photo.ToPhotoReference())
+		for i, photo := range *photos {
+			photoReferences[i] = photo.ToPhotoReference()
 		}
 	} else if place.PhotoReferences != nil && len(place.PhotoReferences) > 0 {
 		// Nearby Search で取得した場合は PhotoReference がある
 		photoReferences = make([]models.GooglePlacePhotoReference, len(place.PhotoReferences))
-		for _, photo := range place.PhotoReferences {
-			photoReferences = append(photoReferences, GooglePlacePhotoReferenceFromPhoto(photo))
+		for i, photo := range place.PhotoReferences {
+			if photo.PhotoReference == "" {
+				continue
+			}
+			photoReferences[i] = GooglePlacePhotoReferenceFromPhoto(photo)
 		}
 	}
 
