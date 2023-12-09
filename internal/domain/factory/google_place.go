@@ -12,6 +12,14 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 		placeDetail = &d
 	}
 
+	var photoReferences []models.GooglePlacePhotoReference
+	if photos != nil {
+		photoReferences = make([]models.GooglePlacePhotoReference, len(*photos))
+		for _, photo := range *photos {
+			photoReferences = append(photoReferences, photo.ToPhotoReference())
+		}
+	}
+
 	return models.GooglePlace{
 		PlaceId: place.PlaceID,
 		Name:    place.Name,
@@ -20,7 +28,7 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,
 		},
-		PhotoReferences:  place.PhotoReferences,
+		PhotoReferences:  photoReferences,
 		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
