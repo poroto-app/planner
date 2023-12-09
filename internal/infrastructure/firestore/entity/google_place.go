@@ -4,12 +4,12 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+// GooglePlaceEntity NearbySearchで取得できるデータをキャッシュ
 type GooglePlaceEntity struct {
 	PlaceID          string                         `firestore:"place_id"`
 	Name             string                         `firestore:"name"`
 	Types            []string                       `firestore:"types"`
 	Location         GeoLocationEntity              `firestore:"location"`
-	PhotoReferences  []string                       `firestore:"photo_references"`
 	OpenNow          bool                           `firestore:"open_now"`
 	Rating           float32                        `firestore:"rating"`
 	UserRatingsTotal int                            `firestore:"user_ratings_total"`
@@ -30,7 +30,6 @@ func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntit
 		PlaceID:          place.PlaceId,
 		Name:             place.Name,
 		Types:            place.Types,
-		PhotoReferences:  place.PhotoReferences,
 		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
@@ -54,7 +53,6 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity
 		Name:             g.Name,
 		Types:            g.Types,
 		Location:         location,
-		PhotoReferences:  g.PhotoReferences,
 		OpenNow:          g.OpenNow,
 		Rating:           g.Rating,
 		UserRatingsTotal: g.UserRatingsTotal,
