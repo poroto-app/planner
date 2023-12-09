@@ -70,9 +70,6 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		placesToAdd = append(placesToAdd, place)
 	}
 
-	// 場所の詳細情報を取得
-	placesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, placesToAdd)
-
 	// 写真を取得
 	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToAdd...)
 

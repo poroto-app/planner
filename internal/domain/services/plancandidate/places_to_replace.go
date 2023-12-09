@@ -89,9 +89,6 @@ func (s Service) FetchPlacesToReplace(
 		placesToReplace = placesToReplace[:nLimit]
 	}
 
-	// 詳細情報を取得
-	placesToReplace = s.placeService.FetchPlacesDetailAndSave(ctx, placesToReplace)
-
 	// 画像を取得
 	placesToReplace = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToReplace...)
 

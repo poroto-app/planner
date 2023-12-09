@@ -103,11 +103,8 @@ func (s Service) CategoriesNearLocation(
 			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:params.MaxPlacesPerCategory]
 		}
 
-		// 場所の詳細情報を取得
-		placesWithDetail := s.placeService.FetchPlacesDetailAndSave(ctx, placesSortedByCategoryIndex)
-
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, placesWithDetail...)
+		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, placesSortedByCategoryIndex...)
 
 		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, placesWithPhotos))
 	}
