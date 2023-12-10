@@ -52,18 +52,18 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	placesFiltered := places
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: params.Location,
+	})
 
 	// 場所をカテゴリごとにグループ化し、対応する場所の少ないカテゴリから順に写真を取得する
 	placeCategoryGroups := groupPlacesByCategory(placesFiltered)
 	sort.Slice(placeCategoryGroups, func(i, j int) bool {
 		return len(placeCategoryGroups[i].places) < len(placeCategoryGroups[j].places)
 	})
+
+	// レビューの高い順にソート
 
 	// 検索された場所のカテゴリとその写真を取得
 	categoriesWithPlaces := make([]models.LocationCategoryWithPlaces, 0)

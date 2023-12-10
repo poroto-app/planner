@@ -56,16 +56,6 @@ func (s *Service) FetchPlacesToReplace(
 	// 遠い場所を除外
 	placesFiltered = placefilter.FilterWithinDistanceRange(placesFiltered, startPlace.Location, 0, 1000)
 
-	// 重複した場所を削除
-	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
-
-	// 会社はプランに含まれないようにする
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// 場所のカテゴリによるフィルタリング
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
-
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
 		for _, placeInPlan := range plan.Places {
