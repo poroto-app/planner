@@ -2,6 +2,7 @@ package models
 
 import (
 	"math/rand"
+	"sort"
 	"time"
 )
 
@@ -63,6 +64,17 @@ func ShufflePlaces(places []Place) []Place {
 		j := rand.Intn(i + 1)
 		placesCopy[i], placesCopy[j] = placesCopy[j], placesCopy[i]
 	}
+
+	return placesCopy
+}
+
+func SortPlacesByRating(places []Place) []Place {
+	placesCopy := make([]Place, len(places))
+	copy(placesCopy, places)
+
+	sort.SliceStable(placesCopy, func(i, j int) bool {
+		return placesCopy[i].Google.Rating > placesCopy[j].Google.Rating
+	})
 
 	return placesCopy
 }

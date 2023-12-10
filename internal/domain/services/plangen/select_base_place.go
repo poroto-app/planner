@@ -70,9 +70,7 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 // categoriesPreferred が指定される場合は、同じカテゴリの場所が含まれないように選択する
 func selectByReview(places []models.Place) []models.Place {
 	// レビューの高い順にソート
-	sort.SliceStable(places, func(i, j int) bool {
-		return places[i].Google.Rating > places[j].Google.Rating
-	})
+	places = models.SortPlacesByRating(places)
 
 	var placesSelected []models.Place
 	for _, place := range places {

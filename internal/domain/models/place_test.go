@@ -138,6 +138,39 @@ func TestShufflePlaces(t *testing.T) {
 	}
 }
 
+func TestSortPlacesByRating(t *testing.T) {
+	cases := []struct {
+		name     string
+		places   []Place
+		expected []Place
+	}{
+		{
+			name: "should return sorted places by rating",
+			places: []Place{
+				NewMockPlaceShinjukuStation(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceTakashimaya(),
+			},
+			expected: []Place{
+				NewMockPlaceTakashimaya(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuStation(),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			actual := SortPlacesByRating(c.places)
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("SortPlacesByRating() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 // ==============================================================
 // Mocks
 // ==============================================================
@@ -148,6 +181,9 @@ func NewMockPlaceShinjukuStation() Place {
 		Location: GeoLocation{
 			Latitude:  35.6899573,
 			Longitude: 139.7005071,
+		},
+		Google: GooglePlace{
+			Rating: 4.5,
 		},
 	}
 }
@@ -160,6 +196,9 @@ func NewMockPlaceIsetan() Place {
 			Latitude:  35.6916532,
 			Longitude: 139.7046449,
 		},
+		Google: GooglePlace{
+			Rating: 4.6,
+		},
 	}
 }
 
@@ -171,6 +210,9 @@ func NewMockPlaceShinjukuGyoen() Place {
 			Latitude:  35.6867668,
 			Longitude: 139.7123842,
 		},
+		Google: GooglePlace{
+			Rating: 4.7,
+		},
 	}
 }
 
@@ -181,6 +223,9 @@ func NewMockPlaceTakashimaya() Place {
 		Location: GeoLocation{
 			Latitude:  35.6875312,
 			Longitude: 139.7022521,
+		},
+		Google: GooglePlace{
+			Rating: 4.8,
 		},
 	}
 }
