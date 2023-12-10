@@ -2,43 +2,59 @@ package plancandidate
 
 import (
 	"context"
-	"sort"
-
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
+const (
+	defaultMaxPlacesToSuggest = 3
+)
+
+type FetchCandidatePlacesInput struct {
+	PlanCandidateId string
+	NLimit          int
+}
+
 // FetchCandidatePlaces はプランの候補となる場所を取得する
 func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
-	createPlanSessionId string,
-	nLimit int,
+	input FetchCandidatePlacesInput,
 ) (*[]models.Place, error) {
-	if nLimit <= 0 {
-		panic("nLimit must be greater than 0")
+	if input.PlanCandidateId == "" {
+		panic("PlanCandidateId is empty")
 	}
 
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	if input.NLimit == 0 {
+		input.NLimit = defaultMaxPlacesToSuggest
+	}
+
+	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId)
 	if err != nil {
 		return nil, err
 	}
 
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId)
+	if planCandidate.MetaData.LocationStart == nil {
+		s.logger.Warn(
+			"plan candidate has no start location",
+			zap.String("planCandidateId", planCandidate.Id),
+		)
+
+		return nil, nil
+	}
+
+	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		return nil, err
 	}
 
 	placesFiltered := placesSearched
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
-
-	// 重複した場所を削除
-	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
-
-	placesSortedByRating := placesFiltered
-	sort.Slice(placesSortedByRating, func(i, j int) bool {
-		return placesSortedByRating[i].Google.Rating > placesSortedByRating[j].Google.Rating
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: *planCandidate.MetaData.LocationStart,
 	})
+
+	placesSortedByRating := models.SortPlacesByRating(placesFiltered)
 
 	placesToSuggest := make([]models.Place, 0, len(placesSortedByRating))
 	for _, place := range placesSortedByRating {
@@ -51,7 +67,7 @@ func (s Service) FetchCandidatePlaces(
 
 		placesToSuggest = append(placesToSuggest, place)
 
-		if len(placesToSuggest) >= nLimit {
+		if len(placesToSuggest) >= input.NLimit {
 			break
 		}
 	}
