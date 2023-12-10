@@ -46,6 +46,14 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 
 // NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
 func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "GraphQL",
+	})
+	if err != nil {
+		log.Println("error while initializing logger: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
 	service, err := plancandidate.NewService(ctx)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
@@ -53,6 +61,12 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 	}
 
 	createPlanSessionId := uuid.New().String()
+	logger.Info(
+		"NearbyPlaceCategories",
+		zap.String("planCandidateId", createPlanSessionId),
+		zap.Float64("latitude", input.Latitude),
+		zap.Float64("longitude", input.Longitude),
+	)
 
 	categoriesSearched, err := service.CategoriesNearLocation(
 		ctx,
