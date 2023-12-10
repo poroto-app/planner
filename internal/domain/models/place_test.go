@@ -100,6 +100,44 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 	}
 }
 
+func TestShufflePlaces(t *testing.T) {
+	cases := []struct {
+		name     string
+		places   []Place
+		expected []Place
+	}{
+		{
+			name: "should return shuffled places",
+			places: []Place{
+				NewMockPlaceShinjukuStation(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceTakashimaya(),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			original := make([]Place, len(c.places))
+			copy(original, c.places)
+
+			actual := ShufflePlaces(c.places)
+			if diff := cmp.Diff(len(c.places), len(actual)); diff != "" {
+				t.Errorf("ShufflePlaces() mismatch (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(original, actual); diff == "" {
+				t.Errorf("ShufflePlaces() should return shuffled places")
+			}
+
+			if diff := cmp.Diff(original, c.places); diff != "" {
+				t.Errorf("ShufflePlaces() should not modify original places")
+			}
+		})
+	}
+}
+
 // ==============================================================
 // Mocks
 // ==============================================================
