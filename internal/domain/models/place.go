@@ -9,15 +9,6 @@ type Place struct {
 	LikeCount uint        `json:"like_count"`
 }
 
-func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
-	return Place{
-		Id:       placeId,
-		Google:   googlePlace,
-		Name:     googlePlace.Name,
-		Location: googlePlace.Location,
-	}
-}
-
 func (p Place) Categories() []LocationCategory {
 	return GetCategoriesFromSubCategories(p.Google.Types)
 }
