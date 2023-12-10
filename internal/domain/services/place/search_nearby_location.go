@@ -13,18 +13,22 @@ import (
 
 // NearbySearchRadius NearbySearch で検索する際の半径
 // FilterSearchResultRadius 検索結果をフィルタリングするときの半径
-// IgnoreCategoryPlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
 const (
 	NearbySearchRadius       = 2000
 	FilterSearchResultRadius = 1000
-	IgnoreCategoryPlaceCount = 5
 )
 
 type SearchNearbyPlacesInput struct {
 	Location                 models.GeoLocation
 	Radius                   uint
 	FilterSearchResultRadius float64
-	IgnoreCategoryPlaceCount uint
+}
+
+// placeTypeToSearch 検索する必要のあるカテゴリを表す
+// ignoreCategoryPlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
+type placeTypeToSearch struct {
+	placeType        maps.PlaceType
+	ignorePlaceCount uint
 }
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
@@ -40,10 +44,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 
 	if input.FilterSearchResultRadius == 0 {
 		input.FilterSearchResultRadius = FilterSearchResultRadius
-	}
-
-	if input.IgnoreCategoryPlaceCount == 0 {
-		input.IgnoreCategoryPlaceCount = IgnoreCategoryPlaceCount
 	}
 
 	// キャッシュされた検索結果を取得
@@ -64,8 +64,16 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	placeTypeToPlaces := groupByPlaceType(placesFiltered, s.placeTypesToSearch())
 	var placeTypesToSearch []maps.PlaceType
 	for placeType, places := range placeTypeToPlaces {
-		// 5件以上の場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
-		if len(places) >= int(input.IgnoreCategoryPlaceCount) {
+		ignorePlaceCount := uint(0)
+		for _, placeTypeToSearch := range s.placeTypesToSearch() {
+			if placeTypeToSearch.placeType == placeType {
+				ignorePlaceCount = placeTypeToSearch.ignorePlaceCount
+				break
+			}
+		}
+
+		// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
+		if len(places) >= int(ignorePlaceCount) {
 			s.logger.Info(
 				"skip searching place type because it has enough places",
 				zap.String("placeType", string(placeType)),
@@ -147,27 +155,36 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	return placesSearchedFiltered, nil
 }
 
-func (s Service) placeTypesToSearch() []maps.PlaceType {
-	return []maps.PlaceType{
-		maps.PlaceTypeAquarium,
-		maps.PlaceTypeAmusementPark,
-		maps.PlaceTypeCafe,
-		maps.PlaceTypeMuseum,
-		maps.PlaceTypeRestaurant,
-		maps.PlaceTypeShoppingMall,
-		maps.PlaceTypeSpa,
-		maps.PlaceTypeZoo,
+func (s Service) placeTypesToSearch() []placeTypeToSearch {
+	return []placeTypeToSearch{
+		{
+			placeType:        maps.PlaceTypeAmusementPark,
+			ignorePlaceCount: 3,
+		},
+		{
+			placeType:        maps.PlaceTypeCafe,
+			ignorePlaceCount: 5,
+		},
+		{
+			placeType:        maps.PlaceTypeRestaurant,
+			ignorePlaceCount: 5,
+		},
+		{
+			placeType:        maps.PlaceTypeShoppingMall,
+			ignorePlaceCount: 3,
+		},
+		{},
 	}
 }
 
-func groupByPlaceType(places []models.Place, placeTypes []maps.PlaceType) map[maps.PlaceType][]models.Place {
+func groupByPlaceType(places []models.Place, placeTypes []placeTypeToSearch) map[maps.PlaceType][]models.Place {
 	placesGroupedByPlaceType := make(map[maps.PlaceType][]models.Place)
 	for _, placeType := range placeTypes {
-		placesGroupedByPlaceType[placeType] = make([]models.Place, 0)
+		placesGroupedByPlaceType[placeType.placeType] = make([]models.Place, 0)
 
 		for _, place := range places {
-			if array.IsContain(place.Google.Types, string(placeType)) {
-				placesGroupedByPlaceType[placeType] = append(placesGroupedByPlaceType[placeType], place)
+			if array.IsContain(place.Google.Types, string(placeType.placeType)) {
+				placesGroupedByPlaceType[placeType.placeType] = append(placesGroupedByPlaceType[placeType.placeType], place)
 			}
 		}
 	}
