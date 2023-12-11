@@ -13,6 +13,9 @@ inputs:
   description:
     description: 'Cloud Function Description'
     required: true
+  region:
+    description: 'Cloud Function Region'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -21,13 +24,18 @@ runs:
       run: cp internal/interface/cloudfunctions/*.go ./
       shell: bash
     # SEE: https://github.com/google-github-actions/deploy-cloud-functions
-    - id: 'deploy'
-      uses: 'google-github-actions/deploy-cloud-functions@v1'
-      with:
-        name: ${{ inputs.function_name }}
-        entry_point: ${{ inputs.entry_point }}
-        runtime: ${{ inputs.runtime }}
-        description: ${{ inputs.description }}
-    - id: 'describe'
-      run: gcloud functions describe ${{ inputs.function_name }}
+    - id: "deploy"
+      shell: bash
+      # https://cloud.google.com/sdk/gcloud/reference/functions/deploy
+      run: |
+        gcloud functions deploy ${{ inputs.function_name }} \
+          --entry-point=${{ inputs.entry_point }} \
+          --runtime=${{ inputs.runtime }} \
+          --gen2 \
+          --region=${{ inputs.region }}
+    - id: "describe"
+      # https://cloud.google.com/sdk/gcloud/reference/functions/describe
+      run: |
+        gcloud functions describe ${{ inputs.function_name }} \
+          --region=${{ inputs.region }}
       shell: bash
