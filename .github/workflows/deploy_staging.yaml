@@ -2,8 +2,8 @@ name: deploy-staging
 run-name: Deploy Staging by @${{ github.actor }}
 on:
   push:
-    # branches:
-    #   - develop 
+    branches:
+      - develop 
 jobs:
   deploy-staging:
     name: Deploy Staging
