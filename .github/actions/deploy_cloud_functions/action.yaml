@@ -33,6 +33,7 @@ runs:
           --runtime=${{ inputs.runtime }} \
           --gen2 \
           --region=${{ inputs.region }} \
+          --no-allow-unauthenticated \
           --trigger-http
     - id: "describe"
       # https://cloud.google.com/sdk/gcloud/reference/functions/describe
