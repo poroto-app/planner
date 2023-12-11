@@ -32,7 +32,8 @@ runs:
           --entry-point=${{ inputs.entry_point }} \
           --runtime=${{ inputs.runtime }} \
           --gen2 \
-          --region=${{ inputs.region }}
+          --region=${{ inputs.region }} \
+          --trigger-http
     - id: "describe"
       # https://cloud.google.com/sdk/gcloud/reference/functions/describe
       run: |
