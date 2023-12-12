@@ -62,21 +62,30 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	placeTypeToPlaces := groupByPlaceType(placesSaved, s.placeTypesToSearch())
 	var placeTypesToSearch []placeTypeWithCondition
 	for _, placeTypeToSearch := range s.placeTypesToSearch() {
-		places := placeTypeToPlaces[placeTypeToSearch.placeType]
+		savedPlacesOfPlaceType := placeTypeToPlaces[placeTypeToSearch.placeType]
 
 		// 保存された場所の中から特定の範囲内にある場所を取得
 		filterRange := placeTypeToSearch.filterRange
 		if filterRange == 0 {
 			filterRange = placeTypeToSearch.searchRange
 		}
-		placesInSearchRange := placefilter.FilterWithinDistanceRange(places, input.Location, 0, float64(filterRange))
+		placesInSearchRange := placefilter.FilterWithinDistanceRange(savedPlacesOfPlaceType, input.Location, 0, float64(filterRange))
+
+		s.logger.Info(
+			"saved places of place type",
+			zap.String("placeType", string(placeTypeToSearch.placeType)),
+			zap.Int("savedPlacesOfPlaceType", len(savedPlacesOfPlaceType)),
+			zap.Int("placesInSearchRange", len(placesInSearchRange)),
+		)
 
 		// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
 		if len(placesInSearchRange) >= int(placeTypeToSearch.ignorePlaceCount) {
 			s.logger.Debug(
 				"skip searching place type because it has enough places",
 				zap.String("placeType", string(placeTypeToSearch.placeType)),
-				zap.Int("places", len(places)),
+				zap.Int("savedPlacesOfPlaceType", len(savedPlacesOfPlaceType)),
+				zap.Int("placesInSearchRange", len(placesInSearchRange)),
+				zap.Uint("ignorePlaceCount", placeTypeToSearch.ignorePlaceCount),
 			)
 			continue
 		}
