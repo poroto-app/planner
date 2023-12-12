@@ -62,7 +62,7 @@ func (s Service) fetchGooglePlacesPhotos(ctx context.Context, places []models.Go
 		go func(ctx context.Context, place models.GooglePlace, ch chan<- models.GooglePlace) {
 			// すでに写真がある場合は，何もしない
 			if place.Photos != nil && len(*place.Photos) > 0 {
-				s.logger.Info(
+				s.logger.Debug(
 					"skip fetching place photos because photos already exist",
 					zap.String("placeId", place.PlaceId),
 				)
@@ -71,7 +71,7 @@ func (s Service) fetchGooglePlacesPhotos(ctx context.Context, places []models.Go
 			}
 
 			if place.PlaceDetail == nil || len(place.PlaceDetail.PhotoReferences) == 0 {
-				s.logger.Info(
+				s.logger.Debug(
 					"skip fetching place photos because photo references not found",
 					zap.String("placeId", place.PlaceId),
 				)
