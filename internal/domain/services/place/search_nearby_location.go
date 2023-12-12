@@ -32,7 +32,6 @@ type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
 	searchRange      uint
 	ignorePlaceCount uint
-	rankedBy         maps.RankBy
 }
 
 // SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
@@ -65,7 +64,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		placesInSearchRange := placefilter.FilterWithinDistanceRange(places, input.Location, 0, float64(placeTypeToSearch.searchRange))
 		if len(placesInSearchRange) >= int(placeTypeToSearch.ignorePlaceCount) {
 			// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
-			s.logger.Info(
+			s.logger.Debug(
 				"skip searching place type because it has enough places",
 				zap.String("placeType", string(placeTypeToSearch.placeType)),
 				zap.Int("places", len(places)),
@@ -92,7 +91,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 				Language:    "ja",
 				Type:        placeTypePointer,
 				SearchCount: 1,
-				RankedBy:    placeTypeWithCondition.rankedBy,
 			})
 			if err != nil {
 				// TODO: channelを用いてエラーハンドリングする
@@ -105,7 +103,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 				)
 			}
 
-			s.logger.Debug(
+			s.logger.Info(
 				"successfully fetched nearby places",
 				zap.String("placeType", string(placeTypeWithCondition.placeType)),
 				zap.Uint("searchRange", placeTypeWithCondition.searchRange),
@@ -163,49 +161,41 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 			placeType:        maps.PlaceTypeAquarium,
 			searchRange:      30 * 1000,
 			ignorePlaceCount: 1,
-			rankedBy:         maps.RankByDistance,
 		},
 		{
 			placeType:        maps.PlaceTypeAmusementPark,
 			searchRange:      2 * 1000,
 			ignorePlaceCount: 3,
-			rankedBy:         maps.RankByProminence,
 		},
 		{
 			placeType:        maps.PlaceTypeCafe,
 			searchRange:      2 * 1000,
 			ignorePlaceCount: 5,
-			rankedBy:         maps.RankByProminence,
 		},
 		{
 			placeType:        maps.PlaceTypeMuseum,
 			searchRange:      30 * 1000,
 			ignorePlaceCount: 1,
-			rankedBy:         maps.RankByDistance,
 		},
 		{
 			placeType:        maps.PlaceTypeRestaurant,
 			searchRange:      2 * 1000,
 			ignorePlaceCount: 5,
-			rankedBy:         maps.RankByProminence,
 		},
 		{
 			placeType:        maps.PlaceTypeShoppingMall,
 			searchRange:      2 * 1000,
 			ignorePlaceCount: 3,
-			rankedBy:         maps.RankByProminence,
 		},
 		{
 			placeType:        maps.PlaceTypeSpa,
 			searchRange:      30 * 1000,
 			ignorePlaceCount: 1,
-			rankedBy:         maps.RankByDistance,
 		},
 		{
 			placeType:        maps.PlaceTypeZoo,
 			searchRange:      30 * 1000,
 			ignorePlaceCount: 1,
-			rankedBy:         maps.RankByDistance,
 		},
 	}
 }
