@@ -8,7 +8,7 @@ import (
 
 const (
 	defaultLogLevelDevelopment = zap.InfoLevel
-	defaultLogLevelProduction  = zap.DebugLevel
+	defaultLogLevelProduction  = zap.InfoLevel
 )
 
 type LoggerOption struct {
@@ -55,4 +55,8 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 	}
 
 	return logger, nil
+}
+
+func LoggerLevelPointer(level zapcore.Level) *zapcore.Level {
+	return &level
 }
