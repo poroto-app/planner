@@ -7,10 +7,19 @@ import (
 )
 
 type LoggerOption struct {
-	Tag string
+	Tag      string
+	LogLevel *zapcore.Level
 }
 
 func NewLogger(option LoggerOption) (*zap.Logger, error) {
+	if option.LogLevel == nil {
+		if os.Getenv("ENV") == "production" {
+			*option.LogLevel = zap.InfoLevel
+		} else {
+			*option.LogLevel = zap.DebugLevel
+		}
+	}
+
 	var logger *zap.Logger
 	if os.Getenv("ENV") == "production" {
 		l, err := zap.NewProduction()
@@ -24,6 +33,7 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 		dc.Encoding = "console"
 		dc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		dc.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		dc.Level = zap.NewAtomicLevelAt(*option.LogLevel)
 
 		l, err := dc.Build()
 		if err != nil {
