@@ -6,6 +6,11 @@ import (
 	"os"
 )
 
+const (
+	defaultLogLevelDevelopment = zap.InfoLevel
+	defaultLogLevelProduction  = zap.DebugLevel
+)
+
 type LoggerOption struct {
 	Tag      string
 	LogLevel *zapcore.Level
@@ -15,9 +20,9 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 	if option.LogLevel == nil {
 		var defaultLogLevel zapcore.Level
 		if os.Getenv("ENV") == "production" {
-			defaultLogLevel = zap.InfoLevel
+			defaultLogLevel = defaultLogLevelProduction
 		} else {
-			defaultLogLevel = zap.DebugLevel
+			defaultLogLevel = defaultLogLevelDevelopment
 		}
 		option.LogLevel = &defaultLogLevel
 	}
