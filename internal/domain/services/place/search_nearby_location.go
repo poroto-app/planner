@@ -154,8 +154,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 }
 
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {
-	//maps.PlaceTypeSpa,
-	//maps.PlaceTypeZoo,
 	return []placeTypeWithCondition{
 		{
 			placeType:        maps.PlaceTypeAquarium,
@@ -164,8 +162,8 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		},
 		{
 			placeType:        maps.PlaceTypeAmusementPark,
-			searchRange:      2 * 1000,
-			ignorePlaceCount: 3,
+			searchRange:      30 * 1000,
+			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeCafe,
