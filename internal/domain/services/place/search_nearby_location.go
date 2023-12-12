@@ -27,10 +27,12 @@ type SearchNearbyPlacesInput struct {
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
 // searchRange Nearby Search時の検索範囲（水族館等の施設の数が少ない場所を探すときは広い範囲を探す）
+// filterRange 周囲に周囲にあるかどうかを確認するときの検索範囲 指定されていない場合は searchRange の値でフィルタリングされる
 // ignorePlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
 type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
 	searchRange      uint
+	filterRange      uint
 	ignorePlaceCount uint
 }
 
@@ -61,9 +63,16 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	var placeTypesToSearch []placeTypeWithCondition
 	for _, placeTypeToSearch := range s.placeTypesToSearch() {
 		places := placeTypeToPlaces[placeTypeToSearch.placeType]
-		placesInSearchRange := placefilter.FilterWithinDistanceRange(places, input.Location, 0, float64(placeTypeToSearch.searchRange))
+
+		// 保存された場所の中から特定の範囲内にある場所を取得
+		filterRange := placeTypeToSearch.filterRange
+		if filterRange == 0 {
+			filterRange = placeTypeToSearch.searchRange
+		}
+		placesInSearchRange := placefilter.FilterWithinDistanceRange(places, input.Location, 0, float64(filterRange))
+
+		// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
 		if len(placesInSearchRange) >= int(placeTypeToSearch.ignorePlaceCount) {
-			// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
 			s.logger.Debug(
 				"skip searching place type because it has enough places",
 				zap.String("placeType", string(placeTypeToSearch.placeType)),
@@ -71,6 +80,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 			)
 			continue
 		}
+
 		placeTypesToSearch = append(placeTypesToSearch, placeTypeToSearch)
 	}
 
@@ -154,15 +164,19 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 }
 
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {
+	// そのカテゴリの場所が filterRange で指定している範囲の中に
+	// このくらいはありそうという値を ignorePlaceCount に指定している
 	return []placeTypeWithCondition{
 		{
 			placeType:        maps.PlaceTypeAquarium,
 			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeAmusementPark,
 			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
@@ -173,6 +187,7 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		{
 			placeType:        maps.PlaceTypeMuseum,
 			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
@@ -188,16 +203,19 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		{
 			placeType:        maps.PlaceTypeSpa,
 			searchRange:      30 * 1000,
+			filterRange:      5 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeTouristAttraction,
 			searchRange:      30 * 1000,
+			filterRange:      5 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeZoo,
 			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
 			ignorePlaceCount: 1,
 		},
 	}
