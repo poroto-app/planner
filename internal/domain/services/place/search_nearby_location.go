@@ -191,6 +191,11 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 			ignorePlaceCount: 1,
 		},
 		{
+			placeType:        maps.PlaceTypeTouristAttraction,
+			searchRange:      30 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
 			placeType:        maps.PlaceTypeZoo,
 			searchRange:      30 * 1000,
 			ignorePlaceCount: 1,
