@@ -212,7 +212,7 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		{
 			placeType:        maps.PlaceTypeSpa,
 			searchRange:      30 * 1000,
-			filterRange:      5 * 1000,
+			filterRange:      3 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
