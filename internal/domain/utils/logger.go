@@ -13,11 +13,13 @@ type LoggerOption struct {
 
 func NewLogger(option LoggerOption) (*zap.Logger, error) {
 	if option.LogLevel == nil {
+		var defaultLogLevel zapcore.Level
 		if os.Getenv("ENV") == "production" {
-			*option.LogLevel = zap.InfoLevel
+			defaultLogLevel = zap.InfoLevel
 		} else {
-			*option.LogLevel = zap.DebugLevel
+			defaultLogLevel = zap.DebugLevel
 		}
+		option.LogLevel = &defaultLogLevel
 	}
 
 	var logger *zap.Logger
