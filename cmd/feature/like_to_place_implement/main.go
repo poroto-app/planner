@@ -23,8 +23,7 @@ func main() {
 	planCandidateId := "291de5a4-f96a-4061-bb3b-c139d56f6ae0"
 	placeId := "R4rEWuWpEEUmPtAZeh9H"
 
-	// Call the UpdateLikeToPlaceInPlanCandidate function
-	err = rep.UpdateLikeToPlaceInPlanCandidate(ctx, planCandidateId, placeId, true)
+	err = rep.UpdateLikeToPlaceInPlanCandidate(ctx, planCandidateId, placeId)
 	if err != nil {
 		fmt.Printf("Error updating like to place in plan candidate: %v\n", err)
 		return
