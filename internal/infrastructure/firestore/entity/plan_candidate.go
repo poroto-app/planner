@@ -11,6 +11,7 @@ type PlanCandidateEntity struct {
 	Id               string    `firestore:"id"`
 	PlanIds          []string  `firestore:"plan_ids"`
 	PlaceIdsSearched []string  `firestore:"place_ids_searched"`
+	LikedPlaceIds    []string  `firestore:"liked_place_ids"`
 	ExpiresAt        time.Time `firestore:"expires_at"`
 	CreatedAt        time.Time `firestore:"created_at,omitempty,serverTimestamp"`
 	UpdatedAt        time.Time `firestore:"updated_at,omitempty,serverTimestamp"`
@@ -29,7 +30,7 @@ func NewPlanCandidateEntityFromPlanCandidate(planCandidate models.PlanCandidate)
 	}
 }
 
-func (p PlanCandidateEntity) ToPlanCandidate(metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place, likedPlaceIds []string) models.PlanCandidate {
+func (p PlanCandidateEntity) ToPlanCandidate(metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
 	var plans []models.Plan
 	for _, planId := range p.PlanIds {
 		for _, place := range planEntities {
@@ -54,6 +55,6 @@ func (p PlanCandidateEntity) ToPlanCandidate(metaData PlanCandidateMetaDataV1Ent
 		Plans:         plans,
 		MetaData:      FromPlanCandidateMetaDataV1Entity(metaData),
 		ExpiresAt:     p.ExpiresAt,
-		LikedPlaceIds: likedPlaceIds,
+		LikedPlaceIds: p.LikedPlaceIds,
 	}
 }
