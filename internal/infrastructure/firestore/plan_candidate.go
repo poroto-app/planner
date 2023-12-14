@@ -704,10 +704,8 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 					break
 				}
 			}
-		}
-
-		// まだLikeされていない場合は、Likeを追加
-		if !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+		} else {
+			// まだLikeされていない場合は、Likeを追加
 			place.LikeCount += 1
 			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
 		}
