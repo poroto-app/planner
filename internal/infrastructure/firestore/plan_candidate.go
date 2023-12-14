@@ -708,6 +708,13 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 			// まだLikeされていない場合は、Likeを追加
 			place.LikeCount += 1
 			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
+		} else {
+			p.logger.Info(
+				"mismatching like state between input and DB",
+				zap.Bool("like", like),
+				zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+			)
+			return nil
 		}
 
 		// PlanCandidateを更新する
