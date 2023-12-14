@@ -672,7 +672,7 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 	return nil
 }
 
-func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string) error {
+func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		// Placeの取得
 		place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
@@ -696,7 +696,7 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 		}
 
 		// すでにLikeしている場合は、Likeを取り消し
-		if place.LikeCount > 0 && array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+		if place.LikeCount > 0 && !like && array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
 			place.LikeCount -= 1
 			for i, id := range planCandidateEntity.LikedPlaceIds {
 				if id == place.Id {
@@ -704,7 +704,7 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 					break
 				}
 			}
-		} else {
+		} else if like && !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
 			// まだLikeされていない場合は、Likeを追加
 			place.LikeCount += 1
 			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
