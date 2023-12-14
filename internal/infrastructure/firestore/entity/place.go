@@ -15,7 +15,7 @@ type PlaceEntity struct {
 	GeoHash       string    `firestore:"geohash"`
 	CreatedAt     time.Time `firestore:"created_at,serverTimestamp,omitempty"`
 	UpdatedAt     time.Time `firestore:"updated_at,omitempty"`
-	LikeCount     uint      `firestore:"like_count"`
+	LikeCount     int       `firestore:"like_count"`
 }
 
 func NewPlaceEntityFromPlace(place models.Place) PlaceEntity {

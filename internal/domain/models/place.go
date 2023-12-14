@@ -6,7 +6,7 @@ type Place struct {
 	Google    GooglePlace `json:"google"`
 	Name      string      `json:"name"`
 	Location  GeoLocation `json:"location"`
-	LikeCount uint        `json:"like_count"`
+	LikeCount int         `json:"like_count"`
 }
 
 func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
