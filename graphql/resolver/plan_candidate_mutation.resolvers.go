@@ -313,5 +313,26 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: LikeToPlaceInPlanCandidate - likeToPlaceInPlanCandidate"))
+	planCandidateService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCandidateUpdated, err := planCandidateService.LikeToPlaceInPlanCandidate(ctx, input.PlanCandidateID, input.PlaceID, input.Like)
+	if err != nil {
+		log.Println(fmt.Errorf("error while liking to place in plan candidate: %v", err))
+		return nil, fmt.Errorf("could not like to place in plan candidate")
+	}
+
+	graphqlPlanCandidate := factory.PlansFromDomainModel(&planCandidateUpdated.Plans, planCandidateUpdated.MetaData.LocationStart)
+
+	if err != nil {
+		log.Printf("error while converting plan candidate to graphql model: %v", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.LikeToPlaceInPlanCandidateOutput{
+		Plans: graphqlPlanCandidate,
+	}, nil
 }
