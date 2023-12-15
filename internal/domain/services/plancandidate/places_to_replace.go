@@ -89,11 +89,8 @@ func (s Service) FetchPlacesToReplace(
 		placesToReplace = placesToReplace[:nLimit]
 	}
 
-	// 詳細情報を取得
-	placesToReplace = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, placesToReplace)
-
 	// 画像を取得
-	placesToReplace = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToReplace...)
+	placesToReplace = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToReplace...)
 
 	return placesToReplace, nil
 }

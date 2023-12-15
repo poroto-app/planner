@@ -62,7 +62,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching photos and reviews for places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, *placeToAdd)
+	placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, *placeToAdd)
 	placeToAdd = &placesWithPhoto[0]
 	s.logger.Info(
 		"Successfully fetched photos and reviews for places for plan candidate",

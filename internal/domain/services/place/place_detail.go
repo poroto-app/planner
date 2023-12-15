@@ -3,7 +3,6 @@ package place
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
@@ -29,7 +28,7 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 }
 
 // FetchPlaceDetailAndSave Place Detail　情報を取得し、保存する
-func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId string, googlePlaceId string) (*models.GooglePlaceDetail, error) {
+func (s Service) FetchPlaceDetailAndSave(ctx context.Context, googlePlaceId string) (*models.GooglePlaceDetail, error) {
 	// キャッシュがある場合は取得する
 	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
 	if err != nil {
@@ -60,65 +59,4 @@ func (s Service) FetchPlaceDetailAndSave(ctx context.Context, planCandidateId st
 	}
 
 	return &placeDetail, nil
-}
-
-// FetchGooglePlacesDetailAndSave 複数の場所の Place Detail 情報を並行に取得し、保存する
-func (s Service) FetchGooglePlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.GooglePlace) []models.GooglePlace {
-	if len(places) == 0 {
-		return nil
-	}
-
-	ch := make(chan *models.GooglePlace, len(places))
-	for _, place := range places {
-		go func(ctx context.Context, place models.GooglePlace, ch chan<- *models.GooglePlace) {
-			if place.PlaceDetail != nil {
-				s.logger.Info(
-					"skip fetching place detail because place detail already exist",
-					zap.String("placeId", place.PlaceId),
-				)
-				ch <- &place
-				return
-			}
-
-			placeDetail, err := s.FetchPlaceDetailAndSave(ctx, planCandidateId, place.PlaceId)
-			if err != nil {
-				ch <- nil
-				return
-			}
-
-			place.PlaceDetail = placeDetail
-
-			ch <- &place
-		}(ctx, place, ch)
-	}
-
-	for i := 0; i < len(places); i++ {
-		placeWithPlaceDetail := <-ch
-		if placeWithPlaceDetail == nil {
-			continue
-		}
-
-		for iPlace, place := range places {
-			if placeWithPlaceDetail.PlaceId == place.PlaceId {
-				places[iPlace] = *placeWithPlaceDetail
-			}
-		}
-	}
-
-	return places
-}
-
-func (s Service) FetchPlacesDetailAndSave(ctx context.Context, planCandidateId string, places []models.Place) []models.Place {
-	googlePlaces := make([]models.GooglePlace, len(places))
-	for i, place := range places {
-		googlePlaces[i] = place.Google
-	}
-
-	googlePlaces = s.FetchGooglePlacesDetailAndSave(ctx, planCandidateId, googlePlaces)
-
-	for i, googlePlace := range googlePlaces {
-		places[i].Google = googlePlace
-	}
-
-	return places
 }
