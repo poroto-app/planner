@@ -674,6 +674,7 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 
 func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// TODO: トランザクション関数を使う
 		// Placeの取得
 		place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
 		if err != nil {
