@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"googlemaps.github.io/maps"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 type FetchPlaceDetailRequest struct {
@@ -12,7 +13,7 @@ type FetchPlaceDetailRequest struct {
 }
 
 // FetchPlaceDetail は IDを指定することで、対応する場所の情報を取得する
-// 取得される内容は FindPlacesFromLocation と同じ
+// 取得される内容は NearbySearch と同じ
 func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailRequest) (*Place, error) {
 	r.logger.Info(
 		"Places API Place Details",
@@ -40,22 +41,17 @@ func (r PlacesApi) FetchPlaceDetail(ctx context.Context, req FetchPlaceDetailReq
 		return nil, err
 	}
 
-	var photoReferences []string
-	if resp.Photos != nil {
-		for _, photo := range resp.Photos {
-			photoReferences = append(photoReferences, photo.PhotoReference)
-		}
-	}
-
 	place := createPlace(
 		resp.PlaceID,
 		resp.Name,
 		resp.Types,
 		resp.Geometry,
-		photoReferences,
+		resp.Photos,
 		resp.OpeningHours != nil && resp.OpeningHours.OpenNow != nil && *resp.OpeningHours.OpenNow,
 		resp.Rating,
 		resp.UserRatingsTotal,
+		utils.StrOmitEmpty(resp.FormattedAddress),
+		utils.StrOmitEmpty(resp.Vicinity),
 		resp.PriceLevel,
 	)
 

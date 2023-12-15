@@ -76,6 +76,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			}
 
 			if gp != nil {
+				p.logger.Info(
+					"Skip saving place because it is already saved",
+					zap.String("placeId", placeEntity.Id),
+					zap.String("googlePlaceId", googlePlace.PlaceId),
+				)
 				googlePlace = *gp
 				return nil
 			}
@@ -110,6 +115,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			// 開店時間を更新する
 			if err := p.updateOpeningHours(tx, placeEntity.Id, *googlePlace.PlaceDetail); err != nil {
 				return fmt.Errorf("error while updating opening hours: %v", err)
+			}
+		} else if len(googlePlace.PhotoReferences) > 0 {
+			// Nearby Searchで画像を取得している場合は保存する
+			if err := p.saveGooglePhotoReferencesTx(tx, placeEntity.Id, googlePlace.PhotoReferences); err != nil {
+				return fmt.Errorf("error while saving google place photos: %v", err)
 			}
 		}
 
@@ -613,12 +623,24 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 	chErr := make(chan error)
 	for _, photoReference := range photoReferences {
 		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
+			p.logger.Info(
+				"start saving google place photo references",
+				zap.String("placeId", placeId),
+				zap.String("photoReference", photoReference.PhotoReference),
+				zap.String("width", fmt.Sprintf("%d", photoReference.Width)),
+				zap.String("height", fmt.Sprintf("%d", photoReference.Height)),
+			)
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference)
 			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoEntity); err != nil {
 				chErr <- fmt.Errorf("error while saving google place photo reference: %v", err)
 			} else {
 				ch <- &photoReference
 			}
+			p.logger.Info(
+				"successfully saved google place photo references",
+				zap.String("placeId", placeId),
+				zap.String("photoReference", photoReference.PhotoReference),
+			)
 		}(tx, ch, placeId, photoReference)
 	}
 
