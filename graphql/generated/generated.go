@@ -1390,7 +1390,6 @@ type AutoReorderPlacesInPlanCandidateOutput {
 
 input LikeToPlaceInPlanCandidateInput {
     planCandidateId: String!
-    planId: String!
     placeId: String!
     like: Boolean!
 }
@@ -9493,7 +9492,7 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId", "planId", "placeId", "like"}
+	fieldsInOrder := [...]string{"planCandidateId", "placeId", "like"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9509,15 +9508,6 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx co
 				return it, err
 			}
 			it.PlanCandidateID = data
-		case "planId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PlanID = data
 		case "placeId":
 			var err error
 

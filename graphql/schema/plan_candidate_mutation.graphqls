@@ -133,7 +133,6 @@ type AutoReorderPlacesInPlanCandidateOutput {
 
 input LikeToPlaceInPlanCandidateInput {
     planCandidateId: String!
-    planId: String!
     placeId: String!
     like: Boolean!
 }

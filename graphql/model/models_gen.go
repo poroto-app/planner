@@ -136,7 +136,6 @@ type Image struct {
 
 type LikeToPlaceInPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
 	PlaceID         string `json:"placeId"`
 	Like            bool   `json:"like"`
 }
