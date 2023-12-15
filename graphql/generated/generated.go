@@ -110,7 +110,7 @@ type ComplexityRoot struct {
 	}
 
 	LikeToPlaceInPlanCandidateOutput struct {
-		Plan func(childComplexity int) int
+		Plans func(childComplexity int) int
 	}
 
 	LocationCategory struct {
@@ -480,12 +480,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Image.Small(childComplexity), true
 
-	case "LikeToPlaceInPlanCandidateOutput.plan":
-		if e.complexity.LikeToPlaceInPlanCandidateOutput.Plan == nil {
+	case "LikeToPlaceInPlanCandidateOutput.plans":
+		if e.complexity.LikeToPlaceInPlanCandidateOutput.Plans == nil {
 			break
 		}
 
-		return e.complexity.LikeToPlaceInPlanCandidateOutput.Plan(childComplexity), true
+		return e.complexity.LikeToPlaceInPlanCandidateOutput.Plans(childComplexity), true
 
 	case "LocationCategory.defaultPhotoUrl":
 		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
@@ -1396,7 +1396,7 @@ input LikeToPlaceInPlanCandidateInput {
 }
 
 type LikeToPlaceInPlanCandidateOutput {
-    plan: Plan!
+    plans: [Plan!]!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_candidate_query.graphqls", Input: `extend type Query {
     # TODO: planCandidates 等に変更する
@@ -3346,8 +3346,8 @@ func (ec *executionContext) fieldContext_Image_large(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanCandidateOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plan(ctx, field)
+func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plans(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3360,7 +3360,7 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plan(ctx context.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Plan, nil
+		return obj.Plans, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3372,12 +3372,12 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plan(ctx context.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Plan)
+	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LikeToPlaceInPlanCandidateOutput",
 		Field:      field,
@@ -4220,8 +4220,8 @@ func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlanCandidate(ctx
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "plan":
-				return ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plan(ctx, field)
+			case "plans":
+				return ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LikeToPlaceInPlanCandidateOutput", field.Name)
 		},
@@ -10404,8 +10404,8 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput(ctx context.Contex
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("LikeToPlaceInPlanCandidateOutput")
-		case "plan":
-			out.Values[i] = ec._LikeToPlaceInPlanCandidateOutput_plan(ctx, field, obj)
+		case "plans":
+			out.Values[i] = ec._LikeToPlaceInPlanCandidateOutput_plans(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

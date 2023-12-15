@@ -142,7 +142,7 @@ type LikeToPlaceInPlanCandidateInput struct {
 }
 
 type LikeToPlaceInPlanCandidateOutput struct {
-	Plan *Plan `json:"plan"`
+	Plans []*Plan `json:"plans"`
 }
 
 type LocationCategory struct {
