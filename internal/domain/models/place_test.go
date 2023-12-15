@@ -100,6 +100,77 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 	}
 }
 
+func TestShufflePlaces(t *testing.T) {
+	cases := []struct {
+		name     string
+		places   []Place
+		expected []Place
+	}{
+		{
+			name: "should return shuffled places",
+			places: []Place{
+				NewMockPlaceShinjukuStation(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceTakashimaya(),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			original := make([]Place, len(c.places))
+			copy(original, c.places)
+
+			actual := ShufflePlaces(c.places)
+			if diff := cmp.Diff(len(c.places), len(actual)); diff != "" {
+				t.Errorf("ShufflePlaces() mismatch (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(original, actual); diff == "" {
+				t.Errorf("ShufflePlaces() should return shuffled places")
+			}
+
+			if diff := cmp.Diff(original, c.places); diff != "" {
+				t.Errorf("ShufflePlaces() should not modify original places")
+			}
+		})
+	}
+}
+
+func TestSortPlacesByRating(t *testing.T) {
+	cases := []struct {
+		name     string
+		places   []Place
+		expected []Place
+	}{
+		{
+			name: "should return sorted places by rating",
+			places: []Place{
+				NewMockPlaceShinjukuStation(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceTakashimaya(),
+			},
+			expected: []Place{
+				NewMockPlaceTakashimaya(),
+				NewMockPlaceShinjukuGyoen(),
+				NewMockPlaceIsetan(),
+				NewMockPlaceShinjukuStation(),
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			actual := SortPlacesByRating(c.places)
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("SortPlacesByRating() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 // ==============================================================
 // Mocks
 // ==============================================================
@@ -110,6 +181,9 @@ func NewMockPlaceShinjukuStation() Place {
 		Location: GeoLocation{
 			Latitude:  35.6899573,
 			Longitude: 139.7005071,
+		},
+		Google: GooglePlace{
+			Rating: 4.5,
 		},
 	}
 }
@@ -122,6 +196,9 @@ func NewMockPlaceIsetan() Place {
 			Latitude:  35.6916532,
 			Longitude: 139.7046449,
 		},
+		Google: GooglePlace{
+			Rating: 4.6,
+		},
 	}
 }
 
@@ -133,6 +210,9 @@ func NewMockPlaceShinjukuGyoen() Place {
 			Latitude:  35.6867668,
 			Longitude: 139.7123842,
 		},
+		Google: GooglePlace{
+			Rating: 4.7,
+		},
 	}
 }
 
@@ -143,6 +223,9 @@ func NewMockPlaceTakashimaya() Place {
 		Location: GeoLocation{
 			Latitude:  35.6875312,
 			Longitude: 139.7022521,
+		},
+		Google: GooglePlace{
+			Rating: 4.8,
 		},
 	}
 }

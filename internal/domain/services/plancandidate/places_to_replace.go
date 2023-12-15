@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"sort"
 )
 
-func (s Service) FetchPlacesToReplace(
+func (s *Service) FetchPlacesToReplace(
 	ctx context.Context,
 	planCandidateId string,
 	planId string,
@@ -30,6 +29,12 @@ func (s Service) FetchPlacesToReplace(
 		return nil, fmt.Errorf("plan not found")
 	}
 
+	if len(plan.Places) == 0 {
+		return nil, fmt.Errorf("plan has no places")
+	}
+
+	startPlace := plan.Places[0]
+
 	var placeToReplace *models.Place
 	for _, placeInPlan := range plan.Places {
 		if placeInPlan.Id != placeId {
@@ -47,6 +52,9 @@ func (s Service) FetchPlacesToReplace(
 	}
 
 	placesFiltered := placesSearched
+
+	// 遠い場所を除外
+	placesFiltered = placefilter.FilterWithinDistanceRange(placesFiltered, startPlace.Location, 0, 1000)
 
 	// 重複した場所を削除
 	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
@@ -68,22 +76,42 @@ func (s Service) FetchPlacesToReplace(
 		return true
 	})
 
-	// 指定された場所と同じカテゴリの場所を選択
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories(), true)
+	// 画像が取得できる場所のみを選択する
+	placesFiltered = placefilter.FilterByHasPhoto(placesFiltered)
 
-	// レビューの高い順でソート
-	sort.SliceStable(placesFiltered, func(i, j int) bool {
-		return placesFiltered[i].Google.Rating > placesFiltered[j].Google.Rating
+	// カテゴリのない場所を除外する
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
+		return len(place.Categories()) > 0
 	})
 
-	var placesToReplace []models.Place
-	for _, place := range placesFiltered {
-		if len(place.Categories()) == 0 {
-			continue
-		}
+	// レビューの高い順でソート
+	placesFiltered = models.SortPlacesByRating(placesFiltered)
 
-		placesToReplace = append(placesToReplace, place)
+	// 10件程度を候補として選択する
+	if len(placesFiltered) > 10 {
+		placesFiltered = placesFiltered[:10]
 	}
+
+	// なるべく一様に選択されるようにシャッフルする
+	placesFiltered = models.ShufflePlaces(placesFiltered)
+
+	// 指定された場所と同じカテゴリの場所が候補の半分の数だけ含められるようにする
+	placesFilteredSameCategory := placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories(), true)
+	nPlacesSameCategory := int(nLimit / 2)
+	if len(placesFilteredSameCategory) > nPlacesSameCategory {
+		placesFilteredSameCategory = placesFilteredSameCategory[:nPlacesSameCategory]
+	}
+
+	// 指定された場所と異なるカテゴリの場所が候補の半分の数だけ含められるようにする
+	placesFilteredDifferentCategory := placefilter.FilterByCategory(placesFiltered, placeToReplace.Categories(), false)
+	nPlacesDifferentCategory := int(nLimit) - nPlacesSameCategory
+	if len(placesFilteredDifferentCategory) > nPlacesDifferentCategory {
+		placesFilteredDifferentCategory = placesFilteredDifferentCategory[:nPlacesDifferentCategory]
+	}
+
+	var placesToReplace []models.Place
+	placesToReplace = append(placesToReplace, placesFilteredSameCategory...)
+	placesToReplace = append(placesToReplace, placesFilteredDifferentCategory...)
 
 	if len(placesToReplace) > int(nLimit) {
 		placesToReplace = placesToReplace[:nLimit]

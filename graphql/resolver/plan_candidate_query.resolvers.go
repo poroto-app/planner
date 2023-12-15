@@ -10,10 +10,12 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/graphql/factory"
 	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
@@ -142,6 +144,21 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 
 // PlacesToReplaceForPlanCandidate is the resolver for the placesToReplaceForPlanCandidate field.
 func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error) {
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "GraphQL",
+	})
+	if err != nil {
+		log.Println("error while initializing logger: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	logger.Info(
+		"PlacesToReplaceForPlanCandidate",
+		zap.String("planCandidateId", input.PlanCandidateID),
+		zap.String("planId", input.PlanID),
+		zap.String("placeId", input.PlaceID),
+	)
+
 	s, err := plancandidate.NewService(ctx)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
