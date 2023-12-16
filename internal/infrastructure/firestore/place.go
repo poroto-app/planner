@@ -76,7 +76,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			}
 
 			if gp != nil {
-				p.logger.Info(
+				p.logger.Debug(
 					"Skip saving place because it is already saved",
 					zap.String("placeId", placeEntity.Id),
 					zap.String("googlePlaceId", googlePlace.PlaceId),

@@ -16,6 +16,7 @@ type NearbySearchRequest struct {
 	Language    string
 	Type        *maps.PlaceType
 	SearchCount int
+	RankedBy    maps.RankBy
 }
 
 func (r PlacesApi) NearbySearch(ctx context.Context, req *NearbySearchRequest) ([]Place, error) {
@@ -32,6 +33,7 @@ func (r PlacesApi) NearbySearch(ctx context.Context, req *NearbySearchRequest) (
 		Radius:   req.Radius,
 		Language: req.Language,
 		Type:     placeType,
+		RankBy:   req.RankedBy,
 	}, req.SearchCount)
 	if err != nil {
 		return nil, err
@@ -69,6 +71,7 @@ func (r PlacesApi) nearBySearch(ctx context.Context, req *maps.NearbySearchReque
 		zap.String("language", req.Language),
 		zap.String("type", string(req.Type)),
 		zap.Int("pagesCount", pagesCount),
+		zap.String("rankBy", string(req.RankBy)),
 	)
 	if pagesCount < 1 {
 		pagesCount = 1

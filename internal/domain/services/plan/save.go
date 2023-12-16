@@ -39,7 +39,7 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 	}
 
 	if planSaved != nil {
-		s.logger.Info(
+		s.logger.Debug(
 			"plan already exists. skip saving plan",
 			zap.String("planId", planId),
 		)

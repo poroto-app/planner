@@ -8,6 +8,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/factory"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
@@ -24,10 +25,14 @@ type SearchNearbyPlacesInput struct {
 	FilterSearchResultRadius float64
 }
 
-// placeTypeToSearch 検索する必要のあるカテゴリを表す
-// ignoreCategoryPlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
-type placeTypeToSearch struct {
+// placeTypeWithCondition 検索する必要のあるカテゴリを表す
+// searchRange Nearby Search時の検索範囲（水族館等の施設の数が少ない場所を探すときは広い範囲を探す）
+// filterRange 周囲に周囲にあるかどうかを確認するときの検索範囲 指定されていない場合は searchRange の値でフィルタリングされる
+// ignorePlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
+type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
+	searchRange      uint
+	filterRange      uint
 	ignorePlaceCount uint
 }
 
@@ -47,49 +52,53 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	}
 
 	// キャッシュされた検索結果を取得
+	// TODO: カテゴリごとに検索範囲を指定して取得できるようにする
 	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
 
-	// 検索箇所から半径 1000m 以内の場所を取得
-	var placesFiltered []models.Place
-	for _, place := range placesSaved {
-		if place.Location.DistanceInMeter(input.Location) <= input.FilterSearchResultRadius {
-			placesFiltered = append(placesFiltered, place)
-		}
-	}
-
 	// 検索する必要のあるカテゴリを取得
-	placeTypeToPlaces := groupByPlaceType(placesFiltered, s.placeTypesToSearch())
-	var placeTypesToSearch []maps.PlaceType
-	for placeType, places := range placeTypeToPlaces {
-		ignorePlaceCount := uint(0)
-		for _, placeTypeToSearch := range s.placeTypesToSearch() {
-			if placeTypeToSearch.placeType == placeType {
-				ignorePlaceCount = placeTypeToSearch.ignorePlaceCount
-				break
-			}
+	placeTypeToPlaces := groupByPlaceType(placesSaved, s.placeTypesToSearch())
+	var placeTypesToSearch []placeTypeWithCondition
+	for _, placeTypeToSearch := range s.placeTypesToSearch() {
+		savedPlacesOfPlaceType := placeTypeToPlaces[placeTypeToSearch.placeType]
+
+		// 保存された場所の中から特定の範囲内にある場所を取得
+		filterRange := placeTypeToSearch.filterRange
+		if filterRange == 0 {
+			filterRange = placeTypeToSearch.searchRange
 		}
+		placesInSearchRange := placefilter.FilterWithinDistanceRange(savedPlacesOfPlaceType, input.Location, 0, float64(filterRange))
+
+		s.logger.Info(
+			"saved places of place type",
+			zap.String("placeType", string(placeTypeToSearch.placeType)),
+			zap.Int("savedPlacesOfPlaceType", len(savedPlacesOfPlaceType)),
+			zap.Int("placesInSearchRange", len(placesInSearchRange)),
+		)
 
 		// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
-		if len(places) >= int(ignorePlaceCount) {
-			s.logger.Info(
+		if len(placesInSearchRange) >= int(placeTypeToSearch.ignorePlaceCount) {
+			s.logger.Debug(
 				"skip searching place type because it has enough places",
-				zap.String("placeType", string(placeType)),
-				zap.Int("places", len(places)),
+				zap.String("placeType", string(placeTypeToSearch.placeType)),
+				zap.Int("savedPlacesOfPlaceType", len(savedPlacesOfPlaceType)),
+				zap.Int("placesInSearchRange", len(placesInSearchRange)),
+				zap.Uint("ignorePlaceCount", placeTypeToSearch.ignorePlaceCount),
 			)
 			continue
 		}
-		placeTypesToSearch = append(placeTypesToSearch, placeType)
+
+		placeTypesToSearch = append(placeTypesToSearch, placeTypeToSearch)
 	}
 
 	ch := make(chan *[]models.GooglePlace, len(placeTypeToPlaces))
 	for _, placeType := range placeTypesToSearch {
-		go func(ctx context.Context, ch chan<- *[]models.GooglePlace, placeType maps.PlaceType) {
+		go func(ctx context.Context, ch chan<- *[]models.GooglePlace, placeTypeWithCondition placeTypeWithCondition) {
 			var placeTypePointer *maps.PlaceType
-			if placeType != "" {
-				placeTypePointer = &placeType
+			if placeTypeWithCondition.placeType != "" {
+				placeTypePointer = &placeTypeWithCondition.placeType
 			}
 
 			placesSearched, err := s.placesApi.NearbySearch(ctx, &googleplaces.NearbySearchRequest{
@@ -97,7 +106,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 					Latitude:  input.Location.Latitude,
 					Longitude: input.Location.Longitude,
 				},
-				Radius:      input.Radius,
+				Radius:      placeTypeWithCondition.searchRange,
 				Language:    "ja",
 				Type:        placeTypePointer,
 				SearchCount: 1,
@@ -107,10 +116,18 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 				ch <- nil
 				s.logger.Warn(
 					"error while fetching google_places",
-					zap.String("placeType", string(placeType)),
+					zap.String("placeType", string(placeTypeWithCondition.placeType)),
+					zap.Uint("searchRange", placeTypeWithCondition.searchRange),
 					zap.Error(err),
 				)
 			}
+
+			s.logger.Info(
+				"successfully fetched nearby places",
+				zap.String("placeType", string(placeTypeWithCondition.placeType)),
+				zap.Uint("searchRange", placeTypeWithCondition.searchRange),
+				zap.Int("places", len(placesSearched)),
+			)
 
 			var places []models.GooglePlace
 			for _, place := range placesSearched {
@@ -155,29 +172,65 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	return placesSearchedFiltered, nil
 }
 
-func (s Service) placeTypesToSearch() []placeTypeToSearch {
-	return []placeTypeToSearch{
+func (s Service) placeTypesToSearch() []placeTypeWithCondition {
+	// そのカテゴリの場所が filterRange で指定している範囲の中に
+	// このくらいはありそうという値を ignorePlaceCount に指定している
+	return []placeTypeWithCondition{
+		{
+			placeType:        maps.PlaceTypeAquarium,
+			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
+			ignorePlaceCount: 1,
+		},
 		{
 			placeType:        maps.PlaceTypeAmusementPark,
-			ignorePlaceCount: 3,
+			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
+			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeCafe,
+			searchRange:      2 * 1000,
 			ignorePlaceCount: 5,
 		},
 		{
+			placeType:        maps.PlaceTypeMuseum,
+			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
 			placeType:        maps.PlaceTypeRestaurant,
+			searchRange:      2 * 1000,
 			ignorePlaceCount: 5,
 		},
 		{
 			placeType:        maps.PlaceTypeShoppingMall,
+			searchRange:      2 * 1000,
 			ignorePlaceCount: 3,
 		},
-		{},
+		{
+			placeType:        maps.PlaceTypeSpa,
+			searchRange:      30 * 1000,
+			filterRange:      3 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
+			placeType:        maps.PlaceTypeTouristAttraction,
+			searchRange:      30 * 1000,
+			filterRange:      5 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
+			placeType:        maps.PlaceTypeZoo,
+			searchRange:      30 * 1000,
+			filterRange:      10 * 1000,
+			ignorePlaceCount: 1,
+		},
 	}
 }
 
-func groupByPlaceType(places []models.Place, placeTypes []placeTypeToSearch) map[maps.PlaceType][]models.Place {
+func groupByPlaceType(places []models.Place, placeTypes []placeTypeWithCondition) map[maps.PlaceType][]models.Place {
 	placesGroupedByPlaceType := make(map[maps.PlaceType][]models.Place)
 	for _, placeType := range placeTypes {
 		placesGroupedByPlaceType[placeType.placeType] = make([]models.Place, 0)
