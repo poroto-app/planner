@@ -213,7 +213,6 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	AuthorID      *string       `json:"authorId,omitempty"`
-	LikedPlaceIds []string      `json:"likedPlaceIds"`
 }
 
 type PlanCandidate struct {

@@ -176,7 +176,6 @@ type ComplexityRoot struct {
 		AuthorID      func(childComplexity int) int
 		Description   func(childComplexity int) int
 		ID            func(childComplexity int) int
-		LikedPlaceIds func(childComplexity int) int
 		Name          func(childComplexity int) int
 		Places        func(childComplexity int) int
 		TimeInMinutes func(childComplexity int) int
@@ -813,13 +812,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.ID(childComplexity), true
-
-	case "Plan.likedPlaceIds":
-		if e.complexity.Plan.LikedPlaceIds == nil {
-			break
-		}
-
-		return e.complexity.Plan.LikedPlaceIds(childComplexity), true
 
 	case "Plan.name":
 		if e.complexity.Plan.Name == nil {
@@ -1527,7 +1519,6 @@ type PlansByUserOutput {
     description: String
     transitions: [Transition!]!
     authorId: String
-    likedPlaceIds: [String!]!
 }
 
 type PlanCandidate {
@@ -2054,8 +2045,6 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2160,8 +2149,6 @@ func (ec *executionContext) fieldContext_AutoReorderPlacesInPlanCandidateOutput_
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2288,8 +2275,6 @@ func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Co
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2394,8 +2379,6 @@ func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanCandidateOutput_
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2500,8 +2483,6 @@ func (ec *executionContext) fieldContext_CreatePlanByLocationOutput_plans(ctx co
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2606,8 +2587,6 @@ func (ec *executionContext) fieldContext_CreatePlanByPlaceOutput_plan(ctx contex
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2712,8 +2691,6 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2818,8 +2795,6 @@ func (ec *executionContext) fieldContext_EditPlanTitleOfPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -5593,50 +5568,6 @@ func (ec *executionContext) fieldContext_Plan_authorId(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Plan_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Plan_likedPlaceIds(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LikedPlaceIds, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Plan_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Plan",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _PlanCandidate_id(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlanCandidate_id(ctx, field)
 	if err != nil {
@@ -5734,8 +5665,6 @@ func (ec *executionContext) fieldContext_PlanCandidate_plans(ctx context.Context
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -5840,8 +5769,6 @@ func (ec *executionContext) fieldContext_PlansByLocationOutput_plans(ctx context
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -5943,8 +5870,6 @@ func (ec *executionContext) fieldContext_PlansByUserOutput_plans(ctx context.Con
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -6529,8 +6454,6 @@ func (ec *executionContext) fieldContext_Query_plan(ctx context.Context, field g
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -6602,8 +6525,6 @@ func (ec *executionContext) fieldContext_Query_plans(ctx context.Context, field 
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7033,8 +6954,6 @@ func (ec *executionContext) fieldContext_ReplacePlaceOfPlanCandidateOutput_plan(
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7095,8 +7014,6 @@ func (ec *executionContext) fieldContext_SavePlanFromCandidateOutput_plan(ctx co
 				return ec.fieldContext_Plan_transitions(ctx, field)
 			case "authorId":
 				return ec.fieldContext_Plan_authorId(ctx, field)
-			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -11106,11 +11023,6 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "authorId":
 			out.Values[i] = ec._Plan_authorId(ctx, field, obj)
-		case "likedPlaceIds":
-			out.Values[i] = ec._Plan_likedPlaceIds(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
