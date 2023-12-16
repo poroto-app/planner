@@ -60,6 +60,7 @@ type ComplexityRoot struct {
 
 	CachedCreatedPlans struct {
 		CreatedBasedOnCurrentLocation func(childComplexity int) int
+		LikedPlaceIds                 func(childComplexity int) int
 		Plans                         func(childComplexity int) int
 	}
 
@@ -323,6 +324,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CachedCreatedPlans.CreatedBasedOnCurrentLocation(childComplexity), true
+
+	case "CachedCreatedPlans.likedPlaceIds":
+		if e.complexity.CachedCreatedPlans.LikedPlaceIds == nil {
+			break
+		}
+
+		return e.complexity.CachedCreatedPlans.LikedPlaceIds(childComplexity), true
 
 	case "CachedCreatedPlans.plans":
 		if e.complexity.CachedCreatedPlans.Plans == nil {
@@ -1437,6 +1445,7 @@ type LikeToPlaceInPlanCandidateOutput {
 type CachedCreatedPlans {
     plans: [Plan!]!
     createdBasedOnCurrentLocation: Boolean!
+    likedPlaceIds: [ID!]!
 }
 
 input CachedCreatedPlansInput {
@@ -2321,6 +2330,50 @@ func (ec *executionContext) fieldContext_CachedCreatedPlans_createdBasedOnCurren
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CachedCreatedPlans_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.CachedCreatedPlans) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CachedCreatedPlans_likedPlaceIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikedPlaceIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CachedCreatedPlans_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CachedCreatedPlans",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6148,6 +6201,8 @@ func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Co
 				return ec.fieldContext_CachedCreatedPlans_plans(ctx, field)
 			case "createdBasedOnCurrentLocation":
 				return ec.fieldContext_CachedCreatedPlans_createdBasedOnCurrentLocation(ctx, field)
+			case "likedPlaceIds":
+				return ec.fieldContext_CachedCreatedPlans_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CachedCreatedPlans", field.Name)
 		},
@@ -10089,6 +10144,11 @@ func (ec *executionContext) _CachedCreatedPlans(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "likedPlaceIds":
+			out.Values[i] = ec._CachedCreatedPlans_likedPlaceIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12292,6 +12352,38 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {

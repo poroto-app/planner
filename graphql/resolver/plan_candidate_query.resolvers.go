@@ -39,6 +39,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	return &model.CachedCreatedPlans{
 		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans, planCandidate.MetaData.LocationStart),
 		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+		LikedPlaceIds:                 planCandidate.LikedPlaceIds,
 	}, nil
 }
 

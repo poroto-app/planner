@@ -39,8 +39,9 @@ type AvailablePlacesForPlanInput struct {
 }
 
 type CachedCreatedPlans struct {
-	Plans                         []*Plan `json:"plans"`
-	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
+	Plans                         []*Plan  `json:"plans"`
+	CreatedBasedOnCurrentLocation bool     `json:"createdBasedOnCurrentLocation"`
+	LikedPlaceIds                 []string `json:"likedPlaceIds"`
 }
 
 type CachedCreatedPlansInput struct {
