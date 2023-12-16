@@ -216,6 +216,12 @@ type Plan struct {
 	LikedPlaceIds []string      `json:"likedPlaceIds"`
 }
 
+type PlanCandidate struct {
+	ID            string   `json:"id"`
+	Plans         []*Plan  `json:"plans"`
+	LikedPlaceIds []string `json:"likedPlaceIds"`
+}
+
 type PlansByLocationInput struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`

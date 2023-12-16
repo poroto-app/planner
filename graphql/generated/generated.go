@@ -183,6 +183,12 @@ type ComplexityRoot struct {
 		Transitions   func(childComplexity int) int
 	}
 
+	PlanCandidate struct {
+		ID            func(childComplexity int) int
+		LikedPlaceIds func(childComplexity int) int
+		Plans         func(childComplexity int) int
+	}
+
 	PlansByLocationOutput struct {
 		PageKey func(childComplexity int) int
 		Plans   func(childComplexity int) int
@@ -843,6 +849,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Plan.Transitions(childComplexity), true
 
+	case "PlanCandidate.id":
+		if e.complexity.PlanCandidate.ID == nil {
+			break
+		}
+
+		return e.complexity.PlanCandidate.ID(childComplexity), true
+
+	case "PlanCandidate.likedPlaceIds":
+		if e.complexity.PlanCandidate.LikedPlaceIds == nil {
+			break
+		}
+
+		return e.complexity.PlanCandidate.LikedPlaceIds(childComplexity), true
+
+	case "PlanCandidate.plans":
+		if e.complexity.PlanCandidate.Plans == nil {
+			break
+		}
+
+		return e.complexity.PlanCandidate.Plans(childComplexity), true
+
 	case "PlansByLocationOutput.pageKey":
 		if e.complexity.PlansByLocationOutput.PageKey == nil {
 			break
@@ -1500,6 +1527,12 @@ type PlansByUserOutput {
     description: String
     transitions: [Transition!]!
     authorId: String
+    likedPlaceIds: [String!]!
+}
+
+type PlanCandidate {
+    id: String!
+    plans: [Plan!]!
     likedPlaceIds: [String!]!
 }
 
@@ -5604,6 +5637,156 @@ func (ec *executionContext) _Plan_likedPlaceIds(ctx context.Context, field graph
 func (ec *executionContext) fieldContext_Plan_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Plan",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlanCandidate_id(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCandidate_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlanCandidate_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlanCandidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlanCandidate_plans(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCandidate_plans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plans, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlanCandidate_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlanCandidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "authorId":
+				return ec.fieldContext_Plan_authorId(ctx, field)
+			case "likedPlaceIds":
+				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlanCandidate_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCandidate_likedPlaceIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikedPlaceIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlanCandidate_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlanCandidate",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -10935,6 +11118,55 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._Plan_authorId(ctx, field, obj)
 		case "likedPlaceIds":
 			out.Values[i] = ec._Plan_likedPlaceIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var planCandidateImplementors = []string{"PlanCandidate"}
+
+func (ec *executionContext) _PlanCandidate(ctx context.Context, sel ast.SelectionSet, obj *model.PlanCandidate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, planCandidateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlanCandidate")
+		case "id":
+			out.Values[i] = ec._PlanCandidate_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "plans":
+			out.Values[i] = ec._PlanCandidate_plans(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likedPlaceIds":
+			out.Values[i] = ec._PlanCandidate_likedPlaceIds(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
