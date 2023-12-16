@@ -8,12 +8,6 @@ type Plan {
     authorId: String
 }
 
-type PlanCandidate {
-    id: String!
-    plans: [Plan!]!
-    likedPlaceIds: [String!]!
-}
-
 type Transition {
     from: Place
     to: Place!

@@ -1489,6 +1489,11 @@ input PlacesToReplaceForPlanCandidateInput {
 type PlacesToReplaceForPlanCandidateOutput {
     places: [Place!]!
 }`, BuiltIn: false},
+	{Name: "../schema/plan_candidate_type.graphqls", Input: `type PlanCandidate {
+    id: String!
+    plans: [Plan!]!
+    likedPlaceIds: [String!]!
+}`, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
     plan(id: String!): Plan
 
@@ -1528,12 +1533,6 @@ type PlansByUserOutput {
     description: String
     transitions: [Transition!]!
     authorId: String
-}
-
-type PlanCandidate {
-    id: String!
-    plans: [Plan!]!
-    likedPlaceIds: [String!]!
 }
 
 type Transition {
