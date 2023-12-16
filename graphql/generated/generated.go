@@ -110,7 +110,7 @@ type ComplexityRoot struct {
 	}
 
 	LikeToPlaceInPlanCandidateOutput struct {
-		Plans func(childComplexity int) int
+		PlanCandidate func(childComplexity int) int
 	}
 
 	LocationCategory struct {
@@ -486,12 +486,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Image.Small(childComplexity), true
 
-	case "LikeToPlaceInPlanCandidateOutput.plans":
-		if e.complexity.LikeToPlaceInPlanCandidateOutput.Plans == nil {
+	case "LikeToPlaceInPlanCandidateOutput.planCandidate":
+		if e.complexity.LikeToPlaceInPlanCandidateOutput.PlanCandidate == nil {
 			break
 		}
 
-		return e.complexity.LikeToPlaceInPlanCandidateOutput.Plans(childComplexity), true
+		return e.complexity.LikeToPlaceInPlanCandidateOutput.PlanCandidate(childComplexity), true
 
 	case "LocationCategory.defaultPhotoUrl":
 		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
@@ -1422,7 +1422,7 @@ input LikeToPlaceInPlanCandidateInput {
 }
 
 type LikeToPlaceInPlanCandidateOutput {
-    plans: [Plan!]!
+    planCandidate: PlanCandidate!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_candidate_query.graphqls", Input: `extend type Query {
     # TODO: planCandidates 等に変更する
@@ -3378,8 +3378,8 @@ func (ec *executionContext) fieldContext_Image_large(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plans(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanCandidateOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx, field)
+func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_planCandidate(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikeToPlaceInPlanCandidateOutput_planCandidate(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3392,7 +3392,7 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plans(ctx context.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Plans, nil
+		return obj.PlanCandidate, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3404,12 +3404,12 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_plans(ctx context.
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Plan)
+	res := resTmp.(*model.PlanCandidate)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanCandidate(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_planCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "LikeToPlaceInPlanCandidateOutput",
 		Field:      field,
@@ -3418,23 +3418,13 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_plans(
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Plan_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Plan_name(ctx, field)
-			case "places":
-				return ec.fieldContext_Plan_places(ctx, field)
-			case "timeInMinutes":
-				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
-			case "description":
-				return ec.fieldContext_Plan_description(ctx, field)
-			case "transitions":
-				return ec.fieldContext_Plan_transitions(ctx, field)
-			case "authorId":
-				return ec.fieldContext_Plan_authorId(ctx, field)
+				return ec.fieldContext_PlanCandidate_id(ctx, field)
+			case "plans":
+				return ec.fieldContext_PlanCandidate_plans(ctx, field)
 			case "likedPlaceIds":
-				return ec.fieldContext_Plan_likedPlaceIds(ctx, field)
+				return ec.fieldContext_PlanCandidate_likedPlaceIds(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PlanCandidate", field.Name)
 		},
 	}
 	return fc, nil
@@ -4252,8 +4242,8 @@ func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlanCandidate(ctx
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "plans":
-				return ec.fieldContext_LikeToPlaceInPlanCandidateOutput_plans(ctx, field)
+			case "planCandidate":
+				return ec.fieldContext_LikeToPlaceInPlanCandidateOutput_planCandidate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LikeToPlaceInPlanCandidateOutput", field.Name)
 		},
@@ -10577,8 +10567,8 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput(ctx context.Contex
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("LikeToPlaceInPlanCandidateOutput")
-		case "plans":
-			out.Values[i] = ec._LikeToPlaceInPlanCandidateOutput_plans(ctx, field, obj)
+		case "planCandidate":
+			out.Values[i] = ec._LikeToPlaceInPlanCandidateOutput_planCandidate(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12751,6 +12741,16 @@ func (ec *executionContext) marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgr
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanCandidate(ctx context.Context, sel ast.SelectionSet, v *model.PlanCandidate) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PlanCandidate(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPlansByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationInput(ctx context.Context, v interface{}) (model.PlansByLocationInput, error) {

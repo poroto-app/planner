@@ -138,5 +138,5 @@ input LikeToPlaceInPlanCandidateInput {
 }
 
 type LikeToPlaceInPlanCandidateOutput {
-    plans: [Plan!]!
+    planCandidate: PlanCandidate!
 }
