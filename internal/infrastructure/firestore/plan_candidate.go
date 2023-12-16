@@ -265,8 +265,7 @@ Loop:
 		return nil, fmt.Errorf("places not found: %s", planCandidateId)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(*planCandidateEntity, *planCandidateMetaDataEntity, *plans, *places)
-
+	planCandidate := planCandidateEntity.ToPlanCandidate(*planCandidateMetaDataEntity, *plans, *places)
 	return &planCandidate, nil
 }
 
