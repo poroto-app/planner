@@ -699,7 +699,7 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 		if like {
 			if array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
 				p.logger.Info(
-					"mismatching like state between input and DB",
+					"mismatching: already liked",
 					zap.Bool("like", like),
 					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
 				)
@@ -711,7 +711,7 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 		} else {
 			if !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
 				p.logger.Info(
-					"mismatching like state between input and DB",
+					"mismatching: not yet liked",
 					zap.Bool("like", like),
 					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
 				)
