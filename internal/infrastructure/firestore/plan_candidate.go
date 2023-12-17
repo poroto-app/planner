@@ -90,6 +90,14 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	chPlaces := make(chan *[]models.Place, 1)
 	chErr := make(chan error)
 	chDone := make(chan bool)
+	defer close(chPlanCandidate)
+	defer close(chMetaData)
+	defer close(chPlans)
+	defer close(chPlaces)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	var wg sync.WaitGroup
 
@@ -109,13 +117,13 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate: %v", err))
 			return
 		}
 
 		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)) {
+			return
 		}
 
 		chPlanCandidate <- &planCandidateEntity
@@ -141,13 +149,13 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate meta data: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate meta data: %v", err))
 			return
 		}
 
 		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = snapshot.DataTo(&planCandidateMetaDataEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateMetaDataEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)) {
+			return
 		}
 
 		ch <- &planCandidateMetaDataEntity
@@ -167,16 +175,14 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			zap.String("planCandidateId", planCandidateId),
 		)
 		snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching plans: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching plans: %v", err)) {
 			return
 		}
 
 		var plans []entity.PlanInCandidateEntity
 		for _, snapshotPlan := range snapshotPlans {
 			var plan entity.PlanInCandidateEntity
-			if err = snapshotPlan.DataTo(&plan); err != nil {
-				chErr <- fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
+			if err = snapshotPlan.DataTo(&plan); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)) {
 				return
 			}
 			plans = append(plans, plan)
@@ -198,8 +204,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			placeIdsInPlan = append(placeIdsInPlan, plan.PlaceIdsOrdered...)
 		}
 		places, err := p.PlaceRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIdsInPlan))
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching places: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching places: %v", err)) {
 			return
 		}
 
