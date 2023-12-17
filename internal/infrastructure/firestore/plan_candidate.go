@@ -113,7 +113,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.doc(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				chPlanCandidate <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
@@ -126,7 +126,9 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return
 		}
 
-		chPlanCandidate <- &planCandidateEntity
+		if !utils.SendOrAbort(ctx, chPlanCandidate, &planCandidateEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -145,7 +147,7 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.docMetaDataV1(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				ch <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
@@ -158,7 +160,9 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return
 		}
 
-		ch <- &planCandidateMetaDataEntity
+		if !utils.SendOrAbort(ctx, chMetaData, &planCandidateMetaDataEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate meta data",
 			zap.String("planCandidateId", planCandidateId),
@@ -188,7 +192,9 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			plans = append(plans, plan)
 		}
 
-		chPlans <- &plans
+		if !utils.SendOrAbort(ctx, chPlans, &plans) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plans of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -208,7 +214,9 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			return
 		}
 
-		chPlaces <- places
+		if !utils.SendOrAbort(ctx, chPlaces, places) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched places of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
