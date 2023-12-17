@@ -674,6 +674,7 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 
 func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// TODO: トランザクション関数を使う
 		// Placeの取得
 		place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
 		if err != nil {
@@ -695,8 +696,28 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
 		}
 
-		// すでにLikeしている場合は、Likeを取り消し
-		if place.LikeCount > 0 && !like && array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+		if like {
+			if array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+				p.logger.Info(
+					"mismatching: already liked",
+					zap.Bool("like", like),
+					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+				)
+				return nil
+			}
+			// まだLikeされていない場合は、Likeを追加
+			place.LikeCount += 1
+			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
+		} else {
+			if !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+				p.logger.Info(
+					"mismatching: not yet liked",
+					zap.Bool("like", like),
+					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+				)
+				return nil
+			}
+			// すでにLikeしている場合は、Likeを取り消し
 			place.LikeCount -= 1
 			for i, id := range planCandidateEntity.LikedPlaceIds {
 				if id == place.Id {
@@ -704,17 +725,6 @@ func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx 
 					break
 				}
 			}
-		} else if like && !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
-			// まだLikeされていない場合は、Likeを追加
-			place.LikeCount += 1
-			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
-		} else {
-			p.logger.Info(
-				"mismatching like state between input and DB",
-				zap.Bool("like", like),
-				zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
-			)
-			return nil
 		}
 
 		// PlanCandidateを更新する

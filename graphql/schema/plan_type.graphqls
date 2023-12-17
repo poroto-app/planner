@@ -6,7 +6,6 @@ type Plan {
     description: String
     transitions: [Transition!]!
     authorId: String
-    likedPlaceIds: [String!]!
 }
 
 type Transition {
