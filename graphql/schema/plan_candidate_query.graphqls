@@ -19,6 +19,7 @@ extend type Query {
 type CachedCreatedPlans {
     plans: [Plan!]!
     createdBasedOnCurrentLocation: Boolean!
+    likedPlaceIds: [ID!]!
 }
 
 input CachedCreatedPlansInput {

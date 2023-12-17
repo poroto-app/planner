@@ -57,5 +57,6 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		GoogleReviews:         googlePlaceReviews,
 		Categories:            placeCategories,
 		PriceRange:            PriceRangeFromDomainModel(place.EstimatedPriceRange()),
+		LikeCount:             int(place.LikeCount),
 	}
 }
