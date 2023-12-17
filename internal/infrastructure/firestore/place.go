@@ -108,7 +108,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			}
 
 			// Reviewを保存する
-			if err := p.saveGooglePlaceReviews(tx, placeEntity.Id, googlePlace.PlaceDetail.Reviews); err != nil {
+			if err := p.saveGooglePlaceReviews(ctx, tx, placeEntity.Id, googlePlace.PlaceDetail.Reviews); err != nil {
 				return fmt.Errorf("error while saving google place reviews: %v", err)
 			}
 
@@ -125,7 +125,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 
 		// Place Photo を保存する
 		if googlePlace.Photos != nil {
-			if err := p.saveGooglePhotosTx(tx, placeEntity.Id, googlePlace.PlaceId, *googlePlace.Photos); err != nil {
+			if err := p.saveGooglePhotosTx(ctx, tx, placeEntity.Id, googlePlace.PlaceId, *googlePlace.Photos); err != nil {
 				return fmt.Errorf("error while saving google place photos: %v", err)
 			}
 		}
@@ -303,7 +303,7 @@ func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceI
 		}
 
 		// 画像を保存する
-		if err := p.saveGooglePhotosTx(tx, placeEntity.Id, googlePlaceId, photos); err != nil {
+		if err := p.saveGooglePhotosTx(ctx, tx, placeEntity.Id, googlePlaceId, photos); err != nil {
 			return fmt.Errorf("error while saving google place photos: %v", err)
 		}
 
@@ -332,7 +332,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 		}
 
 		// Reviewを保存する
-		if err := p.saveGooglePlaceReviews(tx, placeEntity.Id, detail.Reviews); err != nil {
+		if err := p.saveGooglePlaceReviews(ctx, tx, placeEntity.Id, detail.Reviews); err != nil {
 			return fmt.Errorf("error while saving google place reviews: %v", err)
 		}
 
@@ -358,17 +358,17 @@ func (p PlaceRepository) findByPlaceIds(ctx context.Context, placeIds []string) 
 	for _, placeId := range placeIds {
 		go func(ch chan<- *models.Place, chErr chan<- error, placeId string) {
 			place, err := p.findByPlaceId(ctx, placeId)
-			if err != nil {
-				chErr <- fmt.Errorf("error while fetching place: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching place: %v", err)) {
 				return
 			}
 
 			// 保存されていない場合はエラーを返す
 			if place == nil {
-				chErr <- fmt.Errorf("place not found by place id: %s", placeId)
+				utils.HandleWrappedErrWithCh(ctx, chErr, fmt.Errorf("place not found by place id: %s", placeId), nil)
 				return
 			}
 
+			// TODO: check if closed channel
 			ch <- place
 		}(chPlace, chErr, placeId)
 	}
@@ -394,38 +394,43 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 	defer close(chPlace)
 	defer close(chGooglePlace)
 
-	asyncProcesses := []func(){
-		func() {
+	asyncProcesses := []func(ctx context.Context){
+		func(ctx context.Context) {
 			// Placeを取得する
 			var placeEntity entity.PlaceEntity
 			snapshotPlace, err := p.docPlace(placeId).Get(ctx)
-			if err != nil {
-				chErr <- fmt.Errorf("error while getting place: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding place by place id: %v", err)) {
+				return
 			}
 
-			if err := snapshotPlace.DataTo(&placeEntity); err != nil {
-				chErr <- fmt.Errorf("error while converting snapshot to place entity: %v", err)
+			if err := snapshotPlace.DataTo(&placeEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to place entity: %v", err)) {
+				return
 			}
 
+			// TODO: check if closed channel
 			chPlace <- &placeEntity
 		},
-		func() {
+		func(ctx context.Context) {
 			// Google Placeを取得する
 			googlePlace, err := p.fetchGooglePlace(ctx, placeId)
-			if err != nil {
-				chErr <- fmt.Errorf("error while finding place by place id: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching google place: %v", err)) {
+				return
 			}
+			// TODO: check if closed channel
 			chGooglePlace <- googlePlace
 		},
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	chDone := make(chan bool)
 	var wg sync.WaitGroup
 	for _, asyncProcess := range asyncProcesses {
 		wg.Add(1)
-		go func(asyncProcess func()) {
+		go func(asyncProcess func(ctx context.Context)) {
 			defer wg.Done()
-			asyncProcess()
+			asyncProcess(ctx)
 		}(asyncProcess)
 	}
 
@@ -474,14 +479,12 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 		func() {
 			// Google Placeを取得する
 			snapshotGooglePlace, err := p.docGooglePlace(placeId).Get(ctx)
-			if err != nil {
-				chErr <- fmt.Errorf("error while getting google place: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding google place by place id: %v", err)) {
 				return
 			}
 
 			var googlePlaceEntity entity.GooglePlaceEntity
-			if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); err != nil {
-				chErr <- fmt.Errorf("error while converting snapshot to google place entity: %v", err)
+			if err := snapshotGooglePlace.DataTo(&googlePlaceEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to google place entity: %v", err)) {
 				return
 			}
 
@@ -490,41 +493,39 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 		func() {
 			// Reviewを取得する
 			snapshotsReviews, err := p.subCollectionGooglePlaceReview(placeId).Documents(ctx).GetAll()
-			if err != nil {
-				chErr <- fmt.Errorf("error while getting google place reviews: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while getting google place reviews: %v", err)) {
 				return
 			}
 
 			var reviews []entity.GooglePlaceReviewEntity
 			for _, snapshotReview := range snapshotsReviews {
 				var review entity.GooglePlaceReviewEntity
-				if err := snapshotReview.DataTo(&review); err != nil {
-					chErr <- fmt.Errorf("error while converting snapshot to google place review entity: %v", err)
+				if err := snapshotReview.DataTo(&review); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to google place review entity: %v", err)) {
 					return
 				}
 				reviews = append(reviews, review)
 			}
 
+			// TODO: check if closed channel
 			chReviews <- &reviews
 		},
 		func() {
 			// Photoを取得する
 			snapshotsPhotos, err := p.subCollectionGooglePlacePhoto(placeId).Documents(ctx).GetAll()
-			if err != nil {
-				chErr <- fmt.Errorf("error while getting google place photoEntities: %v", err)
+			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while getting google place photos: %v", err)) {
 				return
 			}
 
 			var photos []entity.GooglePlacePhotoEntity
 			for _, snapshotPhoto := range snapshotsPhotos {
 				var photo entity.GooglePlacePhotoEntity
-				if err := snapshotPhoto.DataTo(&photo); err != nil {
-					chErr <- fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)
+				if err := snapshotPhoto.DataTo(&photo); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to google place photo entity: %v", err)) {
 					return
 				}
 				photos = append(photos, photo)
 			}
 
+			// TODO: check if closed channel
 			chPhotos <- &photos
 		},
 	}
@@ -595,18 +596,25 @@ func (p PlaceRepository) findByGooglePlaceIdTx(tx *firestore.Transaction, google
 
 // saveGooglePlaceTx はGoogle Places APIから取得された複数の画像を同時に保存する
 // 一枚でも保存できなかった場合はエラーを返す
-func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
+func (p PlaceRepository) saveGooglePhotosTx(ctx context.Context, tx *firestore.Transaction, placeId string, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	ch := make(chan *models.GooglePlacePhoto, len(photos))
 	chErr := make(chan error)
+	defer close(ch)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	for _, photo := range photos {
-		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhoto, googlePlaceId string, photo models.GooglePlacePhoto) {
+		go func(ctx context.Context, tx *firestore.Transaction, ch chan<- *models.GooglePlacePhoto, googlePlaceId string, photo models.GooglePlacePhoto) {
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo)
-			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photoEntity); err != nil {
-				chErr <- fmt.Errorf("error while saving google place photo: %v", err)
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photoEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place photo: %v", err)) {
+				return
 			} else {
+				// TODO: check if closed channel
 				ch <- &photo
 			}
-		}(tx, ch, googlePlaceId, photo)
+		}(ctx, tx, ch, googlePlaceId, photo)
 	}
 
 	for i := 0; i < len(photos); i++ {
@@ -621,8 +629,15 @@ func (p PlaceRepository) saveGooglePhotosTx(tx *firestore.Transaction, placeId s
 func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, placeId string, photoReferences []models.GooglePlacePhotoReference) error {
 	ch := make(chan *models.GooglePlacePhotoReference, len(photoReferences))
 	chErr := make(chan error)
+
+	defer close(ch)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	for _, photoReference := range photoReferences {
-		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
+		go func(ctx context.Context, tx *firestore.Transaction, ch chan<- *models.GooglePlacePhotoReference, placeId string, photoReference models.GooglePlacePhotoReference) {
 			p.logger.Info(
 				"start saving google place photo references",
 				zap.String("placeId", placeId),
@@ -631,8 +646,8 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 				zap.String("height", fmt.Sprintf("%d", photoReference.Height)),
 			)
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference)
-			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoEntity); err != nil {
-				chErr <- fmt.Errorf("error while saving google place photo reference: %v", err)
+			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place photo reference: %v", err)) {
+				return
 			} else {
 				ch <- &photoReference
 			}
@@ -641,7 +656,7 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 				zap.String("placeId", placeId),
 				zap.String("photoReference", photoReference.PhotoReference),
 			)
-		}(tx, ch, placeId, photoReference)
+		}(ctx, tx, ch, placeId, photoReference)
 	}
 
 	for range photoReferences {
@@ -658,23 +673,30 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 	return nil
 }
 
-func (p PlaceRepository) saveGooglePlaceReviews(tx *firestore.Transaction, placeId string, reviews []models.GooglePlaceReview) error {
+func (p PlaceRepository) saveGooglePlaceReviews(ctx context.Context, tx *firestore.Transaction, placeId string, reviews []models.GooglePlaceReview) error {
 	ch := make(chan *models.GooglePlaceReview, len(reviews))
 	chErr := make(chan error)
+	defer close(ch)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	for _, review := range reviews {
-		go func(tx *firestore.Transaction, ch chan<- *models.GooglePlaceReview, placeId string, review models.GooglePlaceReview) {
+		go func(ctx context.Context, tx *firestore.Transaction, ch chan<- *models.GooglePlaceReview, placeId string, review models.GooglePlaceReview) {
 			// 重複したレビューが保存されないように ID を MD5(Time+Text+Language) で生成する
 			// AuthorName 等は頻繁に変更される可能性があるため、IDには含めない
 			hashContent := fmt.Sprintf("%d-%s-%s", review.Time, utils.StrEmptyIfNil(review.Text), utils.StrEmptyIfNil(review.Language))
 			id := fmt.Sprintf("%x", md5.Sum([]byte(hashContent)))
 
 			reviewEntity := entity.GooglePlaceReviewEntityFromGooglePlaceReview(review)
-			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), reviewEntity); err != nil {
-				chErr <- fmt.Errorf("error while saving google place review: %v", err)
+			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), reviewEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place review: %v", err)) {
+				return
 			} else {
+				// TODO: check if closed channel
 				ch <- &review
 			}
-		}(tx, ch, placeId, review)
+		}(ctx, tx, ch, placeId, review)
 	}
 
 	for range reviews {
