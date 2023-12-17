@@ -354,6 +354,8 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 func (p PlaceRepository) findByPlaceIds(ctx context.Context, placeIds []string) (*[]models.Place, error) {
 	chPlace := make(chan *models.Place, len(placeIds))
 	chErr := make(chan error)
+	defer close(chPlace)
+	defer close(chErr)
 
 	for _, placeId := range placeIds {
 		go func(ch chan<- *models.Place, chErr chan<- error, placeId string) {
@@ -390,9 +392,9 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 	chPlace := make(chan *entity.PlaceEntity, 1)
 	chGooglePlace := make(chan *models.GooglePlace, 1)
 	chErr := make(chan error)
-
 	defer close(chPlace)
 	defer close(chGooglePlace)
+	defer close(chErr)
 
 	asyncProcesses := []func(ctx context.Context){
 		func(ctx context.Context) {
