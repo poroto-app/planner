@@ -370,8 +370,7 @@ func (p PlaceRepository) findByPlaceIds(ctx context.Context, placeIds []string) 
 				return
 			}
 
-			// TODO: check if closed channel
-			ch <- place
+			utils.SendOrAbort(ctx, ch, place)
 		}(chPlace, chErr, placeId)
 	}
 
@@ -409,8 +408,7 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 				return
 			}
 
-			// TODO: check if closed channel
-			chPlace <- &placeEntity
+			utils.SendOrAbort(ctx, chPlace, &placeEntity)
 		},
 		func(ctx context.Context) {
 			// Google Placeを取得する
@@ -418,8 +416,8 @@ func (p PlaceRepository) findByPlaceId(ctx context.Context, placeId string) (*mo
 			if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching google place: %v", err)) {
 				return
 			}
-			// TODO: check if closed channel
-			chGooglePlace <- googlePlace
+
+			utils.SendOrAbort(ctx, chGooglePlace, googlePlace)
 		},
 	}
 
@@ -471,7 +469,6 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 	chReviews := make(chan *[]entity.GooglePlaceReviewEntity, 1)
 	chPhotos := make(chan *[]entity.GooglePlacePhotoEntity, 1)
 	chErr := make(chan error)
-
 	defer close(chGooglePlace)
 	defer close(chReviews)
 	defer close(chPhotos)
@@ -490,7 +487,7 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 				return
 			}
 
-			chGooglePlace <- &googlePlaceEntity
+			utils.SendOrAbort(ctx, chGooglePlace, &googlePlaceEntity)
 		},
 		func() {
 			// Reviewを取得する
@@ -508,8 +505,7 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 				reviews = append(reviews, review)
 			}
 
-			// TODO: check if closed channel
-			chReviews <- &reviews
+			utils.SendOrAbort(ctx, chReviews, &reviews)
 		},
 		func() {
 			// Photoを取得する
@@ -527,8 +523,7 @@ func (p PlaceRepository) fetchGooglePlace(ctx context.Context, placeId string) (
 				photos = append(photos, photo)
 			}
 
-			// TODO: check if closed channel
-			chPhotos <- &photos
+			utils.SendOrAbort(ctx, chPhotos, &photos)
 		},
 	}
 
@@ -612,10 +607,9 @@ func (p PlaceRepository) saveGooglePhotosTx(ctx context.Context, tx *firestore.T
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePlacePhoto(photo)
 			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photo.PhotoReference), photoEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place photo: %v", err)) {
 				return
-			} else {
-				// TODO: check if closed channel
-				ch <- &photo
 			}
+
+			utils.SendOrAbort(ctx, ch, &photo)
 		}(ctx, tx, ch, googlePlaceId, photo)
 	}
 
@@ -631,7 +625,6 @@ func (p PlaceRepository) saveGooglePhotosTx(ctx context.Context, tx *firestore.T
 func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, placeId string, photoReferences []models.GooglePlacePhotoReference) error {
 	ch := make(chan *models.GooglePlacePhotoReference, len(photoReferences))
 	chErr := make(chan error)
-
 	defer close(ch)
 	defer close(chErr)
 
@@ -650,9 +643,12 @@ func (p PlaceRepository) saveGooglePhotoReferencesTx(tx *firestore.Transaction, 
 			photoEntity := entity.GooglePlacePhotoEntityFromGooglePhotoReference(photoReference)
 			if err := tx.Set(p.subCollectionGooglePlacePhoto(placeId).Doc(photoReference.PhotoReference), photoEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place photo reference: %v", err)) {
 				return
-			} else {
-				ch <- &photoReference
 			}
+
+			if !utils.SendOrAbort(ctx, ch, &photoReference) {
+				return
+			}
+
 			p.logger.Info(
 				"successfully saved google place photo references",
 				zap.String("placeId", placeId),
@@ -694,10 +690,9 @@ func (p PlaceRepository) saveGooglePlaceReviews(ctx context.Context, tx *firesto
 			reviewEntity := entity.GooglePlaceReviewEntityFromGooglePlaceReview(review)
 			if err := tx.Set(p.subCollectionGooglePlaceReview(placeId).Doc(id), reviewEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while saving google place review: %v", err)) {
 				return
-			} else {
-				// TODO: check if closed channel
-				ch <- &review
 			}
+
+			utils.SendOrAbort(ctx, ch, &review)
 		}(ctx, tx, ch, placeId, review)
 	}
 
