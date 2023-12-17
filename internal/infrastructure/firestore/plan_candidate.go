@@ -673,7 +673,83 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 }
 
 func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
-	//TODO implement me
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// Placeの取得
+		place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
+		if err != nil {
+			return fmt.Errorf("error while fetching place: %v", err)
+		}
+
+		// PlanCandidateの取得
+		docPlanCandidate := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId)
+		snapshotPlanCandidate, err := tx.Get(docPlanCandidate)
+		if status.Code(err) == codes.NotFound {
+			return fmt.Errorf("plan candidate not found by id: %s", planCandidateId)
+		}
+		if err != nil {
+			return fmt.Errorf("error while getting plan candidate: %v", err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		// すでにLikeしている場合は、Likeを取り消し
+		if place.LikeCount > 0 && !like && array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+			place.LikeCount -= 1
+			for i, id := range planCandidateEntity.LikedPlaceIds {
+				if id == place.Id {
+					planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds[:i], planCandidateEntity.LikedPlaceIds[i+1:]...)
+					break
+				}
+			}
+		} else if like && !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+			// まだLikeされていない場合は、Likeを追加
+			place.LikeCount += 1
+			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
+		} else {
+			p.logger.Info(
+				"mismatching like state between input and DB",
+				zap.Bool("like", like),
+				zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+			)
+			return nil
+		}
+
+		// PlanCandidateを更新する
+		if err := tx.Update(docPlanCandidate, []firestore.Update{
+			{
+				Path:  "liked_place_ids",
+				Value: planCandidateEntity.LikedPlaceIds,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating plan candidate: %v", err)
+		}
+
+		// Placeを更新する
+		if err := tx.Update(p.PlaceRepository.docPlace(placeId), []firestore.Update{
+			{
+				Path:  "like_count",
+				Value: place.LikeCount,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating place: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while running transaction: %v", err)
+	}
+
 	return nil
 }
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {
