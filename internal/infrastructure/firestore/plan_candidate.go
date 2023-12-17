@@ -90,6 +90,14 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	chPlaces := make(chan *[]models.Place, 1)
 	chErr := make(chan error)
 	chDone := make(chan bool)
+	defer close(chPlanCandidate)
+	defer close(chMetaData)
+	defer close(chPlans)
+	defer close(chPlaces)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	var wg sync.WaitGroup
 
@@ -105,20 +113,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.doc(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				chPlanCandidate <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate: %v", err))
 			return
 		}
 
 		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)) {
+			return
 		}
 
-		chPlanCandidate <- &planCandidateEntity
+		if !utils.SendOrAbort(ctx, chPlanCandidate, &planCandidateEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -137,20 +147,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.docMetaDataV1(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				ch <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate meta data: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate meta data: %v", err))
 			return
 		}
 
 		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = snapshot.DataTo(&planCandidateMetaDataEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateMetaDataEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)) {
+			return
 		}
 
-		ch <- &planCandidateMetaDataEntity
+		if !utils.SendOrAbort(ctx, chMetaData, &planCandidateMetaDataEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate meta data",
 			zap.String("planCandidateId", planCandidateId),
@@ -167,22 +179,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			zap.String("planCandidateId", planCandidateId),
 		)
 		snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching plans: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching plans: %v", err)) {
 			return
 		}
 
 		var plans []entity.PlanInCandidateEntity
 		for _, snapshotPlan := range snapshotPlans {
 			var plan entity.PlanInCandidateEntity
-			if err = snapshotPlan.DataTo(&plan); err != nil {
-				chErr <- fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
+			if err = snapshotPlan.DataTo(&plan); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)) {
 				return
 			}
 			plans = append(plans, plan)
 		}
 
-		chPlans <- &plans
+		if !utils.SendOrAbort(ctx, chPlans, &plans) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plans of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -198,12 +210,13 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			placeIdsInPlan = append(placeIdsInPlan, plan.PlaceIdsOrdered...)
 		}
 		places, err := p.PlaceRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIdsInPlan))
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching places: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching places: %v", err)) {
 			return
 		}
 
-		chPlaces <- places
+		if !utils.SendOrAbort(ctx, chPlaces, places) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched places of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
