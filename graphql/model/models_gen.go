@@ -39,8 +39,9 @@ type AvailablePlacesForPlanInput struct {
 }
 
 type CachedCreatedPlans struct {
-	Plans                         []*Plan `json:"plans"`
-	CreatedBasedOnCurrentLocation bool    `json:"createdBasedOnCurrentLocation"`
+	Plans                         []*Plan  `json:"plans"`
+	CreatedBasedOnCurrentLocation bool     `json:"createdBasedOnCurrentLocation"`
+	LikedPlaceIds                 []string `json:"likedPlaceIds"`
 }
 
 type CachedCreatedPlansInput struct {
@@ -136,13 +137,12 @@ type Image struct {
 
 type LikeToPlaceInPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
 	PlaceID         string `json:"placeId"`
 	Like            bool   `json:"like"`
 }
 
 type LikeToPlaceInPlanCandidateOutput struct {
-	Plan *Plan `json:"plan"`
+	PlanCandidate *PlanCandidate `json:"planCandidate"`
 }
 
 type LocationCategory struct {
@@ -214,7 +214,12 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	AuthorID      *string       `json:"authorId,omitempty"`
-	LikedPlaceIds []string      `json:"likedPlaceIds"`
+}
+
+type PlanCandidate struct {
+	ID            string   `json:"id"`
+	Plans         []*Plan  `json:"plans"`
+	LikedPlaceIds []string `json:"likedPlaceIds"`
 }
 
 type PlansByLocationInput struct {

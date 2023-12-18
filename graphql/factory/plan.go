@@ -8,6 +8,14 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidate, startLocation *models.GeoLocation) *graphql.PlanCandidate {
+	return &graphql.PlanCandidate{
+		ID:            planCandidate.Id,
+		Plans:         PlansFromDomainModel(&planCandidate.Plans, startLocation),
+		LikedPlaceIds: planCandidate.LikedPlaceIds,
+	}
+}
+
 func PlansFromDomainModel(plans *[]models.Plan, startLocation *models.GeoLocation) []*graphql.Plan {
 	graphqlPlans := make([]*graphql.Plan, 0)
 

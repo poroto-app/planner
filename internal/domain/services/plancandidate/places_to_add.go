@@ -3,8 +3,6 @@ package plancandidate
 import (
 	"context"
 	"fmt"
-	"sort"
-
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
@@ -56,9 +54,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	})
 
 	// レビューの高い順でソート
-	sort.SliceStable(placesFiltered, func(i, j int) bool {
-		return placesFiltered[i].Google.Rating > placesFiltered[j].Google.Rating
-	})
+	placesFiltered = models.SortPlacesByRating(placesFiltered)
 
 	// TODO: すべてのカテゴリの場所が表示されるようにする
 	var placesToAdd []models.Place
@@ -70,11 +66,8 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		placesToAdd = append(placesToAdd, place)
 	}
 
-	// 場所の詳細情報を取得
-	placesToAdd = s.placeService.FetchPlacesDetailAndSave(ctx, planCandidateId, placesToAdd)
-
 	// 写真を取得
-	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, planCandidateId, placesToAdd...)
+	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToAdd...)
 
 	return placesToAdd, nil
 }

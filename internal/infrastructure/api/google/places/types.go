@@ -9,11 +9,13 @@ type Place struct {
 	Name             string
 	Types            []string
 	Location         Location
-	PhotoReferences  []string
+	PhotoReferences  []maps.Photo
 	OpenNow          bool
 	Rating           float32
 	UserRatingsTotal int
 	PriceLevel       int
+	FormattedAddress *string
+	Vicinity         *string
 	PlaceDetail      *PlaceDetail
 }
 
@@ -33,10 +35,12 @@ func createPlace(
 	name string,
 	types []string,
 	geometry maps.AddressGeometry,
-	photoReferences []string,
+	photoReferences []maps.Photo,
 	openNow bool,
 	rating float32,
 	userRatingsTotal int,
+	formattedAddress *string,
+	vicinity *string,
 	priceLevel int,
 ) Place {
 	return Place{
@@ -48,6 +52,8 @@ func createPlace(
 		Rating:           rating,
 		UserRatingsTotal: userRatingsTotal,
 		PriceLevel:       priceLevel,
+		FormattedAddress: formattedAddress,
+		Vicinity:         vicinity,
 		Location: Location{
 			Latitude:  geometry.Location.Lat,
 			Longitude: geometry.Location.Lng,

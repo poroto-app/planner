@@ -2,18 +2,21 @@ package entity
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
+// GooglePlaceEntity NearbySearchで取得できるデータをキャッシュ
 type GooglePlaceEntity struct {
 	PlaceID          string                         `firestore:"place_id"`
 	Name             string                         `firestore:"name"`
 	Types            []string                       `firestore:"types"`
 	Location         GeoLocationEntity              `firestore:"location"`
-	PhotoReferences  []string                       `firestore:"photo_references"`
 	OpenNow          bool                           `firestore:"open_now"`
 	Rating           float32                        `firestore:"rating"`
 	UserRatingsTotal int                            `firestore:"user_ratings_total"`
 	PriceLevel       int                            `firestore:"price_level"`
+	FormattedAddress string                         `firestore:"formatted_address"`
+	Vicinity         string                         `firestore:"vicinity"`
 	OpeningHours     *GooglePlaceOpeningHoursEntity `firestore:"opening_hours"`
 }
 
@@ -30,12 +33,13 @@ func GooglePlaceEntityFromGooglePlace(place models.GooglePlace) GooglePlaceEntit
 		PlaceID:          place.PlaceId,
 		Name:             place.Name,
 		Types:            place.Types,
-		PhotoReferences:  place.PhotoReferences,
 		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
 		PriceLevel:       place.PriceLevel,
 		OpeningHours:     openingHours,
+		FormattedAddress: utils.StrEmptyIfNil(place.FormattedAddress),
+		Vicinity:         utils.StrEmptyIfNil(place.Vicinity),
 		Location: GeoLocationEntity{
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,
@@ -54,11 +58,12 @@ func (g GooglePlaceEntity) ToGooglePlace(photoEntities *[]GooglePlacePhotoEntity
 		Name:             g.Name,
 		Types:            g.Types,
 		Location:         location,
-		PhotoReferences:  g.PhotoReferences,
 		OpenNow:          g.OpenNow,
 		Rating:           g.Rating,
 		UserRatingsTotal: g.UserRatingsTotal,
 		PriceLevel:       g.PriceLevel,
+		FormattedAddress: utils.StrOmitEmpty(g.FormattedAddress),
+		Vicinity:         utils.StrOmitEmpty(g.Vicinity),
 		Photos:           g.toGooglePlacePhotos(photoEntities),
 		PlaceDetail:      g.toGooglePlaceDetail(photoEntities, reviewEntities),
 	}

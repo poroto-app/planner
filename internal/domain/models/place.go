@@ -1,21 +1,18 @@
 package models
 
+import (
+	"math/rand"
+	"sort"
+	"time"
+)
+
 // Place 場所の情報
 type Place struct {
 	Id        string      `json:"id"`
 	Google    GooglePlace `json:"google"`
 	Name      string      `json:"name"`
 	Location  GeoLocation `json:"location"`
-	LikeCount uint        `json:"like_count"`
-}
-
-func NewPlaceFromGooglePlace(placeId string, googlePlace GooglePlace) Place {
-	return Place{
-		Id:       placeId,
-		Google:   googlePlace,
-		Name:     googlePlace.Name,
-		Location: googlePlace.Location,
-	}
+	LikeCount int         `json:"like_count"`
 }
 
 func (p Place) Categories() []LocationCategory {
@@ -52,4 +49,32 @@ func (p Place) EstimatedStayDuration() uint {
 func (p Place) EstimatedPriceRange() (priceRange *PriceRange) {
 	// TODO: 飲食店でprice_levelが0の場合は、価格帯が不明なので、nilを返す
 	return PriceRangeFromGooglePriceLevel(p.Google.PriceLevel)
+}
+
+// ShufflePlaces 場所の順番をシャッフルする
+func ShufflePlaces(places []Place) []Place {
+	placesCopy := make([]Place, len(places))
+	copy(placesCopy, places)
+
+	rand.Seed(time.Now().UnixNano())
+
+	// Fisher-Yatesアルゴリズム
+	// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	for i := len(places) - 1; i > 0; i-- {
+		j := rand.Intn(i + 1)
+		placesCopy[i], placesCopy[j] = placesCopy[j], placesCopy[i]
+	}
+
+	return placesCopy
+}
+
+func SortPlacesByRating(places []Place) []Place {
+	placesCopy := make([]Place, len(places))
+	copy(placesCopy, places)
+
+	sort.SliceStable(placesCopy, func(i, j int) bool {
+		return placesCopy[i].Google.Rating > placesCopy[j].Google.Rating
+	})
+
+	return placesCopy
 }

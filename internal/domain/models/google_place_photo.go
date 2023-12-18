@@ -17,3 +17,12 @@ func (g GooglePlacePhoto) ToImage() Image {
 		Large: utils.StrCopyPointerValue(g.Large),
 	}
 }
+
+func (g GooglePlacePhoto) ToPhotoReference() GooglePlacePhotoReference {
+	return GooglePlacePhotoReference{
+		PhotoReference:   g.PhotoReference,
+		Width:            g.Width,
+		Height:           g.Height,
+		HTMLAttributions: g.HTMLAttributions,
+	}
+}

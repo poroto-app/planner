@@ -11,12 +11,13 @@ type PlanCandidateEntity struct {
 	Id               string    `firestore:"id"`
 	PlanIds          []string  `firestore:"plan_ids"`
 	PlaceIdsSearched []string  `firestore:"place_ids_searched"`
+	LikedPlaceIds    []string  `firestore:"liked_place_ids"`
 	ExpiresAt        time.Time `firestore:"expires_at"`
 	CreatedAt        time.Time `firestore:"created_at,omitempty,serverTimestamp"`
 	UpdatedAt        time.Time `firestore:"updated_at,omitempty,serverTimestamp"`
 }
 
-func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEntity {
+func NewPlanCandidateEntityFromPlanCandidate(planCandidate models.PlanCandidate) PlanCandidateEntity {
 	plansIds := make([]string, len(planCandidate.Plans))
 	for i, plan := range planCandidate.Plans {
 		plansIds[i] = plan.Id
@@ -29,9 +30,9 @@ func ToPlanCandidateEntity(planCandidate models.PlanCandidate) PlanCandidateEnti
 	}
 }
 
-func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
+func (p PlanCandidateEntity) ToPlanCandidate(metaData PlanCandidateMetaDataV1Entity, planEntities []PlanInCandidateEntity, places []models.Place) models.PlanCandidate {
 	var plans []models.Plan
-	for _, planId := range entity.PlanIds {
+	for _, planId := range p.PlanIds {
 		for _, planEntity := range planEntities {
 			if planEntity.Id != planId {
 				continue
@@ -50,9 +51,10 @@ func FromPlanCandidateEntity(entity PlanCandidateEntity, metaData PlanCandidateM
 	}
 
 	return models.PlanCandidate{
-		Id:        entity.Id,
-		Plans:     plans,
-		MetaData:  FromPlanCandidateMetaDataV1Entity(metaData),
-		ExpiresAt: entity.ExpiresAt,
+		Id:            p.Id,
+		Plans:         plans,
+		MetaData:      FromPlanCandidateMetaDataV1Entity(metaData),
+		ExpiresAt:     p.ExpiresAt,
+		LikedPlaceIds: p.LikedPlaceIds,
 	}
 }
