@@ -9,6 +9,8 @@ import (
 	"sort"
 )
 
+// defaultMaxCategory は提示するカテゴリの種類の上限
+// defaultMaxPlacesPerCategory は提示するカテゴリごとに例示する場所の上限
 const (
 	defaultMaxCategory          = 3
 	defaultMaxPlacesPerCategory = 1
@@ -19,6 +21,11 @@ type CategoryNearLocationParams struct {
 	CreatePlanSessionId  string
 	MaxCategory          int
 	MaxPlacesPerCategory int
+}
+
+type groupPlacesByCategoryResult struct {
+	category string
+	places   []models.Place
 }
 
 // TODO: PlanGeneratorServiceに持っていく
@@ -52,12 +59,10 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	placesFiltered := places
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// TODO: 現在時刻でフィルタリングするかを指定できるようにする
-	placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: params.Location,
+	})
 
 	// 場所をカテゴリごとにグループ化し、対応する場所の少ないカテゴリから順に写真を取得する
 	placeCategoryGroups := groupPlacesByCategory(placesFiltered)
@@ -78,30 +83,36 @@ func (s Service) CategoriesNearLocation(
 			continue
 		}
 
-		// すでに他のカテゴリで利用した場所は利用しない
-		placesNotUsedInOtherCategory := placefilter.FilterPlaces(categoryPlaces.places, func(place models.Place) bool {
-			var placesAlreadyAdded []models.Place
-			for _, categoryWithPlaces := range categoriesWithPlaces {
-				placesAlreadyAdded = append(placesAlreadyAdded, categoryWithPlaces.Places...)
-			}
+		placesInCategory := categoryPlaces.places
+		if len(placesInCategory) == 0 {
+			continue
+		}
 
-			for _, placeAlreadyAdded := range placesAlreadyAdded {
-				if placeAlreadyAdded.Id == place.Id {
-					return false
+		// すでに他のカテゴリで利用した場所は利用しない
+		placesInCategory = placefilter.FilterPlaces(categoryPlaces.places, func(place models.Place) bool {
+			for _, categoryWithPlaces := range categoriesWithPlaces {
+				for _, placeInOtherCategory := range categoryWithPlaces.Places {
+					if placeInOtherCategory.Id == place.Id {
+						return false
+					}
 				}
 			}
-
 			return true
 		})
 
 		// カテゴリと関連の強い場所の最初の1件の写真を取得する
-		placesSortedByCategoryIndex := placesNotUsedInOtherCategory
+		placesSortedByCategoryIndex := placesInCategory
 		sort.Slice(placesSortedByCategoryIndex, func(i, j int) bool {
 			return placesSortedByCategoryIndex[i].Google.IndexOfCategory(*category) < placesSortedByCategoryIndex[j].Google.IndexOfCategory(*category)
 		})
+
+		// カテゴリごとに提示される場所の数を制限する
 		if len(placesSortedByCategoryIndex) > params.MaxPlacesPerCategory {
 			placesSortedByCategoryIndex = placesSortedByCategoryIndex[:params.MaxPlacesPerCategory]
 		}
+
+		// カテゴリ内の場所をレビューの高い順にソート
+		placesSortedByCategoryIndex = models.SortPlacesByRating(placesSortedByCategoryIndex)
 
 		// 場所の写真を取得する
 		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, placesSortedByCategoryIndex...)
@@ -110,11 +121,6 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	return categoriesWithPlaces, nil
-}
-
-type groupPlacesByCategoryResult struct {
-	category string
-	places   []models.Place
 }
 
 // groupPlacesByCategory は場所をカテゴリごとにグループ化する

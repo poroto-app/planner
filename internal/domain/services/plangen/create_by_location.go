@@ -59,8 +59,10 @@ func (s Service) CreatePlanByLocation(
 	}
 
 	placesFiltered := places
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: baseLocation,
+	})
 
 	// レビューが低い、またはレビュー数が少ない場所を除外する
 	placesFiltered = placefilter.FilterByRating(placesFiltered, 3.0, 10)

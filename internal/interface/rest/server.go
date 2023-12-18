@@ -33,11 +33,11 @@ func NewRestServer(env string) *Server {
 }
 
 func (s Server) ServeHTTP() error {
-	r := gin.Default()
-
 	if s.isStaging() || s.isProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"POST"},
