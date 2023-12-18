@@ -90,6 +90,8 @@ func (s *Service) FetchPlacesToReplace(
 	nPlacesSameCategory := int(nLimit / 2)
 	if len(placesFilteredSameCategory) > nPlacesSameCategory {
 		placesFilteredSameCategory = placesFilteredSameCategory[:nPlacesSameCategory]
+	} else {
+		nPlacesSameCategory = len(placesFilteredSameCategory)
 	}
 
 	// 指定された場所と異なるカテゴリの場所が候補の半分の数だけ含められるようにする
