@@ -53,6 +53,11 @@ func (s *Service) FetchPlacesToReplace(
 
 	placesFiltered := placesSearched
 
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: startPlace.Location,
+	})
+
 	// 遠い場所を除外
 	placesFiltered = placefilter.FilterWithinDistanceRange(placesFiltered, startPlace.Location, 0, 1000)
 
