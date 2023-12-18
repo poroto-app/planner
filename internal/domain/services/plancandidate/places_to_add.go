@@ -26,22 +26,22 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 		return nil, fmt.Errorf("plan not found")
 	}
 
+	if len(plan.Places) == 0 {
+		return nil, fmt.Errorf("plan has no places")
+	}
+
+	startPlace := plan.Places[0]
+
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
 
 	placesFiltered := placesSearched
-
-	// 重複した場所を削除
-	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
-
-	// 会社はプランに含まれないようにする
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// 場所のカテゴリによるフィルタリング
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: startPlace.Location,
+	})
 
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {

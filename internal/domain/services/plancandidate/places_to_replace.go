@@ -53,18 +53,13 @@ func (s *Service) FetchPlacesToReplace(
 
 	placesFiltered := placesSearched
 
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: startPlace.Location,
+	})
+
 	// 遠い場所を除外
 	placesFiltered = placefilter.FilterWithinDistanceRange(placesFiltered, startPlace.Location, 0, 1000)
-
-	// 重複した場所を削除
-	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
-
-	// 会社はプランに含まれないようにする
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// 場所のカテゴリによるフィルタリング
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
@@ -100,6 +95,8 @@ func (s *Service) FetchPlacesToReplace(
 	nPlacesSameCategory := int(nLimit / 2)
 	if len(placesFilteredSameCategory) > nPlacesSameCategory {
 		placesFilteredSameCategory = placesFilteredSameCategory[:nPlacesSameCategory]
+	} else {
+		nPlacesSameCategory = len(placesFilteredSameCategory)
 	}
 
 	// 指定された場所と異なるカテゴリの場所が候補の半分の数だけ含められるようにする

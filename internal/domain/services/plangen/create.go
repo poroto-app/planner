@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	"sort"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -14,6 +13,8 @@ import (
 const (
 	defaultMaxPlanDuration = 180
 	defaultMaxPlace        = 4
+
+	placeDistanceRangeInPlan = 1500
 )
 
 type CreatePlanPlacesParams struct {
@@ -39,6 +40,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	placesFiltered := params.places
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesFiltered,
+		StartLocation: params.locationStart,
+	})
 
 	// 現在、開いている場所のみに絞る
 	if params.shouldOpenWhileTraveling {
@@ -50,18 +55,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		placesFiltered,
 		params.placeStart.Location,
 		0,
-		1500,
+		placeDistanceRangeInPlan,
 	)
-
-	// 重複した場所を削除
-	placesFiltered = placefilter.FilterDuplicated(placesFiltered)
-
-	// 会社はプランに含まれないようにする
-	placesFiltered = placefilter.FilterCompany(placesFiltered)
-
-	// 場所のカテゴリによるフィルタリング
-	placesFiltered = placefilter.FilterIgnoreCategory(placesFiltered)
-	placesFiltered = placefilter.FilterByCategory(placesFiltered, models.GetCategoryToFilter(), true)
 
 	// 他のプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
@@ -78,10 +73,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	})
 
 	// レビューの高い順でソート
-	placesSorted := placesFiltered
-	sort.SliceStable(placesSorted, func(i, j int) bool {
-		return placesSorted[i].Google.Rating > placesSorted[j].Google.Rating
-	})
+	placesSorted := models.SortPlacesByRating(placesFiltered)
 
 	placesInPlan := make([]models.Place, 0)
 
