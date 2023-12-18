@@ -6,11 +6,27 @@ import (
 	"os"
 )
 
+const (
+	defaultLogLevelDevelopment = zap.InfoLevel
+	defaultLogLevelProduction  = zap.InfoLevel
+)
+
 type LoggerOption struct {
-	Tag string
+	Tag      string
+	LogLevel *zapcore.Level
 }
 
 func NewLogger(option LoggerOption) (*zap.Logger, error) {
+	if option.LogLevel == nil {
+		var defaultLogLevel zapcore.Level
+		if os.Getenv("ENV") == "production" {
+			defaultLogLevel = defaultLogLevelProduction
+		} else {
+			defaultLogLevel = defaultLogLevelDevelopment
+		}
+		option.LogLevel = &defaultLogLevel
+	}
+
 	var logger *zap.Logger
 	if os.Getenv("ENV") == "production" {
 		l, err := zap.NewProduction()
@@ -24,6 +40,7 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 		dc.Encoding = "console"
 		dc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		dc.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		dc.Level = zap.NewAtomicLevelAt(*option.LogLevel)
 
 		l, err := dc.Build()
 		if err != nil {
@@ -38,4 +55,8 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 	}
 
 	return logger, nil
+}
+
+func LoggerLevelPointer(level zapcore.Level) *zapcore.Level {
+	return &level
 }

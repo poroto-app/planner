@@ -90,6 +90,14 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 	chPlaces := make(chan *[]models.Place, 1)
 	chErr := make(chan error)
 	chDone := make(chan bool)
+	defer close(chPlanCandidate)
+	defer close(chMetaData)
+	defer close(chPlans)
+	defer close(chPlaces)
+	defer close(chErr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	var wg sync.WaitGroup
 
@@ -105,20 +113,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.doc(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				chPlanCandidate <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate: %v", err))
 			return
 		}
 
 		var planCandidateEntity entity.PlanCandidateEntity
-		if err = snapshot.DataTo(&planCandidateEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)) {
+			return
 		}
 
-		chPlanCandidate <- &planCandidateEntity
+		if !utils.SendOrAbort(ctx, chPlanCandidate, &planCandidateEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -137,20 +147,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 		snapshot, err := p.docMetaDataV1(planCandidateId).Get(ctx)
 		if err != nil {
 			if status.Code(err) == codes.NotFound {
-				ch <- nil
+				utils.SendOrAbort(ctx, chPlanCandidate, nil)
 				return
 			}
 
-			chErr <- fmt.Errorf("error while finding plan candidate meta data: %v", err)
+			utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while finding plan candidate meta data: %v", err))
 			return
 		}
 
 		var planCandidateMetaDataEntity entity.PlanCandidateMetaDataV1Entity
-		if err = snapshot.DataTo(&planCandidateMetaDataEntity); err != nil {
-			chErr <- fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)
+		if err = snapshot.DataTo(&planCandidateMetaDataEntity); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan candidate meta data entity: %v", err)) {
+			return
 		}
 
-		ch <- &planCandidateMetaDataEntity
+		if !utils.SendOrAbort(ctx, chMetaData, &planCandidateMetaDataEntity) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plan candidate meta data",
 			zap.String("planCandidateId", planCandidateId),
@@ -167,22 +179,22 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			zap.String("planCandidateId", planCandidateId),
 		)
 		snapshotPlans, err := p.subCollectionPlans(planCandidateId).Documents(ctx).GetAll()
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching plans: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching plans: %v", err)) {
 			return
 		}
 
 		var plans []entity.PlanInCandidateEntity
 		for _, snapshotPlan := range snapshotPlans {
 			var plan entity.PlanInCandidateEntity
-			if err = snapshotPlan.DataTo(&plan); err != nil {
-				chErr <- fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)
+			if err = snapshotPlan.DataTo(&plan); utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while converting snapshot to plan in plan candidate: %v", err)) {
 				return
 			}
 			plans = append(plans, plan)
 		}
 
-		chPlans <- &plans
+		if !utils.SendOrAbort(ctx, chPlans, &plans) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched plans of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -198,12 +210,13 @@ func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandida
 			placeIdsInPlan = append(placeIdsInPlan, plan.PlaceIdsOrdered...)
 		}
 		places, err := p.PlaceRepository.findByPlaceIds(ctx, array.StrArrayToSet(placeIdsInPlan))
-		if err != nil {
-			chErr <- fmt.Errorf("error while fetching places: %v", err)
+		if utils.HandleWrappedErrWithCh(ctx, chErr, err, fmt.Errorf("error while fetching places: %v", err)) {
 			return
 		}
 
-		chPlaces <- places
+		if !utils.SendOrAbort(ctx, chPlaces, places) {
+			return
+		}
 		p.logger.Info(
 			"successfully fetched places of plan candidate",
 			zap.String("planCandidateId", planCandidateId),
@@ -265,8 +278,7 @@ Loop:
 		return nil, fmt.Errorf("places not found: %s", planCandidateId)
 	}
 
-	planCandidate := entity.FromPlanCandidateEntity(*planCandidateEntity, *planCandidateMetaDataEntity, *plans, *places)
-
+	planCandidate := planCandidateEntity.ToPlanCandidate(*planCandidateMetaDataEntity, *plans, *places)
 	return &planCandidate, nil
 }
 
@@ -674,7 +686,93 @@ func (p *PlanCandidateFirestoreRepository) DeleteAll(ctx context.Context, planCa
 }
 
 func (p *PlanCandidateFirestoreRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
-	//TODO implement me
+	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		// TODO: トランザクション関数を使う
+		// Placeの取得
+		place, err := p.PlaceRepository.findByPlaceId(ctx, placeId)
+		if err != nil {
+			return fmt.Errorf("error while fetching place: %v", err)
+		}
+
+		// PlanCandidateの取得
+		docPlanCandidate := p.client.Collection(collectionPlanCandidates).Doc(planCandidateId)
+		snapshotPlanCandidate, err := tx.Get(docPlanCandidate)
+		if status.Code(err) == codes.NotFound {
+			return fmt.Errorf("plan candidate not found by id: %s", planCandidateId)
+		}
+		if err != nil {
+			return fmt.Errorf("error while getting plan candidate: %v", err)
+		}
+
+		var planCandidateEntity entity.PlanCandidateEntity
+		if err := snapshotPlanCandidate.DataTo(&planCandidateEntity); err != nil {
+			return fmt.Errorf("error while converting snapshot to plan candidate entity: %v", err)
+		}
+
+		if like {
+			if array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+				p.logger.Info(
+					"mismatching: already liked",
+					zap.Bool("like", like),
+					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+				)
+				return nil
+			}
+			// まだLikeされていない場合は、Likeを追加
+			place.LikeCount += 1
+			planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds, place.Id)
+		} else {
+			if !array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id) {
+				p.logger.Info(
+					"mismatching: not yet liked",
+					zap.Bool("like", like),
+					zap.Bool("IsContain", array.IsContain(planCandidateEntity.LikedPlaceIds, place.Id)),
+				)
+				return nil
+			}
+			// すでにLikeしている場合は、Likeを取り消し
+			place.LikeCount -= 1
+			for i, id := range planCandidateEntity.LikedPlaceIds {
+				if id == place.Id {
+					planCandidateEntity.LikedPlaceIds = append(planCandidateEntity.LikedPlaceIds[:i], planCandidateEntity.LikedPlaceIds[i+1:]...)
+					break
+				}
+			}
+		}
+
+		// PlanCandidateを更新する
+		if err := tx.Update(docPlanCandidate, []firestore.Update{
+			{
+				Path:  "liked_place_ids",
+				Value: planCandidateEntity.LikedPlaceIds,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating plan candidate: %v", err)
+		}
+
+		// Placeを更新する
+		if err := tx.Update(p.PlaceRepository.docPlace(placeId), []firestore.Update{
+			{
+				Path:  "like_count",
+				Value: place.LikeCount,
+			},
+			{
+				Path:  "updated_at",
+				Value: firestore.ServerTimestamp,
+			},
+		}); err != nil {
+			return fmt.Errorf("error while updating place: %v", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error while running transaction: %v", err)
+	}
+
 	return nil
 }
 func (p *PlanCandidateFirestoreRepository) collection() *firestore.CollectionRef {
