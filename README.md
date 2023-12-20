@@ -103,6 +103,18 @@ go generate ./...
 go test ./...
 ```
 
+## Database
+### Gooseを用いたマイグレーション
+```shell
+go get -u github.com/pressly/goose/v3/cmd/goose
+```
+```shell
+goose -dir db/migrations create create_user_table sql go
+
+# or
+go run github.com/pressly/goose/v3/cmd/goose -dir db/migrations create create_user_table go
+```
+
 ## Trouble Shooting
 ### MySQLをアップグレード・ダウングレードしたら起動できなくなった
 ※ 本番環境ではデータを移行することが必要です
