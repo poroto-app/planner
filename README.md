@@ -31,7 +31,7 @@ go mod tidy
 
 ### MySQLの起動（Docker）
 ```shell
-docker-compose up -d
+docker compose up -d
 ```
 
 ### IntelliJ IDEAの設定
