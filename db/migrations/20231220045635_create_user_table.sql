@@ -1,6 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
 CREATE TABLE users
 (
     id           VARCHAR(36) PRIMARY KEY,
@@ -13,6 +12,5 @@ CREATE TABLE users
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
 DROP TABLE users;
 -- +goose StatementEnd
