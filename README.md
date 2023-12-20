@@ -102,3 +102,13 @@ go generate ./...
 ```shell
 go test ./...
 ```
+
+## Trouble Shooting
+### MySQLをアップグレード・ダウングレードしたら起動できなくなった
+※ 本番環境ではデータを移行することが必要です
+
+ローカルでデータを削除する場合は以下のコマンドを利用します
+```shell
+docker compose down
+docker volume rm planner_mysql-data
+```
