@@ -11,15 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
-      - name: Install Test Dependencies
+      - name: Install Goose
         run: |
           go install github.com/pressly/goose/cmd/goose@latest
-      - name: Install PlanetScale CLI
-        run: |
-          curl -L https://github.com/planetscale/cli/releases/latest/download/pscale_linux_amd64.deb -o pscale.deb
-          sudo dpkg -i pscale.deb
-      - name: Authenticate with PlanetScale
-        run: pscale auth login --service-token-id ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }} --service-token ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
+      - name: Setup PlanetScale CLI
+        uses: planetscale/setup-pscale-action@v1
       - name: Run Migration
         env:
           DB_USER: ${{ secrets.PLANETSCALE_STAGING_DB_USER }}
@@ -30,5 +26,7 @@ jobs:
           PLANETSCALE_DB_NAME: poroto
           PLANETSCALE_ORG_NAME: poroto
           PLANETSCALE_DB_BRANCH: staging
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
         run: |
           pscale connect $PLANETSCALE_DB_NAME $PLANETSCALE_DB_BRANCH --org $PLANETSCALE_ORG_NAME --port $DB_PORT --execute "goose -dir db/migrations mysql \"$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true\" up"
