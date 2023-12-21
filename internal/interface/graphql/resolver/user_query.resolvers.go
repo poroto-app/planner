@@ -10,8 +10,8 @@ import (
 	"log"
 
 	"poroto.app/poroto/planner/internal/domain/services/user"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/factory"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // FirebaseUser is the resolver for the firebaseUser field.

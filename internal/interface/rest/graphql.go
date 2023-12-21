@@ -4,8 +4,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/generated"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/resolver"
+	"poroto.app/poroto/planner/internal/interface/graphql/generated"
+	"poroto.app/poroto/planner/internal/interface/graphql/resolver"
 )
 
 func GraphQlPlayGround(c *gin.Context) {

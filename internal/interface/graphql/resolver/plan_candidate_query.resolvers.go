@@ -14,8 +14,8 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	factory2 "poroto.app/poroto/planner/internal/infrastructure/graphql/factory"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
@@ -39,7 +39,7 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	}
 
 	return &model.CachedCreatedPlans{
-		Plans:                         factory2.PlansFromDomainModel(&planCandidate.Plans, planCandidate.MetaData.LocationStart),
+		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans, planCandidate.MetaData.LocationStart),
 		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 		LikedPlaceIds:                 planCandidate.LikedPlaceIds,
 	}, nil
@@ -88,7 +88,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 	for _, categorySearched := range categoriesSearched {
 		var places []*model.Place
 		for _, place := range categorySearched.Places {
-			places = append(places, factory2.PlaceFromDomainModel(&place))
+			places = append(places, factory.PlaceFromDomainModel(&place))
 		}
 
 		categories = append(categories, &model.NearbyLocationCategory{
@@ -123,7 +123,7 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 
 	graphqlPlaces := make([]*model.Place, len(*availablePlaces))
 	for i, place := range *availablePlaces {
-		graphqlPlaces[i] = factory2.PlaceFromDomainModel(&place)
+		graphqlPlaces[i] = factory.PlaceFromDomainModel(&place)
 	}
 
 	return &model.AvailablePlacesForPlan{
@@ -148,7 +148,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 
 	var places []*model.Place
 	for _, place := range placesToAdd {
-		p := factory2.PlaceFromDomainModel(&place)
+		p := factory.PlaceFromDomainModel(&place)
 		if p != nil {
 			places = append(places, p)
 		}
@@ -190,7 +190,7 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 
 	var places []*model.Place
 	for _, place := range placesToReplace {
-		p := factory2.PlaceFromDomainModel(&place)
+		p := factory.PlaceFromDomainModel(&place)
 		if p != nil {
 			places = append(places, p)
 		}

@@ -2,7 +2,7 @@ package plancandidate
 
 import (
 	"context"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )

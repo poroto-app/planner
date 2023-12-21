@@ -14,8 +14,8 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/factory"
-	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.

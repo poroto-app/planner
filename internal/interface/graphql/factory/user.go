@@ -2,7 +2,7 @@ package factory
 
 import (
 	"poroto.app/poroto/planner/internal/domain/models"
-	graphql "poroto.app/poroto/planner/internal/infrastructure/graphql/model"
+	graphql "poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 func UserFromDomainModel(user *models.User) *graphql.User {
