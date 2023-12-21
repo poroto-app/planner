@@ -44,13 +44,15 @@ jobs:
         run: |
           go install github.com/golang/mock/mockgen@v1.6.0
           go install github.com/jstemmer/go-junit-report@latest
-      - name: Run Migration
-        run: |
           go get -u github.com/pressly/goose/cmd/goose
-          DB_USER=root \
-          DB_PASSWORD=password \
-          DB_HOST=localhost:3306 \
-          DB_NAME=poroto \
+          echo "$GOPATH/bin" >> $GITHUB_PATH
+      - name: Run Migration
+        env:
+          DB_USER: root
+          DB_PASSWORD: password
+          DB_HOST: localhost:3307
+          DB_NAME: poroto
+        run: |
           goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
       - name: Move sqlboiler_test.toml
         run: mv db/sqlboiler_test.toml sqlboiler.toml
