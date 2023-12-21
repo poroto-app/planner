@@ -29,4 +29,4 @@ jobs:
           PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
           PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
         run: |
-          pscale connect $PLANETSCALE_DB_NAME $PLANETSCALE_DB_BRANCH --org $PLANETSCALE_ORG_NAME --port $DB_PORT --execute "goose -dir db/migrations mysql \"$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%1FTokyo&tls=true\" up"
+          pscale connect $PLANETSCALE_DB_NAME $PLANETSCALE_DB_BRANCH --org $PLANETSCALE_ORG_NAME --port $DB_PORT --execute "goose -dir db/migrations mysql \"$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true\" up"
