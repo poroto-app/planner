@@ -22,4 +22,4 @@ jobs:
           DB_HOST: ${{ secrets.PLANETSCALE_STAGING_DB_HOST }}
           DB_NAME: poroto
         run: |
-          goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
+          goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true&interpolateParams=true" up
