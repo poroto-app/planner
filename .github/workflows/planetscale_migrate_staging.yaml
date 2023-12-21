@@ -1,5 +1,5 @@
-name: migrate-staging
-run-name: [ PlanetScale ] Migrate staging branch by @${{ github.actor }}
+name: db-migrate-staging
+run-name: PlanetScale Migrate staging branch by @${{ github.actor }}
 on:
   pull_request:
 #    branches: [ main ]
