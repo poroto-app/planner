@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"log"
 	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
@@ -21,8 +20,6 @@ func init() {
 }
 
 func main() {
-	log.Println(os.Getenv("DB_DSN"), os.Getenv("DB_USER"))
-
 	dns := fmt.Sprintf(
 		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s",
 		os.Getenv("DB_USER"),
