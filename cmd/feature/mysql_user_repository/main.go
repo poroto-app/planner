@@ -21,12 +21,14 @@ func init() {
 
 func main() {
 	dns := fmt.Sprintf(
-		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s",
+		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s&tls=%v&interpolateParams=%v",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_NAME"),
 		"Asia%2FTokyo",
+		os.Getenv("ENV") != "development",
+		true,
 	)
 
 	db, err := sql.Open("mysql", dns)
