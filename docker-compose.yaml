@@ -5,6 +5,11 @@ services:
     # SEE: https://planetscale.com/docs/reference/mysql-compatibility#overview
     image: mysql:8.0
     restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: poroto
@@ -17,13 +22,52 @@ services:
   db-test:
     image: mysql:8.0
     restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: poroto_test
+      MYSQL_DATABASE: poroto
       MYSQL_USER: user
       MYSQL_PASSWORD: password
       MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
     ports:
       - "3307:3306"
+  db-migrator:
+    image: golang:1.18
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_HOST: db:3306
+      DB_NAME: poroto
+    volumes:
+      - ./db/migrations:/db/migrations
+    command: >
+      sh -c "
+      go install github.com/pressly/goose/cmd/goose@latest &&
+      goose -dir /db/migrations mysql \"$$DB_USER:$$DB_PASSWORD@tcp($$DB_HOST)/$$DB_NAME?parseTime=true&loc=Asia%2FTokyo\" up
+      "
+  db-test-migrator:
+    image: golang:1.18
+    depends_on:
+      db-test:
+        condition: service_healthy
+    environment:
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_HOST: db-test:3306
+      DB_NAME: poroto
+    volumes:
+      - ./db/migrations:/db/migrations
+    command: >
+      sh -c "
+      go install github.com/pressly/goose/cmd/goose@latest &&
+      goose -dir /db/migrations mysql \"$$DB_USER:$$DB_PASSWORD@tcp($$DB_HOST)/$$DB_NAME?parseTime=true&loc=Asia%2FTokyo\" up
+      "
 volumes:
   mysql-data:
