@@ -7,8 +7,9 @@ import (
 
 func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidate, startLocation *models.GeoLocation) *graphql.PlanCandidate {
 	return &graphql.PlanCandidate{
-		ID:            planCandidate.Id,
-		Plans:         PlansFromDomainModel(&planCandidate.Plans, startLocation),
-		LikedPlaceIds: planCandidate.LikedPlaceIds,
+		ID:                            planCandidate.Id,
+		Plans:                         PlansFromDomainModel(&planCandidate.Plans, startLocation),
+		LikedPlaceIds:                 planCandidate.LikedPlaceIds,
+		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
 	}
 }

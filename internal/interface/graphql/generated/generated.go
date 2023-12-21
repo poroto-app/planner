@@ -184,9 +184,10 @@ type ComplexityRoot struct {
 	}
 
 	PlanCandidate struct {
-		ID            func(childComplexity int) int
-		LikedPlaceIds func(childComplexity int) int
-		Plans         func(childComplexity int) int
+		CreatedBasedOnCurrentLocation func(childComplexity int) int
+		ID                            func(childComplexity int) int
+		LikedPlaceIds                 func(childComplexity int) int
+		Plans                         func(childComplexity int) int
 	}
 
 	PlanCandidateOutput struct {
@@ -854,6 +855,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Transitions(childComplexity), true
+
+	case "PlanCandidate.createdBasedOnCurrentLocation":
+		if e.complexity.PlanCandidate.CreatedBasedOnCurrentLocation == nil {
+			break
+		}
+
+		return e.complexity.PlanCandidate.CreatedBasedOnCurrentLocation(childComplexity), true
 
 	case "PlanCandidate.id":
 		if e.complexity.PlanCandidate.ID == nil {
@@ -1531,6 +1539,7 @@ type PlacesToReplaceForPlanCandidateOutput {
     id: String!
     plans: [Plan!]!
     likedPlaceIds: [String!]!
+    createdBasedOnCurrentLocation: Boolean!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
     plan(id: String!): Plan
@@ -3503,6 +3512,8 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_planCa
 				return ec.fieldContext_PlanCandidate_plans(ctx, field)
 			case "likedPlaceIds":
 				return ec.fieldContext_PlanCandidate_likedPlaceIds(ctx, field)
+			case "createdBasedOnCurrentLocation":
+				return ec.fieldContext_PlanCandidate_createdBasedOnCurrentLocation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PlanCandidate", field.Name)
 		},
@@ -5821,6 +5832,50 @@ func (ec *executionContext) fieldContext_PlanCandidate_likedPlaceIds(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _PlanCandidate_createdBasedOnCurrentLocation(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCandidate_createdBasedOnCurrentLocation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBasedOnCurrentLocation, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlanCandidate_createdBasedOnCurrentLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlanCandidate",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlanCandidateOutput_planCandidate(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidateOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlanCandidateOutput_planCandidate(ctx, field)
 	if err != nil {
@@ -5866,6 +5921,8 @@ func (ec *executionContext) fieldContext_PlanCandidateOutput_planCandidate(ctx c
 				return ec.fieldContext_PlanCandidate_plans(ctx, field)
 			case "likedPlaceIds":
 				return ec.fieldContext_PlanCandidate_likedPlaceIds(ctx, field)
+			case "createdBasedOnCurrentLocation":
+				return ec.fieldContext_PlanCandidate_createdBasedOnCurrentLocation(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PlanCandidate", field.Name)
 		},
@@ -11321,6 +11378,11 @@ func (ec *executionContext) _PlanCandidate(ctx context.Context, sel ast.Selectio
 			}
 		case "likedPlaceIds":
 			out.Values[i] = ec._PlanCandidate_likedPlaceIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdBasedOnCurrentLocation":
+			out.Values[i] = ec._PlanCandidate_createdBasedOnCurrentLocation(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
