@@ -7,7 +7,7 @@ on:
 
 jobs:
   # SEE: https://planetscale.com/blog/announcing-the-planetscale-github-actions
-  merge_changes:
+  merge-changes:
     runs-on: ubuntu-latest
     steps:
       - name: Create a deploy request
@@ -31,7 +31,7 @@ jobs:
           PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
           PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
   create-staging-branch:
-    needs: merge_changes
+    needs: merge-changes
     runs-on: ubuntu-latest
     steps:
       - name: checkout
