@@ -15,7 +15,7 @@ jobs:
         run: |
           go install github.com/pressly/goose/cmd/goose@latest
       - name: Setup PlanetScale CLI
-        uses: planetscale/setup-pscale-action@v0
+        uses: planetscale/setup-pscale-action@v1
       - name: Run Migration
         env:
           DB_USER: ${{ secrets.PLANETSCALE_STAGING_DB_USER }}
