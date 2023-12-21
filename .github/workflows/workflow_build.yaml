@@ -21,6 +21,22 @@ jobs:
         run: golangci-lint run --timeout=3m
   test:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: poroto
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -u user --password=password"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup_environment
@@ -28,6 +44,16 @@ jobs:
         run: |
           go install github.com/golang/mock/mockgen@v1.6.0
           go install github.com/jstemmer/go-junit-report@latest
+      - name: Run Migration
+        run: |
+          go get -u github.com/pressly/goose/cmd/goose
+          DB_USER=root \
+          DB_PASSWORD=password \
+          DB_HOST=localhost:3306 \
+          DB_NAME=poroto \
+          goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
+      - name: Move sqlboiler_test.toml
+        run: mv db/sqlboiler_test.toml sqlboiler.toml
       - name: Run Test
         run: go test -v ./... | go-junit-report -set-exit-code > report.xml
       - name: Test Summary
