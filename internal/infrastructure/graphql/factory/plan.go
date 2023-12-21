@@ -3,8 +3,8 @@ package factory
 import (
 	"fmt"
 	"log"
+	graphql "poroto.app/poroto/planner/internal/infrastructure/graphql/model"
 
-	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 

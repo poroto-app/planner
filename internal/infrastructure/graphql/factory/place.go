@@ -1,8 +1,8 @@
 package factory
 
 import (
-	graphql "poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
+	graphql "poroto.app/poroto/planner/internal/infrastructure/graphql/model"
 )
 
 func PlaceFromDomainModel(place *models.Place) *graphql.Place {

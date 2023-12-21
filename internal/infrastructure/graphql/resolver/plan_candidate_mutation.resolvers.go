@@ -10,12 +10,12 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/graphql/factory"
-	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
+	"poroto.app/poroto/planner/internal/infrastructure/graphql/factory"
+	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.

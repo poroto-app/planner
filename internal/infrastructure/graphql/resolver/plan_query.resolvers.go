@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"log"
 
-	"poroto.app/poroto/planner/graphql/factory"
-	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
+	factory2 "poroto.app/poroto/planner/internal/infrastructure/graphql/factory"
+	"poroto.app/poroto/planner/internal/infrastructure/graphql/model"
 )
 
 // Plan is the resolver for the plan field.
@@ -32,7 +32,7 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 		return nil, nil
 	}
 
-	graphqlPlan, err := factory.PlanFromDomainModel(*p, nil)
+	graphqlPlan, err := factory2.PlanFromDomainModel(*p, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("internal server error")
@@ -55,7 +55,7 @@ func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Pl
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
-	return factory.PlansFromDomainModel(plans, nil), nil
+	return factory2.PlansFromDomainModel(plans, nil), nil
 }
 
 // PlansByLocation is the resolver for the plansByLocation field.
@@ -81,7 +81,7 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 	}
 
 	return &model.PlansByLocationOutput{
-		Plans:   factory.PlansFromDomainModel(plans, nil),
+		Plans:   factory2.PlansFromDomainModel(plans, nil),
 		PageKey: nextPageToken,
 	}, nil
 }
@@ -117,7 +117,7 @@ func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUser
 	}
 
 	return &model.PlansByUserOutput{
-		Plans:  factory.PlansFromDomainModel(plans, nil),
-		Author: factory.UserFromDomainModel(author),
+		Plans:  factory2.PlansFromDomainModel(plans, nil),
+		Author: factory2.UserFromDomainModel(author),
 	}, nil
 }
