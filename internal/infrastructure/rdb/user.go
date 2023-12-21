@@ -14,10 +14,10 @@ type UserRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) *UserRepository {
+func NewUserRepository(db *sql.DB) (*UserRepository, error) {
 	return &UserRepository{
 		db: db,
-	}
+	}, nil
 }
 
 func (u UserRepository) Create(ctx context.Context, user models.User) error {
