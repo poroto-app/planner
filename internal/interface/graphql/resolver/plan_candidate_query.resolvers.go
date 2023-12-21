@@ -45,6 +45,11 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	}, nil
 }
 
+// PlanCandidate is the resolver for the planCandidate field.
+func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: PlanCandidate - planCandidate"))
+}
+
 // NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
 func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
