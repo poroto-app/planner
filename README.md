@@ -117,7 +117,11 @@ goose -dir db/migrations create create_user_table sql go
 
 ### マイグレーションの実行
 ```shell
-goose -dir db/migrations mysql "db_user:db_password@tcp(localhost:3306)/poroto?parseTime=true&loc=Asia%2FTokyo" up
+DB_USER=root \
+DB_PASSWORD=password \
+DB_HOST=localhost:3306 \
+DB_NAME=poroto \
+goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
 ````
 
 ### SQLBoilerをインストール
