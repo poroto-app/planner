@@ -1,0 +1,20 @@
+name: create-deploy-request
+on:
+  pull_request:
+#    branches: [main]
+#    paths: ["db/migrations/**"]
+
+jobs:
+  create-deploy-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a deploy request
+        uses: planetscale/create-deploy-request-action@v1
+        id: create_deploy_request
+        with:
+          org_name: poroto
+          database_name: poroto
+          branch_name: staging
+        env:
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
