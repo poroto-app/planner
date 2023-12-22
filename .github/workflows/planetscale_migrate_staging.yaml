@@ -1,0 +1,32 @@
+name: db-migrate-staging
+run-name: PlanetScale Migrate staging branch by @${{ github.actor }}
+on:
+  push:
+    branches: [ develop ]
+    paths: [ "db/migrations/**" ]
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup_environment
+      - name: Install Goose
+        run: |
+          go install github.com/pressly/goose/cmd/goose@latest
+      - name: Setup PlanetScale CLI
+        uses: planetscale/setup-pscale-action@v1
+      - name: Run Migration
+        env:
+          DB_USER: ${{ secrets.PLANETSCALE_STAGING_DB_USER }}
+          DB_PASSWORD: ${{ secrets.PLANETSCALE_STAGING_DB_PASSWORD }}
+          DB_NAME: poroto
+          DB_HOST: localhost
+          DB_PORT: 3308
+          PLANETSCALE_DB_NAME: poroto
+          PLANETSCALE_ORG_NAME: poroto
+          PLANETSCALE_DB_BRANCH: staging
+          PLANETSCALE_SERVICE_TOKEN_ID: ${{ secrets.PLANETSCALE_SERVICE_TOKEN_ID }}
+          PLANETSCALE_SERVICE_TOKEN: ${{ secrets.PLANETSCALE_SERVICE_TOKEN }}
+        run: |
+          pscale connect $PLANETSCALE_DB_NAME $PLANETSCALE_DB_BRANCH --org $PLANETSCALE_ORG_NAME --port $DB_PORT --execute "goose -dir db/migrations mysql \"$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true\" up"
