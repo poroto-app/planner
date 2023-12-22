@@ -1,0 +1,19 @@
+version: '3.1'
+
+services:
+  db:
+    # SEE: https://planetscale.com/docs/reference/mysql-compatibility#overview
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: poroto
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

@@ -29,6 +29,11 @@ go version
 go mod tidy
 ```
 
+### MySQLの起動（Docker）
+```shell
+docker compose up -d
+```
+
 ### IntelliJ IDEAの設定
 1. `go env`を実行し、`GOROOT`を取得する
 2. `Languages & Frameworks` → `GO`→ `GOROOT` を開く
@@ -93,7 +98,17 @@ docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.46.2 golangci-l
 go generate ./...
 ```
 
-## Test
+## テストの実行
 ```shell
 go test ./...
+```
+
+## Trouble Shooting
+### MySQLをアップグレード・ダウングレードしたら起動できなくなった
+※ 本番環境ではデータを移行することが必要です
+
+ローカルでデータを削除する場合は以下のコマンドを利用します
+```shell
+docker compose down
+docker volume rm planner_mysql-data
 ```
