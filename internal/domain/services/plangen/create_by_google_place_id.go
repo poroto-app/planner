@@ -63,6 +63,8 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 
 	// 付近の場所を検索
 	var places []models.Place
+	places = append(places, startPlace)
+
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		s.logger.Warn(
@@ -70,7 +72,9 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			zap.String("planCandidateId", input.PlanCandidateId),
 			zap.Error(err),
 		)
-	} else if placesSearched != nil && len(placesSearched) > 1 {
+	}
+
+	if len(placesSearched) > 1 {
 		// すでに検索が行われている場合はキャッシュを利用する（開始地点は除く）
 		s.logger.Debug(
 			"places fetched",
@@ -78,10 +82,8 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			zap.Int("places", len(placesSearched)),
 		)
 		places = placesSearched
-	}
-
-	// 検索を行っていない場合は検索を行う
-	if places == nil {
+	} else {
+		// 検索を行っていない場合は検索を行う
 		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: startGooglePlace.Location})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
@@ -92,7 +94,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
 		}
 
-		places = placesSaved
+		places = append(places, placesSaved...)
 	}
 
 	placesFiltered := places
