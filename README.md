@@ -117,8 +117,24 @@ goose -dir db/migrations create create_user_table sql go
 
 ### マイグレーションの実行
 ```shell
-goose -dir db/migrations mysql "db_user:db_password@tcp(localhost:3306)/poroto?parseTime=true&loc=Asia%2FTokyo" up
+DB_USER=root \
+DB_PASSWORD=password \
+DB_HOST=localhost:3306 \
+DB_NAME=poroto \
+goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
 ````
+
+### SQLBoilerをインストール
+[volatiletech/sqlboiler #Download](https://github.com/volatiletech/sqlboiler?tab=readme-ov-file#download)
+```shell
+go install github.com/volatiletech/sqlboiler/v4@latest
+go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@latest
+````
+
+### SQLBoilerでモデルコードの生成
+```shell
+sqlboiler mysql -c db/sqlboiler.toml -o internal/infrastructure/rdb/entities --pkgname=entities
+```
 
 ## Trouble Shooting
 ### MySQLをアップグレード・ダウングレードしたら起動できなくなった
