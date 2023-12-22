@@ -3,6 +3,7 @@ package plangen
 import (
 	"github.com/google/go-cmp/cmp"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"testing"
 )
 
@@ -25,11 +26,23 @@ func TestService_SelectBasePlace(t *testing.T) {
 						Id:       "takashimaya",
 						Name:     "新宿高島屋",
 						Location: models.GeoLocation{Latitude: 35.6875312, Longitude: 139.7022521},
+						Google: models.GooglePlace{
+							Types:            []string{models.CategoryShopping.SubCategories[0]},
+							PhotoReferences:  []models.GooglePlacePhotoReference{{PhotoReference: "ATtYBwJY5"}},
+							Rating:           5,
+							UserRatingsTotal: 50,
+						},
 					},
 					{
 						Id:       "shinjuku-gyoen",
 						Name:     "ホテル雅叙園東京",
 						Location: models.GeoLocation{Latitude: 35.6305774, Longitude: 139.7142515},
+						Google: models.GooglePlace{
+							Types:            []string{models.CategoryAmusements.SubCategories[0]},
+							PhotoReferences:  []models.GooglePlacePhotoReference{{PhotoReference: "ATtYBwJY5"}},
+							Rating:           5,
+							UserRatingsTotal: 50,
+						},
 					},
 				},
 			},
@@ -38,6 +51,12 @@ func TestService_SelectBasePlace(t *testing.T) {
 					Id:       "takashimaya",
 					Name:     "新宿高島屋",
 					Location: models.GeoLocation{Latitude: 35.6875312, Longitude: 139.7022521},
+					Google: models.GooglePlace{
+						Types:            []string{models.CategoryShopping.SubCategories[0]},
+						PhotoReferences:  []models.GooglePlacePhotoReference{{PhotoReference: "ATtYBwJY5"}},
+						Rating:           5,
+						UserRatingsTotal: 50,
+					},
 				},
 			},
 		},
@@ -45,7 +64,10 @@ func TestService_SelectBasePlace(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			s := Service{}
+			l, _ := utils.NewLogger(utils.LoggerOption{Tag: "test"})
+			s := Service{
+				logger: l,
+			}
 			actual := s.SelectBasePlace(c.input)
 			if diff := cmp.Diff(c.expected, actual); diff != "" {
 				t.Errorf("(-want +got)\n%s", diff)
