@@ -11,11 +11,11 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
-	"poroto.app/poroto/planner/graphql/factory"
-	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.

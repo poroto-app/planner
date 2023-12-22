@@ -7,7 +7,7 @@ package resolver
 import (
 	"context"
 
-	"poroto.app/poroto/planner/graphql/generated"
+	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 )
 
 // Ping is the resolver for the ping field.

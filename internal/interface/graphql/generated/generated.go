@@ -15,7 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"poroto.app/poroto/planner/graphql/model"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -1594,7 +1594,7 @@ func (ec *executionContext) field_Mutation_addPlaceToPlanCandidateAfterPlace_arg
 	var arg0 *model.AddPlaceToPlanCandidateAfterPlaceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx, tmp)
+		arg0, err = ec.unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1609,7 +1609,7 @@ func (ec *executionContext) field_Mutation_autoReorderPlacesInPlanCandidate_args
 	var arg0 model.AutoReorderPlacesInPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1624,7 +1624,7 @@ func (ec *executionContext) field_Mutation_changePlacesOrderInPlanCandidate_args
 	var arg0 model.ChangePlacesOrderInPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1639,7 +1639,7 @@ func (ec *executionContext) field_Mutation_createPlanByLocation_args(ctx context
 	var arg0 model.CreatePlanByLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1654,7 +1654,7 @@ func (ec *executionContext) field_Mutation_createPlanByPlace_args(ctx context.Co
 	var arg0 model.CreatePlanByPlaceInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreatePlanByPlaceInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByPlaceInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreatePlanByPlaceInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByPlaceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1669,7 +1669,7 @@ func (ec *executionContext) field_Mutation_deletePlaceFromPlanCandidate_args(ctx
 	var arg0 model.DeletePlaceFromPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDeletePlaceFromPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNDeletePlaceFromPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1684,7 +1684,7 @@ func (ec *executionContext) field_Mutation_editPlanTitleOfPlanCandidate_args(ctx
 	var arg0 model.EditPlanTitleOfPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1699,7 +1699,7 @@ func (ec *executionContext) field_Mutation_likeToPlaceInPlanCandidate_args(ctx c
 	var arg0 model.LikeToPlaceInPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNLikeToPlaceInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNLikeToPlaceInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1729,7 +1729,7 @@ func (ec *executionContext) field_Mutation_replacePlaceOfPlanCandidate_args(ctx 
 	var arg0 model.ReplacePlaceOfPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNReplacePlaceOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNReplacePlaceOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1744,7 +1744,7 @@ func (ec *executionContext) field_Mutation_savePlanFromCandidate_args(ctx contex
 	var arg0 model.SavePlanFromCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1774,7 +1774,7 @@ func (ec *executionContext) field_Query_availablePlacesForPlan_args(ctx context.
 	var arg0 model.AvailablePlacesForPlanInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAvailablePlacesForPlanInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAvailablePlacesForPlanInput(ctx, tmp)
+		arg0, err = ec.unmarshalNAvailablePlacesForPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlanInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1789,7 +1789,7 @@ func (ec *executionContext) field_Query_cachedCreatedPlans_args(ctx context.Cont
 	var arg0 model.CachedCreatedPlansInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1804,7 +1804,7 @@ func (ec *executionContext) field_Query_firebaseUser_args(ctx context.Context, r
 	var arg0 *model.FirebaseUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx, tmp)
+		arg0, err = ec.unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1819,7 +1819,7 @@ func (ec *executionContext) field_Query_nearbyPlaceCategories_args(ctx context.C
 	var arg0 model.NearbyPlaceCategoriesInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx, tmp)
+		arg0, err = ec.unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1834,7 +1834,7 @@ func (ec *executionContext) field_Query_placesToAddForPlanCandidate_args(ctx con
 	var arg0 model.PlacesToAddForPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1849,7 +1849,7 @@ func (ec *executionContext) field_Query_placesToReplaceForPlanCandidate_args(ctx
 	var arg0 model.PlacesToReplaceForPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPlacesToReplaceForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPlacesToReplaceForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1879,7 +1879,7 @@ func (ec *executionContext) field_Query_plansByLocation_args(ctx context.Context
 	var arg0 model.PlansByLocationInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPlansByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPlansByLocationInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByLocationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1894,7 +1894,7 @@ func (ec *executionContext) field_Query_plansByUser_args(ctx context.Context, ra
 	var arg0 model.PlansByUserInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPlansByUserInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByUserInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPlansByUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2028,7 +2028,7 @@ func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx co
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2132,7 +2132,7 @@ func (ec *executionContext) _AutoReorderPlacesInPlanCandidateOutput_plan(ctx con
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AutoReorderPlacesInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2192,7 +2192,7 @@ func (ec *executionContext) _AvailablePlacesForPlan_places(ctx context.Context, 
 	}
 	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2258,7 +2258,7 @@ func (ec *executionContext) _CachedCreatedPlans_plans(ctx context.Context, field
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CachedCreatedPlans_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2406,7 +2406,7 @@ func (ec *executionContext) _ChangePlacesOrderInPlanCandidateOutput_plan(ctx con
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2510,7 +2510,7 @@ func (ec *executionContext) _CreatePlanByLocationOutput_plans(ctx context.Contex
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePlanByLocationOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2614,7 +2614,7 @@ func (ec *executionContext) _CreatePlanByPlaceOutput_plan(ctx context.Context, f
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CreatePlanByPlaceOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2718,7 +2718,7 @@ func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput_plan(ctx context
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2822,7 +2822,7 @@ func (ec *executionContext) _EditPlanTitleOfPlanCandidateOutput_plan(ctx context
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EditPlanTitleOfPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3433,7 +3433,7 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput_planCandidate(ctx 
 	}
 	res := resTmp.(*model.PlanCandidate)
 	fc.Result = res
-	return ec.marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanCandidate(ctx, field.Selections, res)
+	return ec.marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCandidate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_planCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3713,7 +3713,7 @@ func (ec *executionContext) _Mutation_createPlanByLocation(ctx context.Context, 
 	}
 	res := resTmp.(*model.CreatePlanByLocationOutput)
 	fc.Result = res
-	return ec.marshalNCreatePlanByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx, field.Selections, res)
+	return ec.marshalNCreatePlanByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createPlanByLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3774,7 +3774,7 @@ func (ec *executionContext) _Mutation_createPlanByPlace(ctx context.Context, fie
 	}
 	res := resTmp.(*model.CreatePlanByPlaceOutput)
 	fc.Result = res
-	return ec.marshalNCreatePlanByPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx, field.Selections, res)
+	return ec.marshalNCreatePlanByPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createPlanByPlace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3835,7 +3835,7 @@ func (ec *executionContext) _Mutation_changePlacesOrderInPlanCandidate(ctx conte
 	}
 	res := resTmp.(*model.ChangePlacesOrderInPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_changePlacesOrderInPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3894,7 +3894,7 @@ func (ec *executionContext) _Mutation_savePlanFromCandidate(ctx context.Context,
 	}
 	res := resTmp.(*model.SavePlanFromCandidateOutput)
 	fc.Result = res
-	return ec.marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_savePlanFromCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3953,7 +3953,7 @@ func (ec *executionContext) _Mutation_addPlaceToPlanCandidateAfterPlace(ctx cont
 	}
 	res := resTmp.(*model.AddPlaceToPlanCandidateAfterPlaceOutput)
 	fc.Result = res
-	return ec.marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx, field.Selections, res)
+	return ec.marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addPlaceToPlanCandidateAfterPlace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4014,7 +4014,7 @@ func (ec *executionContext) _Mutation_deletePlaceFromPlanCandidate(ctx context.C
 	}
 	res := resTmp.(*model.DeletePlaceFromPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNDeletePlaceFromPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNDeletePlaceFromPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deletePlaceFromPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4075,7 +4075,7 @@ func (ec *executionContext) _Mutation_replacePlaceOfPlanCandidate(ctx context.Co
 	}
 	res := resTmp.(*model.ReplacePlaceOfPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNReplacePlaceOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNReplacePlaceOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_replacePlaceOfPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4136,7 +4136,7 @@ func (ec *executionContext) _Mutation_editPlanTitleOfPlanCandidate(ctx context.C
 	}
 	res := resTmp.(*model.EditPlanTitleOfPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNEditPlanTitleOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNEditPlanTitleOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_editPlanTitleOfPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4197,7 +4197,7 @@ func (ec *executionContext) _Mutation_autoReorderPlacesInPlanCandidate(ctx conte
 	}
 	res := resTmp.(*model.AutoReorderPlacesInPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNAutoReorderPlacesInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNAutoReorderPlacesInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_autoReorderPlacesInPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4258,7 +4258,7 @@ func (ec *executionContext) _Mutation_likeToPlaceInPlanCandidate(ctx context.Con
 	}
 	res := resTmp.(*model.LikeToPlaceInPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNLikeToPlaceInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNLikeToPlaceInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4405,7 +4405,7 @@ func (ec *executionContext) _NearbyLocationCategory_places(ctx context.Context, 
 	}
 	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4559,7 +4559,7 @@ func (ec *executionContext) _NearbyPlaceCategoryOutput_categories(ctx context.Co
 	}
 	res := resTmp.([]*model.NearbyLocationCategory)
 	fc.Result = res
-	return ec.marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_NearbyPlaceCategoryOutput_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4745,7 +4745,7 @@ func (ec *executionContext) _Place_location(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.GeoLocation)
 	fc.Result = res
-	return ec.marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGeoLocation(ctx, field.Selections, res)
+	return ec.marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGeoLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_location(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4795,7 +4795,7 @@ func (ec *executionContext) _Place_images(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model.Image)
 	fc.Result = res
-	return ec.marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx, field.Selections, res)
+	return ec.marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐImageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_images(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4891,7 +4891,7 @@ func (ec *executionContext) _Place_googleReviews(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.GooglePlaceReview)
 	fc.Result = res
-	return ec.marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx, field.Selections, res)
+	return ec.marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_googleReviews(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4953,7 +4953,7 @@ func (ec *executionContext) _Place_categories(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.PlaceCategory)
 	fc.Result = res
-	return ec.marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_categories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5000,7 +5000,7 @@ func (ec *executionContext) _Place_priceRange(ctx context.Context, field graphql
 	}
 	res := resTmp.(*model.PriceRange)
 	fc.Result = res
-	return ec.marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceRange(ctx, field.Selections, res)
+	return ec.marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPriceRange(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Place_priceRange(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5184,7 +5184,7 @@ func (ec *executionContext) _PlacesToAddForPlanCandidateOutput_places(ctx contex
 	}
 	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5250,7 +5250,7 @@ func (ec *executionContext) _PlacesToReplaceForPlanCandidateOutput_places(ctx co
 	}
 	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlacesToReplaceForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5404,7 +5404,7 @@ func (ec *executionContext) _Plan_places(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5555,7 +5555,7 @@ func (ec *executionContext) _Plan_transitions(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Transition)
 	fc.Result = res
-	return ec.marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐTransitionᚄ(ctx, field.Selections, res)
+	return ec.marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐTransitionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Plan_transitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5692,7 +5692,7 @@ func (ec *executionContext) _PlanCandidate_plans(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlanCandidate_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5796,7 +5796,7 @@ func (ec *executionContext) _PlansByLocationOutput_plans(ctx context.Context, fi
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlansByLocationOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5897,7 +5897,7 @@ func (ec *executionContext) _PlansByUserOutput_plans(ctx context.Context, field 
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlansByUserOutput_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -5957,7 +5957,7 @@ func (ec *executionContext) _PlansByUserOutput_author(ctx context.Context, field
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlansByUserOutput_author(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6185,7 +6185,7 @@ func (ec *executionContext) _Query_cachedCreatedPlans(ctx context.Context, field
 	}
 	res := resTmp.(*model.CachedCreatedPlans)
 	fc.Result = res
-	return ec.marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx, field.Selections, res)
+	return ec.marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_cachedCreatedPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6248,7 +6248,7 @@ func (ec *executionContext) _Query_nearbyPlaceCategories(ctx context.Context, fi
 	}
 	res := resTmp.(*model.NearbyPlaceCategoryOutput)
 	fc.Result = res
-	return ec.marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx, field.Selections, res)
+	return ec.marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_nearbyPlaceCategories(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6309,7 +6309,7 @@ func (ec *executionContext) _Query_availablePlacesForPlan(ctx context.Context, f
 	}
 	res := resTmp.(*model.AvailablePlacesForPlan)
 	fc.Result = res
-	return ec.marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx, field.Selections, res)
+	return ec.marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_availablePlacesForPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6368,7 +6368,7 @@ func (ec *executionContext) _Query_placesToAddForPlanCandidate(ctx context.Conte
 	}
 	res := resTmp.(*model.PlacesToAddForPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNPlacesToAddForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNPlacesToAddForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_placesToAddForPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6427,7 +6427,7 @@ func (ec *executionContext) _Query_placesToReplaceForPlanCandidate(ctx context.C
 	}
 	res := resTmp.(*model.PlacesToReplaceForPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNPlacesToReplaceForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx, field.Selections, res)
+	return ec.marshalNPlacesToReplaceForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_placesToReplaceForPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6483,7 +6483,7 @@ func (ec *executionContext) _Query_plan(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6554,7 +6554,7 @@ func (ec *executionContext) _Query_plans(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.([]*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6625,7 +6625,7 @@ func (ec *executionContext) _Query_plansByLocation(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.PlansByLocationOutput)
 	fc.Result = res
-	return ec.marshalNPlansByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx, field.Selections, res)
+	return ec.marshalNPlansByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_plansByLocation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6686,7 +6686,7 @@ func (ec *executionContext) _Query_plansByUser(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.PlansByUserOutput)
 	fc.Result = res
-	return ec.marshalNPlansByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx, field.Selections, res)
+	return ec.marshalNPlansByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_plansByUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6747,7 +6747,7 @@ func (ec *executionContext) _Query_firebaseUser(ctx context.Context, field graph
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_firebaseUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6983,7 +6983,7 @@ func (ec *executionContext) _ReplacePlaceOfPlanCandidateOutput_plan(ctx context.
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ReplacePlaceOfPlanCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7043,7 +7043,7 @@ func (ec *executionContext) _SavePlanFromCandidateOutput_plan(ctx context.Contex
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SavePlanFromCandidateOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7100,7 +7100,7 @@ func (ec *executionContext) _Transition_from(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.Place)
 	fc.Result = res
-	return ec.marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
+	return ec.marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7166,7 +7166,7 @@ func (ec *executionContext) _Transition_to(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*model.Place)
 	fc.Result = res
-	return ec.marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
+	return ec.marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -12078,11 +12078,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
 	return ec._AddPlaceToPlanCandidateAfterPlaceOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.AddPlaceToPlanCandidateAfterPlaceOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12092,16 +12092,16 @@ func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖp
 	return ec._AddPlaceToPlanCandidateAfterPlaceOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx context.Context, v interface{}) (model.AutoReorderPlacesInPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx context.Context, v interface{}) (model.AutoReorderPlacesInPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputAutoReorderPlacesInPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAutoReorderPlacesInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.AutoReorderPlacesInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNAutoReorderPlacesInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.AutoReorderPlacesInPlanCandidateOutput) graphql.Marshaler {
 	return ec._AutoReorderPlacesInPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAutoReorderPlacesInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.AutoReorderPlacesInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNAutoReorderPlacesInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.AutoReorderPlacesInPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12111,11 +12111,11 @@ func (ec *executionContext) marshalNAutoReorderPlacesInPlanCandidateOutput2ᚖpo
 	return ec._AutoReorderPlacesInPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAvailablePlacesForPlan2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx context.Context, sel ast.SelectionSet, v model.AvailablePlacesForPlan) graphql.Marshaler {
+func (ec *executionContext) marshalNAvailablePlacesForPlan2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx context.Context, sel ast.SelectionSet, v model.AvailablePlacesForPlan) graphql.Marshaler {
 	return ec._AvailablePlacesForPlan(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx context.Context, sel ast.SelectionSet, v *model.AvailablePlacesForPlan) graphql.Marshaler {
+func (ec *executionContext) marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlan(ctx context.Context, sel ast.SelectionSet, v *model.AvailablePlacesForPlan) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12125,7 +12125,7 @@ func (ec *executionContext) marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋpor
 	return ec._AvailablePlacesForPlan(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAvailablePlacesForPlanInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAvailablePlacesForPlanInput(ctx context.Context, v interface{}) (model.AvailablePlacesForPlanInput, error) {
+func (ec *executionContext) unmarshalNAvailablePlacesForPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlanInput(ctx context.Context, v interface{}) (model.AvailablePlacesForPlanInput, error) {
 	res, err := ec.unmarshalInputAvailablePlacesForPlanInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -12145,11 +12145,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCachedCreatedPlans2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v model.CachedCreatedPlans) graphql.Marshaler {
+func (ec *executionContext) marshalNCachedCreatedPlans2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v model.CachedCreatedPlans) graphql.Marshaler {
 	return ec._CachedCreatedPlans(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v *model.CachedCreatedPlans) graphql.Marshaler {
+func (ec *executionContext) marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCachedCreatedPlans(ctx context.Context, sel ast.SelectionSet, v *model.CachedCreatedPlans) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12159,21 +12159,21 @@ func (ec *executionContext) marshalNCachedCreatedPlans2ᚖporotoᚗappᚋporoto�
 	return ec._CachedCreatedPlans(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx context.Context, v interface{}) (model.CachedCreatedPlansInput, error) {
+func (ec *executionContext) unmarshalNCachedCreatedPlansInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCachedCreatedPlansInput(ctx context.Context, v interface{}) (model.CachedCreatedPlansInput, error) {
 	res, err := ec.unmarshalInputCachedCreatedPlansInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx context.Context, v interface{}) (model.ChangePlacesOrderInPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNChangePlacesOrderInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateInput(ctx context.Context, v interface{}) (model.ChangePlacesOrderInPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputChangePlacesOrderInPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
 	return ec._ChangePlacesOrderInPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐChangePlacesOrderInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.ChangePlacesOrderInPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12183,16 +12183,16 @@ func (ec *executionContext) marshalNChangePlacesOrderInPlanCandidateOutput2ᚖpo
 	return ec._ChangePlacesOrderInPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx context.Context, v interface{}) (model.CreatePlanByLocationInput, error) {
+func (ec *executionContext) unmarshalNCreatePlanByLocationInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByLocationInput(ctx context.Context, v interface{}) (model.CreatePlanByLocationInput, error) {
 	res, err := ec.unmarshalInputCreatePlanByLocationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreatePlanByLocationOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx context.Context, sel ast.SelectionSet, v model.CreatePlanByLocationOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePlanByLocationOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx context.Context, sel ast.SelectionSet, v model.CreatePlanByLocationOutput) graphql.Marshaler {
 	return ec._CreatePlanByLocationOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreatePlanByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx context.Context, sel ast.SelectionSet, v *model.CreatePlanByLocationOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePlanByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByLocationOutput(ctx context.Context, sel ast.SelectionSet, v *model.CreatePlanByLocationOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12202,16 +12202,16 @@ func (ec *executionContext) marshalNCreatePlanByLocationOutput2ᚖporotoᚗapp�
 	return ec._CreatePlanByLocationOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNCreatePlanByPlaceInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByPlaceInput(ctx context.Context, v interface{}) (model.CreatePlanByPlaceInput, error) {
+func (ec *executionContext) unmarshalNCreatePlanByPlaceInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByPlaceInput(ctx context.Context, v interface{}) (model.CreatePlanByPlaceInput, error) {
 	res, err := ec.unmarshalInputCreatePlanByPlaceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNCreatePlanByPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.CreatePlanByPlaceOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePlanByPlaceOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx context.Context, sel ast.SelectionSet, v model.CreatePlanByPlaceOutput) graphql.Marshaler {
 	return ec._CreatePlanByPlaceOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCreatePlanByPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.CreatePlanByPlaceOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNCreatePlanByPlaceOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐCreatePlanByPlaceOutput(ctx context.Context, sel ast.SelectionSet, v *model.CreatePlanByPlaceOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12221,16 +12221,16 @@ func (ec *executionContext) marshalNCreatePlanByPlaceOutput2ᚖporotoᚗappᚋpo
 	return ec._CreatePlanByPlaceOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDeletePlaceFromPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateInput(ctx context.Context, v interface{}) (model.DeletePlaceFromPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNDeletePlaceFromPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateInput(ctx context.Context, v interface{}) (model.DeletePlaceFromPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputDeletePlaceFromPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.DeletePlaceFromPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.DeletePlaceFromPlanCandidateOutput) graphql.Marshaler {
 	return ec._DeletePlaceFromPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.DeletePlaceFromPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDeletePlaceFromPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.DeletePlaceFromPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12240,16 +12240,16 @@ func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2ᚖporoto
 	return ec._DeletePlaceFromPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx context.Context, v interface{}) (model.EditPlanTitleOfPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx context.Context, v interface{}) (model.EditPlanTitleOfPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputEditPlanTitleOfPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNEditPlanTitleOfPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.EditPlanTitleOfPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNEditPlanTitleOfPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.EditPlanTitleOfPlanCandidateOutput) graphql.Marshaler {
 	return ec._EditPlanTitleOfPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEditPlanTitleOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.EditPlanTitleOfPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNEditPlanTitleOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.EditPlanTitleOfPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12274,7 +12274,7 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGeoLocation(ctx context.Context, sel ast.SelectionSet, v *model.GeoLocation) graphql.Marshaler {
+func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGeoLocation(ctx context.Context, sel ast.SelectionSet, v *model.GeoLocation) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12284,7 +12284,7 @@ func (ec *executionContext) marshalNGeoLocation2ᚖporotoᚗappᚋporotoᚋplann
 	return ec._GeoLocation(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GooglePlaceReview) graphql.Marshaler {
+func (ec *executionContext) marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGooglePlaceReviewᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.GooglePlaceReview) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12308,7 +12308,7 @@ func (ec *executionContext) marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporot
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx, sel, v[i])
+			ret[i] = ec.marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12328,7 +12328,7 @@ func (ec *executionContext) marshalNGooglePlaceReview2ᚕᚖporotoᚗappᚋporot
 	return ret
 }
 
-func (ec *executionContext) marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx context.Context, sel ast.SelectionSet, v *model.GooglePlaceReview) graphql.Marshaler {
+func (ec *executionContext) marshalNGooglePlaceReview2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐGooglePlaceReview(ctx context.Context, sel ast.SelectionSet, v *model.GooglePlaceReview) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12385,7 +12385,7 @@ func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast
 	return ret
 }
 
-func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {
+func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12409,7 +12409,7 @@ func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImage(ctx, sel, v[i])
+			ret[i] = ec.marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐImage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12429,7 +12429,7 @@ func (ec *executionContext) marshalNImage2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 	return ret
 }
 
-func (ec *executionContext) marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
+func (ec *executionContext) marshalNImage2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12454,16 +12454,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNLikeToPlaceInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateInput(ctx context.Context, v interface{}) (model.LikeToPlaceInPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNLikeToPlaceInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateInput(ctx context.Context, v interface{}) (model.LikeToPlaceInPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputLikeToPlaceInPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.LikeToPlaceInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.LikeToPlaceInPlanCandidateOutput) graphql.Marshaler {
 	return ec._LikeToPlaceInPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.LikeToPlaceInPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.LikeToPlaceInPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12473,7 +12473,7 @@ func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2ᚖporoto�
 	return ec._LikeToPlaceInPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12497,7 +12497,7 @@ func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12517,7 +12517,7 @@ func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx context.Context, sel ast.SelectionSet, v *model.NearbyLocationCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNNearbyLocationCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategory(ctx context.Context, sel ast.SelectionSet, v *model.NearbyLocationCategory) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12527,16 +12527,16 @@ func (ec *executionContext) marshalNNearbyLocationCategory2ᚖporotoᚗappᚋpor
 	return ec._NearbyLocationCategory(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx context.Context, v interface{}) (model.NearbyPlaceCategoriesInput, error) {
+func (ec *executionContext) unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx context.Context, v interface{}) (model.NearbyPlaceCategoriesInput, error) {
 	res, err := ec.unmarshalInputNearbyPlaceCategoriesInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v model.NearbyPlaceCategoryOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v model.NearbyPlaceCategoryOutput) graphql.Marshaler {
 	return ec._NearbyPlaceCategoryOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v *model.NearbyPlaceCategoryOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoryOutput(ctx context.Context, sel ast.SelectionSet, v *model.NearbyPlaceCategoryOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12546,7 +12546,7 @@ func (ec *executionContext) marshalNNearbyPlaceCategoryOutput2ᚖporotoᚗappᚋ
 	return ec._NearbyPlaceCategoryOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Place) graphql.Marshaler {
+func (ec *executionContext) marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Place) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12570,7 +12570,7 @@ func (ec *executionContext) marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12590,7 +12590,7 @@ func (ec *executionContext) marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 	return ret
 }
 
-func (ec *executionContext) marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
+func (ec *executionContext) marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12600,7 +12600,7 @@ func (ec *executionContext) marshalNPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋg
 	return ec._Place(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlaceCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlaceCategory) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12624,7 +12624,7 @@ func (ec *executionContext) marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12644,7 +12644,7 @@ func (ec *executionContext) marshalNPlaceCategory2ᚕᚖporotoᚗappᚋporotoᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlaceCategory(ctx context.Context, sel ast.SelectionSet, v *model.PlaceCategory) graphql.Marshaler {
+func (ec *executionContext) marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceCategory(ctx context.Context, sel ast.SelectionSet, v *model.PlaceCategory) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12654,16 +12654,16 @@ func (ec *executionContext) marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋpla
 	return ec._PlaceCategory(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToAddForPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToAddForPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputPlacesToAddForPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlacesToAddForPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesToAddForPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlacesToAddForPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesToAddForPlanCandidateOutput) graphql.Marshaler {
 	return ec._PlacesToAddForPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlacesToAddForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesToAddForPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlacesToAddForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesToAddForPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12673,16 +12673,16 @@ func (ec *executionContext) marshalNPlacesToAddForPlanCandidateOutput2ᚖporoto�
 	return ec._PlacesToAddForPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlacesToReplaceForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToReplaceForPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNPlacesToReplaceForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToReplaceForPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputPlacesToReplaceForPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlacesToReplaceForPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesToReplaceForPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlacesToReplaceForPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesToReplaceForPlanCandidateOutput) graphql.Marshaler {
 	return ec._PlacesToReplaceForPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlacesToReplaceForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesToReplaceForPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlacesToReplaceForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToReplaceForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesToReplaceForPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12692,7 +12692,7 @@ func (ec *executionContext) marshalNPlacesToReplaceForPlanCandidateOutput2ᚖpor
 	return ec._PlacesToReplaceForPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Plan) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12716,7 +12716,7 @@ func (ec *executionContext) marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12736,7 +12736,7 @@ func (ec *executionContext) marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplanner�
 	return ret
 }
 
-func (ec *executionContext) marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12746,7 +12746,7 @@ func (ec *executionContext) marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgr
 	return ec._Plan(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlanCandidate(ctx context.Context, sel ast.SelectionSet, v *model.PlanCandidate) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCandidate(ctx context.Context, sel ast.SelectionSet, v *model.PlanCandidate) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12756,16 +12756,16 @@ func (ec *executionContext) marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋpla
 	return ec._PlanCandidate(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlansByLocationInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationInput(ctx context.Context, v interface{}) (model.PlansByLocationInput, error) {
+func (ec *executionContext) unmarshalNPlansByLocationInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByLocationInput(ctx context.Context, v interface{}) (model.PlansByLocationInput, error) {
 	res, err := ec.unmarshalInputPlansByLocationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlansByLocationOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx context.Context, sel ast.SelectionSet, v model.PlansByLocationOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlansByLocationOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx context.Context, sel ast.SelectionSet, v model.PlansByLocationOutput) graphql.Marshaler {
 	return ec._PlansByLocationOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlansByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlansByLocationOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlansByLocationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByLocationOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlansByLocationOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12775,16 +12775,16 @@ func (ec *executionContext) marshalNPlansByLocationOutput2ᚖporotoᚗappᚋporo
 	return ec._PlansByLocationOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlansByUserInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByUserInput(ctx context.Context, v interface{}) (model.PlansByUserInput, error) {
+func (ec *executionContext) unmarshalNPlansByUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByUserInput(ctx context.Context, v interface{}) (model.PlansByUserInput, error) {
 	res, err := ec.unmarshalInputPlansByUserInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlansByUserOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx context.Context, sel ast.SelectionSet, v model.PlansByUserOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlansByUserOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx context.Context, sel ast.SelectionSet, v model.PlansByUserOutput) graphql.Marshaler {
 	return ec._PlansByUserOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPlansByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlansByUserOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNPlansByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlansByUserOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlansByUserOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12794,16 +12794,16 @@ func (ec *executionContext) marshalNPlansByUserOutput2ᚖporotoᚗappᚋporoto�
 	return ec._PlansByUserOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNReplacePlaceOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateInput(ctx context.Context, v interface{}) (model.ReplacePlaceOfPlanCandidateInput, error) {
+func (ec *executionContext) unmarshalNReplacePlaceOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateInput(ctx context.Context, v interface{}) (model.ReplacePlaceOfPlanCandidateInput, error) {
 	res, err := ec.unmarshalInputReplacePlaceOfPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNReplacePlaceOfPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.ReplacePlaceOfPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNReplacePlaceOfPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.ReplacePlaceOfPlanCandidateOutput) graphql.Marshaler {
 	return ec._ReplacePlaceOfPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNReplacePlaceOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.ReplacePlaceOfPlanCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNReplacePlaceOfPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐReplacePlaceOfPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.ReplacePlaceOfPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12813,16 +12813,16 @@ func (ec *executionContext) marshalNReplacePlaceOfPlanCandidateOutput2ᚖporoto�
 	return ec._ReplacePlaceOfPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx context.Context, v interface{}) (model.SavePlanFromCandidateInput, error) {
+func (ec *executionContext) unmarshalNSavePlanFromCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐSavePlanFromCandidateInput(ctx context.Context, v interface{}) (model.SavePlanFromCandidateInput, error) {
 	res, err := ec.unmarshalInputSavePlanFromCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSavePlanFromCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.SavePlanFromCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNSavePlanFromCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.SavePlanFromCandidateOutput) graphql.Marshaler {
 	return ec._SavePlanFromCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.SavePlanFromCandidateOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNSavePlanFromCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐSavePlanFromCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.SavePlanFromCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12879,7 +12879,7 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐTransitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transition) graphql.Marshaler {
+func (ec *executionContext) marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐTransitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12903,7 +12903,7 @@ func (ec *executionContext) marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋpla
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTransition2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐTransition(ctx, sel, v[i])
+			ret[i] = ec.marshalNTransition2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐTransition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12923,7 +12923,7 @@ func (ec *executionContext) marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋpla
 	return ret
 }
 
-func (ec *executionContext) marshalNTransition2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐTransition(ctx context.Context, sel ast.SelectionSet, v *model.Transition) graphql.Marshaler {
+func (ec *executionContext) marshalNTransition2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐTransition(ctx context.Context, sel ast.SelectionSet, v *model.Transition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -12933,11 +12933,11 @@ func (ec *executionContext) marshalNTransition2ᚖporotoᚗappᚋporotoᚋplanne
 	return ec._Transition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNUser2porotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -13200,7 +13200,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterPlaceInput, error) {
+func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterPlaceInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -13234,7 +13234,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx context.Context, v interface{}) (*model.FirebaseUserInput, error) {
+func (ec *executionContext) unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx context.Context, v interface{}) (*model.FirebaseUserInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -13274,21 +13274,21 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
+func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Place(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋgraphqlᚋmodelᚐPriceRange(ctx context.Context, sel ast.SelectionSet, v *model.PriceRange) graphql.Marshaler {
+func (ec *executionContext) marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPriceRange(ctx context.Context, sel ast.SelectionSet, v *model.PriceRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"log"
 
-	"poroto.app/poroto/planner/graphql/factory"
-	"poroto.app/poroto/planner/graphql/model"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
+	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // Plan is the resolver for the plan field.
