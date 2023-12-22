@@ -7,17 +7,33 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"os"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
+func init() {
+	env.LoadEnv()
+}
+
 func main() {
-	db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/poroto?parseTime=true&loc=Asia%2FTokyo")
+	dns := fmt.Sprintf(
+		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_NAME"),
+		"Asia%2FTokyo",
+	)
+
+	db, err := sql.Open("mysql", dns)
 	if err != nil {
 		panic(err)
 	}
+
 	boil.SetDB(db)
 	boil.DebugMode = true
 
@@ -31,7 +47,7 @@ func main() {
 	testUser := models.User{
 		Id:          uuid.New().String(),
 		FirebaseUID: uuid.New().String(),
-		Name:        "test",
+		Name:        "テスト",
 		Email:       utils.StrOmitEmpty("test@example.com"),
 		PhotoUrl:    utils.StrOmitEmpty("https://example.com"),
 	}
