@@ -1496,7 +1496,7 @@ input PlanCandidateInput {
 }
 
 type PlanCandidateOutput {
-    planCandidate: PlanCandidate!
+    planCandidate: PlanCandidate
 }
 
 input AvailablePlacesForPlanInput {
@@ -5897,14 +5897,11 @@ func (ec *executionContext) _PlanCandidateOutput_planCandidate(ctx context.Conte
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.PlanCandidate)
 	fc.Result = res
-	return ec.marshalNPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCandidate(ctx, field.Selections, res)
+	return ec.marshalOPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCandidate(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlanCandidateOutput_planCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -11422,9 +11419,6 @@ func (ec *executionContext) _PlanCandidateOutput(ctx context.Context, sel ast.Se
 			out.Values[i] = graphql.MarshalString("PlanCandidateOutput")
 		case "planCandidate":
 			out.Values[i] = ec._PlanCandidateOutput_planCandidate(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13621,6 +13615,13 @@ func (ec *executionContext) marshalOPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋin
 		return graphql.Null
 	}
 	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPlanCandidate2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCandidate(ctx context.Context, sel ast.SelectionSet, v *model.PlanCandidate) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PlanCandidate(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPriceRange2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPriceRange(ctx context.Context, sel ast.SelectionSet, v *model.PriceRange) graphql.Marshaler {

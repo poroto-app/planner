@@ -36,7 +36,7 @@ input PlanCandidateInput {
 }
 
 type PlanCandidateOutput {
-    planCandidate: PlanCandidate!
+    planCandidate: PlanCandidate
 }
 
 input AvailablePlacesForPlanInput {

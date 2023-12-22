@@ -228,7 +228,7 @@ type PlanCandidateInput struct {
 }
 
 type PlanCandidateOutput struct {
-	PlanCandidate *PlanCandidate `json:"planCandidate"`
+	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
 }
 
 type PlansByLocationInput struct {
