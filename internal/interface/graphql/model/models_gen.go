@@ -38,16 +38,6 @@ type AvailablePlacesForPlanInput struct {
 	Session string `json:"session"`
 }
 
-type CachedCreatedPlans struct {
-	Plans                         []*Plan  `json:"plans"`
-	CreatedBasedOnCurrentLocation bool     `json:"createdBasedOnCurrentLocation"`
-	LikedPlaceIds                 []string `json:"likedPlaceIds"`
-}
-
-type CachedCreatedPlansInput struct {
-	Session string `json:"session"`
-}
-
 type ChangePlacesOrderInPlanCandidateInput struct {
 	Session          string   `json:"session"`
 	PlanID           string   `json:"planId"`
