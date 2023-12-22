@@ -103,9 +103,6 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		StartLocation: startGooglePlace.Location,
 	})
 
-	// レビューが低い、またはレビュー数が少ない場所を除外する
-	placesFiltered = placefilter.FilterByRating(placesFiltered, 3.0, 10)
-
 	// 除外されたカテゴリがある場合はそのカテゴリを除外する
 	if input.CategoryNamesDisliked != nil {
 		var categoriesDisliked []models.LocationCategory
