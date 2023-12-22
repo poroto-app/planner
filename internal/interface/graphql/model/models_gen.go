@@ -60,6 +60,15 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 	Plan *Plan `json:"plan"`
 }
 
+type CreatePlanByGooglePlaceIDInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+	GooglePlaceID   string `json:"googlePlaceId"`
+}
+
+type CreatePlanByGooglePlaceIDOutput struct {
+	PlanCandidate *PlanCandidate `json:"planCandidate"`
+}
+
 type CreatePlanByLocationInput struct {
 	Session                       *string  `json:"session,omitempty"`
 	Latitude                      float64  `json:"latitude"`
