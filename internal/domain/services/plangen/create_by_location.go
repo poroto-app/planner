@@ -29,15 +29,15 @@ func (s Service) CreatePlanByLocation(
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		s.logger.Warn(
-			"error while fetching searched places",
-			zap.String("planCandidateId", createPlanSessionId),
+			"error while fetching searched Places",
+			zap.String("PlanCandidateId", createPlanSessionId),
 			zap.Error(err),
 		)
 	} else if placesSearched != nil {
 		s.logger.Debug(
-			"places fetched",
-			zap.String("planCandidateId", createPlanSessionId),
-			zap.Int("places", len(placesSearched)),
+			"Places fetched",
+			zap.String("PlanCandidateId", createPlanSessionId),
+			zap.Int("Places", len(placesSearched)),
 		)
 		places = placesSearched
 	}
@@ -46,23 +46,23 @@ func (s Service) CreatePlanByLocation(
 	if places == nil {
 		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: baseLocation})
 		if err != nil {
-			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
+			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
 		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
 		if err != nil {
-			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
+			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
 
 		places = placesSaved
 	}
 
 	s.logger.Debug(
-		"places searched",
-		zap.String("planCandidateId", createPlanSessionId),
+		"Places searched",
+		zap.String("PlanCandidateId", createPlanSessionId),
 		zap.Float64("lat", baseLocation.Latitude),
 		zap.Float64("lng", baseLocation.Longitude),
-		zap.Int("places", len(places)),
+		zap.Int("Places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
@@ -121,15 +121,15 @@ func (s Service) CreatePlanByLocation(
 		planPlaces, err := s.createPlanPlaces(
 			ctx,
 			CreatePlanPlacesParams{
-				planCandidateId:              createPlanSessionId,
-				locationStart:                baseLocation,
-				placeStart:                   placeRecommend,
-				places:                       places,
-				placesOtherPlansContain:      placesInPlan,
-				freeTime:                     freeTime,
-				categoryNamesDisliked:        categoryNamesDisliked,
-				createBasedOnCurrentLocation: createBasedOnCurrentLocation,
-				shouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				PlanCandidateId:              createPlanSessionId,
+				LocationStart:                baseLocation,
+				PlaceStart:                   placeRecommend,
+				Places:                       places,
+				PlacesOtherPlansContain:      placesInPlan,
+				FreeTime:                     freeTime,
+				CategoryNamesDisliked:        categoryNamesDisliked,
+				CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+				ShouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
 			},
 		)
 		if err != nil {
@@ -200,11 +200,11 @@ func (s Service) findOrFetchPlaceById(
 	// キャッシュする
 	places, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{*googlePlaceEntity})
 	if err != nil {
-		return nil, false, fmt.Errorf("error while saving searched places: %v", err)
+		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
 
 	if len(places) == 0 {
-		return nil, false, fmt.Errorf("could not save searched places")
+		return nil, false, fmt.Errorf("could not save searched Places")
 	}
 
 	place = &places[0]

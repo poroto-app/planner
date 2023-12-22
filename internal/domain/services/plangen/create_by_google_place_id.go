@@ -45,16 +45,16 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	// キャッシュする
 	placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, []models.GooglePlace{*startGooglePlace})
 	if err != nil {
-		return nil, fmt.Errorf("error while saving searched places: %v", err)
+		return nil, fmt.Errorf("error while saving searched Places: %v", err)
 	}
 	if len(placesSaved) == 0 {
-		return nil, fmt.Errorf("could not save searched places")
+		return nil, fmt.Errorf("could not save searched Places")
 	}
 	startPlace := placesSaved[0]
 
 	s.logger.Debug(
 		"successfully fetched start place by google place id",
-		zap.String("planCandidateId", input.PlanCandidateId),
+		zap.String("PlanCandidateId", input.PlanCandidateId),
 		zap.String("placeId", startPlace.Id),
 		zap.String("googlePlaceId", input.GooglePlaceId),
 		zap.String("name", startPlace.Name),
@@ -67,8 +67,8 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		s.logger.Warn(
-			"error while fetching searched places",
-			zap.String("planCandidateId", input.PlanCandidateId),
+			"error while fetching searched Places",
+			zap.String("PlanCandidateId", input.PlanCandidateId),
 			zap.Error(err),
 		)
 	}
@@ -76,31 +76,31 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	if len(placesSearched) > 1 {
 		// すでに検索が行われている場合はキャッシュを利用する（開始地点は除く）
 		s.logger.Debug(
-			"places fetched",
-			zap.String("planCandidateId", input.PlanCandidateId),
-			zap.Int("places", len(placesSearched)),
+			"Places fetched",
+			zap.String("PlanCandidateId", input.PlanCandidateId),
+			zap.Int("Places", len(placesSearched)),
 		)
 		places = placesSearched
 	} else {
 		// 検索を行っていない場合は検索を行う
 		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: startGooglePlace.Location})
 		if err != nil {
-			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
+			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
 		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
 		if err != nil {
-			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
+			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
 
 		places = append(places, placesSaved...)
 	}
 
 	s.logger.Debug(
-		"places searched",
-		zap.String("planCandidateId", input.PlanCandidateId),
+		"Places searched",
+		zap.String("PlanCandidateId", input.PlanCandidateId),
 		zap.String("startPlace", startGooglePlace.Name),
-		zap.Int("places", len(places)),
+		zap.Int("Places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
@@ -132,20 +132,20 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 
 		// フィルタ処理は select base place などの中で行う
 		placesInPlan, err := s.createPlanPlaces(ctx, CreatePlanPlacesParams{
-			planCandidateId:              input.PlanCandidateId,
-			locationStart:                startGooglePlace.Location,
-			placeStart:                   placeRecommended,
-			places:                       places,
-			placesOtherPlansContain:      placesAlreadyInPlan,
-			freeTime:                     input.FreeTime,
-			createBasedOnCurrentLocation: false,
-			categoryNamesDisliked:        input.CategoryNamesDisliked,
-			shouldOpenWhileTraveling:     *input.ShouldOpenNow,
+			PlanCandidateId:              input.PlanCandidateId,
+			LocationStart:                startGooglePlace.Location,
+			PlaceStart:                   placeRecommended,
+			Places:                       places,
+			PlacesOtherPlansContain:      placesAlreadyInPlan,
+			FreeTime:                     input.FreeTime,
+			CreateBasedOnCurrentLocation: false,
+			CategoryNamesDisliked:        input.CategoryNamesDisliked,
+			ShouldOpenWhileTraveling:     *input.ShouldOpenNow,
 		})
 		if err != nil {
 			s.logger.Warn(
 				"error while creating plan",
-				zap.String("planCandidateId", input.PlanCandidateId),
+				zap.String("PlanCandidateId", input.PlanCandidateId),
 				zap.String("placeId", placeRecommended.Id),
 				zap.Error(err),
 			)

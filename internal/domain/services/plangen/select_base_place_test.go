@@ -13,7 +13,7 @@ func TestService_SelectBasePlace(t *testing.T) {
 		expected []models.Place
 	}{
 		{
-			name: "should remove places that are far from the base location",
+			name: "should remove Places that are far from the base location",
 			input: SelectBasePlaceInput{
 				BaseLocation: models.GeoLocation{
 					// 新宿駅
