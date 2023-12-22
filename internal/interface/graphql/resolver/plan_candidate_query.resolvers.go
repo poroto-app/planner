@@ -70,7 +70,7 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		return nil, err
 	}
 
-	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidate, planCandidate.MetaData.LocationStart)
+	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidate)
 	return &model.PlanCandidateOutput{
 		PlanCandidate: graphqlPlanCandidate,
 	}, nil
