@@ -64,17 +64,6 @@ func (s Service) CreatePlanByLocation(
 		StartLocation: baseLocation,
 	})
 
-	// 除外されたカテゴリがある場合はそのカテゴリを除外する
-	if categoryNamesDisliked != nil {
-		var categoriesDisliked []models.LocationCategory
-		for _, categoryName := range *categoryNamesDisliked {
-			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesDisliked = append(categoriesDisliked, *category)
-			}
-		}
-		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
-	}
-
 	s.logger.Debug(
 		"places filtered",
 		zap.String("planCandidateId", createPlanSessionId),
@@ -143,6 +132,7 @@ func (s Service) CreatePlanByLocation(
 				places:                       placesFiltered,
 				placesOtherPlansContain:      placesInPlan,
 				freeTime:                     freeTime,
+				categoryNamesDisliked:        categoryNamesDisliked,
 				createBasedOnCurrentLocation: createBasedOnCurrentLocation,
 				shouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
 			},

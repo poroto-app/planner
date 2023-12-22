@@ -103,17 +103,6 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		StartLocation: startGooglePlace.Location,
 	})
 
-	// 除外されたカテゴリがある場合はそのカテゴリを除外する
-	if input.CategoryNamesDisliked != nil {
-		var categoriesDisliked []models.LocationCategory
-		for _, categoryName := range *input.CategoryNamesDisliked {
-			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesDisliked = append(categoriesDisliked, *category)
-			}
-		}
-		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
-	}
-
 	s.logger.Debug(
 		"places filtered",
 		zap.String("planCandidateId", input.PlanCandidateId),
@@ -158,6 +147,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			placesOtherPlansContain:      placesAlreadyInPlan,
 			freeTime:                     input.FreeTime,
 			createBasedOnCurrentLocation: false,
+			categoryNamesDisliked:        input.CategoryNamesDisliked,
 			shouldOpenWhileTraveling:     *input.ShouldOpenNow,
 		})
 		if err != nil {

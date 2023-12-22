@@ -17,12 +17,14 @@ const (
 	placeDistanceRangeInPlan = 1500
 )
 
+// TODO: 大文字スタートにする
 type CreatePlanPlacesParams struct {
 	planCandidateId              string
 	locationStart                models.GeoLocation
 	placeStart                   models.Place
 	places                       []models.Place
 	placesOtherPlansContain      []models.Place
+	categoryNamesDisliked        *[]string
 	freeTime                     *int
 	createBasedOnCurrentLocation bool
 	shouldOpenWhileTraveling     bool
@@ -57,6 +59,12 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		0,
 		placeDistanceRangeInPlan,
 	)
+
+	// ユーザーが拒否した場所は取り除く
+	if params.categoryNamesDisliked != nil {
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*params.categoryNamesDisliked)
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+	}
 
 	// 他のプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
