@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
-	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
 const (
@@ -97,18 +96,11 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		places = append(places, placesSaved...)
 	}
 
-	placesFiltered := places
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
-		StartLocation: startGooglePlace.Location,
-	})
-
 	s.logger.Debug(
-		"places filtered",
-		zap.String("planCandidateId", input.PlanCandidateId),
+		"places searched",
 		zap.String("planCandidateId", input.PlanCandidateId),
 		zap.String("startPlace", startGooglePlace.Name),
-		zap.Int("places", len(placesFiltered)),
+		zap.Int("places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
@@ -116,7 +108,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	placesRecommend = append(placesRecommend, startPlace)
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
 		BaseLocation:           startPlace.Location,
-		Places:                 placesFiltered,
+		Places:                 places,
 		CategoryNamesPreferred: input.CategoryNamesPreferred,
 		CategoryNamesDisliked:  input.CategoryNamesDisliked,
 		ShouldOpenNow:          *input.ShouldOpenNow,
@@ -143,7 +135,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			planCandidateId:              input.PlanCandidateId,
 			locationStart:                startGooglePlace.Location,
 			placeStart:                   placeRecommended,
-			places:                       placesFiltered,
+			places:                       places,
 			placesOtherPlansContain:      placesAlreadyInPlan,
 			freeTime:                     input.FreeTime,
 			createBasedOnCurrentLocation: false,

@@ -8,7 +8,6 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
-	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
 func (s Service) CreatePlanByLocation(
@@ -58,16 +57,12 @@ func (s Service) CreatePlanByLocation(
 		places = placesSaved
 	}
 
-	placesFiltered := places
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
-		StartLocation: baseLocation,
-	})
-
 	s.logger.Debug(
-		"places filtered",
+		"places searched",
 		zap.String("planCandidateId", createPlanSessionId),
-		zap.Int("places", len(placesFiltered)),
+		zap.Float64("lat", baseLocation.Latitude),
+		zap.Float64("lng", baseLocation.Longitude),
+		zap.Int("places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
@@ -89,7 +84,7 @@ func (s Service) CreatePlanByLocation(
 		if place != nil && array.IsContain(place.Google.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
 			placesRecommend = append(placesRecommend, *place)
 			if !found {
-				placesFiltered = append(placesFiltered, *place)
+				places = append(places, *place)
 			}
 		}
 	}
@@ -102,7 +97,7 @@ func (s Service) CreatePlanByLocation(
 
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
 		BaseLocation:           baseLocation,
-		Places:                 placesFiltered,
+		Places:                 places,
 		CategoryNamesPreferred: categoryNamesPreferred,
 		CategoryNamesDisliked:  categoryNamesDisliked,
 		ShouldOpenNow:          false,
@@ -129,7 +124,7 @@ func (s Service) CreatePlanByLocation(
 				planCandidateId:              createPlanSessionId,
 				locationStart:                baseLocation,
 				placeStart:                   placeRecommend,
-				places:                       placesFiltered,
+				places:                       places,
 				placesOtherPlansContain:      placesInPlan,
 				freeTime:                     freeTime,
 				categoryNamesDisliked:        categoryNamesDisliked,
