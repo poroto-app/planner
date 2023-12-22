@@ -12,7 +12,7 @@ import (
 
 const (
 	defaultMaxPlanDuration = 180
-	defaultMaxPlace        = 4
+	defaultMaxPlaceInPlan  = 4
 
 	placeDistanceRangeInPlan = 1500
 )
@@ -37,7 +37,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	if params.MaxPlace == 0 {
-		params.MaxPlace = defaultMaxPlace
+		params.MaxPlace = defaultMaxPlaceInPlan
 	}
 
 	placesFiltered := params.Places
