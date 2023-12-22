@@ -22,7 +22,12 @@ type CreatePlanByGooglePlaceIdInput struct {
 	ShouldOpenNow          *bool
 }
 
-func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlanByGooglePlaceIdInput) (*[]models.Plan, error) {
+type CreatePlanByGooglePlaceIdOutput struct {
+	Plans      []models.Plan
+	StartPlace models.Place
+}
+
+func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlanByGooglePlaceIdInput) (*CreatePlanByGooglePlaceIdOutput, error) {
 	if input.ShouldOpenNow == nil {
 		v := defaultShouldOpenNow
 		input.ShouldOpenNow = &v
@@ -185,5 +190,8 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		}
 	}
 
-	return &plans, nil
+	return &CreatePlanByGooglePlaceIdOutput{
+		Plans:      plans,
+		StartPlace: startPlace,
+	}, nil
 }
