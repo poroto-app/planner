@@ -217,9 +217,18 @@ type Plan struct {
 }
 
 type PlanCandidate struct {
-	ID            string   `json:"id"`
-	Plans         []*Plan  `json:"plans"`
-	LikedPlaceIds []string `json:"likedPlaceIds"`
+	ID                            string   `json:"id"`
+	Plans                         []*Plan  `json:"plans"`
+	LikedPlaceIds                 []string `json:"likedPlaceIds"`
+	CreatedBasedOnCurrentLocation bool     `json:"createdBasedOnCurrentLocation"`
+}
+
+type PlanCandidateInput struct {
+	PlanCandidateID string `json:"planCandidateId"`
+}
+
+type PlanCandidateOutput struct {
+	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
 }
 
 type PlansByLocationInput struct {

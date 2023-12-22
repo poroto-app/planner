@@ -45,6 +45,37 @@ func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.Cach
 	}, nil
 }
 
+// PlanCandidate is the resolver for the planCandidate field.
+func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
+	if err != nil {
+		log.Println("error while initializing logger: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planService, err := plancandidate.NewService(ctx)
+	if err != nil {
+		logger.Error("error while initializing plan candidate service", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	logger.Info(
+		"PlanCandidate",
+		zap.String("planCandidateId", input.PlanCandidateID),
+	)
+
+	planCandidate, err := planService.FindPlanCandidate(ctx, input.PlanCandidateID)
+	if err != nil {
+		logger.Error("error while finding plan candidate", zap.Error(err))
+		return nil, err
+	}
+
+	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidate)
+	return &model.PlanCandidateOutput{
+		PlanCandidate: graphqlPlanCandidate,
+	}, nil
+}
+
 // NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
 func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{
