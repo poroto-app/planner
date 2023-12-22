@@ -70,7 +70,8 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 			zap.String("planCandidateId", input.PlanCandidateId),
 			zap.Error(err),
 		)
-	} else if placesSearched != nil {
+	} else if placesSearched != nil && len(placesSearched) > 1 {
+		// すでに検索が行われている場合はキャッシュを利用する（開始地点は除く）
 		s.logger.Debug(
 			"places fetched",
 			zap.String("planCandidateId", input.PlanCandidateId),
