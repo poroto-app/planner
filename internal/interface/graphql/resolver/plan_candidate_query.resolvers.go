@@ -70,12 +70,6 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		return nil, err
 	}
 
-	if planCandidate == nil {
-		return &model.PlanCandidateOutput{
-			PlanCandidate: nil,
-		}, nil
-	}
-
 	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidate, planCandidate.MetaData.LocationStart)
 	return &model.PlanCandidateOutput{
 		PlanCandidate: graphqlPlanCandidate,

@@ -6,6 +6,10 @@ import (
 )
 
 func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidate, startLocation *models.GeoLocation) *graphql.PlanCandidate {
+	if planCandidate == nil {
+		return nil
+	}
+
 	return &graphql.PlanCandidate{
 		ID:                            planCandidate.Id,
 		Plans:                         PlansFromDomainModel(&planCandidate.Plans, startLocation),
