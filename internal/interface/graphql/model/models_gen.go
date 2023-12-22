@@ -86,8 +86,11 @@ type CreatePlanByLocationOutput struct {
 }
 
 type CreatePlanByPlaceInput struct {
-	Session string `json:"session"`
-	PlaceID string `json:"placeId"`
+	Session             string   `json:"session"`
+	PlaceID             string   `json:"placeId"`
+	CategoriesPreferred []string `json:"categoriesPreferred,omitempty"`
+	CategoriesDisliked  []string `json:"categoriesDisliked,omitempty"`
+	FreeTime            *int     `json:"freeTime,omitempty"`
 }
 
 type CreatePlanByPlaceOutput struct {
