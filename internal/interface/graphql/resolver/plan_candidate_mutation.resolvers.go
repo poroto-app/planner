@@ -34,12 +34,6 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	// TODO: 必須パラメータにする
-	createBasedOnCurrentLocation := false
-	if input.CreatedBasedOnCurrentLocation != nil {
-		createBasedOnCurrentLocation = *input.CreatedBasedOnCurrentLocation
-	}
-
 	locationStart := models.GeoLocation{
 		Latitude:  input.Latitude,
 		Longitude: input.Longitude,
@@ -62,11 +56,11 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		ctx,
 		planCandidateId,
 		locationStart,
-		input.GooglePlaceID,
+		nil,
 		&input.CategoriesPreferred,
 		&input.CategoriesDisliked,
 		input.FreeTime,
-		createBasedOnCurrentLocation,
+		input.CreatedBasedOnCurrentLocation,
 	)
 	if err != nil {
 		log.Printf("error while creating plan by location: %v", err)
@@ -81,7 +75,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		CategoryNamesPreferred:       &input.CategoriesPreferred,
 		CategoryNamesRejected:        &input.CategoriesDisliked,
 		FreeTime:                     input.FreeTime,
-		CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		CreateBasedOnCurrentLocation: input.CreatedBasedOnCurrentLocation,
 	}); err != nil {
 		log.Printf("error while saving plans of plan candidate(%s): %v", planCandidateId, err)
 	}

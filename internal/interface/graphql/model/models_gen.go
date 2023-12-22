@@ -76,11 +76,10 @@ type CreatePlanByLocationInput struct {
 	Session                       *string  `json:"session,omitempty"`
 	Latitude                      float64  `json:"latitude"`
 	Longitude                     float64  `json:"longitude"`
-	GooglePlaceID                 *string  `json:"googlePlaceId,omitempty"`
 	CategoriesPreferred           []string `json:"categoriesPreferred,omitempty"`
 	CategoriesDisliked            []string `json:"categoriesDisliked,omitempty"`
 	FreeTime                      *int     `json:"freeTime,omitempty"`
-	CreatedBasedOnCurrentLocation *bool    `json:"createdBasedOnCurrentLocation,omitempty"`
+	CreatedBasedOnCurrentLocation bool     `json:"createdBasedOnCurrentLocation"`
 }
 
 type CreatePlanByLocationOutput struct {

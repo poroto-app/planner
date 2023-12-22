@@ -1375,13 +1375,10 @@ input CreatePlanByLocationInput {
     session: String
     latitude: Float!
     longitude: Float!
-    googlePlaceId: String
     categoriesPreferred: [String!]
     categoriesDisliked: [String!]
     freeTime: Int
-    # 現在地から作成されたプランか
-    # TODO: 必須パラメータにする
-    createdBasedOnCurrentLocation: Boolean
+    createdBasedOnCurrentLocation: Boolean!
 }
 
 type CreatePlanByLocationOutput {
@@ -9825,7 +9822,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "latitude", "longitude", "googlePlaceId", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
+	fieldsInOrder := [...]string{"session", "latitude", "longitude", "categoriesPreferred", "categoriesDisliked", "freeTime", "createdBasedOnCurrentLocation"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9859,15 +9856,6 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 				return it, err
 			}
 			it.Longitude = data
-		case "googlePlaceId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("googlePlaceId"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.GooglePlaceID = data
 		case "categoriesPreferred":
 			var err error
 
@@ -9899,7 +9887,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByLocationInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBasedOnCurrentLocation"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}

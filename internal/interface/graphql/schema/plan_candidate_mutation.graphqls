@@ -31,13 +31,10 @@ input CreatePlanByLocationInput {
     session: String
     latitude: Float!
     longitude: Float!
-    googlePlaceId: String
     categoriesPreferred: [String!]
     categoriesDisliked: [String!]
     freeTime: Int
-    # 現在地から作成されたプランか
-    # TODO: 必須パラメータにする
-    createdBasedOnCurrentLocation: Boolean
+    createdBasedOnCurrentLocation: Boolean!
 }
 
 type CreatePlanByLocationOutput {
