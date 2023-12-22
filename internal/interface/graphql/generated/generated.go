@@ -1392,9 +1392,6 @@ type CreatePlanByLocationOutput {
 input CreatePlanByPlaceInput {
     session: String!
     placeId: String!
-    categoriesPreferred: [String!]
-    categoriesDisliked: [String!]
-    freeTime: Int
 }
 
 type CreatePlanByPlaceOutput {
@@ -1403,8 +1400,11 @@ type CreatePlanByPlaceOutput {
 }
 
 input CreatePlanByGooglePlaceIdInput {
-    planCandidateId: String!
+    planCandidateId: String
     googlePlaceId: String!
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
+    freeTime: Int
 }
 
 type CreatePlanByGooglePlaceIdOutput {
@@ -9760,7 +9760,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByGooglePlaceIdInput(ctx con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId", "googlePlaceId"}
+	fieldsInOrder := [...]string{"planCandidateId", "googlePlaceId", "categoriesPreferred", "categoriesDisliked", "freeTime"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9771,7 +9771,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByGooglePlaceIdInput(ctx con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planCandidateId"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -9785,6 +9785,33 @@ func (ec *executionContext) unmarshalInputCreatePlanByGooglePlaceIdInput(ctx con
 				return it, err
 			}
 			it.GooglePlaceID = data
+		case "categoriesPreferred":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesPreferred"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoriesPreferred = data
+		case "categoriesDisliked":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesDisliked"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CategoriesDisliked = data
+		case "freeTime":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeTime"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FreeTime = data
 		}
 	}
 
@@ -9890,7 +9917,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByPlaceInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "placeId", "categoriesPreferred", "categoriesDisliked", "freeTime"}
+	fieldsInOrder := [...]string{"session", "placeId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9915,33 +9942,6 @@ func (ec *executionContext) unmarshalInputCreatePlanByPlaceInput(ctx context.Con
 				return it, err
 			}
 			it.PlaceID = data
-		case "categoriesPreferred":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesPreferred"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CategoriesPreferred = data
-		case "categoriesDisliked":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoriesDisliked"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.CategoriesDisliked = data
-		case "freeTime":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("freeTime"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FreeTime = data
 		}
 	}
 

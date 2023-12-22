@@ -61,8 +61,11 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 }
 
 type CreatePlanByGooglePlaceIDInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	GooglePlaceID   string `json:"googlePlaceId"`
+	PlanCandidateID     *string  `json:"planCandidateId,omitempty"`
+	GooglePlaceID       string   `json:"googlePlaceId"`
+	CategoriesPreferred []string `json:"categoriesPreferred,omitempty"`
+	CategoriesDisliked  []string `json:"categoriesDisliked,omitempty"`
+	FreeTime            *int     `json:"freeTime,omitempty"`
 }
 
 type CreatePlanByGooglePlaceIDOutput struct {
@@ -86,11 +89,8 @@ type CreatePlanByLocationOutput struct {
 }
 
 type CreatePlanByPlaceInput struct {
-	Session             string   `json:"session"`
-	PlaceID             string   `json:"placeId"`
-	CategoriesPreferred []string `json:"categoriesPreferred,omitempty"`
-	CategoriesDisliked  []string `json:"categoriesDisliked,omitempty"`
-	FreeTime            *int     `json:"freeTime,omitempty"`
+	Session string `json:"session"`
+	PlaceID string `json:"placeId"`
 }
 
 type CreatePlanByPlaceOutput struct {
