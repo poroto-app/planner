@@ -33,24 +33,14 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	}
 
 	// 開始地点となる場所を検索
-	startGooglePlace, err := s.placeService.FetchGooglePlace(ctx, input.GooglePlaceId)
+	startPlace, err := s.placeService.FetchGooglePlace(ctx, input.GooglePlaceId)
 	if err != nil {
 		return nil, err
 	}
 
-	if startGooglePlace == nil {
-		return nil, fmt.Errorf("could not fetch google place: %v", input.GooglePlaceId)
+	if startPlace == nil {
+		return nil, fmt.Errorf("could not fetch start place: %v", input.GooglePlaceId)
 	}
-
-	// キャッシュする
-	placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, []models.GooglePlace{*startGooglePlace})
-	if err != nil {
-		return nil, fmt.Errorf("error while saving searched Places: %v", err)
-	}
-	if len(placesSaved) == 0 {
-		return nil, fmt.Errorf("could not save searched Places")
-	}
-	startPlace := placesSaved[0]
 
 	s.logger.Debug(
 		"successfully fetched start place by google place id",
@@ -62,7 +52,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 
 	// 付近の場所を検索
 	var places []models.Place
-	places = append(places, startPlace)
+	places = append(places, *startPlace)
 
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
@@ -73,21 +63,27 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		)
 	}
 
-	if len(placesSearched) > 1 {
-		// すでに検索が行われている場合はキャッシュを利用する（開始地点は除く）
+	if len(placesSearched) > 0 {
+		// すでに検索が行われている場合はキャッシュを利用する
 		s.logger.Debug(
 			"Places fetched",
 			zap.String("PlanCandidateId", input.PlanCandidateId),
 			zap.Int("Places", len(placesSearched)),
 		)
 		places = placesSearched
+
+		// 開始地点の検索結果を保存する
+		if _, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, []models.GooglePlace{startPlace.Google}); err != nil {
+			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
+		}
 	} else {
 		// 検索を行っていない場合は検索を行う
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: startGooglePlace.Location})
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: startPlace.Location})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
+		// プラン候補作成において検索した場所を保存する
 		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
 		if err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
@@ -99,13 +95,13 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	s.logger.Debug(
 		"Places searched",
 		zap.String("PlanCandidateId", input.PlanCandidateId),
-		zap.String("startPlace", startGooglePlace.Name),
+		zap.String("startPlace", startPlace.Name),
 		zap.Int("Places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
 	var placesRecommend []models.Place
-	placesRecommend = append(placesRecommend, startPlace)
+	placesRecommend = append(placesRecommend, *startPlace)
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
 		BaseLocation:           startPlace.Location,
 		Places:                 places,
@@ -133,7 +129,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		// フィルタ処理は select base place などの中で行う
 		placesInPlan, err := s.createPlanPlaces(ctx, CreatePlanPlacesParams{
 			PlanCandidateId:              input.PlanCandidateId,
-			LocationStart:                startGooglePlace.Location,
+			LocationStart:                startPlace.Location,
 			PlaceStart:                   placeRecommended,
 			Places:                       places,
 			PlacesOtherPlansContain:      placesAlreadyInPlan,
@@ -153,7 +149,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		}
 
 		createPlanParams = append(createPlanParams, CreatePlanParams{
-			locationStart: startGooglePlace.Location,
+			locationStart: startPlace.Location,
 			placeStart:    placeRecommended,
 			places:        placesInPlan,
 		})
@@ -174,6 +170,6 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 
 	return &CreatePlanByGooglePlaceIdOutput{
 		Plans:      plans,
-		StartPlace: startPlace,
+		StartPlace: *startPlace,
 	}, nil
 }

@@ -8,8 +8,10 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// FetchGooglePlace PlaceDetail APIを用いて場所の情報を取得する
-func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*models.GooglePlace, error) {
+// FetchGooglePlace GooglePlace ID から場所の情報を取得する
+// 過去に検索が行われている場合はキャッシュを利用する
+// まだ検索が行われていない場合は、PlaceDetail APIを用いて場所の情報を取得し、保存する
+func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*models.Place, error) {
 	// キャッシュがある場合は取得する
 	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
 	if err != nil {
@@ -17,7 +19,7 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 	}
 
 	if savedPlace != nil {
-		return &savedPlace.Google, nil
+		return savedPlace, nil
 	}
 
 	placeDetailEntity, err := s.placesApi.FetchPlaceDetail(ctx, places.FetchPlaceDetailRequest{
@@ -34,7 +36,11 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 
 	googlePlace := factory.GooglePlaceFromPlaceEntity(*placeDetailEntity, nil)
 
-	// TODO: キャッシュする
+	// 保存する
+	place, err := s.placeRepository.SavePlacesFromGooglePlace(ctx, googlePlace)
+	if err != nil {
+		return nil, fmt.Errorf("could not save google place detail: %v", err)
+	}
 
-	return &googlePlace, nil
+	return place, nil
 }

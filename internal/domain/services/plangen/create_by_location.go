@@ -175,39 +175,27 @@ func (s Service) findOrFetchPlaceById(
 	planCandidateId string,
 	placesSearched []models.Place,
 	googlePlaceId string,
-) (place *models.Place, found bool, err error) {
+) (*models.Place, bool, error) {
 	for _, placeSearched := range placesSearched {
 		if placeSearched.Google.PlaceId == googlePlaceId {
-			place = &placeSearched
-			break
+			// すでに取得されている場合はそれを返す
+			return &placeSearched, true, nil
 		}
 	}
 
-	// すでに取得されている場合はそれを返す
-	if place != nil {
-		return place, true, nil
-	}
-
-	googlePlaceEntity, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
+	place, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
-	if googlePlaceEntity == nil {
+	if place == nil {
 		return nil, false, nil
 	}
 
 	// キャッシュする
-	places, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{*googlePlaceEntity})
-	if err != nil {
+	if _, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
 		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
-
-	if len(places) == 0 {
-		return nil, false, fmt.Errorf("could not save searched Places")
-	}
-
-	place = &places[0]
 
 	return place, false, nil
 }
