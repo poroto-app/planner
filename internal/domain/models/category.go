@@ -40,6 +40,16 @@ var (
 		EstimatedStayDuration: 20,
 	}
 
+	CategoryBakery = LocationCategory{
+		Name:        "bakery",
+		DisplayName: "焼きたてのパンはいかが？",
+		SubCategories: []string{
+			string(maps.PlaceTypeBakery),
+		},
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_donut_love_kau1.svg",
+		EstimatedStayDuration: 20,
+	}
+
 	CategoryCulture = LocationCategory{
 		Name:        "cultural_facility",
 		DisplayName: "芸術や文化に触れる",
@@ -77,7 +87,6 @@ var (
 		DisplayName: "ご飯",
 		SubCategories: []string{
 			"food",
-			string(maps.PlaceTypeBakery),
 			string(maps.PlaceTypeBar),
 			string(maps.PlaceTypeRestaurant),
 			string(maps.PlaceTypeMealTakeaway),
