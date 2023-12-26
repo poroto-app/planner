@@ -80,18 +80,9 @@ var (
 			string(maps.PlaceTypeBakery),
 			string(maps.PlaceTypeBar),
 			string(maps.PlaceTypeRestaurant),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_breakfast_psiw.svg",
-		EstimatedStayDuration: 20,
-	}
-
-	CategoryMealTakeaway = LocationCategory{
-		Name:        "meal_takeaway",
-		DisplayName: "テイクアウト",
-		SubCategories: []string{
 			string(maps.PlaceTypeMealTakeaway),
 		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pizza_sharing_wxop.svg",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_breakfast_psiw.svg",
 		EstimatedStayDuration: 20,
 	}
 
@@ -210,7 +201,6 @@ func GetCategoryToFilter() []LocationCategory {
 		CategoryCafe,
 		CategoryCulture,
 		CategoryNatural,
-		CategoryMealTakeaway,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
@@ -223,7 +213,6 @@ func getAllCategories() []LocationCategory {
 		CategoryCafe,
 		CategoryCulture,
 		CategoryNatural,
-		CategoryMealTakeaway,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
