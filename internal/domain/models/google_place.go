@@ -49,8 +49,14 @@ func (g GooglePlace) IndexOfCategory(category LocationCategory) int {
 }
 
 func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
-	if g.PlaceDetail == nil || g.PlaceDetail.OpeningHours == nil {
-		return false, fmt.Errorf("opening hours is not set")
+	if g.PlaceDetail == nil {
+		return false, fmt.Errorf("place detail is not fetched")
+	}
+
+	// OpeningHoursがない場合は開いているとみなす
+	// (営業時間が不明な場所がスキップされてしまうとプランに含まれなくなるため)
+	if g.PlaceDetail.OpeningHours == nil {
+		return true, nil
 	}
 
 	for _, openingPeriod := range g.PlaceDetail.OpeningHours.Periods {
