@@ -50,17 +50,6 @@ var (
 		EstimatedStayDuration: 20,
 	}
 
-	CategoryCamp = LocationCategory{
-		Name:        "camp",
-		DisplayName: "キャンプ",
-		SubCategories: []string{
-			string(maps.PlaceTypeCampground),
-			string(maps.PlaceTypeRvPark),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_camping_noc8.svg",
-		EstimatedStayDuration: 30,
-	}
-
 	CategoryCulture = LocationCategory{
 		Name:        "cultural_facility",
 		DisplayName: "芸術や文化に触れる",
@@ -166,6 +155,7 @@ var (
 
 			string(maps.PlaceTypeBusStation),
 
+			string(maps.PlaceTypeCampground),
 			string(maps.PlaceTypeCarDealer),
 			string(maps.PlaceTypeCarRental),
 			string(maps.PlaceTypeCarRepair),
@@ -237,7 +227,6 @@ func GetCategoryToFilter() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
 		CategoryBookStore,
-		CategoryCamp,
 		CategoryCafe,
 		CategoryCulture,
 		CategoryLibrary,
@@ -254,7 +243,6 @@ func getAllCategories() []LocationCategory {
 		CategoryAmusements,
 		CategoryBookStore,
 		CategoryCafe,
-		CategoryCamp,
 		CategoryCulture,
 		CategoryLibrary,
 		CategoryNatural,
