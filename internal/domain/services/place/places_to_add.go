@@ -1,4 +1,4 @@
-package plancandidate
+package place
 
 import (
 	"context"
@@ -32,7 +32,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 
 	startPlace := plan.Places[0]
 
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
@@ -67,7 +67,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	}
 
 	// 写真を取得
-	placesToAdd = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToAdd...)
+	placesToAdd = s.placeSearchService.FetchPlacesPhotosAndSave(ctx, placesToAdd...)
 
 	return placesToAdd, nil
 }

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -138,13 +139,13 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	availablePlaces, err := s.FetchCandidatePlaces(ctx, plancandidate.FetchCandidatePlacesInput{
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, place.FetchCandidatePlacesInput{
 		PlanCandidateId: input.Session,
 	})
 	if err != nil {
@@ -164,9 +165,9 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -207,9 +208,9 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		zap.String("placeId", input.PlaceID),
 	)
 
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(ctx)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
