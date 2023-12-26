@@ -18,7 +18,7 @@ var (
 	// SEE: https://developers.google.com/maps/documentation/places/web-service/supported_types?hl=ja#table1
 	CategoryAmusements = LocationCategory{
 		Name:        "amusements",
-		DisplayName: "遊び",
+		DisplayName: "遊びに行こう！",
 		SubCategories: []string{
 			string(maps.PlaceTypeAmusementPark),
 			string(maps.PlaceTypeBowlingAlley),
@@ -269,4 +269,12 @@ func GetCategoriesFromSubCategories(subCategories []string) []LocationCategory {
 	}
 
 	return categories
+}
+
+func FoodCategories() []LocationCategory {
+	return []LocationCategory{
+		CategoryRestaurant,
+		CategoryCafe,
+		CategoryBakery,
+	}
 }
