@@ -16,7 +16,6 @@ type SelectBasePlaceInput struct {
 	Places                 []models.Place
 	CategoryNamesPreferred *[]string
 	CategoryNamesDisliked  *[]string
-	ShouldOpenNow          bool
 	MaxBasePlaceCount      int
 	Radius                 int
 }

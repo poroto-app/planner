@@ -107,7 +107,6 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		Places:                 places,
 		CategoryNamesPreferred: input.CategoryNamesPreferred,
 		CategoryNamesDisliked:  input.CategoryNamesDisliked,
-		ShouldOpenNow:          *input.ShouldOpenNow,
 		MaxBasePlaceCount:      defaultMaxBasePlaceCount - 1,
 	})...)
 	for _, place := range placesRecommend {

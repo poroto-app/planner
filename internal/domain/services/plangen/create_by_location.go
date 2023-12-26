@@ -100,7 +100,6 @@ func (s Service) CreatePlanByLocation(
 		Places:                 places,
 		CategoryNamesPreferred: categoryNamesPreferred,
 		CategoryNamesDisliked:  categoryNamesDisliked,
-		ShouldOpenNow:          false,
 		MaxBasePlaceCount:      maxBasePlaceCount,
 	})...)
 	for _, place := range placesRecommend {
