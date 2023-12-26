@@ -18,7 +18,7 @@ var (
 	// SEE: https://developers.google.com/maps/documentation/places/web-service/supported_types?hl=ja#table1
 	CategoryAmusements = LocationCategory{
 		Name:        "amusements",
-		DisplayName: "遊びに行こう！",
+		DisplayName: "遊び",
 		SubCategories: []string{
 			string(maps.PlaceTypeAmusementPark),
 			string(maps.PlaceTypeBowlingAlley),
@@ -32,7 +32,7 @@ var (
 
 	CategoryBakery = LocationCategory{
 		Name:        "bakery",
-		DisplayName: "焼きたてのパンはいかが？",
+		DisplayName: "パン屋",
 		SubCategories: []string{
 			string(maps.PlaceTypeBakery),
 		},
@@ -42,7 +42,7 @@ var (
 
 	CategoryCafe = LocationCategory{
 		Name:        "cafe",
-		DisplayName: "カフェで一息",
+		DisplayName: "カフェ",
 		SubCategories: []string{
 			string(maps.PlaceTypeCafe),
 		},
@@ -74,7 +74,7 @@ var (
 
 	CategoryPark = LocationCategory{
 		Name:        "park",
-		DisplayName: "公園でのんびり",
+		DisplayName: "公園",
 		SubCategories: []string{
 			string(maps.PlaceTypePark),
 		},
@@ -84,7 +84,7 @@ var (
 
 	CategoryRestaurant = LocationCategory{
 		Name:        "restaurant",
-		DisplayName: "おいしいごはん",
+		DisplayName: "ごはん",
 		SubCategories: []string{
 			"food",
 			string(maps.PlaceTypeBar),
@@ -97,7 +97,7 @@ var (
 
 	CategoryShopping = LocationCategory{
 		Name:        "shopping",
-		DisplayName: "ちょっとお買い物",
+		DisplayName: "お買い物",
 		SubCategories: []string{
 			string(maps.PlaceTypeBookStore),
 			string(maps.PlaceTypeClothingStore),
