@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 )
 
 const (
@@ -78,7 +78,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		}
 	} else {
 		// 検索を行っていない場合は検索を行う
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: startPlace.Location})
+		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}

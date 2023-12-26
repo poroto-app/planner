@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
-	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -14,7 +14,7 @@ import (
 type Service struct {
 	placesApi               places.PlacesApi
 	planCandidateRepository repository.PlanCandidateRepository
-	placeService            place.Service
+	placeService            placesearch.Service
 	logger                  *zap.Logger
 }
 
@@ -29,7 +29,7 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeService, err := place.NewPlaceService(ctx)
+	placeService, err := placesearch.NewPlaceService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing place service: %v", err)
 	}

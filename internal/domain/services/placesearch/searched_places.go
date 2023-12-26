@@ -1,4 +1,4 @@
-package place
+package placesearch
 
 import (
 	"context"
