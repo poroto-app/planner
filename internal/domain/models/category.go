@@ -42,7 +42,7 @@ var (
 
 	CategoryCafe = LocationCategory{
 		Name:        "cafe",
-		DisplayName: "カフェ",
+		DisplayName: "カフェで一息",
 		SubCategories: []string{
 			string(maps.PlaceTypeCafe),
 		},
@@ -74,7 +74,7 @@ var (
 
 	CategoryPark = LocationCategory{
 		Name:        "park",
-		DisplayName: "公園でゆったり",
+		DisplayName: "公園でのんびり",
 		SubCategories: []string{
 			string(maps.PlaceTypePark),
 		},
@@ -84,7 +84,7 @@ var (
 
 	CategoryRestaurant = LocationCategory{
 		Name:        "restaurant",
-		DisplayName: "ご飯",
+		DisplayName: "おいしいごはん",
 		SubCategories: []string{
 			"food",
 			string(maps.PlaceTypeBar),
@@ -97,7 +97,7 @@ var (
 
 	CategoryShopping = LocationCategory{
 		Name:        "shopping",
-		DisplayName: "ショッピング",
+		DisplayName: "ちょっとお買い物",
 		SubCategories: []string{
 			string(maps.PlaceTypeBookStore),
 			string(maps.PlaceTypeClothingStore),
