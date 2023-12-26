@@ -36,7 +36,7 @@ var (
 		SubCategories: []string{
 			string(maps.PlaceTypeBakery),
 		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_donut_love_kau1.svg",
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pancakes_238t.svg",
 		EstimatedStayDuration: 20,
 	}
 
