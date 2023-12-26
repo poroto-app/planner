@@ -30,16 +30,6 @@ var (
 		EstimatedStayDuration: 30,
 	}
 
-	CategoryCafe = LocationCategory{
-		Name:        "cafe",
-		DisplayName: "カフェ",
-		SubCategories: []string{
-			string(maps.PlaceTypeCafe),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_coffee_re_x35h.svg",
-		EstimatedStayDuration: 20,
-	}
-
 	CategoryBakery = LocationCategory{
 		Name:        "bakery",
 		DisplayName: "焼きたてのパンはいかが？",
@@ -47,6 +37,16 @@ var (
 			string(maps.PlaceTypeBakery),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_donut_love_kau1.svg",
+		EstimatedStayDuration: 20,
+	}
+
+	CategoryCafe = LocationCategory{
+		Name:        "cafe",
+		DisplayName: "カフェ",
+		SubCategories: []string{
+			string(maps.PlaceTypeCafe),
+		},
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_coffee_re_x35h.svg",
 		EstimatedStayDuration: 20,
 	}
 
@@ -112,6 +112,16 @@ var (
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
 		EstimatedStayDuration: 20,
+	}
+
+	CategorySpa = LocationCategory{
+		Name:        "spa",
+		DisplayName: "ゆったり温泉",
+		SubCategories: []string{
+			string(maps.PlaceTypeSpa),
+		},
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_mint_tea_-7-su0.svg",
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryOther = LocationCategory{
