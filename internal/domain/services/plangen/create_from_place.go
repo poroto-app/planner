@@ -12,11 +12,6 @@ func (s Service) CreatePlanFromPlace(
 	createPlanSessionId string,
 	placeId string,
 ) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching plan candidate")
-	}
-
 	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
 	places, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
@@ -38,13 +33,12 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			PlanCandidateId:              createPlanSessionId,
-			LocationStart:                placeStart.Location,
-			PlaceStart:                   *placeStart,
-			Places:                       places,
-			FreeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
-			CreateBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-			ShouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+			PlanCandidateId:          createPlanSessionId,
+			LocationStart:            placeStart.Location,
+			PlaceStart:               *placeStart,
+			Places:                   places,
+			FreeTime:                 nil,   // TODO: freeTimeの項目を保存し、それを反映させる
+			ShouldOpenWhileTraveling: false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
 		},
 	)
 	if err != nil {

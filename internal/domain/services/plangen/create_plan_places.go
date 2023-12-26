@@ -18,16 +18,15 @@ const (
 )
 
 type CreatePlanPlacesParams struct {
-	PlanCandidateId              string
-	LocationStart                models.GeoLocation
-	PlaceStart                   models.Place
-	Places                       []models.Place
-	PlacesOtherPlansContain      []models.Place
-	CategoryNamesDisliked        *[]string
-	FreeTime                     *int
-	CreateBasedOnCurrentLocation bool
-	ShouldOpenWhileTraveling     bool
-	MaxPlace                     int
+	PlanCandidateId          string
+	LocationStart            models.GeoLocation
+	PlaceStart               models.Place
+	Places                   []models.Place
+	PlacesOtherPlansContain  []models.Place
+	CategoryNamesDisliked    *[]string
+	FreeTime                 *int
+	ShouldOpenWhileTraveling bool
+	MaxPlace                 int
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する

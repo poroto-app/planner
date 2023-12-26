@@ -121,15 +121,14 @@ func (s Service) CreatePlanByLocation(
 		planPlaces, err := s.createPlanPlaces(
 			ctx,
 			CreatePlanPlacesParams{
-				PlanCandidateId:              createPlanSessionId,
-				LocationStart:                baseLocation,
-				PlaceStart:                   placeRecommend,
-				Places:                       places,
-				PlacesOtherPlansContain:      placesInPlan,
-				FreeTime:                     freeTime,
-				CategoryNamesDisliked:        categoryNamesDisliked,
-				CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
-				ShouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				PlanCandidateId:          createPlanSessionId,
+				LocationStart:            baseLocation,
+				PlaceStart:               placeRecommend,
+				Places:                   places,
+				PlacesOtherPlansContain:  placesInPlan,
+				FreeTime:                 freeTime,
+				CategoryNamesDisliked:    categoryNamesDisliked,
+				ShouldOpenWhileTraveling: createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
 			},
 		)
 		if err != nil {
