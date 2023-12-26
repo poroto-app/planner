@@ -217,24 +217,28 @@ var (
 func GetCategoryToFilter() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
+		CategoryBakery,
 		CategoryCafe,
 		CategoryCulture,
 		CategoryNatural,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
+		CategorySpa,
 	}
 }
 
 func getAllCategories() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
+		CategoryBakery,
 		CategoryCafe,
 		CategoryCulture,
 		CategoryNatural,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
+		CategorySpa,
 	}
 }
 
