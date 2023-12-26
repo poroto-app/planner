@@ -30,16 +30,6 @@ var (
 		EstimatedStayDuration: 30,
 	}
 
-	CategoryBookStore = LocationCategory{
-		Name:        "book_store",
-		DisplayName: "本屋",
-		SubCategories: []string{
-			string(maps.PlaceTypeBookStore),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_books_re_8gea.svg",
-		EstimatedStayDuration: 10,
-	}
-
 	CategoryCafe = LocationCategory{
 		Name:        "cafe",
 		DisplayName: "カフェ",
@@ -95,16 +85,6 @@ var (
 		EstimatedStayDuration: 20,
 	}
 
-	CategoryLibrary = LocationCategory{
-		Name:        "library",
-		DisplayName: "図書館",
-		SubCategories: []string{
-			string(maps.PlaceTypeLibrary),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
-		EstimatedStayDuration: 20,
-	}
-
 	CategoryMealTakeaway = LocationCategory{
 		Name:        "meal_takeaway",
 		DisplayName: "テイクアウト",
@@ -119,6 +99,7 @@ var (
 		Name:        "shopping",
 		DisplayName: "ショッピング",
 		SubCategories: []string{
+			string(maps.PlaceTypeBookStore),
 			string(maps.PlaceTypeClothingStore),
 			string(maps.PlaceTypeDepartmentStore),
 			string(maps.PlaceTypeFurnitureStore),
@@ -226,10 +207,8 @@ var (
 func GetCategoryToFilter() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
-		CategoryBookStore,
 		CategoryCafe,
 		CategoryCulture,
-		CategoryLibrary,
 		CategoryNatural,
 		CategoryMealTakeaway,
 		CategoryPark,
@@ -241,10 +220,8 @@ func GetCategoryToFilter() []LocationCategory {
 func getAllCategories() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
-		CategoryBookStore,
 		CategoryCafe,
 		CategoryCulture,
-		CategoryLibrary,
 		CategoryNatural,
 		CategoryMealTakeaway,
 		CategoryPark,
