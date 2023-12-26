@@ -33,7 +33,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 		"start fetching searched places",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	places, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ type Service struct {
 	logger                  *zap.Logger
 }
 
-func NewPlaceService(ctx context.Context) (*Service, error) {
+func NewPlaceSearchService(ctx context.Context) (*Service, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing places api: %v", err)

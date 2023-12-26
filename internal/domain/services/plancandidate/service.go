@@ -14,7 +14,7 @@ import (
 type Service struct {
 	placesApi               places.PlacesApi
 	planCandidateRepository repository.PlanCandidateRepository
-	placeService            placesearch.Service
+	placeSearchService      placesearch.Service
 	logger                  *zap.Logger
 }
 
@@ -29,9 +29,9 @@ func NewService(ctx context.Context) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeService, err := placesearch.NewPlaceService(ctx)
+	placeSearchService, err := placesearch.NewPlaceSearchService(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing place service: %v", err)
+		return nil, fmt.Errorf("error while initializing place search service: %v", err)
 	}
 
 	logger, err := utils.NewLogger(utils.LoggerOption{
@@ -44,7 +44,7 @@ func NewService(ctx context.Context) (*Service, error) {
 	return &Service{
 		placesApi:               *placesApi,
 		planCandidateRepository: planCandidateRepository,
-		placeService:            *placeService,
+		placeSearchService:      *placeSearchService,
 		logger:                  logger,
 	}, nil
 }

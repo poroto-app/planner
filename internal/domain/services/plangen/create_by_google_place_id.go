@@ -33,7 +33,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	}
 
 	// 開始地点となる場所を検索
-	startPlace, err := s.placeService.FetchGooglePlace(ctx, input.GooglePlaceId)
+	startPlace, err := s.placeSearchService.FetchGooglePlace(ctx, input.GooglePlaceId)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 	var places []models.Place
 	places = append(places, *startPlace)
 
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		s.logger.Warn(
 			"error while fetching searched Places",
@@ -73,18 +73,18 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		places = placesSearched
 
 		// 開始地点の検索結果を保存する
-		if _, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, []models.GooglePlace{startPlace.Google}); err != nil {
+		if _, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, []models.GooglePlace{startPlace.Google}); err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
 	} else {
 		// 検索を行っていない場合は検索を行う
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
+		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
 		// プラン候補作成において検索した場所を保存する
-		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
+		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
 		if err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}

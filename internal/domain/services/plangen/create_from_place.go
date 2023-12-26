@@ -18,7 +18,7 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
-	places, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}

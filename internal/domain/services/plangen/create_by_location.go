@@ -26,7 +26,7 @@ func (s Service) CreatePlanByLocation(
 	var places []models.Place
 
 	// すでに検索を行っている場合はその結果を取得
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		s.logger.Warn(
 			"error while fetching searched Places",
@@ -44,12 +44,12 @@ func (s Service) CreatePlanByLocation(
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: baseLocation})
+		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: baseLocation})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
-		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
+		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
 		if err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
@@ -183,7 +183,7 @@ func (s Service) findOrFetchPlaceById(
 		}
 	}
 
-	place, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
+	place, err := s.placeSearchService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
@@ -193,7 +193,7 @@ func (s Service) findOrFetchPlaceById(
 	}
 
 	// キャッシュする
-	if _, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
+	if _, err := s.placeSearchService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
 		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
 
