@@ -45,11 +45,6 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		StartLocation: params.LocationStart,
 	})
 
-	// 現在、開いている場所のみに絞る
-	if params.ShouldOpenWhileTraveling {
-		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-	}
-
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,

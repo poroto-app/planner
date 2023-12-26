@@ -11,7 +11,6 @@ type GooglePlace struct {
 	Types            []string
 	Location         GeoLocation
 	PhotoReferences  []GooglePlacePhotoReference
-	OpenNow          bool
 	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int

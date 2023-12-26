@@ -54,10 +54,6 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
 	}
 
-	if input.ShouldOpenNow {
-		places = placefilter.FilterByOpeningNow(places)
-	}
-
 	// カテゴリごとにレビューの高い場所から選択する
 	placesSelected := selectByReview(places)
 	if len(placesSelected) == input.MaxBasePlaceCount {
