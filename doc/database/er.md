@@ -49,6 +49,9 @@ erDiagram
     google_place_photo_references {
         string photo_reference PK
         string google_place_id FK
+        int width
+        int height
+        string html_attributions
     }
 
     google_place_photos {
