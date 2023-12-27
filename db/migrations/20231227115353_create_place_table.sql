@@ -96,6 +96,8 @@ DROP TABLE IF EXISTS google_place_reviews;
 
 DROP TABLE IF EXISTS google_place_photos;
 
+DROP TABLE IF EXISTS google_place_photo_attributions;
+
 DROP TABLE IF EXISTS google_place_photo_references;
 
 DROP TABLE IF EXISTS google_place_types;
