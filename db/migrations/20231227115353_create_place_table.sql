@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE places
 (
-    id         CHAR(36)     NOT NULL,
+    id         CHAR(36)     NOT NULL DEFAULT (UUID()),
     name       VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -28,7 +28,7 @@ CREATE TABLE google_places
 
 CREATE TABLE google_place_types
 (
-    id              CHAR(36)     NOT NULL,
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
     google_place_id VARCHAR(255) NOT NULL,
     type            VARCHAR(255) NOT NULL,
     order_num       INT          NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE google_place_photo_references
 
 CREATE TABLE google_place_photo_attributions
 (
-    id               CHAR(36)     NOT NULL,
+    id               CHAR(36)     NOT NULL DEFAULT (UUID()),
     photo_reference  VARCHAR(255) NOT NULL,
     html_attribution TEXT         NOT NULL,
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +63,7 @@ CREATE TABLE google_place_photo_attributions
 
 CREATE TABLE google_place_photos
 (
-    id              CHAR(36)     NOT NULL,
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
     photo_reference VARCHAR(255) NOT NULL,
     width           INT          NOT NULL,
     height          INT          NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE google_place_photos
 
 CREATE TABLE google_place_reviews
 (
-    id                       CHAR(36)     NOT NULL,
+    id                       CHAR(36)     NOT NULL DEFAULT (UUID()),
     google_place_id          VARCHAR(255) NOT NULL,
     author_name              VARCHAR(255),
     author_url               VARCHAR(255),
@@ -93,7 +93,7 @@ CREATE TABLE google_place_reviews
 
 CREATE TABLE google_place_opening_periods
 (
-    id              CHAR(36)     NOT NULL,
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
     google_place_id VARCHAR(255) NOT NULL,
     open_day        INT          NOT NULL,
     open_time       CHAR(4)      NOT NULL,
@@ -104,7 +104,6 @@ CREATE TABLE google_place_opening_periods
     PRIMARY KEY (id),
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );
-)
 
 -- +goose Down
 DROP TABLE IF EXISTS google_place_opening_periods;
