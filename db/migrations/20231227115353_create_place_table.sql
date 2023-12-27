@@ -91,7 +91,24 @@ CREATE TABLE google_place_reviews
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );
 
+CREATE TABLE google_place_opening_hours
+(
+    id              CHAR(36)     NOT NULL,
+    google_place_id VARCHAR(255) NOT NULL,
+    open_day        INT          NOT NULL,
+    open_time       CHAR(4)      NOT NULL,
+    close_day       INT          NOT NULL,
+    close_time      CHAR(4)      NOT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+)
+
 -- +goose Down
+DROP TABLE IF EXISTS google_place_opening_hours;
+
 DROP TABLE IF EXISTS google_place_reviews;
 
 DROP TABLE IF EXISTS google_place_photos;

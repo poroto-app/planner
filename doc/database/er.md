@@ -79,9 +79,19 @@ erDiagram
         int time
     }
 
+    google_place_opening_hours {
+        char(36) id PK
+        string google_place_id FK
+        int open_day
+        int open_time
+        int close_day
+        int close_time
+    }
+
     places ||..|| google_places: "1:1"
     google_places ||..o{ google_place_types: "1:N"
     google_places ||..o{ google_place_photo_references: "1:N"
+    google_places ||..o{ google_place_opening_hours: "1:N"
     google_place_photo_references ||..o{ google_place_photo_attributions: "1:N"
     google_place_photo_references ||..o{ google_place_photos: "1:N"
     google_places ||..o{ google_place_reviews: "1:N"
