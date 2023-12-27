@@ -57,6 +57,7 @@ CREATE TABLE google_place_photos
     photo_reference VARCHAR(255) NOT NULL,
     width           INT          NOT NULL,
     height          INT          NOT NULL,
+    url             VARCHAR(255) NOT NULL,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
