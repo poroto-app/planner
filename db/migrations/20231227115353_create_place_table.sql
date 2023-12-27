@@ -42,8 +42,8 @@ CREATE TABLE google_place_photo_references
 (
     photo_reference   VARCHAR(255) NOT NULL,
     google_place_id   VARCHAR(255) NOT NULL,
-    width             INT,
-    height            INT,
+    width             INT          NOT NULL,
+    height            INT          NOT NULL,
     html_attributions TEXT,
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -55,8 +55,8 @@ CREATE TABLE google_place_photos
 (
     id              CHAR(36)     NOT NULL,
     photo_reference VARCHAR(255) NOT NULL,
-    width           INT,
-    height          INT,
+    width           INT          NOT NULL,
+    height          INT          NOT NULL,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
