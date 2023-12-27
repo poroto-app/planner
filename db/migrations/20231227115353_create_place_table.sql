@@ -52,11 +52,11 @@ CREATE TABLE google_place_photo_references
 
 CREATE TABLE google_place_photo_attributions
 (
-    id                CHAR(36)     NOT NULL,
-    photo_reference   VARCHAR(255) NOT NULL,
-    html_attributions TEXT         NOT NULL,
-    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id               CHAR(36)     NOT NULL,
+    photo_reference  VARCHAR(255) NOT NULL,
+    html_attribution TEXT         NOT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
