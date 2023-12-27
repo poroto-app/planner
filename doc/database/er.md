@@ -51,7 +51,6 @@ erDiagram
         string google_place_id FK
         int width
         int height
-        string html_attributions
     }
 
     google_place_photos {
@@ -60,6 +59,12 @@ erDiagram
         string url
         int width
         int height
+    }
+
+    google_place_photo_attributions {
+        char(36) id PK
+        string photo_reference FK
+        string html_attribution
     }
 
     google_place_reviews {
@@ -77,6 +82,7 @@ erDiagram
     places ||..|| google_places: "1:1"
     google_places ||..o{ google_place_types: "1:N"
     google_places ||..o{ google_place_photo_references: "1:N"
+    google_place_photo_references ||..o{ google_place_photo_attributions: "1:N"
     google_place_photo_references ||..o{ google_place_photos: "1:N"
     google_places ||..o{ google_place_reviews: "1:N"
 ```

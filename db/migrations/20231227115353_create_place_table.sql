@@ -40,15 +40,25 @@ CREATE TABLE google_place_types
 
 CREATE TABLE google_place_photo_references
 (
-    photo_reference   VARCHAR(255) NOT NULL,
-    google_place_id   VARCHAR(255) NOT NULL,
-    width             INT          NOT NULL,
-    height            INT          NOT NULL,
-    html_attributions TEXT,
-    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    photo_reference VARCHAR(255) NOT NULL,
+    google_place_id VARCHAR(255) NOT NULL,
+    width           INT          NOT NULL,
+    height          INT          NOT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (photo_reference),
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+
+CREATE TABLE google_place_photo_attributions
+(
+    id                CHAR(36)     NOT NULL,
+    photo_reference   VARCHAR(255) NOT NULL,
+    html_attributions TEXT         NOT NULL,
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
 
 CREATE TABLE google_place_photos
