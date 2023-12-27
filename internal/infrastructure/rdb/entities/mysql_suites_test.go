@@ -6,5 +6,21 @@ package entities
 import "testing"
 
 func TestUpsert(t *testing.T) {
+	t.Run("GooglePlaceOpeningPeriods", testGooglePlaceOpeningPeriodsUpsert)
+
+	t.Run("GooglePlacePhotoAttributions", testGooglePlacePhotoAttributionsUpsert)
+
+	t.Run("GooglePlacePhotoReferences", testGooglePlacePhotoReferencesUpsert)
+
+	t.Run("GooglePlacePhotos", testGooglePlacePhotosUpsert)
+
+	t.Run("GooglePlaceReviews", testGooglePlaceReviewsUpsert)
+
+	t.Run("GooglePlaceTypes", testGooglePlaceTypesUpsert)
+
+	t.Run("GooglePlaces", testGooglePlacesUpsert)
+
+	t.Run("Places", testPlacesUpsert)
+
 	t.Run("Users", testUsersUpsert)
 }
