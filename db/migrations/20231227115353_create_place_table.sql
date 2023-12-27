@@ -91,7 +91,7 @@ CREATE TABLE google_place_reviews
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );
 
-CREATE TABLE google_place_opening_hours
+CREATE TABLE google_place_opening_periods
 (
     id              CHAR(36)     NOT NULL,
     google_place_id VARCHAR(255) NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE google_place_opening_hours
 )
 
 -- +goose Down
-DROP TABLE IF EXISTS google_place_opening_hours;
+DROP TABLE IF EXISTS google_place_opening_periods;
 
 DROP TABLE IF EXISTS google_place_reviews;
 
