@@ -107,7 +107,7 @@ go test ./...
 ### Gooseのインストール
 https://pressly.github.io/goose/installation/
 ```shell
-go get -u github.com/pressly/goose/v3/cmd/goose
+go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
 ### マイグレーションの作成
@@ -122,7 +122,7 @@ DB_PASSWORD=password \
 DB_HOST=localhost:3306 \
 DB_NAME=poroto \
 goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
-````
+```
 
 ### SQLBoilerをインストール
 [volatiletech/sqlboiler #Download](https://github.com/volatiletech/sqlboiler?tab=readme-ov-file#download)
