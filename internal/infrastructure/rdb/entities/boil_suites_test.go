@@ -168,8 +168,10 @@ func TestInsert(t *testing.T) {
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("GooglePlaceOpeningPeriodToGooglePlaceUsingGooglePlace", testGooglePlaceOpeningPeriodToOneGooglePlaceUsingGooglePlace)
+	t.Run("GooglePlacePhotoAttributionToGooglePlaceUsingGooglePlace", testGooglePlacePhotoAttributionToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlacePhotoAttributionToGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference", testGooglePlacePhotoAttributionToOneGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference)
 	t.Run("GooglePlacePhotoReferenceToGooglePlaceUsingGooglePlace", testGooglePlacePhotoReferenceToOneGooglePlaceUsingGooglePlace)
+	t.Run("GooglePlacePhotoToGooglePlaceUsingGooglePlace", testGooglePlacePhotoToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlacePhotoToGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference", testGooglePlacePhotoToOneGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference)
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlace", testGooglePlaceReviewToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlace", testGooglePlaceTypeToOneGooglePlaceUsingGooglePlace)
@@ -186,7 +188,9 @@ func TestToMany(t *testing.T) {
 	t.Run("GooglePlacePhotoReferenceToPhotoReferenceGooglePlacePhotoAttributions", testGooglePlacePhotoReferenceToManyPhotoReferenceGooglePlacePhotoAttributions)
 	t.Run("GooglePlacePhotoReferenceToPhotoReferenceGooglePlacePhotos", testGooglePlacePhotoReferenceToManyPhotoReferenceGooglePlacePhotos)
 	t.Run("GooglePlaceToGooglePlaceOpeningPeriods", testGooglePlaceToManyGooglePlaceOpeningPeriods)
+	t.Run("GooglePlaceToGooglePlacePhotoAttributions", testGooglePlaceToManyGooglePlacePhotoAttributions)
 	t.Run("GooglePlaceToGooglePlacePhotoReferences", testGooglePlaceToManyGooglePlacePhotoReferences)
+	t.Run("GooglePlaceToGooglePlacePhotos", testGooglePlaceToManyGooglePlacePhotos)
 	t.Run("GooglePlaceToGooglePlaceReviews", testGooglePlaceToManyGooglePlaceReviews)
 	t.Run("GooglePlaceToGooglePlaceTypes", testGooglePlaceToManyGooglePlaceTypes)
 	t.Run("PlaceToGooglePlaces", testPlaceToManyGooglePlaces)
@@ -196,8 +200,10 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("GooglePlaceOpeningPeriodToGooglePlaceUsingGooglePlaceOpeningPeriods", testGooglePlaceOpeningPeriodToOneSetOpGooglePlaceUsingGooglePlace)
+	t.Run("GooglePlacePhotoAttributionToGooglePlaceUsingGooglePlacePhotoAttributions", testGooglePlacePhotoAttributionToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlacePhotoAttributionToGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoAttributions", testGooglePlacePhotoAttributionToOneSetOpGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference)
 	t.Run("GooglePlacePhotoReferenceToGooglePlaceUsingGooglePlacePhotoReferences", testGooglePlacePhotoReferenceToOneSetOpGooglePlaceUsingGooglePlace)
+	t.Run("GooglePlacePhotoToGooglePlaceUsingGooglePlacePhotos", testGooglePlacePhotoToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlacePhotoToGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotos", testGooglePlacePhotoToOneSetOpGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference)
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlaceReviews", testGooglePlaceReviewToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlaceTypes", testGooglePlaceTypeToOneSetOpGooglePlaceUsingGooglePlace)
@@ -222,7 +228,9 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("GooglePlacePhotoReferenceToPhotoReferenceGooglePlacePhotoAttributions", testGooglePlacePhotoReferenceToManyAddOpPhotoReferenceGooglePlacePhotoAttributions)
 	t.Run("GooglePlacePhotoReferenceToPhotoReferenceGooglePlacePhotos", testGooglePlacePhotoReferenceToManyAddOpPhotoReferenceGooglePlacePhotos)
 	t.Run("GooglePlaceToGooglePlaceOpeningPeriods", testGooglePlaceToManyAddOpGooglePlaceOpeningPeriods)
+	t.Run("GooglePlaceToGooglePlacePhotoAttributions", testGooglePlaceToManyAddOpGooglePlacePhotoAttributions)
 	t.Run("GooglePlaceToGooglePlacePhotoReferences", testGooglePlaceToManyAddOpGooglePlacePhotoReferences)
+	t.Run("GooglePlaceToGooglePlacePhotos", testGooglePlaceToManyAddOpGooglePlacePhotos)
 	t.Run("GooglePlaceToGooglePlaceReviews", testGooglePlaceToManyAddOpGooglePlaceReviews)
 	t.Run("GooglePlaceToGooglePlaceTypes", testGooglePlaceToManyAddOpGooglePlaceTypes)
 	t.Run("PlaceToGooglePlaces", testPlaceToManyAddOpGooglePlaces)

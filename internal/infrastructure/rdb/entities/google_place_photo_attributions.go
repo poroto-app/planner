@@ -25,6 +25,7 @@ import (
 // GooglePlacePhotoAttribution is an object representing the database table.
 type GooglePlacePhotoAttribution struct {
 	ID              string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	GooglePlaceID   string    `boil:"google_place_id" json:"google_place_id" toml:"google_place_id" yaml:"google_place_id"`
 	PhotoReference  string    `boil:"photo_reference" json:"photo_reference" toml:"photo_reference" yaml:"photo_reference"`
 	HTMLAttribution string    `boil:"html_attribution" json:"html_attribution" toml:"html_attribution" yaml:"html_attribution"`
 	CreatedAt       null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
@@ -36,12 +37,14 @@ type GooglePlacePhotoAttribution struct {
 
 var GooglePlacePhotoAttributionColumns = struct {
 	ID              string
+	GooglePlaceID   string
 	PhotoReference  string
 	HTMLAttribution string
 	CreatedAt       string
 	UpdatedAt       string
 }{
 	ID:              "id",
+	GooglePlaceID:   "google_place_id",
 	PhotoReference:  "photo_reference",
 	HTMLAttribution: "html_attribution",
 	CreatedAt:       "created_at",
@@ -50,12 +53,14 @@ var GooglePlacePhotoAttributionColumns = struct {
 
 var GooglePlacePhotoAttributionTableColumns = struct {
 	ID              string
+	GooglePlaceID   string
 	PhotoReference  string
 	HTMLAttribution string
 	CreatedAt       string
 	UpdatedAt       string
 }{
 	ID:              "google_place_photo_attributions.id",
+	GooglePlaceID:   "google_place_photo_attributions.google_place_id",
 	PhotoReference:  "google_place_photo_attributions.photo_reference",
 	HTMLAttribution: "google_place_photo_attributions.html_attribution",
 	CreatedAt:       "google_place_photo_attributions.created_at",
@@ -66,12 +71,14 @@ var GooglePlacePhotoAttributionTableColumns = struct {
 
 var GooglePlacePhotoAttributionWhere = struct {
 	ID              whereHelperstring
+	GooglePlaceID   whereHelperstring
 	PhotoReference  whereHelperstring
 	HTMLAttribution whereHelperstring
 	CreatedAt       whereHelpernull_Time
 	UpdatedAt       whereHelpernull_Time
 }{
 	ID:              whereHelperstring{field: "`google_place_photo_attributions`.`id`"},
+	GooglePlaceID:   whereHelperstring{field: "`google_place_photo_attributions`.`google_place_id`"},
 	PhotoReference:  whereHelperstring{field: "`google_place_photo_attributions`.`photo_reference`"},
 	HTMLAttribution: whereHelperstring{field: "`google_place_photo_attributions`.`html_attribution`"},
 	CreatedAt:       whereHelpernull_Time{field: "`google_place_photo_attributions`.`created_at`"},
@@ -80,19 +87,29 @@ var GooglePlacePhotoAttributionWhere = struct {
 
 // GooglePlacePhotoAttributionRels is where relationship names are stored.
 var GooglePlacePhotoAttributionRels = struct {
+	GooglePlace                             string
 	PhotoReferenceGooglePlacePhotoReference string
 }{
+	GooglePlace:                             "GooglePlace",
 	PhotoReferenceGooglePlacePhotoReference: "PhotoReferenceGooglePlacePhotoReference",
 }
 
 // googlePlacePhotoAttributionR is where relationships are stored.
 type googlePlacePhotoAttributionR struct {
+	GooglePlace                             *GooglePlace               `boil:"GooglePlace" json:"GooglePlace" toml:"GooglePlace" yaml:"GooglePlace"`
 	PhotoReferenceGooglePlacePhotoReference *GooglePlacePhotoReference `boil:"PhotoReferenceGooglePlacePhotoReference" json:"PhotoReferenceGooglePlacePhotoReference" toml:"PhotoReferenceGooglePlacePhotoReference" yaml:"PhotoReferenceGooglePlacePhotoReference"`
 }
 
 // NewStruct creates a new relationship struct
 func (*googlePlacePhotoAttributionR) NewStruct() *googlePlacePhotoAttributionR {
 	return &googlePlacePhotoAttributionR{}
+}
+
+func (r *googlePlacePhotoAttributionR) GetGooglePlace() *GooglePlace {
+	if r == nil {
+		return nil
+	}
+	return r.GooglePlace
 }
 
 func (r *googlePlacePhotoAttributionR) GetPhotoReferenceGooglePlacePhotoReference() *GooglePlacePhotoReference {
@@ -106,8 +123,8 @@ func (r *googlePlacePhotoAttributionR) GetPhotoReferenceGooglePlacePhotoReferenc
 type googlePlacePhotoAttributionL struct{}
 
 var (
-	googlePlacePhotoAttributionAllColumns            = []string{"id", "photo_reference", "html_attribution", "created_at", "updated_at"}
-	googlePlacePhotoAttributionColumnsWithoutDefault = []string{"photo_reference", "html_attribution"}
+	googlePlacePhotoAttributionAllColumns            = []string{"id", "google_place_id", "photo_reference", "html_attribution", "created_at", "updated_at"}
+	googlePlacePhotoAttributionColumnsWithoutDefault = []string{"google_place_id", "photo_reference", "html_attribution"}
 	googlePlacePhotoAttributionColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	googlePlacePhotoAttributionPrimaryKeyColumns     = []string{"id"}
 	googlePlacePhotoAttributionGeneratedColumns      = []string{}
@@ -391,6 +408,17 @@ func (q googlePlacePhotoAttributionQuery) Exists(ctx context.Context, exec boil.
 	return count > 0, nil
 }
 
+// GooglePlace pointed to by the foreign key.
+func (o *GooglePlacePhotoAttribution) GooglePlace(mods ...qm.QueryMod) googlePlaceQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("`google_place_id` = ?", o.GooglePlaceID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return GooglePlaces(queryMods...)
+}
+
 // PhotoReferenceGooglePlacePhotoReference pointed to by the foreign key.
 func (o *GooglePlacePhotoAttribution) PhotoReferenceGooglePlacePhotoReference(mods ...qm.QueryMod) googlePlacePhotoReferenceQuery {
 	queryMods := []qm.QueryMod{
@@ -400,6 +428,126 @@ func (o *GooglePlacePhotoAttribution) PhotoReferenceGooglePlacePhotoReference(mo
 	queryMods = append(queryMods, mods...)
 
 	return GooglePlacePhotoReferences(queryMods...)
+}
+
+// LoadGooglePlace allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (googlePlacePhotoAttributionL) LoadGooglePlace(ctx context.Context, e boil.ContextExecutor, singular bool, maybeGooglePlacePhotoAttribution interface{}, mods queries.Applicator) error {
+	var slice []*GooglePlacePhotoAttribution
+	var object *GooglePlacePhotoAttribution
+
+	if singular {
+		var ok bool
+		object, ok = maybeGooglePlacePhotoAttribution.(*GooglePlacePhotoAttribution)
+		if !ok {
+			object = new(GooglePlacePhotoAttribution)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeGooglePlacePhotoAttribution)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeGooglePlacePhotoAttribution))
+			}
+		}
+	} else {
+		s, ok := maybeGooglePlacePhotoAttribution.(*[]*GooglePlacePhotoAttribution)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeGooglePlacePhotoAttribution)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeGooglePlacePhotoAttribution))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &googlePlacePhotoAttributionR{}
+		}
+		args = append(args, object.GooglePlaceID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &googlePlacePhotoAttributionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.GooglePlaceID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.GooglePlaceID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`google_places`),
+		qm.WhereIn(`google_places.google_place_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load GooglePlace")
+	}
+
+	var resultSlice []*GooglePlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice GooglePlace")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for google_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for google_places")
+	}
+
+	if len(googlePlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.GooglePlace = foreign
+		if foreign.R == nil {
+			foreign.R = &googlePlaceR{}
+		}
+		foreign.R.GooglePlacePhotoAttributions = append(foreign.R.GooglePlacePhotoAttributions, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.GooglePlaceID == foreign.GooglePlaceID {
+				local.R.GooglePlace = foreign
+				if foreign.R == nil {
+					foreign.R = &googlePlaceR{}
+				}
+				foreign.R.GooglePlacePhotoAttributions = append(foreign.R.GooglePlacePhotoAttributions, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadPhotoReferenceGooglePlacePhotoReference allows an eager lookup of values, cached into the
@@ -517,6 +665,53 @@ func (googlePlacePhotoAttributionL) LoadPhotoReferenceGooglePlacePhotoReference(
 				break
 			}
 		}
+	}
+
+	return nil
+}
+
+// SetGooglePlace of the googlePlacePhotoAttribution to the related item.
+// Sets o.R.GooglePlace to related.
+// Adds o to related.R.GooglePlacePhotoAttributions.
+func (o *GooglePlacePhotoAttribution) SetGooglePlace(ctx context.Context, exec boil.ContextExecutor, insert bool, related *GooglePlace) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE `google_place_photo_attributions` SET %s WHERE %s",
+		strmangle.SetParamNames("`", "`", 0, []string{"google_place_id"}),
+		strmangle.WhereClause("`", "`", 0, googlePlacePhotoAttributionPrimaryKeyColumns),
+	)
+	values := []interface{}{related.GooglePlaceID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.GooglePlaceID = related.GooglePlaceID
+	if o.R == nil {
+		o.R = &googlePlacePhotoAttributionR{
+			GooglePlace: related,
+		}
+	} else {
+		o.R.GooglePlace = related
+	}
+
+	if related.R == nil {
+		related.R = &googlePlaceR{
+			GooglePlacePhotoAttributions: GooglePlacePhotoAttributionSlice{o},
+		}
+	} else {
+		related.R.GooglePlacePhotoAttributions = append(related.R.GooglePlacePhotoAttributions, o)
 	}
 
 	return nil

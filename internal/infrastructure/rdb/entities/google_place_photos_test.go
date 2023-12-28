@@ -494,6 +494,67 @@ func testGooglePlacePhotosInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testGooglePlacePhotoToOneGooglePlaceUsingGooglePlace(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local GooglePlacePhoto
+	var foreign GooglePlace
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, googlePlacePhotoDBTypes, false, googlePlacePhotoColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooglePlacePhoto struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, googlePlaceDBTypes, false, googlePlaceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooglePlace struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	local.GooglePlaceID = foreign.GooglePlaceID
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.GooglePlace().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.GooglePlaceID != foreign.GooglePlaceID {
+		t.Errorf("want: %v, got %v", foreign.GooglePlaceID, check.GooglePlaceID)
+	}
+
+	ranAfterSelectHook := false
+	AddGooglePlaceHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *GooglePlace) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := GooglePlacePhotoSlice{&local}
+	if err = local.L.LoadGooglePlace(ctx, tx, false, (*[]*GooglePlacePhoto)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.GooglePlace == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.GooglePlace = nil
+	if err = local.L.LoadGooglePlace(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.GooglePlace == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
 func testGooglePlacePhotoToOneGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
@@ -555,6 +616,63 @@ func testGooglePlacePhotoToOneGooglePlacePhotoReferenceUsingPhotoReferenceGoogle
 	}
 }
 
+func testGooglePlacePhotoToOneSetOpGooglePlaceUsingGooglePlace(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a GooglePlacePhoto
+	var b, c GooglePlace
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, googlePlacePhotoDBTypes, false, strmangle.SetComplement(googlePlacePhotoPrimaryKeyColumns, googlePlacePhotoColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, googlePlaceDBTypes, false, strmangle.SetComplement(googlePlacePrimaryKeyColumns, googlePlaceColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, googlePlaceDBTypes, false, strmangle.SetComplement(googlePlacePrimaryKeyColumns, googlePlaceColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*GooglePlace{&b, &c} {
+		err = a.SetGooglePlace(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.GooglePlace != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.GooglePlacePhotos[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.GooglePlaceID != x.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.GooglePlaceID))
+		reflect.Indirect(reflect.ValueOf(&a.GooglePlaceID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.GooglePlaceID != x.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID, x.GooglePlaceID)
+		}
+	}
+}
 func testGooglePlacePhotoToOneSetOpGooglePlacePhotoReferenceUsingPhotoReferenceGooglePlacePhotoReference(t *testing.T) {
 	var err error
 
@@ -687,7 +805,7 @@ func testGooglePlacePhotosSelect(t *testing.T) {
 }
 
 var (
-	googlePlacePhotoDBTypes = map[string]string{`ID`: `char`, `PhotoReference`: `varchar`, `Width`: `int`, `Height`: `int`, `URL`: `varchar`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	googlePlacePhotoDBTypes = map[string]string{`ID`: `char`, `GooglePlaceID`: `varchar`, `PhotoReference`: `varchar`, `Width`: `int`, `Height`: `int`, `URL`: `varchar`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_                       = bytes.MinRead
 )
 

@@ -572,6 +572,84 @@ func testGooglePlaceToManyGooglePlaceOpeningPeriods(t *testing.T) {
 	}
 }
 
+func testGooglePlaceToManyGooglePlacePhotoAttributions(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a GooglePlace
+	var b, c GooglePlacePhotoAttribution
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, googlePlaceDBTypes, true, googlePlaceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooglePlace struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, googlePlacePhotoAttributionDBTypes, false, googlePlacePhotoAttributionColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, googlePlacePhotoAttributionDBTypes, false, googlePlacePhotoAttributionColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.GooglePlaceID = a.GooglePlaceID
+	c.GooglePlaceID = a.GooglePlaceID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.GooglePlacePhotoAttributions().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.GooglePlaceID == b.GooglePlaceID {
+			bFound = true
+		}
+		if v.GooglePlaceID == c.GooglePlaceID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := GooglePlaceSlice{&a}
+	if err = a.L.LoadGooglePlacePhotoAttributions(ctx, tx, false, (*[]*GooglePlace)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.GooglePlacePhotoAttributions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.GooglePlacePhotoAttributions = nil
+	if err = a.L.LoadGooglePlacePhotoAttributions(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.GooglePlacePhotoAttributions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testGooglePlaceToManyGooglePlacePhotoReferences(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -642,6 +720,84 @@ func testGooglePlaceToManyGooglePlacePhotoReferences(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := len(a.R.GooglePlacePhotoReferences); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testGooglePlaceToManyGooglePlacePhotos(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a GooglePlace
+	var b, c GooglePlacePhoto
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, googlePlaceDBTypes, true, googlePlaceColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize GooglePlace struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, googlePlacePhotoDBTypes, false, googlePlacePhotoColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, googlePlacePhotoDBTypes, false, googlePlacePhotoColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.GooglePlaceID = a.GooglePlaceID
+	c.GooglePlaceID = a.GooglePlaceID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.GooglePlacePhotos().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.GooglePlaceID == b.GooglePlaceID {
+			bFound = true
+		}
+		if v.GooglePlaceID == c.GooglePlaceID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := GooglePlaceSlice{&a}
+	if err = a.L.LoadGooglePlacePhotos(ctx, tx, false, (*[]*GooglePlace)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.GooglePlacePhotos); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.GooglePlacePhotos = nil
+	if err = a.L.LoadGooglePlacePhotos(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.GooglePlacePhotos); got != 2 {
 		t.Error("number of eager loaded records wrong, got:", got)
 	}
 
@@ -881,6 +1037,81 @@ func testGooglePlaceToManyAddOpGooglePlaceOpeningPeriods(t *testing.T) {
 		}
 	}
 }
+func testGooglePlaceToManyAddOpGooglePlacePhotoAttributions(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a GooglePlace
+	var b, c, d, e GooglePlacePhotoAttribution
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, googlePlaceDBTypes, false, strmangle.SetComplement(googlePlacePrimaryKeyColumns, googlePlaceColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*GooglePlacePhotoAttribution{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, googlePlacePhotoAttributionDBTypes, false, strmangle.SetComplement(googlePlacePhotoAttributionPrimaryKeyColumns, googlePlacePhotoAttributionColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*GooglePlacePhotoAttribution{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddGooglePlacePhotoAttributions(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.GooglePlaceID != first.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID, first.GooglePlaceID)
+		}
+		if a.GooglePlaceID != second.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID, second.GooglePlaceID)
+		}
+
+		if first.R.GooglePlace != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.GooglePlace != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.GooglePlacePhotoAttributions[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.GooglePlacePhotoAttributions[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.GooglePlacePhotoAttributions().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testGooglePlaceToManyAddOpGooglePlacePhotoReferences(t *testing.T) {
 	var err error
 
@@ -948,6 +1179,81 @@ func testGooglePlaceToManyAddOpGooglePlacePhotoReferences(t *testing.T) {
 		}
 
 		count, err := a.GooglePlacePhotoReferences().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testGooglePlaceToManyAddOpGooglePlacePhotos(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a GooglePlace
+	var b, c, d, e GooglePlacePhoto
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, googlePlaceDBTypes, false, strmangle.SetComplement(googlePlacePrimaryKeyColumns, googlePlaceColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*GooglePlacePhoto{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, googlePlacePhotoDBTypes, false, strmangle.SetComplement(googlePlacePhotoPrimaryKeyColumns, googlePlacePhotoColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*GooglePlacePhoto{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddGooglePlacePhotos(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.GooglePlaceID != first.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID, first.GooglePlaceID)
+		}
+		if a.GooglePlaceID != second.GooglePlaceID {
+			t.Error("foreign key was wrong value", a.GooglePlaceID, second.GooglePlaceID)
+		}
+
+		if first.R.GooglePlace != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.GooglePlace != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.GooglePlacePhotos[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.GooglePlacePhotos[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.GooglePlacePhotos().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
