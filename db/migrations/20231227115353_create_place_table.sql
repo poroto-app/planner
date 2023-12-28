@@ -61,17 +61,20 @@ CREATE TABLE google_place_photo_references
 CREATE TABLE google_place_photo_attributions
 (
     id               CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id  VARCHAR(255) NOT NULL,
     photo_reference  VARCHAR(255) NOT NULL,
     html_attribution TEXT         NOT NULL,
     created_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id),
     FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
 
 CREATE TABLE google_place_photos
 (
     id              CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id VARCHAR(255) NOT NULL,
     photo_reference VARCHAR(255) NOT NULL,
     width           INT          NOT NULL,
     height          INT          NOT NULL,
@@ -79,6 +82,7 @@ CREATE TABLE google_place_photos
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id),
     FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
 

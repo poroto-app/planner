@@ -56,6 +56,7 @@ erDiagram
 
     google_place_photos {
         char(36) id PK
+        string google_place_id FK
         string photo_reference FK
         string url
         int width
@@ -64,6 +65,7 @@ erDiagram
 
     google_place_photo_attributions {
         char(36) id PK
+        char(36) google_place_id FK
         string photo_reference FK
         string html_attribution
     }
