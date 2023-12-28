@@ -18,13 +18,21 @@ CREATE TABLE google_places
     price_level        INT,
     rating             FLOAT,
     user_ratings_total INT,
-    location           POINT        NOT NULL,
+    latitude           DOUBLE       NOT NULL,
+    longitude          DOUBLE       NOT NULL,
+    location           POINT        NOT NULL COMMENT "This column value will be set by the trigger(google_places_before_insert)",
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (google_place_id),
     FOREIGN KEY (place_id) REFERENCES places (id),
     SPATIAL INDEX (location)
 );
+
+CREATE TRIGGER google_places_before_insert
+    BEFORE INSERT
+    ON google_places
+    FOR EACH ROW
+    SET NEW.location = POINT(NEW.latitude, NEW.longitude);
 
 CREATE TABLE google_place_types
 (
@@ -117,6 +125,8 @@ DROP TABLE IF EXISTS google_place_photo_attributions;
 DROP TABLE IF EXISTS google_place_photo_references;
 
 DROP TABLE IF EXISTS google_place_types;
+
+DROP TRIGGER IF EXISTS google_places_before_insert;
 
 DROP TABLE IF EXISTS google_places;
 
