@@ -6,11 +6,12 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
-func NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference) entities.GooglePlacePhotoAttributionSlice {
+func NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) entities.GooglePlacePhotoAttributionSlice {
 	photoAttributions := make(entities.GooglePlacePhotoAttributionSlice, len(googlePlacePhotoReference.HTMLAttributions))
 	for i, attribution := range googlePlacePhotoReference.HTMLAttributions {
 		photoAttributions[i] = &entities.GooglePlacePhotoAttribution{
 			ID:              uuid.New().String(),
+			GooglePlaceID:   googlePlaceId,
 			PhotoReference:  googlePlacePhotoReference.PhotoReference,
 			HTMLAttribution: attribution,
 		}

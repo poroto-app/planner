@@ -9,6 +9,7 @@ func NewGooglePlacePhotoReferenceFromEntity(
 	googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference,
 	googlePlacePhotoAttributionEntities entities.GooglePlacePhotoAttributionSlice,
 ) models.GooglePlacePhotoReference {
+	// HTMLAttributionsを取得
 	var googlePlacePhotoStrAttributions []string
 	for _, googlePlacePhotoAttributionEntity := range googlePlacePhotoAttributionEntities {
 		if googlePlacePhotoAttributionEntity == nil {

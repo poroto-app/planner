@@ -35,7 +35,7 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.Google
 			continue
 		}
 
-		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlacePhotoReferenceEntity.R.PhotoReferenceGooglePlacePhotoAttributions)
+		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions())
 		googlePlacePhotoReferences = append(googlePlacePhotoReferences, gpr)
 	}
 

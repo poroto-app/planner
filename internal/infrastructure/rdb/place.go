@@ -38,11 +38,9 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 				qm.Where(entities.GooglePlaceColumns.GooglePlaceID, googlePlace.PlaceId),
 				qm.Load(entities.GooglePlaceRels.Place),
 				qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
-				qm.Load(
-					entities.GooglePlaceRels.GooglePlacePhotoReferences,
-					qm.Load(entities.GooglePlacePhotoReferenceRels.PhotoReferenceGooglePlacePhotos),
-					qm.Load(entities.GooglePlacePhotoReferenceRels.PhotoReferenceGooglePlacePhotoAttributions),
-				),
+				qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
+				qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
+				qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
 				qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
 				qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
 			).One(ctx, tx)
@@ -207,7 +205,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 			}
 
 			// HTMLAttributionを保存
-			googlePlacePhotoAttributionEntities := factory.NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference)
+			googlePlacePhotoAttributionEntities := factory.NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference, googlePlaceId)
 			if err := googlePlacePhotoReferenceEntity.AddPhotoReferenceGooglePlacePhotoAttributions(ctx, tx, true, googlePlacePhotoAttributionEntities...); err != nil {
 				return fmt.Errorf("failed to insert google place photo attribution: %w", err)
 			}
@@ -266,7 +264,7 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 		}
 
 		// HTMLAttributionを保存
-		googlePlacePhotoAttributionEntities := factory.NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference)
+		googlePlacePhotoAttributionEntities := factory.NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference, input.GooglePlaceEntity.GooglePlaceID)
 		if err := googlePlacePhotoReferenceEntity.AddPhotoReferenceGooglePlacePhotoAttributions(ctx, tx, true, googlePlacePhotoAttributionEntities...); err != nil {
 			return nil, fmt.Errorf("failed to insert google place photo attribution: %w", err)
 		}
@@ -276,7 +274,7 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 		if !ok {
 			continue
 		}
-		if err := p.addGooglePlacePhotosTx(ctx, tx, googlePlacePhoto, *googlePlacePhotoReferenceEntity); err != nil {
+		if err := p.addGooglePlacePhotosTx(ctx, tx, googlePlacePhoto, *googlePlacePhotoReferenceEntity, input.GooglePlaceEntity.GooglePlaceID); err != nil {
 			return nil, fmt.Errorf("failed to insert google place photo: %w", err)
 		}
 	}
@@ -285,7 +283,7 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 }
 
 // addGooglePlacePhotosTx google_place_photo_reference に google_place_photo を紐付けする
-func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx, googlePlacePhoto models.GooglePlacePhoto, googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference) error {
+func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx, googlePlacePhoto models.GooglePlacePhoto, googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference, googlePlaceId string) error {
 	if googlePlacePhotoReferenceEntity.R == nil {
 		return fmt.Errorf("google place photo reference entity is nil")
 	}
@@ -295,7 +293,7 @@ func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx,
 		return nil
 	}
 
-	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto)
+	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto, googlePlaceId)
 	if err := googlePlacePhotoReferenceEntity.AddPhotoReferenceGooglePlacePhotos(ctx, tx, true, googlePlacePhotoEntities...); err != nil {
 		return fmt.Errorf("failed to insert google place photo: %w", err)
 	}

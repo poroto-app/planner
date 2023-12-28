@@ -62,13 +62,14 @@ func NewGooglePlacePhotoFromEntity(
 	}
 }
 
-func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto) entities.GooglePlacePhotoSlice {
+func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) entities.GooglePlacePhotoSlice {
 	var googlePlacePhotoEntities entities.GooglePlacePhotoSlice
 
 	if googlePlacePhoto.Small != nil {
 		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
+			GooglePlaceID:  googlePlaceId,
 			Width:          googlePlacePhoto.Width,
 			Height:         googlePlacePhoto.Height,
 			URL:            *googlePlacePhoto.Small,
@@ -79,6 +80,7 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
+			GooglePlaceID:  googlePlaceId,
 			Width:          googlePlacePhoto.Width,
 			Height:         googlePlacePhoto.Height,
 			URL:            *googlePlacePhoto.Large,
