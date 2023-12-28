@@ -32,7 +32,7 @@ CREATE TRIGGER google_places_before_insert
     BEFORE INSERT
     ON google_places
     FOR EACH ROW
-    SET NEW.location = POINT(NEW.latitude, NEW.longitude);
+    SET NEW.location = POINT(NEW.longitude, NEW.latitude);
 
 CREATE TABLE google_place_types
 (
