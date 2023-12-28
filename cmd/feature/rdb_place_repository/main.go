@@ -200,6 +200,15 @@ func main() {
 	if diff := cmp.Diff(testGooglePlace, place.Google); diff != "" {
 		log.Printf("+want, -got:\n%s", diff)
 	}
+
+	placeByGooglePlaceId, err := repository.FindByGooglePlaceID(context.Background(), testGooglePlace.PlaceId)
+	if err != nil {
+		panic(err)
+	}
+
+	if diff := cmp.Diff(testGooglePlace, placeByGooglePlaceId.Google); diff != "" {
+		log.Printf("+want, -got:\n%s", diff)
+	}
 }
 
 func cleanup(ctx context.Context, db *sql.DB) {

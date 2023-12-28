@@ -129,8 +129,30 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 }
 
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
-	//TODO implement me
-	panic("implement me")
+	googlePlaceEntity, err := entities.GooglePlaces(
+		entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceID),
+		qm.Load(entities.GooglePlaceRels.Place),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	).One(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find google place: %w", err)
+	}
+
+	if googlePlaceEntity == nil {
+		return nil, nil
+	}
+
+	place, err := factory.NewPlaceFromGooglePlaceEntity(*googlePlaceEntity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
+	}
+
+	return place, nil
 }
 
 func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
