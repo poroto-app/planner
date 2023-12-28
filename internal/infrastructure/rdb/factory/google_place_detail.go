@@ -17,6 +17,10 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.Google
 			continue
 		}
 
+		if googlePlaceReviewEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+			continue
+		}
+
 		googlePlaceReviews = append(googlePlaceReviews, NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity))
 	}
 
@@ -26,12 +30,20 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.Google
 			continue
 		}
 
+		if googlePlaceOpeningPeriodEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+			continue
+		}
+
 		googlePlaceOpeningPeriods = append(googlePlaceOpeningPeriods, NewGooglePlaceOpeningPeriodFromEntity(*googlePlaceOpeningPeriodEntity))
 	}
 
 	var googlePlacePhotoReferences []models.GooglePlacePhotoReference
 	for _, googlePlacePhotoReferenceEntity := range googlePlaceEntity.R.GetGooglePlacePhotoReferences() {
 		if googlePlacePhotoReferenceEntity == nil {
+			continue
+		}
+
+		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
 			continue
 		}
 

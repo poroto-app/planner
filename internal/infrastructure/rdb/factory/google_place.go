@@ -19,6 +19,9 @@ func NewGooglePlaceFromEntity(googlePlaceEntity entities.GooglePlace) (*models.G
 		if googlePlacePhotoReferenceEntity == nil {
 			continue
 		}
+		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+			continue
+		}
 		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions())
 		googlePlacePhotoReferences = append(googlePlacePhotoReferences, gpr)
 	}
@@ -46,6 +49,9 @@ func NewGooglePlaceFromEntity(googlePlaceEntity entities.GooglePlace) (*models.G
 	var googlePlaceReviews []models.GooglePlaceReview
 	for _, googlePlaceReviewEntity := range googlePlaceEntity.R.GetGooglePlaceReviews() {
 		if googlePlaceReviewEntity == nil {
+			continue
+		}
+		if googlePlaceReviewEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
 			continue
 		}
 		googlePlaceReviews = append(googlePlaceReviews, NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity))
