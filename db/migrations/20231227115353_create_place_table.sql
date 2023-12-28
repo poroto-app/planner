@@ -18,12 +18,12 @@ CREATE TABLE google_places
     price_level        INT,
     rating             FLOAT,
     user_ratings_total INT,
-    latitude           DOUBLE       NOT NULL,
-    longitude          DOUBLE       NOT NULL,
+    location           POINT        NOT NULL,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (google_place_id),
-    FOREIGN KEY (place_id) REFERENCES places (id)
+    FOREIGN KEY (place_id) REFERENCES places (id),
+    SPATIAL INDEX (location)
 );
 
 CREATE TABLE google_place_types
