@@ -11,6 +11,10 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 )
 
+const (
+	defaultMaxDistance = 1000 * 5
+)
+
 type PlaceRepository struct {
 	db *sql.DB
 }
@@ -124,8 +128,38 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 }
 
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error) {
-	//TODO implement me
-	panic("implement me")
+	entities, err := entities.GooglePlaces(
+		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, defaultMaxDistance),
+		qm.Load(entities.GooglePlaceRels.Place),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find google places: %w", err)
+	}
+
+	var places []models.Place
+	for _, entity := range entities {
+		if entity == nil {
+			continue
+		}
+
+		place, err := factory.NewPlaceFromGooglePlaceEntity(*entity)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
+		}
+		if place == nil {
+			continue
+		}
+
+		places = append(places, *place)
+	}
+
+	return places, nil
 }
 
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
