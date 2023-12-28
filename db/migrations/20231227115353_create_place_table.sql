@@ -3,8 +3,8 @@ CREATE TABLE places
 (
     id         CHAR(36)     NOT NULL DEFAULT (UUID()),
     name       VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
 
@@ -18,8 +18,8 @@ CREATE TABLE google_places
     price_level        INT,
     rating             FLOAT,
     user_ratings_total INT,
-    latitude           FLOAT        NOT NULL,
-    longitude          FLOAT        NOT NULL,
+    latitude           DOUBLE       NOT NULL,
+    longitude          DOUBLE       NOT NULL,
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (google_place_id),
@@ -32,8 +32,8 @@ CREATE TABLE google_place_types
     google_place_id VARCHAR(255) NOT NULL,
     type            VARCHAR(255) NOT NULL,
     order_num       INT          NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );
@@ -55,8 +55,8 @@ CREATE TABLE google_place_photo_attributions
     id               CHAR(36)     NOT NULL DEFAULT (UUID()),
     photo_reference  VARCHAR(255) NOT NULL,
     html_attribution TEXT         NOT NULL,
-    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
@@ -68,8 +68,8 @@ CREATE TABLE google_place_photos
     width           INT          NOT NULL,
     height          INT          NOT NULL,
     url             VARCHAR(255) NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
 );
@@ -85,8 +85,8 @@ CREATE TABLE google_place_reviews
     rating                   INT,
     text                     TEXT,
     time                     INT,
-    created_at               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at               TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at               TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at               TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );
@@ -99,8 +99,8 @@ CREATE TABLE google_place_opening_periods
     open_time       CHAR(4)      NOT NULL,
     close_day       INT          NOT NULL,
     close_time      CHAR(4)      NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
 );

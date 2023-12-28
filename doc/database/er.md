@@ -35,8 +35,8 @@ erDiagram
         int price_level
         float rating
         int user_ratings_total
-        float latitude
-        float longitude
+        double latitude
+        double longitude
     }
 
     google_place_types {
