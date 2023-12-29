@@ -1,11 +1,11 @@
 package array
 
-func Find[T any](slice []T, condition func(T) bool) (T, bool) {
-	var zero T
+func Filter[T any](slice []T, condition func(T) bool) []T {
+	var filtered []T
 	for _, v := range slice {
 		if condition(v) {
-			return v, true
+			filtered = append(filtered, v)
 		}
 	}
-	return zero, false
+	return filtered
 }
