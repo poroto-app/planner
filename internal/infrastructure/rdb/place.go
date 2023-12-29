@@ -225,32 +225,12 @@ func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceI
 		}
 
 		for _, photo := range photos {
-			googlePlacePhotoReferenceEntity, ok := array.Find(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
-				if googlePlacePhotoReferenceEntity == nil {
-					return false
-				}
-				return googlePlacePhotoReferenceEntity.PhotoReference == photo.PhotoReference
-			})
-
-			if !ok || googlePlacePhotoReferenceEntity == nil {
-				return fmt.Errorf("failed to find google place photo reference entity")
-			}
-
-			// すでに保存されている場合はスキップ
-			if _, ok := array.Find(googlePlaceEntity.R.GooglePlacePhotos, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) bool {
-				if googlePlacePhotoEntity == nil {
-					return false
-				}
-				if googlePlacePhotoEntity.PhotoReference != photo.PhotoReference {
-					return false
-				}
-				return googlePlacePhotoEntity.Width == photo.Width && googlePlacePhotoEntity.Height == photo.Height
-			}); ok {
-				p.logger.Debug("skip insert google place photo because already exists", zap.String("photo_reference", photo.PhotoReference))
-				continue
-			}
-
-			if err := p.addGooglePlacePhotosTx(ctx, tx, photo, *googlePlacePhotoReferenceEntity, googlePlaceId); err != nil {
+			if err := p.addGooglePlacePhotosTx(ctx, tx, addGooglePlacePhotosTxInput{
+				GooglePlaceId:                  googlePlaceId,
+				GooglePlacePhotoReferenceSlice: googlePlacePhotoReferenceEntities,
+				GooglePlacePhoto:               photo,
+				SavedGooglePlacePhotoSlice:     googlePlaceEntity.R.GooglePlacePhotos,
+			}); err != nil {
 				return fmt.Errorf("failed to insert google place photo: %w", err)
 			}
 		}
@@ -406,7 +386,12 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 		if !ok {
 			continue
 		}
-		if err := p.addGooglePlacePhotosTx(ctx, tx, googlePlacePhoto, *googlePlacePhotoReferenceEntity, input.GooglePlaceEntity.GooglePlaceID); err != nil {
+		if err := p.addGooglePlacePhotosTx(ctx, tx, addGooglePlacePhotosTxInput{
+			GooglePlaceId:                  input.GooglePlaceEntity.GooglePlaceID,
+			GooglePlacePhotoReferenceSlice: googlePlacePhotoReferenceEntities,
+			GooglePlacePhoto:               googlePlacePhoto,
+			SavedGooglePlacePhotoSlice:     input.GooglePlaceEntity.R.GooglePlacePhotos,
+		}); err != nil {
 			return nil, fmt.Errorf("failed to insert google place photo: %w", err)
 		}
 	}
@@ -414,18 +399,52 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 	return &googlePlacePhotoReferenceEntities, nil
 }
 
+type addGooglePlacePhotosTxInput struct {
+	GooglePlaceId                  string
+	GooglePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice
+	GooglePlacePhoto               models.GooglePlacePhoto
+	SavedGooglePlacePhotoSlice     entities.GooglePlacePhotoSlice
+}
+
 // addGooglePlacePhotosTx google_place_photo_reference に google_place_photo を紐付けする
-func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx, googlePlacePhoto models.GooglePlacePhoto, googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference, googlePlaceId string) error {
-	if googlePlacePhotoReferenceEntity.R == nil {
-		return fmt.Errorf("google place photo reference entity is nil")
+// TODO:　複数の写真を一気に保存できるようにする
+func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx, input addGooglePlacePhotosTxInput) error {
+	googlePlacePhotoReferenceEntity, ok := array.Find(input.GooglePlacePhotoReferenceSlice, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
+		if googlePlacePhotoReferenceEntity == nil {
+			return false
+		}
+		return googlePlacePhotoReferenceEntity.PhotoReference == input.GooglePlacePhoto.PhotoReference
+	})
+
+	if !ok || googlePlacePhotoReferenceEntity == nil {
+		return fmt.Errorf("failed to find google place photo reference entity")
 	}
 
-	// すでに紐付けがある場合は何もしない
-	if len(googlePlacePhotoReferenceEntity.R.PhotoReferenceGooglePlacePhotos) > 0 {
-		return nil
-	}
+	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(input.GooglePlacePhoto, input.GooglePlaceId)
 
-	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto, googlePlaceId)
+	googlePlacePhotoEntities = array.Filter(input.SavedGooglePlacePhotoSlice, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) bool {
+		if googlePlacePhotoEntity == nil {
+			return false
+		}
+
+		// すでに保存されている場合はスキップ
+		if _, ok := array.Find(input.SavedGooglePlacePhotoSlice, func(savedGooglePlacePhotoEntity *entities.GooglePlacePhoto) bool {
+			if savedGooglePlacePhotoEntity == nil {
+				return false
+			}
+			return savedGooglePlacePhotoEntity.Width == googlePlacePhotoEntity.Width && savedGooglePlacePhotoEntity.Height == googlePlacePhotoEntity.Height
+		}); ok {
+			p.logger.Debug(
+				"skip insert google place photo because already exists",
+				zap.String("photo_reference", googlePlacePhotoEntity.PhotoReference),
+				zap.Int("width", googlePlacePhotoEntity.Width),
+				zap.Int("height", googlePlacePhotoEntity.Height),
+			)
+			return false
+		}
+		return true
+	})
+
 	if err := googlePlacePhotoReferenceEntity.AddPhotoReferenceGooglePlacePhotos(ctx, tx, true, googlePlacePhotoEntities...); err != nil {
 		return fmt.Errorf("failed to insert google place photo: %w", err)
 	}
