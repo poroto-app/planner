@@ -92,14 +92,27 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			return fmt.Errorf("failed to insert google place: %w", err)
 		}
 
-		// GooglePlacePhotoReference, GooglePlacePhoto, GooglePlacePhotoAttributionを保存
+		// GooglePlacePhotoReference, GooglePlacePhotoAttributionを保存
 		if _, err := p.saveGooglePlacePhotoReferenceTx(ctx, tx, saveGooglePlacePhotoReferenceTxInput{
 			GooglePlacePhotoReferences: googlePlace.PhotoReferences,
 			GooglePlaceDetail:          googlePlace.PlaceDetail,
 			GooglePlaceEntity:          googlePlaceEntity,
-			GooglePlacePhotos:          googlePlace.Photos,
 		}); err != nil {
 			return fmt.Errorf("failed to insert google place photo reference: %w", err)
+		}
+
+		// GooglePlacePhotoを保存
+		if googlePlace.Photos != nil {
+			for _, photo := range *googlePlace.Photos {
+				if err := p.addGooglePlacePhotosTx(ctx, tx, addGooglePlacePhotosTxInput{
+					GooglePlaceId:                  googlePlace.PlaceId,
+					GooglePlacePhotoReferenceSlice: googlePlaceEntity.R.GooglePlacePhotoReferences,
+					GooglePlacePhoto:               photo,
+					SavedGooglePlacePhotoSlice:     googlePlaceEntity.R.GooglePlacePhotos,
+				}); err != nil {
+					return fmt.Errorf("failed to insert google place photo: %w", err)
+				}
+			}
 		}
 
 		// GooglePlaceTypeを保存
@@ -335,10 +348,9 @@ type saveGooglePlacePhotoReferenceTxInput struct {
 	GooglePlaceEntity          entities.GooglePlace
 	GooglePlacePhotoReferences []models.GooglePlacePhotoReference
 	GooglePlaceDetail          *models.GooglePlaceDetail
-	GooglePlacePhotos          *[]models.GooglePlacePhoto
 }
 
-// saveGooglePlacePhotoReferenceTx google_place_photo_reference に google_place_photo を紐付ける
+// saveGooglePlacePhotoReferenceTx google_place に google_place_photo_reference, google_place_photo_attributions を紐付ける
 func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx *sql.Tx, input saveGooglePlacePhotoReferenceTxInput) (*entities.GooglePlacePhotoReferenceSlice, error) {
 	// NearbySearchで取得したものとPlaceDetailで取得したものをマージする
 	var googlePhotoReferences []models.GooglePlacePhotoReference
@@ -354,45 +366,21 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 		return nil, fmt.Errorf("failed to insert google place photo reference: %w", err)
 	}
 
-	photoReferenceToGooglePlacePhotoReferenceEntity := make(map[string]*entities.GooglePlacePhotoReference)
-	for _, googlePlacePhotoReferenceEntity := range googlePlacePhotoReferenceEntities {
-		photoReferenceToGooglePlacePhotoReferenceEntity[googlePlacePhotoReferenceEntity.PhotoReference] = googlePlacePhotoReferenceEntity
-	}
-
-	photoReferenceToGooglePlacePhoto := make(map[string]models.GooglePlacePhoto)
-	if input.GooglePlacePhotos != nil {
-		for _, googlePlacePhoto := range *input.GooglePlacePhotos {
-			photoReferenceToGooglePlacePhoto[googlePlacePhoto.PhotoReference] = googlePlacePhoto
-		}
-	}
-
 	for _, googlePlacePhotoReference := range googlePhotoReferences {
-		googlePlacePhotoReferenceEntity, ok := photoReferenceToGooglePlacePhotoReferenceEntity[googlePlacePhotoReference.PhotoReference]
-		if !ok {
+		googlePlacePhotoReferenceEntity, ok := array.Find(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
+			if googlePlacePhotoReferenceEntity == nil {
+				return false
+			}
+			return googlePlacePhotoReferenceEntity.PhotoReference == googlePlacePhotoReference.PhotoReference
+		})
+		if !ok || googlePlacePhotoReferenceEntity == nil {
 			return nil, fmt.Errorf("failed to find google place photo reference entity")
-		}
-		if googlePlacePhotoReferenceEntity == nil {
-			continue
 		}
 
 		// HTMLAttributionを保存
 		googlePlacePhotoAttributionEntities := factory.NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference, input.GooglePlaceEntity.GooglePlaceID)
 		if err := googlePlacePhotoReferenceEntity.AddPhotoReferenceGooglePlacePhotoAttributions(ctx, tx, true, googlePlacePhotoAttributionEntities...); err != nil {
 			return nil, fmt.Errorf("failed to insert google place photo attribution: %w", err)
-		}
-
-		// Photoを保存
-		googlePlacePhoto, ok := photoReferenceToGooglePlacePhoto[googlePlacePhotoReference.PhotoReference]
-		if !ok {
-			continue
-		}
-		if err := p.addGooglePlacePhotosTx(ctx, tx, addGooglePlacePhotosTxInput{
-			GooglePlaceId:                  input.GooglePlaceEntity.GooglePlaceID,
-			GooglePlacePhotoReferenceSlice: googlePlacePhotoReferenceEntities,
-			GooglePlacePhoto:               googlePlacePhoto,
-			SavedGooglePlacePhotoSlice:     input.GooglePlaceEntity.R.GooglePlacePhotos,
-		}); err != nil {
-			return nil, fmt.Errorf("failed to insert google place photo: %w", err)
 		}
 	}
 
@@ -422,7 +410,7 @@ func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx,
 
 	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(input.GooglePlacePhoto, input.GooglePlaceId)
 
-	googlePlacePhotoEntities = array.Filter(input.SavedGooglePlacePhotoSlice, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) bool {
+	googlePlacePhotoEntities = array.Filter(googlePlacePhotoEntities, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) bool {
 		if googlePlacePhotoEntity == nil {
 			return false
 		}
@@ -442,6 +430,7 @@ func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx,
 			)
 			return false
 		}
+
 		return true
 	})
 
