@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
@@ -11,47 +12,50 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.Google
 		return nil, fmt.Errorf("googlePlaceEntity.R is nil")
 	}
 
-	var googlePlaceReviews []models.GooglePlaceReview
-	for _, googlePlaceReviewEntity := range googlePlaceEntity.R.GetGooglePlaceReviews() {
+	googlePlaceReviews := array.MapAndFilter(googlePlaceEntity.R.GetGooglePlaceReviews(), func(googlePlaceReviewEntity *entities.GooglePlaceReview) (models.GooglePlaceReview, bool) {
 		if googlePlaceReviewEntity == nil {
-			continue
+			return models.GooglePlaceReview{}, false
 		}
 
 		if googlePlaceReviewEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
-			continue
+			return models.GooglePlaceReview{}, false
 		}
 
-		googlePlaceReviews = append(googlePlaceReviews, NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity))
-	}
+		return NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity), true
+	})
 
-	var googlePlaceOpeningPeriods []models.GooglePlaceOpeningPeriod
-	for _, googlePlaceOpeningPeriodEntity := range googlePlaceEntity.R.GetGooglePlaceOpeningPeriods() {
+	googlePlaceOpeningPeriods := array.MapAndFilter(googlePlaceEntity.R.GetGooglePlaceOpeningPeriods(), func(googlePlaceOpeningPeriodEntity *entities.GooglePlaceOpeningPeriod) (models.GooglePlaceOpeningPeriod, bool) {
 		if googlePlaceOpeningPeriodEntity == nil {
-			continue
+			return models.GooglePlaceOpeningPeriod{}, false
 		}
 
 		if googlePlaceOpeningPeriodEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
-			continue
+			return models.GooglePlaceOpeningPeriod{}, false
 		}
 
-		googlePlaceOpeningPeriods = append(googlePlaceOpeningPeriods, NewGooglePlaceOpeningPeriodFromEntity(*googlePlaceOpeningPeriodEntity))
-	}
+		return NewGooglePlaceOpeningPeriodFromEntity(*googlePlaceOpeningPeriodEntity), true
+	})
 
-	var googlePlacePhotoReferences []models.GooglePlacePhotoReference
-	for _, googlePlacePhotoReferenceEntity := range googlePlaceEntity.R.GetGooglePlacePhotoReferences() {
+	googlePlacePhotoReferenceEntities := array.Filter(googlePlaceEntity.R.GetGooglePlacePhotoReferences(), func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
 		if googlePlacePhotoReferenceEntity == nil {
-			continue
+			return false
 		}
 
 		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
-			continue
+			return false
 		}
 
-		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions())
-		googlePlacePhotoReferences = append(googlePlacePhotoReferences, gpr)
-	}
+		return true
+	})
+	googlePlacePhotoReferences := array.MapAndFilter(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) (models.GooglePlacePhotoReference, bool) {
+		if googlePlacePhotoReferenceEntity == nil {
+			return models.GooglePlacePhotoReference{}, false
+		}
 
-	if len(googlePlaceReviews) == 0 && len(googlePlaceOpeningPeriods) == 0 && len(googlePlacePhotoReferences) == 0 {
+		return NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions()), true
+	})
+
+	if len(googlePlaceReviews) == 0 && len(googlePlaceOpeningPeriods) == 0 && len(googlePlacePhotoReferenceEntities) == 0 {
 		return nil, nil
 	}
 
