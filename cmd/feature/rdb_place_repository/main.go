@@ -163,38 +163,38 @@ func main() {
 		},
 	}
 
-	//photos := []models.GooglePlacePhoto{
-	//	{
-	//		PhotoReference: "AWU5eFgYAi-hoRwbOOkzvamLTtNi-lHUN-8Cbcl2xGP49EwZ5xzfo10jvcvuegwztrqV1iJmAjtG0XVs8Ph52lfav7mROP2Srh7h74CMNtXsQBKhIdFsjLp03zOcpfAWNkHqi4H54hyJ3VekpHvbiWOrayPbhnmWchlB5sLwcn17snJQ2uWA",
-	//		Width:          4032,
-	//		Height:         3024,
-	//		Small:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400"),
-	//		Large:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400"),
-	//		HTMLAttributions: []string{
-	//			"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
-	//		},
-	//	},
-	//	{
-	//		PhotoReference: "AWU5eFgjBov_JHzMF3w_3rqW0KQK7bmnDzJx7ol0hHW3JPItzw0Ig15zSW8BTABC6mbLJKbwtPgi_56kYDU2qVlU39X92FzSG1bX6pXO9e-tio_BLY3I5p1bcsNkwS7DYluewdPD9_fnip8AMM8zBoF5s2ZY_0GnjyUjUT7TpwmEHdYuynUA",
-	//		Width:          4032,
-	//		Height:         3024,
-	//		Small:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
-	//		Large:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
-	//		HTMLAttributions: []string{
-	//			"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
-	//		},
-	//	},
-	//	{
-	//		PhotoReference: "AWU5eFjiROQJEeMpt7Hh2Pv_YhnQmQ3g-bGIEYxQJqVuj8R61cW-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
-	//		Width:          4032,
-	//		Height:         3024,
-	//		HTMLAttributions: []string{
-	//			"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
-	//		},
-	//		Small: utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
-	//		Large: utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
-	//	},
-	//}
+	photos := []models.GooglePlacePhoto{
+		{
+			PhotoReference: "AWU5eFgYAi-hoRwbOOkzvamLTtNi-lHUN-8Cbcl2xGP49EwZ5xzfo10jvcvuegwztrqV1iJmAjtG0XVs8Ph52lfav7mROP2Srh7h74CMNtXsQBKhIdFsjLp03zOcpfAWNkHqi4H54hyJ3VekpHvbiWOrayPbhnmWchlB5sLwcn17snJQ2uWA",
+			Width:          4032,
+			Height:         3024,
+			Small:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400"),
+			Large:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400"),
+			HTMLAttributions: []string{
+				"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
+			},
+		},
+		{
+			PhotoReference: "AWU5eFgjBov_JHzMF3w_3rqW0KQK7bmnDzJx7ol0hHW3JPItzw0Ig15zSW8BTABC6mbLJKbwtPgi_56kYDU2qVlU39X92FzSG1bX6pXO9e-tio_BLY3I5p1bcsNkwS7DYluewdPD9_fnip8AMM8zBoF5s2ZY_0GnjyUjUT7TpwmEHdYuynUA",
+			Width:          4032,
+			Height:         3024,
+			Small:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
+			Large:          utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
+			HTMLAttributions: []string{
+				"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
+			},
+		},
+		{
+			PhotoReference: "AWU5eFjiROQJEeMpt7Hh2Pv_YhnQmQ3g-bGIEYxQJqVuj8R61cW-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+			Width:          4032,
+			Height:         3024,
+			HTMLAttributions: []string{
+				"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>",
+			},
+			Small: utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
+			Large: utils.StrPointer("https://lh3.googleusercontent.com/places/ANXAkqFeWqaRRrXTpjDZrwEI4g7_ui5Xd_3be9W7IiTN4ATrRTTS5Ij83QYtcKseL8v8T9irGwdILcA2MciaTXQN_rSsDe5X0TV_ttA=s1600-w1000-h1000"),
+		},
+	}
 
 	place, err := repository.SavePlacesFromGooglePlace(context.Background(), testGooglePlace)
 	if err != nil {
@@ -211,6 +211,12 @@ func main() {
 	}
 
 	testGooglePlace.PlaceDetail = &placeDetail
+
+	if err := repository.SaveGooglePlacePhotos(context.Background(), testGooglePlace.PlaceId, photos); err != nil {
+		panic(err)
+	}
+
+	testGooglePlace.Photos = &photos
 
 	placeByGooglePlaceId, err := repository.FindByGooglePlaceID(context.Background(), testGooglePlace.PlaceId)
 	if err != nil {

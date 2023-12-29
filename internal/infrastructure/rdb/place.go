@@ -209,8 +209,58 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 }
 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		googlePlaceEntity, err := entities.GooglePlaces(
+			entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceId),
+			qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
+			qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find google place: %w", err)
+		}
+
+		googlePlacePhotoReferenceEntities := googlePlaceEntity.R.GooglePlacePhotoReferences
+		if len(googlePlacePhotoReferenceEntities) == 0 {
+			return fmt.Errorf("google place photo reference is empty")
+		}
+
+		for _, photo := range photos {
+			googlePlacePhotoReferenceEntity, ok := array.Find(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
+				if googlePlacePhotoReferenceEntity == nil {
+					return false
+				}
+				return googlePlacePhotoReferenceEntity.PhotoReference == photo.PhotoReference
+			})
+
+			if !ok || googlePlacePhotoReferenceEntity == nil {
+				return fmt.Errorf("failed to find google place photo reference entity")
+			}
+
+			// すでに保存されている場合はスキップ
+			if _, ok := array.Find(googlePlaceEntity.R.GooglePlacePhotos, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) bool {
+				if googlePlacePhotoEntity == nil {
+					return false
+				}
+				if googlePlacePhotoEntity.PhotoReference != photo.PhotoReference {
+					return false
+				}
+				return googlePlacePhotoEntity.Width == photo.Width && googlePlacePhotoEntity.Height == photo.Height
+			}); ok {
+				p.logger.Debug("skip insert google place photo because already exists", zap.String("photo_reference", photo.PhotoReference))
+				continue
+			}
+
+			if err := p.addGooglePlacePhotosTx(ctx, tx, photo, *googlePlacePhotoReferenceEntity, googlePlaceId); err != nil {
+				return fmt.Errorf("failed to insert google place photo: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, googlePlaceDetail models.GooglePlaceDetail) error {
