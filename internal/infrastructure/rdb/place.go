@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 )
@@ -16,11 +19,22 @@ const (
 )
 
 type PlaceRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger zap.Logger
 }
 
 func NewPlaceRepository(db *sql.DB) (*PlaceRepository, error) {
-	return &PlaceRepository{db: db}, nil
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "PlaceRepository",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create logger: %w", err)
+	}
+
+	return &PlaceRepository{
+		db:     db,
+		logger: *logger,
+	}, nil
 }
 
 func (p PlaceRepository) GetDB() *sql.DB {
