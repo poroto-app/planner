@@ -133,7 +133,7 @@ go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@latest
 
 ### SQLBoilerでモデルコードの生成
 ```shell
-sqlboiler mysql -c db/sqlboiler.toml -o internal/infrastructure/rdb/entities --pkgname=entities
+sqlboiler mysql -c db/sqlboiler.toml 
 ```
 
 ## Trouble Shooting

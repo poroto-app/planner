@@ -1,3 +1,6 @@
+wipe     = true
+pkgname = "entities"
+output = "internal/infrastructure/rdb/entities"
 [mysql]
     dbname    = "poroto"
     host      = "localhost"
