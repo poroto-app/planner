@@ -60,7 +60,7 @@ func main() {
 		PlaceId:  "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
 		Name:     "ブルーム",
 		Types:    []string{"cafe", "food", "point_of_interest", "store", "establishment"},
-		Location: models.GeoLocation{35.5718006, 139.3898712},
+		Location: models.GeoLocation{Latitude: 35.5718006, Longitude: 139.3898712},
 		PhotoReferences: []models.GooglePlacePhotoReference{
 			{
 				PhotoReference: "AWU5eFjiROQJEeMpt7Hh2Pv_YhnQmQ3g-bGIEYxQJqVuj8R61cW-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
@@ -202,7 +202,7 @@ func main() {
 	}
 
 	if diff := cmp.Diff(testGooglePlace, place.Google); diff != "" {
-		//log.Printf("+want, -got:\n%s", diff)
+		log.Printf("+want, -got:\n%s", diff)
 	}
 
 	// PlaceDetailを保存
@@ -238,13 +238,13 @@ func main() {
 func cleanup(ctx context.Context, db *sql.DB) {
 	// Truncate all tables
 	tx, _ := db.Begin()
-	entities.GooglePlaceTypes().DeleteAll(ctx, tx)
-	entities.GooglePlacePhotoAttributions().DeleteAll(ctx, tx)
-	entities.GooglePlacePhotos().DeleteAll(ctx, tx)
-	entities.GooglePlacePhotoReferences().DeleteAll(ctx, tx)
-	entities.GooglePlaceReviews().DeleteAll(ctx, tx)
-	entities.GooglePlaceOpeningPeriods().DeleteAll(ctx, tx)
-	entities.GooglePlaces().DeleteAll(ctx, tx)
-	entities.Places().DeleteAll(ctx, tx)
-	tx.Commit()
+	_, _ = entities.GooglePlaceTypes().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlacePhotoAttributions().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlacePhotos().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlacePhotoReferences().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlaceReviews().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlaceOpeningPeriods().DeleteAll(ctx, tx)
+	_, _ = entities.GooglePlaces().DeleteAll(ctx, tx)
+	_, _ = entities.Places().DeleteAll(ctx, tx)
+	_ = tx.Commit()
 }
