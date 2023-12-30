@@ -57,7 +57,13 @@ func NewGooglePlaceFromEntity(googlePlaceEntity entities.GooglePlace) (*models.G
 		googlePlaceReviews = append(googlePlaceReviews, NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity))
 	}
 
-	googlePlaceDetail, err := NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity)
+	googlePlaceDetail, err := NewGooglePlaceDetailFromGooglePlaceEntity(
+		googlePlaceEntity.R.GetGooglePlaceReviews(),
+		googlePlaceEntity.R.GetGooglePlaceOpeningPeriods(),
+		googlePlaceEntity.R.GetGooglePlacePhotoReferences(),
+		googlePlaceEntity.R.GetGooglePlacePhotoAttributions(),
+		googlePlaceEntity.GooglePlaceID,
+	)
 	if err != nil {
 		return nil, err
 	}

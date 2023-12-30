@@ -1,47 +1,48 @@
 package factory
 
 import (
-	"fmt"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
-func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.GooglePlace) (*models.GooglePlaceDetail, error) {
-	if googlePlaceEntity.R == nil {
-		return nil, fmt.Errorf("googlePlaceEntity.R is nil")
-	}
-
-	googlePlaceReviews := array.MapAndFilter(googlePlaceEntity.R.GetGooglePlaceReviews(), func(googlePlaceReviewEntity *entities.GooglePlaceReview) (models.GooglePlaceReview, bool) {
+func NewGooglePlaceDetailFromGooglePlaceEntity(
+	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
+	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
+	googlePlaceId string,
+) (*models.GooglePlaceDetail, error) {
+	googlePlaceReviews := array.MapAndFilter(googlePlaceReviewSlice, func(googlePlaceReviewEntity *entities.GooglePlaceReview) (models.GooglePlaceReview, bool) {
 		if googlePlaceReviewEntity == nil {
 			return models.GooglePlaceReview{}, false
 		}
 
-		if googlePlaceReviewEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+		if googlePlaceReviewEntity.GooglePlaceID != googlePlaceId {
 			return models.GooglePlaceReview{}, false
 		}
 
 		return NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity), true
 	})
 
-	googlePlaceOpeningPeriods := array.MapAndFilter(googlePlaceEntity.R.GetGooglePlaceOpeningPeriods(), func(googlePlaceOpeningPeriodEntity *entities.GooglePlaceOpeningPeriod) (models.GooglePlaceOpeningPeriod, bool) {
+	googlePlaceOpeningPeriods := array.MapAndFilter(googlePlaceOpeningPeriodSlice, func(googlePlaceOpeningPeriodEntity *entities.GooglePlaceOpeningPeriod) (models.GooglePlaceOpeningPeriod, bool) {
 		if googlePlaceOpeningPeriodEntity == nil {
 			return models.GooglePlaceOpeningPeriod{}, false
 		}
 
-		if googlePlaceOpeningPeriodEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+		if googlePlaceOpeningPeriodEntity.GooglePlaceID != googlePlaceId {
 			return models.GooglePlaceOpeningPeriod{}, false
 		}
 
 		return NewGooglePlaceOpeningPeriodFromEntity(*googlePlaceOpeningPeriodEntity), true
 	})
 
-	googlePlacePhotoReferenceEntities := array.Filter(googlePlaceEntity.R.GetGooglePlacePhotoReferences(), func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
+	googlePlacePhotoReferenceEntities := array.Filter(googlePlacePhotoReferenceSlice, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
 		if googlePlacePhotoReferenceEntity == nil {
 			return false
 		}
 
-		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
+		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceId {
 			return false
 		}
 
@@ -52,7 +53,7 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(googlePlaceEntity entities.Google
 			return models.GooglePlacePhotoReference{}, false
 		}
 
-		return NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions()), true
+		return NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlacePhotoAttributionSlice), true
 	})
 
 	if len(googlePlaceReviews) == 0 && len(googlePlaceOpeningPeriods) == 0 && len(googlePlacePhotoReferenceEntities) == 0 {
