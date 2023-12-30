@@ -1,6 +1,7 @@
 wipe     = true
 pkgname = "entities"
 output = "internal/infrastructure/rdb/entities"
+no-tests = true
 [mysql]
     dbname    = "poroto"
     host      = "localhost"
