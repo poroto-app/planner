@@ -494,32 +494,32 @@ func testPlanCandidatePlacesInsertWhitelist(t *testing.T) {
 	}
 }
 
-func testPlanCandidatePlaceToOnePlanCandidateUsingPlanCandidate(t *testing.T) {
+func testPlanCandidatePlaceToOnePlanCandidateSetUsingPlanCandidateSet(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
 	defer func() { _ = tx.Rollback() }()
 
 	var local PlanCandidatePlace
-	var foreign PlanCandidate
+	var foreign PlanCandidateSet
 
 	seed := randomize.NewSeed()
 	if err := randomize.Struct(seed, &local, planCandidatePlaceDBTypes, false, planCandidatePlaceColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize PlanCandidatePlace struct: %s", err)
 	}
-	if err := randomize.Struct(seed, &foreign, planCandidateDBTypes, false, planCandidateColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize PlanCandidate struct: %s", err)
+	if err := randomize.Struct(seed, &foreign, planCandidateSetDBTypes, false, planCandidateSetColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PlanCandidateSet struct: %s", err)
 	}
 
 	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	local.PlanCandidateID = foreign.ID
+	local.PlanCandidateSetID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
 
-	check, err := local.PlanCandidate().One(ctx, tx)
+	check, err := local.PlanCandidateSet().One(ctx, tx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -529,24 +529,24 @@ func testPlanCandidatePlaceToOnePlanCandidateUsingPlanCandidate(t *testing.T) {
 	}
 
 	ranAfterSelectHook := false
-	AddPlanCandidateHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *PlanCandidate) error {
+	AddPlanCandidateSetHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *PlanCandidateSet) error {
 		ranAfterSelectHook = true
 		return nil
 	})
 
 	slice := PlanCandidatePlaceSlice{&local}
-	if err = local.L.LoadPlanCandidate(ctx, tx, false, (*[]*PlanCandidatePlace)(&slice), nil); err != nil {
+	if err = local.L.LoadPlanCandidateSet(ctx, tx, false, (*[]*PlanCandidatePlace)(&slice), nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.PlanCandidate == nil {
+	if local.R.PlanCandidateSet == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
-	local.R.PlanCandidate = nil
-	if err = local.L.LoadPlanCandidate(ctx, tx, true, &local, nil); err != nil {
+	local.R.PlanCandidateSet = nil
+	if err = local.L.LoadPlanCandidateSet(ctx, tx, true, &local, nil); err != nil {
 		t.Fatal(err)
 	}
-	if local.R.PlanCandidate == nil {
+	if local.R.PlanCandidateSet == nil {
 		t.Error("struct should have been eager loaded")
 	}
 
@@ -616,7 +616,7 @@ func testPlanCandidatePlaceToOnePlaceUsingPlace(t *testing.T) {
 	}
 }
 
-func testPlanCandidatePlaceToOneSetOpPlanCandidateUsingPlanCandidate(t *testing.T) {
+func testPlanCandidatePlaceToOneSetOpPlanCandidateSetUsingPlanCandidateSet(t *testing.T) {
 	var err error
 
 	ctx := context.Background()
@@ -624,16 +624,16 @@ func testPlanCandidatePlaceToOneSetOpPlanCandidateUsingPlanCandidate(t *testing.
 	defer func() { _ = tx.Rollback() }()
 
 	var a PlanCandidatePlace
-	var b, c PlanCandidate
+	var b, c PlanCandidateSet
 
 	seed := randomize.NewSeed()
 	if err = randomize.Struct(seed, &a, planCandidatePlaceDBTypes, false, strmangle.SetComplement(planCandidatePlacePrimaryKeyColumns, planCandidatePlaceColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &b, planCandidateDBTypes, false, strmangle.SetComplement(planCandidatePrimaryKeyColumns, planCandidateColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &b, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
-	if err = randomize.Struct(seed, &c, planCandidateDBTypes, false, strmangle.SetComplement(planCandidatePrimaryKeyColumns, planCandidateColumnsWithoutDefault)...); err != nil {
+	if err = randomize.Struct(seed, &c, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
 		t.Fatal(err)
 	}
 
@@ -644,32 +644,32 @@ func testPlanCandidatePlaceToOneSetOpPlanCandidateUsingPlanCandidate(t *testing.
 		t.Fatal(err)
 	}
 
-	for i, x := range []*PlanCandidate{&b, &c} {
-		err = a.SetPlanCandidate(ctx, tx, i != 0, x)
+	for i, x := range []*PlanCandidateSet{&b, &c} {
+		err = a.SetPlanCandidateSet(ctx, tx, i != 0, x)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if a.R.PlanCandidate != x {
+		if a.R.PlanCandidateSet != x {
 			t.Error("relationship struct not set to correct value")
 		}
 
 		if x.R.PlanCandidatePlaces[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.PlanCandidateID != x.ID {
-			t.Error("foreign key was wrong value", a.PlanCandidateID)
+		if a.PlanCandidateSetID != x.ID {
+			t.Error("foreign key was wrong value", a.PlanCandidateSetID)
 		}
 
-		zero := reflect.Zero(reflect.TypeOf(a.PlanCandidateID))
-		reflect.Indirect(reflect.ValueOf(&a.PlanCandidateID)).Set(zero)
+		zero := reflect.Zero(reflect.TypeOf(a.PlanCandidateSetID))
+		reflect.Indirect(reflect.ValueOf(&a.PlanCandidateSetID)).Set(zero)
 
 		if err = a.Reload(ctx, tx); err != nil {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.PlanCandidateID != x.ID {
-			t.Error("foreign key was wrong value", a.PlanCandidateID, x.ID)
+		if a.PlanCandidateSetID != x.ID {
+			t.Error("foreign key was wrong value", a.PlanCandidateSetID, x.ID)
 		}
 	}
 }
@@ -805,7 +805,7 @@ func testPlanCandidatePlacesSelect(t *testing.T) {
 }
 
 var (
-	planCandidatePlaceDBTypes = map[string]string{`ID`: `char`, `PlanCandidateID`: `char`, `PlaceID`: `char`, `Order`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
+	planCandidatePlaceDBTypes = map[string]string{`ID`: `char`, `PlanCandidateSetID`: `char`, `PlaceID`: `char`, `Order`: `int`, `CreatedAt`: `timestamp`, `UpdatedAt`: `timestamp`}
 	_                         = bytes.MinRead
 )
 

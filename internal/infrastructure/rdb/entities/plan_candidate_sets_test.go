@@ -494,6 +494,84 @@ func testPlanCandidateSetsInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testPlanCandidateSetToManyPlanCandidatePlaces(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a PlanCandidateSet
+	var b, c PlanCandidatePlace
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, true, planCandidateSetColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize PlanCandidateSet struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, planCandidatePlaceDBTypes, false, planCandidatePlaceColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, planCandidatePlaceDBTypes, false, planCandidatePlaceColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.PlanCandidateSetID = a.ID
+	c.PlanCandidateSetID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.PlanCandidatePlaces().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.PlanCandidateSetID == b.PlanCandidateSetID {
+			bFound = true
+		}
+		if v.PlanCandidateSetID == c.PlanCandidateSetID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := PlanCandidateSetSlice{&a}
+	if err = a.L.LoadPlanCandidatePlaces(ctx, tx, false, (*[]*PlanCandidateSet)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.PlanCandidatePlaces); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.PlanCandidatePlaces = nil
+	if err = a.L.LoadPlanCandidatePlaces(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.PlanCandidatePlaces); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testPlanCandidateSetToManyPlanCandidateSetCategories(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -728,6 +806,81 @@ func testPlanCandidateSetToManyPlanCandidates(t *testing.T) {
 	}
 }
 
+func testPlanCandidateSetToManyAddOpPlanCandidatePlaces(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a PlanCandidateSet
+	var b, c, d, e PlanCandidatePlace
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*PlanCandidatePlace{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, planCandidatePlaceDBTypes, false, strmangle.SetComplement(planCandidatePlacePrimaryKeyColumns, planCandidatePlaceColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*PlanCandidatePlace{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddPlanCandidatePlaces(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.PlanCandidateSetID {
+			t.Error("foreign key was wrong value", a.ID, first.PlanCandidateSetID)
+		}
+		if a.ID != second.PlanCandidateSetID {
+			t.Error("foreign key was wrong value", a.ID, second.PlanCandidateSetID)
+		}
+
+		if first.R.PlanCandidateSet != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.PlanCandidateSet != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.PlanCandidatePlaces[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.PlanCandidatePlaces[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.PlanCandidatePlaces().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testPlanCandidateSetToManyAddOpPlanCandidateSetCategories(t *testing.T) {
 	var err error
 

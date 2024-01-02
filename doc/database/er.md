@@ -130,7 +130,7 @@ erDiagram
 
     plan_candidate_places {
         char(36) id PK
-        char(36) plan_candidate_id FK
+        char(36) plan_candidate_set_id FK
         char(36) place_id FK
         int order
     }

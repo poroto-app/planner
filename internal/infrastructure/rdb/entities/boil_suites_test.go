@@ -241,7 +241,7 @@ func TestToOne(t *testing.T) {
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlace", testGooglePlaceReviewToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlace", testGooglePlaceTypeToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceToPlaceUsingPlace", testGooglePlaceToOnePlaceUsingPlace)
-	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidate", testPlanCandidatePlaceToOnePlanCandidateUsingPlanCandidate)
+	t.Run("PlanCandidatePlaceToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidatePlaceToOnePlanCandidateSetUsingPlanCandidateSet)
 	t.Run("PlanCandidatePlaceToPlaceUsingPlace", testPlanCandidatePlaceToOnePlaceUsingPlace)
 	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidateSetCategoryToOnePlanCandidateSetUsingPlanCandidateSet)
 	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidateSetSearchedPlaceToOnePlanCandidateSetUsingPlanCandidateSet)
@@ -267,10 +267,10 @@ func TestToMany(t *testing.T) {
 	t.Run("PlaceToGooglePlaces", testPlaceToManyGooglePlaces)
 	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyPlanCandidatePlaces)
 	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidatePlaces", testPlanCandidateSetToManyPlanCandidatePlaces)
 	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyPlanCandidateSetCategories)
 	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyPlanCandidateSetSearchedPlaces)
 	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyPlanCandidates)
-	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyPlanCandidatePlaces)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -285,7 +285,7 @@ func TestToOneSet(t *testing.T) {
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlaceReviews", testGooglePlaceReviewToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlaceTypes", testGooglePlaceTypeToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceToPlaceUsingGooglePlaces", testGooglePlaceToOneSetOpPlaceUsingPlace)
-	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneSetOpPlanCandidateUsingPlanCandidate)
+	t.Run("PlanCandidatePlaceToPlanCandidateSetUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
 	t.Run("PlanCandidatePlaceToPlaceUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneSetOpPlaceUsingPlace)
 	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSetCategories", testPlanCandidateSetCategoryToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
 	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
@@ -319,10 +319,10 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("PlaceToGooglePlaces", testPlaceToManyAddOpGooglePlaces)
 	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyAddOpPlanCandidatePlaces)
 	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyAddOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidatePlaces", testPlanCandidateSetToManyAddOpPlanCandidatePlaces)
 	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyAddOpPlanCandidateSetCategories)
 	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyAddOpPlanCandidateSetSearchedPlaces)
 	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyAddOpPlanCandidates)
-	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyAddOpPlanCandidatePlaces)
 }
 
 // TestToManySet tests cannot be run in parallel
