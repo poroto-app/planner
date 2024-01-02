@@ -2,12 +2,23 @@
 -- plan_candidate_sets テーブル
 CREATE TABLE plan_candidate_sets
 (
+    id         CHAR(36) PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- plan_candidate_set_meta_data テーブル
+CREATE TABLE plan_candidate_set_meta_data
+(
     id                            CHAR(36) PRIMARY KEY,
+    plan_candidate_set_id         CHAR(36)  NOT NULL,
     latitude_start                FLOAT     NOT NULL,
     longitude_start               FLOAT     NOT NULL,
     created_from_current_location BOOL      NOT NULL,
     created_at                    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at                    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at                    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
+    INDEX (plan_candidate_set_id)
 );
 
 -- plan_candidates テーブル
@@ -67,4 +78,5 @@ DROP TABLE IF EXISTS plan_candidate_places;
 DROP TABLE IF EXISTS plan_candidate_set_searched_places;
 DROP TABLE IF EXISTS plan_candidate_set_categories;
 DROP TABLE IF EXISTS plan_candidates;
+DROP TABLE IF EXISTS plan_candidate_set_meta_data;
 DROP TABLE IF EXISTS plan_candidate_sets;

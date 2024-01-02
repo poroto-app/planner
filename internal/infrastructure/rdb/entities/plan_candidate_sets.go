@@ -23,105 +23,57 @@ import (
 
 // PlanCandidateSet is an object representing the database table.
 type PlanCandidateSet struct {
-	ID                         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	LatitudeStart              float32   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
-	LongitudeStart             float32   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
-	CreatedFromCurrentLocation bool      `boil:"created_from_current_location" json:"created_from_current_location" toml:"created_from_current_location" yaml:"created_from_current_location"`
-	CreatedAt                  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt                  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateSetR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var PlanCandidateSetColumns = struct {
-	ID                         string
-	LatitudeStart              string
-	LongitudeStart             string
-	CreatedFromCurrentLocation string
-	CreatedAt                  string
-	UpdatedAt                  string
+	ID        string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:                         "id",
-	LatitudeStart:              "latitude_start",
-	LongitudeStart:             "longitude_start",
-	CreatedFromCurrentLocation: "created_from_current_location",
-	CreatedAt:                  "created_at",
-	UpdatedAt:                  "updated_at",
+	ID:        "id",
+	CreatedAt: "created_at",
+	UpdatedAt: "updated_at",
 }
 
 var PlanCandidateSetTableColumns = struct {
-	ID                         string
-	LatitudeStart              string
-	LongitudeStart             string
-	CreatedFromCurrentLocation string
-	CreatedAt                  string
-	UpdatedAt                  string
+	ID        string
+	CreatedAt string
+	UpdatedAt string
 }{
-	ID:                         "plan_candidate_sets.id",
-	LatitudeStart:              "plan_candidate_sets.latitude_start",
-	LongitudeStart:             "plan_candidate_sets.longitude_start",
-	CreatedFromCurrentLocation: "plan_candidate_sets.created_from_current_location",
-	CreatedAt:                  "plan_candidate_sets.created_at",
-	UpdatedAt:                  "plan_candidate_sets.updated_at",
+	ID:        "plan_candidate_sets.id",
+	CreatedAt: "plan_candidate_sets.created_at",
+	UpdatedAt: "plan_candidate_sets.updated_at",
 }
 
 // Generated where
 
-type whereHelperfloat32 struct{ field string }
-
-func (w whereHelperfloat32) EQ(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperfloat32) NEQ(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelperfloat32) LT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperfloat32) LTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelperfloat32) GT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperfloat32) GTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelperfloat32) IN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperfloat32) NIN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
 var PlanCandidateSetWhere = struct {
-	ID                         whereHelperstring
-	LatitudeStart              whereHelperfloat32
-	LongitudeStart             whereHelperfloat32
-	CreatedFromCurrentLocation whereHelperbool
-	CreatedAt                  whereHelpertime_Time
-	UpdatedAt                  whereHelpertime_Time
+	ID        whereHelperstring
+	CreatedAt whereHelpertime_Time
+	UpdatedAt whereHelpertime_Time
 }{
-	ID:                         whereHelperstring{field: "`plan_candidate_sets`.`id`"},
-	LatitudeStart:              whereHelperfloat32{field: "`plan_candidate_sets`.`latitude_start`"},
-	LongitudeStart:             whereHelperfloat32{field: "`plan_candidate_sets`.`longitude_start`"},
-	CreatedFromCurrentLocation: whereHelperbool{field: "`plan_candidate_sets`.`created_from_current_location`"},
-	CreatedAt:                  whereHelpertime_Time{field: "`plan_candidate_sets`.`created_at`"},
-	UpdatedAt:                  whereHelpertime_Time{field: "`plan_candidate_sets`.`updated_at`"},
+	ID:        whereHelperstring{field: "`plan_candidate_sets`.`id`"},
+	CreatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`created_at`"},
+	UpdatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`updated_at`"},
 }
 
 // PlanCandidateSetRels is where relationship names are stored.
 var PlanCandidateSetRels = struct {
 	PlanCandidatePlaces            string
 	PlanCandidateSetCategories     string
+	PlanCandidateSetMetaData       string
 	PlanCandidateSetSearchedPlaces string
 	PlanCandidates                 string
 }{
 	PlanCandidatePlaces:            "PlanCandidatePlaces",
 	PlanCandidateSetCategories:     "PlanCandidateSetCategories",
+	PlanCandidateSetMetaData:       "PlanCandidateSetMetaData",
 	PlanCandidateSetSearchedPlaces: "PlanCandidateSetSearchedPlaces",
 	PlanCandidates:                 "PlanCandidates",
 }
@@ -130,6 +82,7 @@ var PlanCandidateSetRels = struct {
 type planCandidateSetR struct {
 	PlanCandidatePlaces            PlanCandidatePlaceSlice            `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
 	PlanCandidateSetCategories     PlanCandidateSetCategorySlice      `boil:"PlanCandidateSetCategories" json:"PlanCandidateSetCategories" toml:"PlanCandidateSetCategories" yaml:"PlanCandidateSetCategories"`
+	PlanCandidateSetMetaData       PlanCandidateSetMetaDatumSlice     `boil:"PlanCandidateSetMetaData" json:"PlanCandidateSetMetaData" toml:"PlanCandidateSetMetaData" yaml:"PlanCandidateSetMetaData"`
 	PlanCandidateSetSearchedPlaces PlanCandidateSetSearchedPlaceSlice `boil:"PlanCandidateSetSearchedPlaces" json:"PlanCandidateSetSearchedPlaces" toml:"PlanCandidateSetSearchedPlaces" yaml:"PlanCandidateSetSearchedPlaces"`
 	PlanCandidates                 PlanCandidateSlice                 `boil:"PlanCandidates" json:"PlanCandidates" toml:"PlanCandidates" yaml:"PlanCandidates"`
 }
@@ -153,6 +106,13 @@ func (r *planCandidateSetR) GetPlanCandidateSetCategories() PlanCandidateSetCate
 	return r.PlanCandidateSetCategories
 }
 
+func (r *planCandidateSetR) GetPlanCandidateSetMetaData() PlanCandidateSetMetaDatumSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidateSetMetaData
+}
+
 func (r *planCandidateSetR) GetPlanCandidateSetSearchedPlaces() PlanCandidateSetSearchedPlaceSlice {
 	if r == nil {
 		return nil
@@ -171,8 +131,8 @@ func (r *planCandidateSetR) GetPlanCandidates() PlanCandidateSlice {
 type planCandidateSetL struct{}
 
 var (
-	planCandidateSetAllColumns            = []string{"id", "latitude_start", "longitude_start", "created_from_current_location", "created_at", "updated_at"}
-	planCandidateSetColumnsWithoutDefault = []string{"id", "latitude_start", "longitude_start", "created_from_current_location"}
+	planCandidateSetAllColumns            = []string{"id", "created_at", "updated_at"}
+	planCandidateSetColumnsWithoutDefault = []string{"id"}
 	planCandidateSetColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidateSetPrimaryKeyColumns     = []string{"id"}
 	planCandidateSetGeneratedColumns      = []string{}
@@ -484,6 +444,20 @@ func (o *PlanCandidateSet) PlanCandidateSetCategories(mods ...qm.QueryMod) planC
 	return PlanCandidateSetCategories(queryMods...)
 }
 
+// PlanCandidateSetMetaData retrieves all the plan_candidate_set_meta_datum's PlanCandidateSetMetaData with an executor.
+func (o *PlanCandidateSet) PlanCandidateSetMetaData(mods ...qm.QueryMod) planCandidateSetMetaDatumQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`plan_candidate_set_meta_data`.`plan_candidate_set_id`=?", o.ID),
+	)
+
+	return PlanCandidateSetMetaData(queryMods...)
+}
+
 // PlanCandidateSetSearchedPlaces retrieves all the plan_candidate_set_searched_place's PlanCandidateSetSearchedPlaces with an executor.
 func (o *PlanCandidateSet) PlanCandidateSetSearchedPlaces(mods ...qm.QueryMod) planCandidateSetSearchedPlaceQuery {
 	var queryMods []qm.QueryMod
@@ -730,6 +704,120 @@ func (planCandidateSetL) LoadPlanCandidateSetCategories(ctx context.Context, e b
 				local.R.PlanCandidateSetCategories = append(local.R.PlanCandidateSetCategories, foreign)
 				if foreign.R == nil {
 					foreign.R = &planCandidateSetCategoryR{}
+				}
+				foreign.R.PlanCandidateSet = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadPlanCandidateSetMetaData allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (planCandidateSetL) LoadPlanCandidateSetMetaData(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidateSet interface{}, mods queries.Applicator) error {
+	var slice []*PlanCandidateSet
+	var object *PlanCandidateSet
+
+	if singular {
+		var ok bool
+		object, ok = maybePlanCandidateSet.(*PlanCandidateSet)
+		if !ok {
+			object = new(PlanCandidateSet)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanCandidateSet))
+			}
+		}
+	} else {
+		s, ok := maybePlanCandidateSet.(*[]*PlanCandidateSet)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanCandidateSet))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &planCandidateSetR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &planCandidateSetR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidate_set_meta_data`),
+		qm.WhereIn(`plan_candidate_set_meta_data.plan_candidate_set_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load plan_candidate_set_meta_data")
+	}
+
+	var resultSlice []*PlanCandidateSetMetaDatum
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_set_meta_data")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_set_meta_data")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_set_meta_data")
+	}
+
+	if len(planCandidateSetMetaDatumAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlanCandidateSetMetaData = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &planCandidateSetMetaDatumR{}
+			}
+			foreign.R.PlanCandidateSet = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlanCandidateSetID {
+				local.R.PlanCandidateSetMetaData = append(local.R.PlanCandidateSetMetaData, foreign)
+				if foreign.R == nil {
+					foreign.R = &planCandidateSetMetaDatumR{}
 				}
 				foreign.R.PlanCandidateSet = local
 				break
@@ -1065,6 +1153,59 @@ func (o *PlanCandidateSet) AddPlanCandidateSetCategories(ctx context.Context, ex
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &planCandidateSetCategoryR{
+				PlanCandidateSet: o,
+			}
+		} else {
+			rel.R.PlanCandidateSet = o
+		}
+	}
+	return nil
+}
+
+// AddPlanCandidateSetMetaData adds the given related objects to the existing relationships
+// of the plan_candidate_set, optionally inserting them as new records.
+// Appends related to o.R.PlanCandidateSetMetaData.
+// Sets related.R.PlanCandidateSet appropriately.
+func (o *PlanCandidateSet) AddPlanCandidateSetMetaData(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetMetaDatum) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlanCandidateSetID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `plan_candidate_set_meta_data` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"plan_candidate_set_id"}),
+				strmangle.WhereClause("`", "`", 0, planCandidateSetMetaDatumPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlanCandidateSetID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &planCandidateSetR{
+			PlanCandidateSetMetaData: related,
+		}
+	} else {
+		o.R.PlanCandidateSetMetaData = append(o.R.PlanCandidateSetMetaData, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &planCandidateSetMetaDatumR{
 				PlanCandidateSet: o,
 			}
 		} else {

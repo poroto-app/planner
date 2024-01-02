@@ -14,6 +14,7 @@ var TableNames = struct {
 	Places                         string
 	PlanCandidatePlaces            string
 	PlanCandidateSetCategories     string
+	PlanCandidateSetMetaData       string
 	PlanCandidateSetSearchedPlaces string
 	PlanCandidateSets              string
 	PlanCandidates                 string
@@ -29,6 +30,7 @@ var TableNames = struct {
 	Places:                         "places",
 	PlanCandidatePlaces:            "plan_candidate_places",
 	PlanCandidateSetCategories:     "plan_candidate_set_categories",
+	PlanCandidateSetMetaData:       "plan_candidate_set_meta_data",
 	PlanCandidateSetSearchedPlaces: "plan_candidate_set_searched_places",
 	PlanCandidateSets:              "plan_candidate_sets",
 	PlanCandidates:                 "plan_candidates",

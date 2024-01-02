@@ -112,6 +112,11 @@ title: plan_candidate
 erDiagram
     plan_candidate_sets {
         char(36) id PK
+    }
+
+    plan_candidate_set_meta_data {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
         float latitude_start
         float longitude_start
         bool created_from_current_location
@@ -143,6 +148,7 @@ erDiagram
     }
 
     plan_candidate_sets ||..o{ plan_candidates: "1:N"
+    plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
     plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
     plan_candidates ||..o{ plan_candidate_places: "1:N"
