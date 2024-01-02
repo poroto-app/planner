@@ -54,7 +54,7 @@ CREATE TABLE plan_candidate_places
     plan_candidate_id     CHAR(36)  NOT NULL,
     plan_candidate_set_id CHAR(36)  NOT NULL,
     place_id              CHAR(36)  NOT NULL,
-    `order`               INT       NOT NULL,
+    sort_order            INT       NOT NULL,
     created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_candidate_id) REFERENCES plan_candidates (id),

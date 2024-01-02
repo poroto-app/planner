@@ -147,7 +147,7 @@ erDiagram
         char(36) plan_candidate_id FK
         char(36) plan_candidate_set_id FK
         char(36) place_id FK
-        int order
+        int sort_order 
     }
 
     plan_candidate_sets ||..o{ plan_candidates: "1:N"

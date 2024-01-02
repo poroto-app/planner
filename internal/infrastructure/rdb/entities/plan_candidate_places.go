@@ -27,7 +27,7 @@ type PlanCandidatePlace struct {
 	PlanCandidateID    string    `boil:"plan_candidate_id" json:"plan_candidate_id" toml:"plan_candidate_id" yaml:"plan_candidate_id"`
 	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
 	PlaceID            string    `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
-	Order              int       `boil:"order" json:"order" toml:"order" yaml:"order"`
+	SortOrder          int       `boil:"sort_order" json:"sort_order" toml:"sort_order" yaml:"sort_order"`
 	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -40,7 +40,7 @@ var PlanCandidatePlaceColumns = struct {
 	PlanCandidateID    string
 	PlanCandidateSetID string
 	PlaceID            string
-	Order              string
+	SortOrder          string
 	CreatedAt          string
 	UpdatedAt          string
 }{
@@ -48,7 +48,7 @@ var PlanCandidatePlaceColumns = struct {
 	PlanCandidateID:    "plan_candidate_id",
 	PlanCandidateSetID: "plan_candidate_set_id",
 	PlaceID:            "place_id",
-	Order:              "order",
+	SortOrder:          "sort_order",
 	CreatedAt:          "created_at",
 	UpdatedAt:          "updated_at",
 }
@@ -58,7 +58,7 @@ var PlanCandidatePlaceTableColumns = struct {
 	PlanCandidateID    string
 	PlanCandidateSetID string
 	PlaceID            string
-	Order              string
+	SortOrder          string
 	CreatedAt          string
 	UpdatedAt          string
 }{
@@ -66,7 +66,7 @@ var PlanCandidatePlaceTableColumns = struct {
 	PlanCandidateID:    "plan_candidate_places.plan_candidate_id",
 	PlanCandidateSetID: "plan_candidate_places.plan_candidate_set_id",
 	PlaceID:            "plan_candidate_places.place_id",
-	Order:              "plan_candidate_places.order",
+	SortOrder:          "plan_candidate_places.sort_order",
 	CreatedAt:          "plan_candidate_places.created_at",
 	UpdatedAt:          "plan_candidate_places.updated_at",
 }
@@ -99,7 +99,7 @@ var PlanCandidatePlaceWhere = struct {
 	PlanCandidateID    whereHelperstring
 	PlanCandidateSetID whereHelperstring
 	PlaceID            whereHelperstring
-	Order              whereHelperint
+	SortOrder          whereHelperint
 	CreatedAt          whereHelpertime_Time
 	UpdatedAt          whereHelpertime_Time
 }{
@@ -107,7 +107,7 @@ var PlanCandidatePlaceWhere = struct {
 	PlanCandidateID:    whereHelperstring{field: "`plan_candidate_places`.`plan_candidate_id`"},
 	PlanCandidateSetID: whereHelperstring{field: "`plan_candidate_places`.`plan_candidate_set_id`"},
 	PlaceID:            whereHelperstring{field: "`plan_candidate_places`.`place_id`"},
-	Order:              whereHelperint{field: "`plan_candidate_places`.`order`"},
+	SortOrder:          whereHelperint{field: "`plan_candidate_places`.`sort_order`"},
 	CreatedAt:          whereHelpertime_Time{field: "`plan_candidate_places`.`created_at`"},
 	UpdatedAt:          whereHelpertime_Time{field: "`plan_candidate_places`.`updated_at`"},
 }
@@ -160,8 +160,8 @@ func (r *planCandidatePlaceR) GetPlace() *Place {
 type planCandidatePlaceL struct{}
 
 var (
-	planCandidatePlaceAllColumns            = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "order", "created_at", "updated_at"}
-	planCandidatePlaceColumnsWithoutDefault = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "order"}
+	planCandidatePlaceAllColumns            = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "sort_order", "created_at", "updated_at"}
+	planCandidatePlaceColumnsWithoutDefault = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "sort_order"}
 	planCandidatePlaceColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidatePlacePrimaryKeyColumns     = []string{"id"}
 	planCandidatePlaceGeneratedColumns      = []string{}
