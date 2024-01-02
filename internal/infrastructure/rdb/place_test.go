@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"context"
+	"database/sql"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
@@ -128,7 +129,12 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			defer cleanup(context.Background(), testDB)
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(context.Background(), testDB)
 
 			actualFirstSave, err := placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
 			if err != nil {
