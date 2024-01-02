@@ -18,7 +18,8 @@ CREATE TABLE plan_candidates
     plan_candidate_set_id CHAR(36)     NOT NULL,
     created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id)
+    FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
+    INDEX (plan_candidate_set_id)
 );
 
 -- plan_candidate_set_searched_places テーブル
@@ -30,7 +31,8 @@ CREATE TABLE plan_candidate_set_searched_places
     created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
-    FOREIGN KEY (place_id) REFERENCES places (id)
+    FOREIGN KEY (place_id) REFERENCES places (id),
+    INDEX (plan_candidate_set_id)
 );
 
 -- plan_candidate_places テーブル
@@ -43,7 +45,8 @@ CREATE TABLE plan_candidate_places
     created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
-    FOREIGN KEY (place_id) REFERENCES places (id)
+    FOREIGN KEY (place_id) REFERENCES places (id),
+    INDEX (plan_candidate_set_id)
 );
 
 -- plan_candidate_set_categories テーブル
@@ -55,7 +58,8 @@ CREATE TABLE plan_candidate_set_categories
     is_selected           BOOL         NOT NULL,
     created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id)
+    FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
+    INDEX (plan_candidate_set_id)
 );
 
 -- +goose Down
