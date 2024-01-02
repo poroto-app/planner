@@ -24,6 +24,7 @@ import (
 // PlanCandidatePlace is an object representing the database table.
 type PlanCandidatePlace struct {
 	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlanCandidateID    string    `boil:"plan_candidate_id" json:"plan_candidate_id" toml:"plan_candidate_id" yaml:"plan_candidate_id"`
 	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
 	PlaceID            string    `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
 	Order              int       `boil:"order" json:"order" toml:"order" yaml:"order"`
@@ -36,6 +37,7 @@ type PlanCandidatePlace struct {
 
 var PlanCandidatePlaceColumns = struct {
 	ID                 string
+	PlanCandidateID    string
 	PlanCandidateSetID string
 	PlaceID            string
 	Order              string
@@ -43,6 +45,7 @@ var PlanCandidatePlaceColumns = struct {
 	UpdatedAt          string
 }{
 	ID:                 "id",
+	PlanCandidateID:    "plan_candidate_id",
 	PlanCandidateSetID: "plan_candidate_set_id",
 	PlaceID:            "place_id",
 	Order:              "order",
@@ -52,6 +55,7 @@ var PlanCandidatePlaceColumns = struct {
 
 var PlanCandidatePlaceTableColumns = struct {
 	ID                 string
+	PlanCandidateID    string
 	PlanCandidateSetID string
 	PlaceID            string
 	Order              string
@@ -59,6 +63,7 @@ var PlanCandidatePlaceTableColumns = struct {
 	UpdatedAt          string
 }{
 	ID:                 "plan_candidate_places.id",
+	PlanCandidateID:    "plan_candidate_places.plan_candidate_id",
 	PlanCandidateSetID: "plan_candidate_places.plan_candidate_set_id",
 	PlaceID:            "plan_candidate_places.place_id",
 	Order:              "plan_candidate_places.order",
@@ -91,6 +96,7 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 
 var PlanCandidatePlaceWhere = struct {
 	ID                 whereHelperstring
+	PlanCandidateID    whereHelperstring
 	PlanCandidateSetID whereHelperstring
 	PlaceID            whereHelperstring
 	Order              whereHelperint
@@ -98,6 +104,7 @@ var PlanCandidatePlaceWhere = struct {
 	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "`plan_candidate_places`.`id`"},
+	PlanCandidateID:    whereHelperstring{field: "`plan_candidate_places`.`plan_candidate_id`"},
 	PlanCandidateSetID: whereHelperstring{field: "`plan_candidate_places`.`plan_candidate_set_id`"},
 	PlaceID:            whereHelperstring{field: "`plan_candidate_places`.`place_id`"},
 	Order:              whereHelperint{field: "`plan_candidate_places`.`order`"},
@@ -107,15 +114,18 @@ var PlanCandidatePlaceWhere = struct {
 
 // PlanCandidatePlaceRels is where relationship names are stored.
 var PlanCandidatePlaceRels = struct {
+	PlanCandidate    string
 	PlanCandidateSet string
 	Place            string
 }{
+	PlanCandidate:    "PlanCandidate",
 	PlanCandidateSet: "PlanCandidateSet",
 	Place:            "Place",
 }
 
 // planCandidatePlaceR is where relationships are stored.
 type planCandidatePlaceR struct {
+	PlanCandidate    *PlanCandidate    `boil:"PlanCandidate" json:"PlanCandidate" toml:"PlanCandidate" yaml:"PlanCandidate"`
 	PlanCandidateSet *PlanCandidateSet `boil:"PlanCandidateSet" json:"PlanCandidateSet" toml:"PlanCandidateSet" yaml:"PlanCandidateSet"`
 	Place            *Place            `boil:"Place" json:"Place" toml:"Place" yaml:"Place"`
 }
@@ -123,6 +133,13 @@ type planCandidatePlaceR struct {
 // NewStruct creates a new relationship struct
 func (*planCandidatePlaceR) NewStruct() *planCandidatePlaceR {
 	return &planCandidatePlaceR{}
+}
+
+func (r *planCandidatePlaceR) GetPlanCandidate() *PlanCandidate {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidate
 }
 
 func (r *planCandidatePlaceR) GetPlanCandidateSet() *PlanCandidateSet {
@@ -143,8 +160,8 @@ func (r *planCandidatePlaceR) GetPlace() *Place {
 type planCandidatePlaceL struct{}
 
 var (
-	planCandidatePlaceAllColumns            = []string{"id", "plan_candidate_set_id", "place_id", "order", "created_at", "updated_at"}
-	planCandidatePlaceColumnsWithoutDefault = []string{"id", "plan_candidate_set_id", "place_id", "order"}
+	planCandidatePlaceAllColumns            = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "order", "created_at", "updated_at"}
+	planCandidatePlaceColumnsWithoutDefault = []string{"id", "plan_candidate_id", "plan_candidate_set_id", "place_id", "order"}
 	planCandidatePlaceColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidatePlacePrimaryKeyColumns     = []string{"id"}
 	planCandidatePlaceGeneratedColumns      = []string{}
@@ -428,6 +445,17 @@ func (q planCandidatePlaceQuery) Exists(ctx context.Context, exec boil.ContextEx
 	return count > 0, nil
 }
 
+// PlanCandidate pointed to by the foreign key.
+func (o *PlanCandidatePlace) PlanCandidate(mods ...qm.QueryMod) planCandidateQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("`id` = ?", o.PlanCandidateID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return PlanCandidates(queryMods...)
+}
+
 // PlanCandidateSet pointed to by the foreign key.
 func (o *PlanCandidatePlace) PlanCandidateSet(mods ...qm.QueryMod) planCandidateSetQuery {
 	queryMods := []qm.QueryMod{
@@ -448,6 +476,126 @@ func (o *PlanCandidatePlace) Place(mods ...qm.QueryMod) placeQuery {
 	queryMods = append(queryMods, mods...)
 
 	return Places(queryMods...)
+}
+
+// LoadPlanCandidate allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (planCandidatePlaceL) LoadPlanCandidate(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidatePlace interface{}, mods queries.Applicator) error {
+	var slice []*PlanCandidatePlace
+	var object *PlanCandidatePlace
+
+	if singular {
+		var ok bool
+		object, ok = maybePlanCandidatePlace.(*PlanCandidatePlace)
+		if !ok {
+			object = new(PlanCandidatePlace)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanCandidatePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanCandidatePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlanCandidatePlace.(*[]*PlanCandidatePlace)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanCandidatePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanCandidatePlace))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &planCandidatePlaceR{}
+		}
+		args = append(args, object.PlanCandidateID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &planCandidatePlaceR{}
+			}
+
+			for _, a := range args {
+				if a == obj.PlanCandidateID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.PlanCandidateID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidates`),
+		qm.WhereIn(`plan_candidates.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load PlanCandidate")
+	}
+
+	var resultSlice []*PlanCandidate
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice PlanCandidate")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for plan_candidates")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidates")
+	}
+
+	if len(planCandidateAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.PlanCandidate = foreign
+		if foreign.R == nil {
+			foreign.R = &planCandidateR{}
+		}
+		foreign.R.PlanCandidatePlaces = append(foreign.R.PlanCandidatePlaces, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.PlanCandidateID == foreign.ID {
+				local.R.PlanCandidate = foreign
+				if foreign.R == nil {
+					foreign.R = &planCandidateR{}
+				}
+				foreign.R.PlanCandidatePlaces = append(foreign.R.PlanCandidatePlaces, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadPlanCandidateSet allows an eager lookup of values, cached into the
@@ -685,6 +833,53 @@ func (planCandidatePlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor
 				break
 			}
 		}
+	}
+
+	return nil
+}
+
+// SetPlanCandidate of the planCandidatePlace to the related item.
+// Sets o.R.PlanCandidate to related.
+// Adds o to related.R.PlanCandidatePlaces.
+func (o *PlanCandidatePlace) SetPlanCandidate(ctx context.Context, exec boil.ContextExecutor, insert bool, related *PlanCandidate) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE `plan_candidate_places` SET %s WHERE %s",
+		strmangle.SetParamNames("`", "`", 0, []string{"plan_candidate_id"}),
+		strmangle.WhereClause("`", "`", 0, planCandidatePlacePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.PlanCandidateID = related.ID
+	if o.R == nil {
+		o.R = &planCandidatePlaceR{
+			PlanCandidate: related,
+		}
+	} else {
+		o.R.PlanCandidate = related
+	}
+
+	if related.R == nil {
+		related.R = &planCandidateR{
+			PlanCandidatePlaces: PlanCandidatePlaceSlice{o},
+		}
+	} else {
+		related.R.PlanCandidatePlaces = append(related.R.PlanCandidatePlaces, o)
 	}
 
 	return nil
