@@ -73,14 +73,20 @@ var PlaceWhere = struct {
 
 // PlaceRels is where relationship names are stored.
 var PlaceRels = struct {
-	GooglePlaces string
+	GooglePlaces                   string
+	PlanCandidatePlaces            string
+	PlanCandidateSetSearchedPlaces string
 }{
-	GooglePlaces: "GooglePlaces",
+	GooglePlaces:                   "GooglePlaces",
+	PlanCandidatePlaces:            "PlanCandidatePlaces",
+	PlanCandidateSetSearchedPlaces: "PlanCandidateSetSearchedPlaces",
 }
 
 // placeR is where relationships are stored.
 type placeR struct {
-	GooglePlaces GooglePlaceSlice `boil:"GooglePlaces" json:"GooglePlaces" toml:"GooglePlaces" yaml:"GooglePlaces"`
+	GooglePlaces                   GooglePlaceSlice                   `boil:"GooglePlaces" json:"GooglePlaces" toml:"GooglePlaces" yaml:"GooglePlaces"`
+	PlanCandidatePlaces            PlanCandidatePlaceSlice            `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
+	PlanCandidateSetSearchedPlaces PlanCandidateSetSearchedPlaceSlice `boil:"PlanCandidateSetSearchedPlaces" json:"PlanCandidateSetSearchedPlaces" toml:"PlanCandidateSetSearchedPlaces" yaml:"PlanCandidateSetSearchedPlaces"`
 }
 
 // NewStruct creates a new relationship struct
@@ -93,6 +99,20 @@ func (r *placeR) GetGooglePlaces() GooglePlaceSlice {
 		return nil
 	}
 	return r.GooglePlaces
+}
+
+func (r *placeR) GetPlanCandidatePlaces() PlanCandidatePlaceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidatePlaces
+}
+
+func (r *placeR) GetPlanCandidateSetSearchedPlaces() PlanCandidateSetSearchedPlaceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidateSetSearchedPlaces
 }
 
 // placeL is where Load methods for each relationship are stored.
@@ -398,6 +418,34 @@ func (o *Place) GooglePlaces(mods ...qm.QueryMod) googlePlaceQuery {
 	return GooglePlaces(queryMods...)
 }
 
+// PlanCandidatePlaces retrieves all the plan_candidate_place's PlanCandidatePlaces with an executor.
+func (o *Place) PlanCandidatePlaces(mods ...qm.QueryMod) planCandidatePlaceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`plan_candidate_places`.`place_id`=?", o.ID),
+	)
+
+	return PlanCandidatePlaces(queryMods...)
+}
+
+// PlanCandidateSetSearchedPlaces retrieves all the plan_candidate_set_searched_place's PlanCandidateSetSearchedPlaces with an executor.
+func (o *Place) PlanCandidateSetSearchedPlaces(mods ...qm.QueryMod) planCandidateSetSearchedPlaceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`plan_candidate_set_searched_places`.`place_id`=?", o.ID),
+	)
+
+	return PlanCandidateSetSearchedPlaces(queryMods...)
+}
+
 // LoadGooglePlaces allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (placeL) LoadGooglePlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
@@ -512,6 +560,234 @@ func (placeL) LoadGooglePlaces(ctx context.Context, e boil.ContextExecutor, sing
 	return nil
 }
 
+// LoadPlanCandidatePlaces allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (placeL) LoadPlanCandidatePlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidate_places`),
+		qm.WhereIn(`plan_candidate_places.place_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load plan_candidate_places")
+	}
+
+	var resultSlice []*PlanCandidatePlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_places")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_places")
+	}
+
+	if len(planCandidatePlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlanCandidatePlaces = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &planCandidatePlaceR{}
+			}
+			foreign.R.Place = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.PlaceID) {
+				local.R.PlanCandidatePlaces = append(local.R.PlanCandidatePlaces, foreign)
+				if foreign.R == nil {
+					foreign.R = &planCandidatePlaceR{}
+				}
+				foreign.R.Place = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadPlanCandidateSetSearchedPlaces allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (placeL) LoadPlanCandidateSetSearchedPlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidate_set_searched_places`),
+		qm.WhereIn(`plan_candidate_set_searched_places.place_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load plan_candidate_set_searched_places")
+	}
+
+	var resultSlice []*PlanCandidateSetSearchedPlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_set_searched_places")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_set_searched_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_set_searched_places")
+	}
+
+	if len(planCandidateSetSearchedPlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlanCandidateSetSearchedPlaces = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &planCandidateSetSearchedPlaceR{}
+			}
+			foreign.R.Place = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.PlaceID) {
+				local.R.PlanCandidateSetSearchedPlaces = append(local.R.PlanCandidateSetSearchedPlaces, foreign)
+				if foreign.R == nil {
+					foreign.R = &planCandidateSetSearchedPlaceR{}
+				}
+				foreign.R.Place = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // AddGooglePlaces adds the given related objects to the existing relationships
 // of the place, optionally inserting them as new records.
 // Appends related to o.R.GooglePlaces.
@@ -562,6 +838,260 @@ func (o *Place) AddGooglePlaces(ctx context.Context, exec boil.ContextExecutor, 
 			rel.R.Place = o
 		}
 	}
+	return nil
+}
+
+// AddPlanCandidatePlaces adds the given related objects to the existing relationships
+// of the place, optionally inserting them as new records.
+// Appends related to o.R.PlanCandidatePlaces.
+// Sets related.R.Place appropriately.
+func (o *Place) AddPlanCandidatePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidatePlace) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.PlaceID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `plan_candidate_places` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
+				strmangle.WhereClause("`", "`", 0, planCandidatePlacePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.PlaceID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &placeR{
+			PlanCandidatePlaces: related,
+		}
+	} else {
+		o.R.PlanCandidatePlaces = append(o.R.PlanCandidatePlaces, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &planCandidatePlaceR{
+				Place: o,
+			}
+		} else {
+			rel.R.Place = o
+		}
+	}
+	return nil
+}
+
+// SetPlanCandidatePlaces removes all previously related items of the
+// place replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Place's PlanCandidatePlaces accordingly.
+// Replaces o.R.PlanCandidatePlaces with related.
+// Sets related.R.Place's PlanCandidatePlaces accordingly.
+func (o *Place) SetPlanCandidatePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidatePlace) error {
+	query := "update `plan_candidate_places` set `place_id` = null where `place_id` = ?"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.PlanCandidatePlaces {
+			queries.SetScanner(&rel.PlaceID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Place = nil
+		}
+		o.R.PlanCandidatePlaces = nil
+	}
+
+	return o.AddPlanCandidatePlaces(ctx, exec, insert, related...)
+}
+
+// RemovePlanCandidatePlaces relationships from objects passed in.
+// Removes related items from R.PlanCandidatePlaces (uses pointer comparison, removal does not keep order)
+// Sets related.R.Place.
+func (o *Place) RemovePlanCandidatePlaces(ctx context.Context, exec boil.ContextExecutor, related ...*PlanCandidatePlace) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.PlaceID, nil)
+		if rel.R != nil {
+			rel.R.Place = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("place_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.PlanCandidatePlaces {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.PlanCandidatePlaces)
+			if ln > 1 && i < ln-1 {
+				o.R.PlanCandidatePlaces[i] = o.R.PlanCandidatePlaces[ln-1]
+			}
+			o.R.PlanCandidatePlaces = o.R.PlanCandidatePlaces[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddPlanCandidateSetSearchedPlaces adds the given related objects to the existing relationships
+// of the place, optionally inserting them as new records.
+// Appends related to o.R.PlanCandidateSetSearchedPlaces.
+// Sets related.R.Place appropriately.
+func (o *Place) AddPlanCandidateSetSearchedPlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetSearchedPlace) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.PlaceID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `plan_candidate_set_searched_places` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
+				strmangle.WhereClause("`", "`", 0, planCandidateSetSearchedPlacePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.PlaceID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &placeR{
+			PlanCandidateSetSearchedPlaces: related,
+		}
+	} else {
+		o.R.PlanCandidateSetSearchedPlaces = append(o.R.PlanCandidateSetSearchedPlaces, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &planCandidateSetSearchedPlaceR{
+				Place: o,
+			}
+		} else {
+			rel.R.Place = o
+		}
+	}
+	return nil
+}
+
+// SetPlanCandidateSetSearchedPlaces removes all previously related items of the
+// place replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Place's PlanCandidateSetSearchedPlaces accordingly.
+// Replaces o.R.PlanCandidateSetSearchedPlaces with related.
+// Sets related.R.Place's PlanCandidateSetSearchedPlaces accordingly.
+func (o *Place) SetPlanCandidateSetSearchedPlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetSearchedPlace) error {
+	query := "update `plan_candidate_set_searched_places` set `place_id` = null where `place_id` = ?"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.PlanCandidateSetSearchedPlaces {
+			queries.SetScanner(&rel.PlaceID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Place = nil
+		}
+		o.R.PlanCandidateSetSearchedPlaces = nil
+	}
+
+	return o.AddPlanCandidateSetSearchedPlaces(ctx, exec, insert, related...)
+}
+
+// RemovePlanCandidateSetSearchedPlaces relationships from objects passed in.
+// Removes related items from R.PlanCandidateSetSearchedPlaces (uses pointer comparison, removal does not keep order)
+// Sets related.R.Place.
+func (o *Place) RemovePlanCandidateSetSearchedPlaces(ctx context.Context, exec boil.ContextExecutor, related ...*PlanCandidateSetSearchedPlace) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.PlaceID, nil)
+		if rel.R != nil {
+			rel.R.Place = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("place_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.PlanCandidateSetSearchedPlaces {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.PlanCandidateSetSearchedPlaces)
+			if ln > 1 && i < ln-1 {
+				o.R.PlanCandidateSetSearchedPlaces[i] = o.R.PlanCandidateSetSearchedPlaces[ln-1]
+			}
+			o.R.PlanCandidateSetSearchedPlaces = o.R.PlanCandidateSetSearchedPlaces[:ln-1]
+			break
+		}
+	}
+
 	return nil
 }
 

@@ -20,6 +20,11 @@ func TestParent(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypes)
 	t.Run("GooglePlaces", testGooglePlaces)
 	t.Run("Places", testPlaces)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlaces)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategories)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSets", testPlanCandidateSets)
+	t.Run("PlanCandidates", testPlanCandidates)
 	t.Run("Users", testUsers)
 }
 
@@ -32,6 +37,11 @@ func TestDelete(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesDelete)
 	t.Run("GooglePlaces", testGooglePlacesDelete)
 	t.Run("Places", testPlacesDelete)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesDelete)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesDelete)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesDelete)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsDelete)
+	t.Run("PlanCandidates", testPlanCandidatesDelete)
 	t.Run("Users", testUsersDelete)
 }
 
@@ -44,6 +54,11 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesQueryDeleteAll)
 	t.Run("GooglePlaces", testGooglePlacesQueryDeleteAll)
 	t.Run("Places", testPlacesQueryDeleteAll)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesQueryDeleteAll)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesQueryDeleteAll)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesQueryDeleteAll)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsQueryDeleteAll)
+	t.Run("PlanCandidates", testPlanCandidatesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
@@ -56,6 +71,11 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesSliceDeleteAll)
 	t.Run("GooglePlaces", testGooglePlacesSliceDeleteAll)
 	t.Run("Places", testPlacesSliceDeleteAll)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesSliceDeleteAll)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesSliceDeleteAll)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesSliceDeleteAll)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsSliceDeleteAll)
+	t.Run("PlanCandidates", testPlanCandidatesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
@@ -68,6 +88,11 @@ func TestExists(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesExists)
 	t.Run("GooglePlaces", testGooglePlacesExists)
 	t.Run("Places", testPlacesExists)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesExists)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesExists)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesExists)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsExists)
+	t.Run("PlanCandidates", testPlanCandidatesExists)
 	t.Run("Users", testUsersExists)
 }
 
@@ -80,6 +105,11 @@ func TestFind(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesFind)
 	t.Run("GooglePlaces", testGooglePlacesFind)
 	t.Run("Places", testPlacesFind)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesFind)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesFind)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesFind)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsFind)
+	t.Run("PlanCandidates", testPlanCandidatesFind)
 	t.Run("Users", testUsersFind)
 }
 
@@ -92,6 +122,11 @@ func TestBind(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesBind)
 	t.Run("GooglePlaces", testGooglePlacesBind)
 	t.Run("Places", testPlacesBind)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesBind)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesBind)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesBind)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsBind)
+	t.Run("PlanCandidates", testPlanCandidatesBind)
 	t.Run("Users", testUsersBind)
 }
 
@@ -104,6 +139,11 @@ func TestOne(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesOne)
 	t.Run("GooglePlaces", testGooglePlacesOne)
 	t.Run("Places", testPlacesOne)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesOne)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesOne)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesOne)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsOne)
+	t.Run("PlanCandidates", testPlanCandidatesOne)
 	t.Run("Users", testUsersOne)
 }
 
@@ -116,6 +156,11 @@ func TestAll(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesAll)
 	t.Run("GooglePlaces", testGooglePlacesAll)
 	t.Run("Places", testPlacesAll)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesAll)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesAll)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesAll)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsAll)
+	t.Run("PlanCandidates", testPlanCandidatesAll)
 	t.Run("Users", testUsersAll)
 }
 
@@ -128,6 +173,11 @@ func TestCount(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesCount)
 	t.Run("GooglePlaces", testGooglePlacesCount)
 	t.Run("Places", testPlacesCount)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesCount)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesCount)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesCount)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsCount)
+	t.Run("PlanCandidates", testPlanCandidatesCount)
 	t.Run("Users", testUsersCount)
 }
 
@@ -140,6 +190,11 @@ func TestHooks(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesHooks)
 	t.Run("GooglePlaces", testGooglePlacesHooks)
 	t.Run("Places", testPlacesHooks)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesHooks)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesHooks)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesHooks)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsHooks)
+	t.Run("PlanCandidates", testPlanCandidatesHooks)
 	t.Run("Users", testUsersHooks)
 }
 
@@ -160,6 +215,16 @@ func TestInsert(t *testing.T) {
 	t.Run("GooglePlaces", testGooglePlacesInsertWhitelist)
 	t.Run("Places", testPlacesInsert)
 	t.Run("Places", testPlacesInsertWhitelist)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesInsert)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesInsertWhitelist)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesInsert)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesInsertWhitelist)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesInsert)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesInsertWhitelist)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsInsert)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsInsertWhitelist)
+	t.Run("PlanCandidates", testPlanCandidatesInsert)
+	t.Run("PlanCandidates", testPlanCandidatesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
@@ -176,6 +241,12 @@ func TestToOne(t *testing.T) {
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlace", testGooglePlaceReviewToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlace", testGooglePlaceTypeToOneGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceToPlaceUsingPlace", testGooglePlaceToOnePlaceUsingPlace)
+	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidate", testPlanCandidatePlaceToOnePlanCandidateUsingPlanCandidate)
+	t.Run("PlanCandidatePlaceToPlaceUsingPlace", testPlanCandidatePlaceToOnePlaceUsingPlace)
+	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidateSetCategoryToOnePlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidateSetSearchedPlaceToOnePlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlaceUsingPlace", testPlanCandidateSetSearchedPlaceToOnePlaceUsingPlace)
+	t.Run("PlanCandidateToPlanCandidateSetUsingPlanCandidateSet", testPlanCandidateToOnePlanCandidateSetUsingPlanCandidateSet)
 }
 
 // TestOneToOne tests cannot be run in parallel
@@ -194,6 +265,12 @@ func TestToMany(t *testing.T) {
 	t.Run("GooglePlaceToGooglePlaceReviews", testGooglePlaceToManyGooglePlaceReviews)
 	t.Run("GooglePlaceToGooglePlaceTypes", testGooglePlaceToManyGooglePlaceTypes)
 	t.Run("PlaceToGooglePlaces", testPlaceToManyGooglePlaces)
+	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyPlanCandidatePlaces)
+	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyPlanCandidateSetCategories)
+	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyPlanCandidates)
+	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyPlanCandidatePlaces)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -208,11 +285,24 @@ func TestToOneSet(t *testing.T) {
 	t.Run("GooglePlaceReviewToGooglePlaceUsingGooglePlaceReviews", testGooglePlaceReviewToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceTypeToGooglePlaceUsingGooglePlaceTypes", testGooglePlaceTypeToOneSetOpGooglePlaceUsingGooglePlace)
 	t.Run("GooglePlaceToPlaceUsingGooglePlaces", testGooglePlaceToOneSetOpPlaceUsingPlace)
+	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneSetOpPlanCandidateUsingPlanCandidate)
+	t.Run("PlanCandidatePlaceToPlaceUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneSetOpPlaceUsingPlace)
+	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSetCategories", testPlanCandidateSetCategoryToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlaceUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneSetOpPlaceUsingPlace)
+	t.Run("PlanCandidateToPlanCandidateSetUsingPlanCandidates", testPlanCandidateToOneSetOpPlanCandidateSetUsingPlanCandidateSet)
 }
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneRemove(t *testing.T) {}
+func TestToOneRemove(t *testing.T) {
+	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneRemoveOpPlanCandidateUsingPlanCandidate)
+	t.Run("PlanCandidatePlaceToPlaceUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneRemoveOpPlaceUsingPlace)
+	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSetCategories", testPlanCandidateSetCategoryToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
+	t.Run("PlanCandidateSetSearchedPlaceToPlaceUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneRemoveOpPlaceUsingPlace)
+	t.Run("PlanCandidateToPlanCandidateSetUsingPlanCandidates", testPlanCandidateToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
+}
 
 // TestOneToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
@@ -234,15 +324,35 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("GooglePlaceToGooglePlaceReviews", testGooglePlaceToManyAddOpGooglePlaceReviews)
 	t.Run("GooglePlaceToGooglePlaceTypes", testGooglePlaceToManyAddOpGooglePlaceTypes)
 	t.Run("PlaceToGooglePlaces", testPlaceToManyAddOpGooglePlaces)
+	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyAddOpPlanCandidatePlaces)
+	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyAddOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyAddOpPlanCandidateSetCategories)
+	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyAddOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyAddOpPlanCandidates)
+	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyAddOpPlanCandidatePlaces)
 }
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManySet(t *testing.T) {}
+func TestToManySet(t *testing.T) {
+	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManySetOpPlanCandidatePlaces)
+	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManySetOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManySetOpPlanCandidateSetCategories)
+	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManySetOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManySetOpPlanCandidates)
+	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManySetOpPlanCandidatePlaces)
+}
 
 // TestToManyRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyRemove(t *testing.T) {}
+func TestToManyRemove(t *testing.T) {
+	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyRemoveOpPlanCandidatePlaces)
+	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyRemoveOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyRemoveOpPlanCandidateSetCategories)
+	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyRemoveOpPlanCandidateSetSearchedPlaces)
+	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyRemoveOpPlanCandidates)
+	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyRemoveOpPlanCandidatePlaces)
+}
 
 func TestReload(t *testing.T) {
 	t.Run("GooglePlaceOpeningPeriods", testGooglePlaceOpeningPeriodsReload)
@@ -253,6 +363,11 @@ func TestReload(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesReload)
 	t.Run("GooglePlaces", testGooglePlacesReload)
 	t.Run("Places", testPlacesReload)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesReload)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesReload)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesReload)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsReload)
+	t.Run("PlanCandidates", testPlanCandidatesReload)
 	t.Run("Users", testUsersReload)
 }
 
@@ -265,6 +380,11 @@ func TestReloadAll(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesReloadAll)
 	t.Run("GooglePlaces", testGooglePlacesReloadAll)
 	t.Run("Places", testPlacesReloadAll)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesReloadAll)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesReloadAll)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesReloadAll)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsReloadAll)
+	t.Run("PlanCandidates", testPlanCandidatesReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
@@ -277,6 +397,11 @@ func TestSelect(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesSelect)
 	t.Run("GooglePlaces", testGooglePlacesSelect)
 	t.Run("Places", testPlacesSelect)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesSelect)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesSelect)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesSelect)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsSelect)
+	t.Run("PlanCandidates", testPlanCandidatesSelect)
 	t.Run("Users", testUsersSelect)
 }
 
@@ -289,6 +414,11 @@ func TestUpdate(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesUpdate)
 	t.Run("GooglePlaces", testGooglePlacesUpdate)
 	t.Run("Places", testPlacesUpdate)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesUpdate)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesUpdate)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesUpdate)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsUpdate)
+	t.Run("PlanCandidates", testPlanCandidatesUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
@@ -301,5 +431,10 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("GooglePlaceTypes", testGooglePlaceTypesSliceUpdateAll)
 	t.Run("GooglePlaces", testGooglePlacesSliceUpdateAll)
 	t.Run("Places", testPlacesSliceUpdateAll)
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesSliceUpdateAll)
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesSliceUpdateAll)
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesSliceUpdateAll)
+	t.Run("PlanCandidateSets", testPlanCandidateSetsSliceUpdateAll)
+	t.Run("PlanCandidates", testPlanCandidatesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

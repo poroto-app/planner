@@ -22,5 +22,15 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("Places", testPlacesUpsert)
 
+	t.Run("PlanCandidatePlaces", testPlanCandidatePlacesUpsert)
+
+	t.Run("PlanCandidateSetCategories", testPlanCandidateSetCategoriesUpsert)
+
+	t.Run("PlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlacesUpsert)
+
+	t.Run("PlanCandidateSets", testPlanCandidateSetsUpsert)
+
+	t.Run("PlanCandidates", testPlanCandidatesUpsert)
+
 	t.Run("Users", testUsersUpsert)
 }
