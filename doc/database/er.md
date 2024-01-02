@@ -123,22 +123,10 @@ erDiagram
         bool is_created_from_current_location
     }
 
-    plan_candidates {
-        char(36) id PK
-        VARCHAR(255) name
-    }
-
     plan_candidate_set_searched_places {
         char(36) id PK
         char(36) plan_candidate_set_id FK
         char(36) place_id FK
-    }
-
-    plan_candidate_places {
-        char(36) id PK
-        char(36) plan_candidate_set_id FK
-        char(36) place_id FK
-        int order
     }
 
     plan_candidate_set_categories {
@@ -146,6 +134,20 @@ erDiagram
         char(36) plan_candidate_set_id FK
         string category
         bool is_selected
+    }
+
+    plan_candidates {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        VARCHAR(255) name
+    }
+
+    plan_candidate_places {
+        char(36) id PK
+        char(36) plan_candidate_id FK
+        char(36) plan_candidate_set_id FK
+        char(36) place_id FK
+        int order
     }
 
     plan_candidate_sets ||..o{ plan_candidates: "1:N"
