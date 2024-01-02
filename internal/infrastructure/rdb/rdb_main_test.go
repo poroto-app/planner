@@ -58,9 +58,9 @@ func TestMain(m *testing.M) {
 	// テスト実行
 	code := m.Run()
 
-	//if err := cleanup(context.Background(), testDB); err != nil {
-	//	log.Fatalf("failed to cleanup database: %v", err)
-	//}
+	if err := cleanup(context.Background(), testDB); err != nil {
+		log.Fatalf("failed to cleanup database: %v", err)
+	}
 
 	os.Exit(code)
 }
