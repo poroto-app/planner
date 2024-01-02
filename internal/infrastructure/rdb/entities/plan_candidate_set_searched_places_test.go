@@ -503,7 +503,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlanCandidateSetUsingPlanCandidateSet
 	var foreign PlanCandidateSet
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, planCandidateSetSearchedPlaceDBTypes, true, planCandidateSetSearchedPlaceColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, planCandidateSetSearchedPlaceDBTypes, false, planCandidateSetSearchedPlaceColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize PlanCandidateSetSearchedPlace struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, planCandidateSetDBTypes, false, planCandidateSetColumnsWithDefault...); err != nil {
@@ -514,7 +514,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlanCandidateSetUsingPlanCandidateSet
 		t.Fatal(err)
 	}
 
-	queries.Assign(&local.PlanCandidateSetID, foreign.ID)
+	local.PlanCandidateSetID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -524,7 +524,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlanCandidateSetUsingPlanCandidateSet
 		t.Fatal(err)
 	}
 
-	if !queries.Equal(check.ID, foreign.ID) {
+	if check.ID != foreign.ID {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -564,7 +564,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlaceUsingPlace(t *testing.T) {
 	var foreign Place
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, planCandidateSetSearchedPlaceDBTypes, true, planCandidateSetSearchedPlaceColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, planCandidateSetSearchedPlaceDBTypes, false, planCandidateSetSearchedPlaceColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize PlanCandidateSetSearchedPlace struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, placeDBTypes, false, placeColumnsWithDefault...); err != nil {
@@ -575,7 +575,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlaceUsingPlace(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&local.PlaceID, foreign.ID)
+	local.PlaceID = foreign.ID
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -585,7 +585,7 @@ func testPlanCandidateSetSearchedPlaceToOnePlaceUsingPlace(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !queries.Equal(check.ID, foreign.ID) {
+	if check.ID != foreign.ID {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -657,7 +657,7 @@ func testPlanCandidateSetSearchedPlaceToOneSetOpPlanCandidateSetUsingPlanCandida
 		if x.R.PlanCandidateSetSearchedPlaces[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if !queries.Equal(a.PlanCandidateSetID, x.ID) {
+		if a.PlanCandidateSetID != x.ID {
 			t.Error("foreign key was wrong value", a.PlanCandidateSetID)
 		}
 
@@ -668,63 +668,11 @@ func testPlanCandidateSetSearchedPlaceToOneSetOpPlanCandidateSetUsingPlanCandida
 			t.Fatal("failed to reload", err)
 		}
 
-		if !queries.Equal(a.PlanCandidateSetID, x.ID) {
+		if a.PlanCandidateSetID != x.ID {
 			t.Error("foreign key was wrong value", a.PlanCandidateSetID, x.ID)
 		}
 	}
 }
-
-func testPlanCandidateSetSearchedPlaceToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSetSearchedPlace
-	var b PlanCandidateSet
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetSearchedPlaceDBTypes, false, strmangle.SetComplement(planCandidateSetSearchedPlacePrimaryKeyColumns, planCandidateSetSearchedPlaceColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetPlanCandidateSet(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemovePlanCandidateSet(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.PlanCandidateSet().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.PlanCandidateSet != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.PlanCandidateSetID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.PlanCandidateSetSearchedPlaces) != 0 {
-		t.Error("failed to remove a from b's relationships")
-	}
-}
-
 func testPlanCandidateSetSearchedPlaceToOneSetOpPlaceUsingPlace(t *testing.T) {
 	var err error
 
@@ -766,7 +714,7 @@ func testPlanCandidateSetSearchedPlaceToOneSetOpPlaceUsingPlace(t *testing.T) {
 		if x.R.PlanCandidateSetSearchedPlaces[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if !queries.Equal(a.PlaceID, x.ID) {
+		if a.PlaceID != x.ID {
 			t.Error("foreign key was wrong value", a.PlaceID)
 		}
 
@@ -777,60 +725,9 @@ func testPlanCandidateSetSearchedPlaceToOneSetOpPlaceUsingPlace(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if !queries.Equal(a.PlaceID, x.ID) {
+		if a.PlaceID != x.ID {
 			t.Error("foreign key was wrong value", a.PlaceID, x.ID)
 		}
-	}
-}
-
-func testPlanCandidateSetSearchedPlaceToOneRemoveOpPlaceUsingPlace(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSetSearchedPlace
-	var b Place
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetSearchedPlaceDBTypes, false, strmangle.SetComplement(planCandidateSetSearchedPlacePrimaryKeyColumns, planCandidateSetSearchedPlaceColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, placeDBTypes, false, strmangle.SetComplement(placePrimaryKeyColumns, placeColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetPlace(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemovePlace(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.Place().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Place != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.PlaceID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.PlanCandidateSetSearchedPlaces) != 0 {
-		t.Error("failed to remove a from b's relationships")
 	}
 }
 

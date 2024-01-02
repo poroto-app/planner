@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,11 +23,11 @@ import (
 
 // PlanCandidateSetSearchedPlace is an object representing the database table.
 type PlanCandidateSetSearchedPlace struct {
-	ID                 string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlanCandidateSetID null.String `boil:"plan_candidate_set_id" json:"plan_candidate_set_id,omitempty" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id,omitempty"`
-	PlaceID            null.String `boil:"place_id" json:"place_id,omitempty" toml:"place_id" yaml:"place_id,omitempty"`
-	CreatedAt          null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt          null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	PlaceID            string    `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
+	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateSetSearchedPlaceR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetSearchedPlaceL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -66,16 +65,16 @@ var PlanCandidateSetSearchedPlaceTableColumns = struct {
 
 var PlanCandidateSetSearchedPlaceWhere = struct {
 	ID                 whereHelperstring
-	PlanCandidateSetID whereHelpernull_String
-	PlaceID            whereHelpernull_String
-	CreatedAt          whereHelpernull_Time
-	UpdatedAt          whereHelpernull_Time
+	PlanCandidateSetID whereHelperstring
+	PlaceID            whereHelperstring
+	CreatedAt          whereHelpertime_Time
+	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "`plan_candidate_set_searched_places`.`id`"},
-	PlanCandidateSetID: whereHelpernull_String{field: "`plan_candidate_set_searched_places`.`plan_candidate_set_id`"},
-	PlaceID:            whereHelpernull_String{field: "`plan_candidate_set_searched_places`.`place_id`"},
-	CreatedAt:          whereHelpernull_Time{field: "`plan_candidate_set_searched_places`.`created_at`"},
-	UpdatedAt:          whereHelpernull_Time{field: "`plan_candidate_set_searched_places`.`updated_at`"},
+	PlanCandidateSetID: whereHelperstring{field: "`plan_candidate_set_searched_places`.`plan_candidate_set_id`"},
+	PlaceID:            whereHelperstring{field: "`plan_candidate_set_searched_places`.`place_id`"},
+	CreatedAt:          whereHelpertime_Time{field: "`plan_candidate_set_searched_places`.`created_at`"},
+	UpdatedAt:          whereHelpertime_Time{field: "`plan_candidate_set_searched_places`.`updated_at`"},
 }
 
 // PlanCandidateSetSearchedPlaceRels is where relationship names are stored.
@@ -456,9 +455,7 @@ func (planCandidateSetSearchedPlaceL) LoadPlanCandidateSet(ctx context.Context, 
 		if object.R == nil {
 			object.R = &planCandidateSetSearchedPlaceR{}
 		}
-		if !queries.IsNil(object.PlanCandidateSetID) {
-			args = append(args, object.PlanCandidateSetID)
-		}
+		args = append(args, object.PlanCandidateSetID)
 
 	} else {
 	Outer:
@@ -468,14 +465,12 @@ func (planCandidateSetSearchedPlaceL) LoadPlanCandidateSet(ctx context.Context, 
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.PlanCandidateSetID) {
+				if a == obj.PlanCandidateSetID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.PlanCandidateSetID) {
-				args = append(args, obj.PlanCandidateSetID)
-			}
+			args = append(args, obj.PlanCandidateSetID)
 
 		}
 	}
@@ -533,7 +528,7 @@ func (planCandidateSetSearchedPlaceL) LoadPlanCandidateSet(ctx context.Context, 
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.PlanCandidateSetID, foreign.ID) {
+			if local.PlanCandidateSetID == foreign.ID {
 				local.R.PlanCandidateSet = foreign
 				if foreign.R == nil {
 					foreign.R = &planCandidateSetR{}
@@ -580,9 +575,7 @@ func (planCandidateSetSearchedPlaceL) LoadPlace(ctx context.Context, e boil.Cont
 		if object.R == nil {
 			object.R = &planCandidateSetSearchedPlaceR{}
 		}
-		if !queries.IsNil(object.PlaceID) {
-			args = append(args, object.PlaceID)
-		}
+		args = append(args, object.PlaceID)
 
 	} else {
 	Outer:
@@ -592,14 +585,12 @@ func (planCandidateSetSearchedPlaceL) LoadPlace(ctx context.Context, e boil.Cont
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.PlaceID) {
+				if a == obj.PlaceID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.PlaceID) {
-				args = append(args, obj.PlaceID)
-			}
+			args = append(args, obj.PlaceID)
 
 		}
 	}
@@ -657,7 +648,7 @@ func (planCandidateSetSearchedPlaceL) LoadPlace(ctx context.Context, e boil.Cont
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.PlaceID, foreign.ID) {
+			if local.PlaceID == foreign.ID {
 				local.R.Place = foreign
 				if foreign.R == nil {
 					foreign.R = &placeR{}
@@ -698,7 +689,7 @@ func (o *PlanCandidateSetSearchedPlace) SetPlanCandidateSet(ctx context.Context,
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.PlanCandidateSetID, related.ID)
+	o.PlanCandidateSetID = related.ID
 	if o.R == nil {
 		o.R = &planCandidateSetSearchedPlaceR{
 			PlanCandidateSet: related,
@@ -715,39 +706,6 @@ func (o *PlanCandidateSetSearchedPlace) SetPlanCandidateSet(ctx context.Context,
 		related.R.PlanCandidateSetSearchedPlaces = append(related.R.PlanCandidateSetSearchedPlaces, o)
 	}
 
-	return nil
-}
-
-// RemovePlanCandidateSet relationship.
-// Sets o.R.PlanCandidateSet to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *PlanCandidateSetSearchedPlace) RemovePlanCandidateSet(ctx context.Context, exec boil.ContextExecutor, related *PlanCandidateSet) error {
-	var err error
-
-	queries.SetScanner(&o.PlanCandidateSetID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("plan_candidate_set_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.PlanCandidateSet = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.PlanCandidateSetSearchedPlaces {
-		if queries.Equal(o.PlanCandidateSetID, ri.PlanCandidateSetID) {
-			continue
-		}
-
-		ln := len(related.R.PlanCandidateSetSearchedPlaces)
-		if ln > 1 && i < ln-1 {
-			related.R.PlanCandidateSetSearchedPlaces[i] = related.R.PlanCandidateSetSearchedPlaces[ln-1]
-		}
-		related.R.PlanCandidateSetSearchedPlaces = related.R.PlanCandidateSetSearchedPlaces[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -778,7 +736,7 @@ func (o *PlanCandidateSetSearchedPlace) SetPlace(ctx context.Context, exec boil.
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.PlaceID, related.ID)
+	o.PlaceID = related.ID
 	if o.R == nil {
 		o.R = &planCandidateSetSearchedPlaceR{
 			Place: related,
@@ -795,39 +753,6 @@ func (o *PlanCandidateSetSearchedPlace) SetPlace(ctx context.Context, exec boil.
 		related.R.PlanCandidateSetSearchedPlaces = append(related.R.PlanCandidateSetSearchedPlaces, o)
 	}
 
-	return nil
-}
-
-// RemovePlace relationship.
-// Sets o.R.Place to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *PlanCandidateSetSearchedPlace) RemovePlace(ctx context.Context, exec boil.ContextExecutor, related *Place) error {
-	var err error
-
-	queries.SetScanner(&o.PlaceID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("place_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Place = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.PlanCandidateSetSearchedPlaces {
-		if queries.Equal(o.PlaceID, ri.PlaceID) {
-			continue
-		}
-
-		ln := len(related.R.PlanCandidateSetSearchedPlaces)
-		if ln > 1 && i < ln-1 {
-			related.R.PlanCandidateSetSearchedPlaces[i] = related.R.PlanCandidateSetSearchedPlaces[ln-1]
-		}
-		related.R.PlanCandidateSetSearchedPlaces = related.R.PlanCandidateSetSearchedPlaces[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -883,11 +808,11 @@ func (o *PlanCandidateSetSearchedPlace) Insert(ctx context.Context, exec boil.Co
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
 		}
 	}
 
@@ -984,7 +909,7 @@ func (o *PlanCandidateSetSearchedPlace) Update(ctx context.Context, exec boil.Co
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	var err error
@@ -1124,10 +1049,10 @@ func (o *PlanCandidateSetSearchedPlace) Upsert(ctx context.Context, exec boil.Co
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

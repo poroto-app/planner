@@ -519,8 +519,9 @@ func testPlanCandidateSetToManyPlanCandidateSetCategories(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&b.PlanCandidateSetID, a.ID)
-	queries.Assign(&c.PlanCandidateSetID, a.ID)
+	b.PlanCandidateSetID = a.ID
+	c.PlanCandidateSetID = a.ID
+
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -535,10 +536,10 @@ func testPlanCandidateSetToManyPlanCandidateSetCategories(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if queries.Equal(v.PlanCandidateSetID, b.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == b.PlanCandidateSetID {
 			bFound = true
 		}
-		if queries.Equal(v.PlanCandidateSetID, c.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == c.PlanCandidateSetID {
 			cFound = true
 		}
 	}
@@ -596,8 +597,9 @@ func testPlanCandidateSetToManyPlanCandidateSetSearchedPlaces(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&b.PlanCandidateSetID, a.ID)
-	queries.Assign(&c.PlanCandidateSetID, a.ID)
+	b.PlanCandidateSetID = a.ID
+	c.PlanCandidateSetID = a.ID
+
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -612,10 +614,10 @@ func testPlanCandidateSetToManyPlanCandidateSetSearchedPlaces(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if queries.Equal(v.PlanCandidateSetID, b.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == b.PlanCandidateSetID {
 			bFound = true
 		}
-		if queries.Equal(v.PlanCandidateSetID, c.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == c.PlanCandidateSetID {
 			cFound = true
 		}
 	}
@@ -673,8 +675,9 @@ func testPlanCandidateSetToManyPlanCandidates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	queries.Assign(&b.PlanCandidateSetID, a.ID)
-	queries.Assign(&c.PlanCandidateSetID, a.ID)
+	b.PlanCandidateSetID = a.ID
+	c.PlanCandidateSetID = a.ID
+
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -689,10 +692,10 @@ func testPlanCandidateSetToManyPlanCandidates(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if queries.Equal(v.PlanCandidateSetID, b.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == b.PlanCandidateSetID {
 			bFound = true
 		}
-		if queries.Equal(v.PlanCandidateSetID, c.PlanCandidateSetID) {
+		if v.PlanCandidateSetID == c.PlanCandidateSetID {
 			cFound = true
 		}
 	}
@@ -770,10 +773,10 @@ func testPlanCandidateSetToManyAddOpPlanCandidateSetCategories(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if !queries.Equal(a.ID, first.PlanCandidateSetID) {
+		if a.ID != first.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, first.PlanCandidateSetID)
 		}
-		if !queries.Equal(a.ID, second.PlanCandidateSetID) {
+		if a.ID != second.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, second.PlanCandidateSetID)
 		}
 
@@ -800,182 +803,6 @@ func testPlanCandidateSetToManyAddOpPlanCandidateSetCategories(t *testing.T) {
 		}
 	}
 }
-
-func testPlanCandidateSetToManySetOpPlanCandidateSetCategories(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidateSetCategory
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidateSetCategory{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateSetCategoryDBTypes, false, strmangle.SetComplement(planCandidateSetCategoryPrimaryKeyColumns, planCandidateSetCategoryColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetPlanCandidateSetCategories(ctx, tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidateSetCategories().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetPlanCandidateSetCategories(ctx, tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidateSetCategories().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if !queries.Equal(a.ID, d.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, d.PlanCandidateSetID)
-	}
-	if !queries.Equal(a.ID, e.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, e.PlanCandidateSetID)
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.PlanCandidateSetCategories[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.PlanCandidateSetCategories[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testPlanCandidateSetToManyRemoveOpPlanCandidateSetCategories(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidateSetCategory
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidateSetCategory{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateSetCategoryDBTypes, false, strmangle.SetComplement(planCandidateSetCategoryPrimaryKeyColumns, planCandidateSetCategoryColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddPlanCandidateSetCategories(ctx, tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidateSetCategories().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemovePlanCandidateSetCategories(ctx, tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidateSetCategories().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.PlanCandidateSetCategories) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.PlanCandidateSetCategories[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.PlanCandidateSetCategories[0] != &e {
-		t.Error("relationship to e should have been preserved")
-	}
-}
-
 func testPlanCandidateSetToManyAddOpPlanCandidateSetSearchedPlaces(t *testing.T) {
 	var err error
 
@@ -1021,10 +848,10 @@ func testPlanCandidateSetToManyAddOpPlanCandidateSetSearchedPlaces(t *testing.T)
 		first := x[0]
 		second := x[1]
 
-		if !queries.Equal(a.ID, first.PlanCandidateSetID) {
+		if a.ID != first.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, first.PlanCandidateSetID)
 		}
-		if !queries.Equal(a.ID, second.PlanCandidateSetID) {
+		if a.ID != second.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, second.PlanCandidateSetID)
 		}
 
@@ -1051,182 +878,6 @@ func testPlanCandidateSetToManyAddOpPlanCandidateSetSearchedPlaces(t *testing.T)
 		}
 	}
 }
-
-func testPlanCandidateSetToManySetOpPlanCandidateSetSearchedPlaces(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidateSetSearchedPlace
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidateSetSearchedPlace{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateSetSearchedPlaceDBTypes, false, strmangle.SetComplement(planCandidateSetSearchedPlacePrimaryKeyColumns, planCandidateSetSearchedPlaceColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetPlanCandidateSetSearchedPlaces(ctx, tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidateSetSearchedPlaces().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetPlanCandidateSetSearchedPlaces(ctx, tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidateSetSearchedPlaces().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if !queries.Equal(a.ID, d.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, d.PlanCandidateSetID)
-	}
-	if !queries.Equal(a.ID, e.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, e.PlanCandidateSetID)
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.PlanCandidateSetSearchedPlaces[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.PlanCandidateSetSearchedPlaces[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testPlanCandidateSetToManyRemoveOpPlanCandidateSetSearchedPlaces(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidateSetSearchedPlace
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidateSetSearchedPlace{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateSetSearchedPlaceDBTypes, false, strmangle.SetComplement(planCandidateSetSearchedPlacePrimaryKeyColumns, planCandidateSetSearchedPlaceColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddPlanCandidateSetSearchedPlaces(ctx, tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidateSetSearchedPlaces().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemovePlanCandidateSetSearchedPlaces(ctx, tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidateSetSearchedPlaces().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.PlanCandidateSetSearchedPlaces) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.PlanCandidateSetSearchedPlaces[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.PlanCandidateSetSearchedPlaces[0] != &e {
-		t.Error("relationship to e should have been preserved")
-	}
-}
-
 func testPlanCandidateSetToManyAddOpPlanCandidates(t *testing.T) {
 	var err error
 
@@ -1272,10 +923,10 @@ func testPlanCandidateSetToManyAddOpPlanCandidates(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if !queries.Equal(a.ID, first.PlanCandidateSetID) {
+		if a.ID != first.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, first.PlanCandidateSetID)
 		}
-		if !queries.Equal(a.ID, second.PlanCandidateSetID) {
+		if a.ID != second.PlanCandidateSetID {
 			t.Error("foreign key was wrong value", a.ID, second.PlanCandidateSetID)
 		}
 
@@ -1300,181 +951,6 @@ func testPlanCandidateSetToManyAddOpPlanCandidates(t *testing.T) {
 		if want := int64((i + 1) * 2); count != want {
 			t.Error("want", want, "got", count)
 		}
-	}
-}
-
-func testPlanCandidateSetToManySetOpPlanCandidates(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidate
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidate{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateDBTypes, false, strmangle.SetComplement(planCandidatePrimaryKeyColumns, planCandidateColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.SetPlanCandidates(ctx, tx, false, &b, &c)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidates().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.SetPlanCandidates(ctx, tx, true, &d, &e)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidates().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-	if !queries.Equal(a.ID, d.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, d.PlanCandidateSetID)
-	}
-	if !queries.Equal(a.ID, e.PlanCandidateSetID) {
-		t.Error("foreign key was wrong value", a.ID, e.PlanCandidateSetID)
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship was not added properly to the foreign struct")
-	}
-
-	if a.R.PlanCandidates[0] != &d {
-		t.Error("relationship struct slice not set to correct value")
-	}
-	if a.R.PlanCandidates[1] != &e {
-		t.Error("relationship struct slice not set to correct value")
-	}
-}
-
-func testPlanCandidateSetToManyRemoveOpPlanCandidates(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a PlanCandidateSet
-	var b, c, d, e PlanCandidate
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, planCandidateSetDBTypes, false, strmangle.SetComplement(planCandidateSetPrimaryKeyColumns, planCandidateSetColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	foreigners := []*PlanCandidate{&b, &c, &d, &e}
-	for _, x := range foreigners {
-		if err = randomize.Struct(seed, x, planCandidateDBTypes, false, strmangle.SetComplement(planCandidatePrimaryKeyColumns, planCandidateColumnsWithoutDefault)...); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	err = a.AddPlanCandidates(ctx, tx, true, foreigners...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err := a.PlanCandidates().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 4 {
-		t.Error("count was wrong:", count)
-	}
-
-	err = a.RemovePlanCandidates(ctx, tx, foreigners[:2]...)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	count, err = a.PlanCandidates().Count(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if count != 2 {
-		t.Error("count was wrong:", count)
-	}
-
-	if !queries.IsValuerNil(b.PlanCandidateSetID) {
-		t.Error("want b's foreign key value to be nil")
-	}
-	if !queries.IsValuerNil(c.PlanCandidateSetID) {
-		t.Error("want c's foreign key value to be nil")
-	}
-
-	if b.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if c.R.PlanCandidateSet != nil {
-		t.Error("relationship was not removed properly from the foreign struct")
-	}
-	if d.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-	if e.R.PlanCandidateSet != &a {
-		t.Error("relationship to a should have been preserved")
-	}
-
-	if len(a.R.PlanCandidates) != 2 {
-		t.Error("should have preserved two relationships")
-	}
-
-	// Removal doesn't do a stable deletion for performance so we have to flip the order
-	if a.R.PlanCandidates[1] != &d {
-		t.Error("relationship to d should have been preserved")
-	}
-	if a.R.PlanCandidates[0] != &e {
-		t.Error("relationship to e should have been preserved")
 	}
 }
 

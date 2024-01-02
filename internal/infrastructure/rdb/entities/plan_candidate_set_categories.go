@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,12 +23,12 @@ import (
 
 // PlanCandidateSetCategory is an object representing the database table.
 type PlanCandidateSetCategory struct {
-	ID                 string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlanCandidateSetID null.String `boil:"plan_candidate_set_id" json:"plan_candidate_set_id,omitempty" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id,omitempty"`
-	Category           null.String `boil:"category" json:"category,omitempty" toml:"category" yaml:"category,omitempty"`
-	IsSelected         null.Bool   `boil:"is_selected" json:"is_selected,omitempty" toml:"is_selected" yaml:"is_selected,omitempty"`
-	CreatedAt          null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt          null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	Category           string    `boil:"category" json:"category" toml:"category" yaml:"category"`
+	IsSelected         bool      `boil:"is_selected" json:"is_selected" toml:"is_selected" yaml:"is_selected"`
+	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateSetCategoryR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetCategoryL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -69,44 +68,29 @@ var PlanCandidateSetCategoryTableColumns = struct {
 
 // Generated where
 
-type whereHelpernull_Bool struct{ field string }
+type whereHelperbool struct{ field string }
 
-func (w whereHelpernull_Bool) EQ(x null.Bool) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Bool) NEQ(x null.Bool) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Bool) LT(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Bool) LTE(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Bool) GT(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Bool) GTE(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-func (w whereHelpernull_Bool) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var PlanCandidateSetCategoryWhere = struct {
 	ID                 whereHelperstring
-	PlanCandidateSetID whereHelpernull_String
-	Category           whereHelpernull_String
-	IsSelected         whereHelpernull_Bool
-	CreatedAt          whereHelpernull_Time
-	UpdatedAt          whereHelpernull_Time
+	PlanCandidateSetID whereHelperstring
+	Category           whereHelperstring
+	IsSelected         whereHelperbool
+	CreatedAt          whereHelpertime_Time
+	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "`plan_candidate_set_categories`.`id`"},
-	PlanCandidateSetID: whereHelpernull_String{field: "`plan_candidate_set_categories`.`plan_candidate_set_id`"},
-	Category:           whereHelpernull_String{field: "`plan_candidate_set_categories`.`category`"},
-	IsSelected:         whereHelpernull_Bool{field: "`plan_candidate_set_categories`.`is_selected`"},
-	CreatedAt:          whereHelpernull_Time{field: "`plan_candidate_set_categories`.`created_at`"},
-	UpdatedAt:          whereHelpernull_Time{field: "`plan_candidate_set_categories`.`updated_at`"},
+	PlanCandidateSetID: whereHelperstring{field: "`plan_candidate_set_categories`.`plan_candidate_set_id`"},
+	Category:           whereHelperstring{field: "`plan_candidate_set_categories`.`category`"},
+	IsSelected:         whereHelperbool{field: "`plan_candidate_set_categories`.`is_selected`"},
+	CreatedAt:          whereHelpertime_Time{field: "`plan_candidate_set_categories`.`created_at`"},
+	UpdatedAt:          whereHelpertime_Time{field: "`plan_candidate_set_categories`.`updated_at`"},
 }
 
 // PlanCandidateSetCategoryRels is where relationship names are stored.
@@ -466,9 +450,7 @@ func (planCandidateSetCategoryL) LoadPlanCandidateSet(ctx context.Context, e boi
 		if object.R == nil {
 			object.R = &planCandidateSetCategoryR{}
 		}
-		if !queries.IsNil(object.PlanCandidateSetID) {
-			args = append(args, object.PlanCandidateSetID)
-		}
+		args = append(args, object.PlanCandidateSetID)
 
 	} else {
 	Outer:
@@ -478,14 +460,12 @@ func (planCandidateSetCategoryL) LoadPlanCandidateSet(ctx context.Context, e boi
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.PlanCandidateSetID) {
+				if a == obj.PlanCandidateSetID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.PlanCandidateSetID) {
-				args = append(args, obj.PlanCandidateSetID)
-			}
+			args = append(args, obj.PlanCandidateSetID)
 
 		}
 	}
@@ -543,7 +523,7 @@ func (planCandidateSetCategoryL) LoadPlanCandidateSet(ctx context.Context, e boi
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.PlanCandidateSetID, foreign.ID) {
+			if local.PlanCandidateSetID == foreign.ID {
 				local.R.PlanCandidateSet = foreign
 				if foreign.R == nil {
 					foreign.R = &planCandidateSetR{}
@@ -584,7 +564,7 @@ func (o *PlanCandidateSetCategory) SetPlanCandidateSet(ctx context.Context, exec
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.PlanCandidateSetID, related.ID)
+	o.PlanCandidateSetID = related.ID
 	if o.R == nil {
 		o.R = &planCandidateSetCategoryR{
 			PlanCandidateSet: related,
@@ -601,39 +581,6 @@ func (o *PlanCandidateSetCategory) SetPlanCandidateSet(ctx context.Context, exec
 		related.R.PlanCandidateSetCategories = append(related.R.PlanCandidateSetCategories, o)
 	}
 
-	return nil
-}
-
-// RemovePlanCandidateSet relationship.
-// Sets o.R.PlanCandidateSet to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *PlanCandidateSetCategory) RemovePlanCandidateSet(ctx context.Context, exec boil.ContextExecutor, related *PlanCandidateSet) error {
-	var err error
-
-	queries.SetScanner(&o.PlanCandidateSetID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("plan_candidate_set_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.PlanCandidateSet = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.PlanCandidateSetCategories {
-		if queries.Equal(o.PlanCandidateSetID, ri.PlanCandidateSetID) {
-			continue
-		}
-
-		ln := len(related.R.PlanCandidateSetCategories)
-		if ln > 1 && i < ln-1 {
-			related.R.PlanCandidateSetCategories[i] = related.R.PlanCandidateSetCategories[ln-1]
-		}
-		related.R.PlanCandidateSetCategories = related.R.PlanCandidateSetCategories[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -689,11 +636,11 @@ func (o *PlanCandidateSetCategory) Insert(ctx context.Context, exec boil.Context
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
 		}
 	}
 
@@ -790,7 +737,7 @@ func (o *PlanCandidateSetCategory) Update(ctx context.Context, exec boil.Context
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	var err error
@@ -930,10 +877,10 @@ func (o *PlanCandidateSetCategory) Upsert(ctx context.Context, exec boil.Context
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {

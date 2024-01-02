@@ -295,14 +295,7 @@ func TestToOneSet(t *testing.T) {
 
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToOneRemove(t *testing.T) {
-	t.Run("PlanCandidatePlaceToPlanCandidateUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneRemoveOpPlanCandidateUsingPlanCandidate)
-	t.Run("PlanCandidatePlaceToPlaceUsingPlanCandidatePlaces", testPlanCandidatePlaceToOneRemoveOpPlaceUsingPlace)
-	t.Run("PlanCandidateSetCategoryToPlanCandidateSetUsingPlanCandidateSetCategories", testPlanCandidateSetCategoryToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
-	t.Run("PlanCandidateSetSearchedPlaceToPlanCandidateSetUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
-	t.Run("PlanCandidateSetSearchedPlaceToPlaceUsingPlanCandidateSetSearchedPlaces", testPlanCandidateSetSearchedPlaceToOneRemoveOpPlaceUsingPlace)
-	t.Run("PlanCandidateToPlanCandidateSetUsingPlanCandidates", testPlanCandidateToOneRemoveOpPlanCandidateSetUsingPlanCandidateSet)
-}
+func TestToOneRemove(t *testing.T) {}
 
 // TestOneToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
@@ -334,25 +327,11 @@ func TestToManyAdd(t *testing.T) {
 
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManySet(t *testing.T) {
-	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManySetOpPlanCandidatePlaces)
-	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManySetOpPlanCandidateSetSearchedPlaces)
-	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManySetOpPlanCandidateSetCategories)
-	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManySetOpPlanCandidateSetSearchedPlaces)
-	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManySetOpPlanCandidates)
-	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManySetOpPlanCandidatePlaces)
-}
+func TestToManySet(t *testing.T) {}
 
 // TestToManyRemove tests cannot be run in parallel
 // or deadlocks can occur.
-func TestToManyRemove(t *testing.T) {
-	t.Run("PlaceToPlanCandidatePlaces", testPlaceToManyRemoveOpPlanCandidatePlaces)
-	t.Run("PlaceToPlanCandidateSetSearchedPlaces", testPlaceToManyRemoveOpPlanCandidateSetSearchedPlaces)
-	t.Run("PlanCandidateSetToPlanCandidateSetCategories", testPlanCandidateSetToManyRemoveOpPlanCandidateSetCategories)
-	t.Run("PlanCandidateSetToPlanCandidateSetSearchedPlaces", testPlanCandidateSetToManyRemoveOpPlanCandidateSetSearchedPlaces)
-	t.Run("PlanCandidateSetToPlanCandidates", testPlanCandidateSetToManyRemoveOpPlanCandidates)
-	t.Run("PlanCandidateToPlanCandidatePlaces", testPlanCandidateToManyRemoveOpPlanCandidatePlaces)
-}
+func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
 	t.Run("GooglePlaceOpeningPeriods", testGooglePlaceOpeningPeriodsReload)

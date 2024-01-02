@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,11 +23,11 @@ import (
 
 // PlanCandidate is an object representing the database table.
 type PlanCandidate struct {
-	ID                 string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name               null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
-	PlanCandidateSetID null.String `boil:"plan_candidate_set_id" json:"plan_candidate_set_id,omitempty" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id,omitempty"`
-	CreatedAt          null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt          null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name               string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -66,16 +65,16 @@ var PlanCandidateTableColumns = struct {
 
 var PlanCandidateWhere = struct {
 	ID                 whereHelperstring
-	Name               whereHelpernull_String
-	PlanCandidateSetID whereHelpernull_String
-	CreatedAt          whereHelpernull_Time
-	UpdatedAt          whereHelpernull_Time
+	Name               whereHelperstring
+	PlanCandidateSetID whereHelperstring
+	CreatedAt          whereHelpertime_Time
+	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "`plan_candidates`.`id`"},
-	Name:               whereHelpernull_String{field: "`plan_candidates`.`name`"},
-	PlanCandidateSetID: whereHelpernull_String{field: "`plan_candidates`.`plan_candidate_set_id`"},
-	CreatedAt:          whereHelpernull_Time{field: "`plan_candidates`.`created_at`"},
-	UpdatedAt:          whereHelpernull_Time{field: "`plan_candidates`.`updated_at`"},
+	Name:               whereHelperstring{field: "`plan_candidates`.`name`"},
+	PlanCandidateSetID: whereHelperstring{field: "`plan_candidates`.`plan_candidate_set_id`"},
+	CreatedAt:          whereHelpertime_Time{field: "`plan_candidates`.`created_at`"},
+	UpdatedAt:          whereHelpertime_Time{field: "`plan_candidates`.`updated_at`"},
 }
 
 // PlanCandidateRels is where relationship names are stored.
@@ -459,9 +458,7 @@ func (planCandidateL) LoadPlanCandidateSet(ctx context.Context, e boil.ContextEx
 		if object.R == nil {
 			object.R = &planCandidateR{}
 		}
-		if !queries.IsNil(object.PlanCandidateSetID) {
-			args = append(args, object.PlanCandidateSetID)
-		}
+		args = append(args, object.PlanCandidateSetID)
 
 	} else {
 	Outer:
@@ -471,14 +468,12 @@ func (planCandidateL) LoadPlanCandidateSet(ctx context.Context, e boil.ContextEx
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.PlanCandidateSetID) {
+				if a == obj.PlanCandidateSetID {
 					continue Outer
 				}
 			}
 
-			if !queries.IsNil(obj.PlanCandidateSetID) {
-				args = append(args, obj.PlanCandidateSetID)
-			}
+			args = append(args, obj.PlanCandidateSetID)
 
 		}
 	}
@@ -536,7 +531,7 @@ func (planCandidateL) LoadPlanCandidateSet(ctx context.Context, e boil.ContextEx
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if queries.Equal(local.PlanCandidateSetID, foreign.ID) {
+			if local.PlanCandidateSetID == foreign.ID {
 				local.R.PlanCandidateSet = foreign
 				if foreign.R == nil {
 					foreign.R = &planCandidateSetR{}
@@ -592,7 +587,7 @@ func (planCandidateL) LoadPlanCandidatePlaces(ctx context.Context, e boil.Contex
 			}
 
 			for _, a := range args {
-				if queries.Equal(a, obj.ID) {
+				if a == obj.ID {
 					continue Outer
 				}
 			}
@@ -650,7 +645,7 @@ func (planCandidateL) LoadPlanCandidatePlaces(ctx context.Context, e boil.Contex
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if queries.Equal(local.ID, foreign.PlanCandidateID) {
+			if local.ID == foreign.PlanCandidateID {
 				local.R.PlanCandidatePlaces = append(local.R.PlanCandidatePlaces, foreign)
 				if foreign.R == nil {
 					foreign.R = &planCandidatePlaceR{}
@@ -691,7 +686,7 @@ func (o *PlanCandidate) SetPlanCandidateSet(ctx context.Context, exec boil.Conte
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	queries.Assign(&o.PlanCandidateSetID, related.ID)
+	o.PlanCandidateSetID = related.ID
 	if o.R == nil {
 		o.R = &planCandidateR{
 			PlanCandidateSet: related,
@@ -711,39 +706,6 @@ func (o *PlanCandidate) SetPlanCandidateSet(ctx context.Context, exec boil.Conte
 	return nil
 }
 
-// RemovePlanCandidateSet relationship.
-// Sets o.R.PlanCandidateSet to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *PlanCandidate) RemovePlanCandidateSet(ctx context.Context, exec boil.ContextExecutor, related *PlanCandidateSet) error {
-	var err error
-
-	queries.SetScanner(&o.PlanCandidateSetID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("plan_candidate_set_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.PlanCandidateSet = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.PlanCandidates {
-		if queries.Equal(o.PlanCandidateSetID, ri.PlanCandidateSetID) {
-			continue
-		}
-
-		ln := len(related.R.PlanCandidates)
-		if ln > 1 && i < ln-1 {
-			related.R.PlanCandidates[i] = related.R.PlanCandidates[ln-1]
-		}
-		related.R.PlanCandidates = related.R.PlanCandidates[:ln-1]
-		break
-	}
-	return nil
-}
-
 // AddPlanCandidatePlaces adds the given related objects to the existing relationships
 // of the plan_candidate, optionally inserting them as new records.
 // Appends related to o.R.PlanCandidatePlaces.
@@ -752,7 +714,7 @@ func (o *PlanCandidate) AddPlanCandidatePlaces(ctx context.Context, exec boil.Co
 	var err error
 	for _, rel := range related {
 		if insert {
-			queries.Assign(&rel.PlanCandidateID, o.ID)
+			rel.PlanCandidateID = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -773,7 +735,7 @@ func (o *PlanCandidate) AddPlanCandidatePlaces(ctx context.Context, exec boil.Co
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			queries.Assign(&rel.PlanCandidateID, o.ID)
+			rel.PlanCandidateID = o.ID
 		}
 	}
 
@@ -794,80 +756,6 @@ func (o *PlanCandidate) AddPlanCandidatePlaces(ctx context.Context, exec boil.Co
 			rel.R.PlanCandidate = o
 		}
 	}
-	return nil
-}
-
-// SetPlanCandidatePlaces removes all previously related items of the
-// plan_candidate replacing them completely with the passed
-// in related items, optionally inserting them as new records.
-// Sets o.R.PlanCandidate's PlanCandidatePlaces accordingly.
-// Replaces o.R.PlanCandidatePlaces with related.
-// Sets related.R.PlanCandidate's PlanCandidatePlaces accordingly.
-func (o *PlanCandidate) SetPlanCandidatePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidatePlace) error {
-	query := "update `plan_candidate_places` set `plan_candidate_id` = null where `plan_candidate_id` = ?"
-	values := []interface{}{o.ID}
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-		fmt.Fprintln(writer, values)
-	}
-	_, err := exec.ExecContext(ctx, query, values...)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove relationships before set")
-	}
-
-	if o.R != nil {
-		for _, rel := range o.R.PlanCandidatePlaces {
-			queries.SetScanner(&rel.PlanCandidateID, nil)
-			if rel.R == nil {
-				continue
-			}
-
-			rel.R.PlanCandidate = nil
-		}
-		o.R.PlanCandidatePlaces = nil
-	}
-
-	return o.AddPlanCandidatePlaces(ctx, exec, insert, related...)
-}
-
-// RemovePlanCandidatePlaces relationships from objects passed in.
-// Removes related items from R.PlanCandidatePlaces (uses pointer comparison, removal does not keep order)
-// Sets related.R.PlanCandidate.
-func (o *PlanCandidate) RemovePlanCandidatePlaces(ctx context.Context, exec boil.ContextExecutor, related ...*PlanCandidatePlace) error {
-	if len(related) == 0 {
-		return nil
-	}
-
-	var err error
-	for _, rel := range related {
-		queries.SetScanner(&rel.PlanCandidateID, nil)
-		if rel.R != nil {
-			rel.R.PlanCandidate = nil
-		}
-		if _, err = rel.Update(ctx, exec, boil.Whitelist("plan_candidate_id")); err != nil {
-			return err
-		}
-	}
-	if o.R == nil {
-		return nil
-	}
-
-	for _, rel := range related {
-		for i, ri := range o.R.PlanCandidatePlaces {
-			if rel != ri {
-				continue
-			}
-
-			ln := len(o.R.PlanCandidatePlaces)
-			if ln > 1 && i < ln-1 {
-				o.R.PlanCandidatePlaces[i] = o.R.PlanCandidatePlaces[ln-1]
-			}
-			o.R.PlanCandidatePlaces = o.R.PlanCandidatePlaces[:ln-1]
-			break
-		}
-	}
-
 	return nil
 }
 
@@ -923,11 +811,11 @@ func (o *PlanCandidate) Insert(ctx context.Context, exec boil.ContextExecutor, c
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		if queries.MustTime(o.UpdatedAt).IsZero() {
-			queries.SetScanner(&o.UpdatedAt, currTime)
+		if o.UpdatedAt.IsZero() {
+			o.UpdatedAt = currTime
 		}
 	}
 
@@ -1024,7 +912,7 @@ func (o *PlanCandidate) Update(ctx context.Context, exec boil.ContextExecutor, c
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	var err error
@@ -1164,10 +1052,10 @@ func (o *PlanCandidate) Upsert(ctx context.Context, exec boil.ContextExecutor, u
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
-		if queries.MustTime(o.CreatedAt).IsZero() {
-			queries.SetScanner(&o.CreatedAt, currTime)
+		if o.CreatedAt.IsZero() {
+			o.CreatedAt = currTime
 		}
-		queries.SetScanner(&o.UpdatedAt, currTime)
+		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
