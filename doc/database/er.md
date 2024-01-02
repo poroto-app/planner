@@ -114,7 +114,6 @@ erDiagram
         char(36) id PK
         float latitude_start
         float longitude_start
-        point location_start
         bool created_from_current_location
     }
 
