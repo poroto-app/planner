@@ -22,7 +22,7 @@ func init() {
 }
 
 func main() {
-	dns := fmt.Sprintf(
+	dsn := fmt.Sprintf(
 		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s&tls=%v&interpolateParams=%v",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
@@ -33,7 +33,7 @@ func main() {
 		true,
 	)
 
-	db, err := sql.Open("mysql", dns)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -41,7 +41,7 @@ func main() {
 	boil.SetDB(db)
 	boil.DebugMode = true
 
-	log.Println(dns)
+	log.Println(dsn)
 
 	cleanup(context.Background(), db)
 	defer db.Close()
