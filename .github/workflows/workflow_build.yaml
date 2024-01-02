@@ -53,8 +53,6 @@ jobs:
           DB_NAME: poroto
         run: |
           goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
-      - name: Create sqlboiler.toml for test
-        run: cp db/sqlboiler.toml sqlboiler.toml && sed -i 's/port = 3306/port = 3307/' sqlboiler.toml
       - name: Run Test
         run: go test -v ./... | go-junit-report -set-exit-code > report.xml
       - name: Test Summary
