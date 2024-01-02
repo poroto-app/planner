@@ -101,7 +101,7 @@ go generate ./...
 ## テストの実行
 ```shell
 # sqlboiler.tomlをコピーして、テスト用のDBに接続するように変更
-cp db/sqlboiler.toml sqlboiler.toml && sed -i 's/port = 3306/port = 3307/' sqlboiler.toml
+cp db/sqlboiler.toml sqlboiler.toml && sed -i 's/3306/3307/' sqlboiler.toml
 # テストを実行
 go test ./...
 ```
