@@ -118,8 +118,8 @@ erDiagram
     plan_candidate_set_meta_data {
         char(36) id PK
         char(36) plan_candidate_set_id FK
-        float latitude_start
-        float longitude_start
+        double latitude_start
+        double longitude_start
         bool created_from_current_location
     }
 

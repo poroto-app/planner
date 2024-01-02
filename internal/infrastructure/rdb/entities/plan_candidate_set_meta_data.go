@@ -25,8 +25,8 @@ import (
 type PlanCandidateSetMetaDatum struct {
 	ID                         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	PlanCandidateSetID         string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
-	LatitudeStart              float32   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
-	LongitudeStart             float32   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
+	LatitudeStart              float64   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
+	LongitudeStart             float64   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
 	CreatedFromCurrentLocation bool      `boil:"created_from_current_location" json:"created_from_current_location" toml:"created_from_current_location" yaml:"created_from_current_location"`
 	CreatedAt                  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt                  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
@@ -73,48 +73,19 @@ var PlanCandidateSetMetaDatumTableColumns = struct {
 
 // Generated where
 
-type whereHelperfloat32 struct{ field string }
-
-func (w whereHelperfloat32) EQ(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperfloat32) NEQ(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelperfloat32) LT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperfloat32) LTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelperfloat32) GT(x float32) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperfloat32) GTE(x float32) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelperfloat32) IN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperfloat32) NIN(slice []float32) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
 var PlanCandidateSetMetaDatumWhere = struct {
 	ID                         whereHelperstring
 	PlanCandidateSetID         whereHelperstring
-	LatitudeStart              whereHelperfloat32
-	LongitudeStart             whereHelperfloat32
+	LatitudeStart              whereHelperfloat64
+	LongitudeStart             whereHelperfloat64
 	CreatedFromCurrentLocation whereHelperbool
 	CreatedAt                  whereHelpertime_Time
 	UpdatedAt                  whereHelpertime_Time
 }{
 	ID:                         whereHelperstring{field: "`plan_candidate_set_meta_data`.`id`"},
 	PlanCandidateSetID:         whereHelperstring{field: "`plan_candidate_set_meta_data`.`plan_candidate_set_id`"},
-	LatitudeStart:              whereHelperfloat32{field: "`plan_candidate_set_meta_data`.`latitude_start`"},
-	LongitudeStart:             whereHelperfloat32{field: "`plan_candidate_set_meta_data`.`longitude_start`"},
+	LatitudeStart:              whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`latitude_start`"},
+	LongitudeStart:             whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`longitude_start`"},
 	CreatedFromCurrentLocation: whereHelperbool{field: "`plan_candidate_set_meta_data`.`created_from_current_location`"},
 	CreatedAt:                  whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`created_at`"},
 	UpdatedAt:                  whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`updated_at`"},
