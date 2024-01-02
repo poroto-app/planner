@@ -71,6 +71,12 @@ type Deletable interface {
 
 func cleanup(ctx context.Context, db *sql.DB) error {
 	tables := []Deletable{
+		entities.PlanCandidatePlaces(),
+		entities.PlanCandidateSetCategories(),
+		entities.PlanCandidateSetMetaData(),
+		entities.PlanCandidateSetSearchedPlaces(),
+		entities.PlanCandidates(),
+		entities.PlanCandidateSets(),
 		entities.GooglePlaceOpeningPeriods(),
 		entities.GooglePlaceReviews(),
 		entities.GooglePlacePhotos(),
