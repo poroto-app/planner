@@ -120,7 +120,7 @@ erDiagram
         char(36) plan_candidate_set_id FK
         double latitude_start
         double longitude_start
-        bool created_from_current_location
+        bool is_created_from_current_location
     }
 
     plan_candidates {

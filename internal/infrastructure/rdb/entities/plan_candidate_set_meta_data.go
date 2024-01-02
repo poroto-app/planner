@@ -23,72 +23,72 @@ import (
 
 // PlanCandidateSetMetaDatum is an object representing the database table.
 type PlanCandidateSetMetaDatum struct {
-	ID                         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlanCandidateSetID         string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
-	LatitudeStart              float64   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
-	LongitudeStart             float64   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
-	CreatedFromCurrentLocation bool      `boil:"created_from_current_location" json:"created_from_current_location" toml:"created_from_current_location" yaml:"created_from_current_location"`
-	CreatedAt                  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt                  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                           string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlanCandidateSetID           string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	LatitudeStart                float64   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
+	LongitudeStart               float64   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
+	IsCreatedFromCurrentLocation bool      `boil:"is_created_from_current_location" json:"is_created_from_current_location" toml:"is_created_from_current_location" yaml:"is_created_from_current_location"`
+	CreatedAt                    time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt                    time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateSetMetaDatumR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetMetaDatumL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var PlanCandidateSetMetaDatumColumns = struct {
-	ID                         string
-	PlanCandidateSetID         string
-	LatitudeStart              string
-	LongitudeStart             string
-	CreatedFromCurrentLocation string
-	CreatedAt                  string
-	UpdatedAt                  string
+	ID                           string
+	PlanCandidateSetID           string
+	LatitudeStart                string
+	LongitudeStart               string
+	IsCreatedFromCurrentLocation string
+	CreatedAt                    string
+	UpdatedAt                    string
 }{
-	ID:                         "id",
-	PlanCandidateSetID:         "plan_candidate_set_id",
-	LatitudeStart:              "latitude_start",
-	LongitudeStart:             "longitude_start",
-	CreatedFromCurrentLocation: "created_from_current_location",
-	CreatedAt:                  "created_at",
-	UpdatedAt:                  "updated_at",
+	ID:                           "id",
+	PlanCandidateSetID:           "plan_candidate_set_id",
+	LatitudeStart:                "latitude_start",
+	LongitudeStart:               "longitude_start",
+	IsCreatedFromCurrentLocation: "is_created_from_current_location",
+	CreatedAt:                    "created_at",
+	UpdatedAt:                    "updated_at",
 }
 
 var PlanCandidateSetMetaDatumTableColumns = struct {
-	ID                         string
-	PlanCandidateSetID         string
-	LatitudeStart              string
-	LongitudeStart             string
-	CreatedFromCurrentLocation string
-	CreatedAt                  string
-	UpdatedAt                  string
+	ID                           string
+	PlanCandidateSetID           string
+	LatitudeStart                string
+	LongitudeStart               string
+	IsCreatedFromCurrentLocation string
+	CreatedAt                    string
+	UpdatedAt                    string
 }{
-	ID:                         "plan_candidate_set_meta_data.id",
-	PlanCandidateSetID:         "plan_candidate_set_meta_data.plan_candidate_set_id",
-	LatitudeStart:              "plan_candidate_set_meta_data.latitude_start",
-	LongitudeStart:             "plan_candidate_set_meta_data.longitude_start",
-	CreatedFromCurrentLocation: "plan_candidate_set_meta_data.created_from_current_location",
-	CreatedAt:                  "plan_candidate_set_meta_data.created_at",
-	UpdatedAt:                  "plan_candidate_set_meta_data.updated_at",
+	ID:                           "plan_candidate_set_meta_data.id",
+	PlanCandidateSetID:           "plan_candidate_set_meta_data.plan_candidate_set_id",
+	LatitudeStart:                "plan_candidate_set_meta_data.latitude_start",
+	LongitudeStart:               "plan_candidate_set_meta_data.longitude_start",
+	IsCreatedFromCurrentLocation: "plan_candidate_set_meta_data.is_created_from_current_location",
+	CreatedAt:                    "plan_candidate_set_meta_data.created_at",
+	UpdatedAt:                    "plan_candidate_set_meta_data.updated_at",
 }
 
 // Generated where
 
 var PlanCandidateSetMetaDatumWhere = struct {
-	ID                         whereHelperstring
-	PlanCandidateSetID         whereHelperstring
-	LatitudeStart              whereHelperfloat64
-	LongitudeStart             whereHelperfloat64
-	CreatedFromCurrentLocation whereHelperbool
-	CreatedAt                  whereHelpertime_Time
-	UpdatedAt                  whereHelpertime_Time
+	ID                           whereHelperstring
+	PlanCandidateSetID           whereHelperstring
+	LatitudeStart                whereHelperfloat64
+	LongitudeStart               whereHelperfloat64
+	IsCreatedFromCurrentLocation whereHelperbool
+	CreatedAt                    whereHelpertime_Time
+	UpdatedAt                    whereHelpertime_Time
 }{
-	ID:                         whereHelperstring{field: "`plan_candidate_set_meta_data`.`id`"},
-	PlanCandidateSetID:         whereHelperstring{field: "`plan_candidate_set_meta_data`.`plan_candidate_set_id`"},
-	LatitudeStart:              whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`latitude_start`"},
-	LongitudeStart:             whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`longitude_start`"},
-	CreatedFromCurrentLocation: whereHelperbool{field: "`plan_candidate_set_meta_data`.`created_from_current_location`"},
-	CreatedAt:                  whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`created_at`"},
-	UpdatedAt:                  whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`updated_at`"},
+	ID:                           whereHelperstring{field: "`plan_candidate_set_meta_data`.`id`"},
+	PlanCandidateSetID:           whereHelperstring{field: "`plan_candidate_set_meta_data`.`plan_candidate_set_id`"},
+	LatitudeStart:                whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`latitude_start`"},
+	LongitudeStart:               whereHelperfloat64{field: "`plan_candidate_set_meta_data`.`longitude_start`"},
+	IsCreatedFromCurrentLocation: whereHelperbool{field: "`plan_candidate_set_meta_data`.`is_created_from_current_location`"},
+	CreatedAt:                    whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`created_at`"},
+	UpdatedAt:                    whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`updated_at`"},
 }
 
 // PlanCandidateSetMetaDatumRels is where relationship names are stored.
@@ -119,8 +119,8 @@ func (r *planCandidateSetMetaDatumR) GetPlanCandidateSet() *PlanCandidateSet {
 type planCandidateSetMetaDatumL struct{}
 
 var (
-	planCandidateSetMetaDatumAllColumns            = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "created_from_current_location", "created_at", "updated_at"}
-	planCandidateSetMetaDatumColumnsWithoutDefault = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "created_from_current_location"}
+	planCandidateSetMetaDatumAllColumns            = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location", "created_at", "updated_at"}
+	planCandidateSetMetaDatumColumnsWithoutDefault = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location"}
 	planCandidateSetMetaDatumColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidateSetMetaDatumPrimaryKeyColumns     = []string{"id"}
 	planCandidateSetMetaDatumGeneratedColumns      = []string{}
