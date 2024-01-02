@@ -53,7 +53,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 
 		if exists {
 			googlePlaceEntity, err := entities.GooglePlaces(
-				qm.Where(entities.GooglePlaceColumns.GooglePlaceID, googlePlace.PlaceId),
+				entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlace.PlaceId),
 				qm.Load(entities.GooglePlaceRels.Place),
 				qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
 				qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
