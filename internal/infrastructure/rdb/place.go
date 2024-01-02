@@ -52,27 +52,9 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 		}
 
 		if exists {
-			googlePlaceEntity, err := entities.GooglePlaces(
-				entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlace.PlaceId),
-				qm.Load(entities.GooglePlaceRels.Place),
-				qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
-				qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
-				qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
-				qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
-				qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
-				qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
-			).One(ctx, tx)
-
+			placeSaved, err := p.findByGooglePlaceId(ctx, tx, googlePlace.PlaceId)
 			if err != nil {
-				return fmt.Errorf("failed to find google place: %w", err)
-			}
-
-			placeSaved, err := factory.NewPlaceFromGooglePlaceEntity(*googlePlaceEntity)
-			if err != nil {
-				return fmt.Errorf("failed to convert google place entity to place: %w", err)
-			}
-			if placeSaved == nil {
-				return fmt.Errorf("failed to convert google place entity to place")
+				return err
 			}
 
 			place = placeSaved
@@ -190,30 +172,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 }
 
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
-	googlePlaceEntity, err := entities.GooglePlaces(
-		entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceID),
-		qm.Load(entities.GooglePlaceRels.Place),
-		qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
-		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
-		qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
-		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
-		qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
-		qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
-	).One(ctx, p.db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find google place: %w", err)
-	}
-
-	if googlePlaceEntity == nil {
-		return nil, nil
-	}
-
-	place, err := factory.NewPlaceFromGooglePlaceEntity(*googlePlaceEntity)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
-	}
-
-	return place, nil
+	return p.findByGooglePlaceId(ctx, p.db, googlePlaceID)
 }
 
 func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
@@ -342,6 +301,33 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	}
 
 	return nil
+}
+
+func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.ContextExecutor, googlePlaceId string) (*models.Place, error) {
+	googlePlaceEntity, err := entities.GooglePlaces(
+		entities.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceId),
+		qm.Load(entities.GooglePlaceRels.Place),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoReferences),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(entities.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	).One(ctx, exec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find google place: %w", err)
+	}
+
+	if googlePlaceEntity == nil {
+		return nil, nil
+	}
+
+	place, err := factory.NewPlaceFromGooglePlaceEntity(*googlePlaceEntity)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
+	}
+
+	return place, nil
 }
 
 type saveGooglePlacePhotoReferenceTxInput struct {
