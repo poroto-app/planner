@@ -16,36 +16,33 @@ func NewGooglePlaceOpeningPeriodFromEntity(googlePlaceOpeningPeriodEntity entiti
 	}
 }
 
-func NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod models.GooglePlaceOpeningPeriod, googlePlaceId string) (*entities.GooglePlaceOpeningPeriod, error) {
-	return &entities.GooglePlaceOpeningPeriod{
+func NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod models.GooglePlaceOpeningPeriod, googlePlaceId string) entities.GooglePlaceOpeningPeriod {
+	return entities.GooglePlaceOpeningPeriod{
 		ID:            uuid.New().String(),
 		OpenDay:       int(weekdayFromWeekdayString(googlePlaceOpeningPeriod.DayOfWeekOpen)),
 		CloseDay:      int(weekdayFromWeekdayString(googlePlaceOpeningPeriod.DayOfWeekClose)),
 		OpenTime:      googlePlaceOpeningPeriod.OpeningTime,
 		CloseTime:     googlePlaceOpeningPeriod.ClosingTime,
 		GooglePlaceID: googlePlaceId,
-	}, nil
+	}
 }
 
-func NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail, googlePlaceId string) (entities.GooglePlaceOpeningPeriodSlice, error) {
+func NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail, googlePlaceId string) entities.GooglePlaceOpeningPeriodSlice {
 	if googlePlaceDetail.OpeningHours == nil || len(googlePlaceDetail.OpeningHours.Periods) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	var googlePlaceOpeningPeriodEntities entities.GooglePlaceOpeningPeriodSlice
 	for _, googlePlaceOpeningPeriod := range googlePlaceDetail.OpeningHours.Periods {
-		gpop, err := NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod, googlePlaceId)
-		if err != nil {
-			return nil, err
-		}
-		googlePlaceOpeningPeriodEntities = append(googlePlaceOpeningPeriodEntities, gpop)
+		gpop := NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod, googlePlaceId)
+		googlePlaceOpeningPeriodEntities = append(googlePlaceOpeningPeriodEntities, &gpop)
 	}
-	return googlePlaceOpeningPeriodEntities, nil
+	return googlePlaceOpeningPeriodEntities
 }
 
-func NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace models.GooglePlace) (entities.GooglePlaceOpeningPeriodSlice, error) {
+func NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace models.GooglePlace) entities.GooglePlaceOpeningPeriodSlice {
 	if googlePlace.PlaceDetail == nil {
-		return nil, nil
+		return nil
 	}
 	return NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(*googlePlace.PlaceDetail, googlePlace.PlaceId)
 }

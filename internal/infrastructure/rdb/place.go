@@ -110,10 +110,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 		}
 
 		// GooglePlaceOpeningPeriodを保存
-		googlePlaceOpeningPeriodEntities, err := factory.NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace)
-		if err != nil {
-			return fmt.Errorf("failed to convert google place opening period: %w", err)
-		}
+		googlePlaceOpeningPeriodEntities := factory.NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace)
 		if err := googlePlaceEntity.AddGooglePlaceOpeningPeriods(ctx, tx, true, googlePlaceOpeningPeriodEntities...); err != nil {
 			return fmt.Errorf("failed to insert google place opening period: %w", err)
 		}
@@ -242,10 +239,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 		// GooglePlaceOpeningPeriodを保存
 		if len(googlePlaceEntity.R.GooglePlaceOpeningPeriods) == 0 {
-			googlePlaceOpeningPeriodEntities, err := factory.NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail, googlePlaceId)
-			if err != nil {
-				return fmt.Errorf("failed to convert google place opening period: %w", err)
-			}
+			googlePlaceOpeningPeriodEntities := factory.NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail, googlePlaceId)
 			if err := googlePlaceEntity.AddGooglePlaceOpeningPeriods(ctx, tx, true, googlePlaceOpeningPeriodEntities...); err != nil {
 				return fmt.Errorf("failed to insert google place opening period: %w", err)
 			}
