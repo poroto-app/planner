@@ -6,16 +6,21 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
-func NewPlanCandidatePlaceSliceFromDomainModel(places []models.Place, planCandidateSetId string, planCandidateId string) (planCandidatePlaceSlice entities.PlanCandidatePlaceSlice) {
+func NewPlanCandidatePlaceSliceFromDomainModel(places []models.Place, planCandidateSetId string, planCandidateId string) entities.PlanCandidatePlaceSlice {
 	planCandidatePlaces := make(entities.PlanCandidatePlaceSlice, 0, len(places))
 	for i, place := range places {
-		planCandidatePlaces = append(planCandidatePlaces, &entities.PlanCandidatePlace{
-			ID:                 uuid.New().String(),
-			PlanCandidateSetID: planCandidateSetId,
-			PlanCandidateID:    planCandidateId,
-			PlaceID:            place.Id,
-			Order:              i,
-		})
+		planCandidatePlaceEntity := NewPlanCandidatePlaceEntityFromDomainModel(place, i, planCandidateSetId, planCandidateId)
+		planCandidatePlaces = append(planCandidatePlaces, &planCandidatePlaceEntity)
 	}
 	return planCandidatePlaces
+}
+
+func NewPlanCandidatePlaceEntityFromDomainModel(place models.Place, order int, planCandidateSetId string, planCandidateId string) entities.PlanCandidatePlace {
+	return entities.PlanCandidatePlace{
+		ID:                 uuid.New().String(),
+		PlanCandidateSetID: planCandidateSetId,
+		PlanCandidateID:    planCandidateId,
+		PlaceID:            place.Id,
+		SortOrder:          order,
+	}
 }

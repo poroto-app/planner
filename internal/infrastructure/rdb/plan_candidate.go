@@ -103,8 +103,39 @@ func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId st
 }
 
 func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidatePlaceSlice, err := entities.
+			PlanCandidatePlaces(entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId)).
+			All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate places: %w", err)
+		}
+
+		newOrder := 0
+		for _, planCandidatePlace := range planCandidatePlaceSlice {
+			if planCandidatePlace.PlaceID == previousPlaceId {
+				// 挿入する場所の順序を決定
+				newOrder = planCandidatePlace.SortOrder + 1
+			} else if planCandidatePlace.SortOrder >= newOrder {
+				// 後続の場所の順序を更新
+				planCandidatePlace.SortOrder++
+				if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.SortOrder)); err != nil {
+					return fmt.Errorf("failed to update plan candidate place: %w", err)
+				}
+			}
+		}
+
+		planCandidateEntity := factory.NewPlanCandidatePlaceEntityFromDomainModel(place, newOrder, planCandidateId, planId)
+		if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate place: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error {
