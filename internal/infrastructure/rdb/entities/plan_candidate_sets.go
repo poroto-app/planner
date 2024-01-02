@@ -24,6 +24,7 @@ import (
 // PlanCandidateSet is an object representing the database table.
 type PlanCandidateSet struct {
 	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ExpiresAt time.Time `boil:"expires_at" json:"expires_at" toml:"expires_at" yaml:"expires_at"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -33,20 +34,24 @@ type PlanCandidateSet struct {
 
 var PlanCandidateSetColumns = struct {
 	ID        string
+	ExpiresAt string
 	CreatedAt string
 	UpdatedAt string
 }{
 	ID:        "id",
+	ExpiresAt: "expires_at",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
 }
 
 var PlanCandidateSetTableColumns = struct {
 	ID        string
+	ExpiresAt string
 	CreatedAt string
 	UpdatedAt string
 }{
 	ID:        "plan_candidate_sets.id",
+	ExpiresAt: "plan_candidate_sets.expires_at",
 	CreatedAt: "plan_candidate_sets.created_at",
 	UpdatedAt: "plan_candidate_sets.updated_at",
 }
@@ -55,10 +60,12 @@ var PlanCandidateSetTableColumns = struct {
 
 var PlanCandidateSetWhere = struct {
 	ID        whereHelperstring
+	ExpiresAt whereHelpertime_Time
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
 	ID:        whereHelperstring{field: "`plan_candidate_sets`.`id`"},
+	ExpiresAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`expires_at`"},
 	CreatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`created_at`"},
 	UpdatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`updated_at`"},
 }
@@ -131,8 +138,8 @@ func (r *planCandidateSetR) GetPlanCandidates() PlanCandidateSlice {
 type planCandidateSetL struct{}
 
 var (
-	planCandidateSetAllColumns            = []string{"id", "created_at", "updated_at"}
-	planCandidateSetColumnsWithoutDefault = []string{"id"}
+	planCandidateSetAllColumns            = []string{"id", "expires_at", "created_at", "updated_at"}
+	planCandidateSetColumnsWithoutDefault = []string{"id", "expires_at"}
 	planCandidateSetColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidateSetPrimaryKeyColumns     = []string{"id"}
 	planCandidateSetGeneratedColumns      = []string{}

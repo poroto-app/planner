@@ -112,6 +112,7 @@ title: plan_candidate
 erDiagram
     plan_candidate_sets {
         char(36) id PK
+        timestamp expires_at
     }
 
     plan_candidate_set_meta_data {
