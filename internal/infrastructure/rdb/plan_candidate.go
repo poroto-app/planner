@@ -10,6 +10,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"time"
 )
 
@@ -78,8 +79,27 @@ func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.C
 }
 
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		// TODO: BatchInsertする
+		for _, plan := range plans {
+			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId)
+			if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate: %w", err)
+			}
+
+			planCandidatePlaceSlice := factory.NewPlanCandidatePlaceSliceFromDomainModel(plan.Places, planCandidateId, plan.Id)
+			for _, planCandidatePlace := range planCandidatePlaceSlice {
+				if err := planCandidatePlace.Insert(ctx, tx, boil.Infer()); err != nil {
+					return fmt.Errorf("failed to insert plan candidate place: %w", err)
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
