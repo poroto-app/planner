@@ -138,8 +138,8 @@ type googlePlacePhotoL struct{}
 
 var (
 	googlePlacePhotoAllColumns            = []string{"id", "google_place_id", "photo_reference", "width", "height", "url", "created_at", "updated_at"}
-	googlePlacePhotoColumnsWithoutDefault = []string{"google_place_id", "photo_reference", "width", "height", "url"}
-	googlePlacePhotoColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	googlePlacePhotoColumnsWithoutDefault = []string{"id", "google_place_id", "photo_reference", "width", "height", "url"}
+	googlePlacePhotoColumnsWithDefault    = []string{"created_at", "updated_at"}
 	googlePlacePhotoPrimaryKeyColumns     = []string{"id"}
 	googlePlacePhotoGeneratedColumns      = []string{}
 )

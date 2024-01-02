@@ -200,8 +200,8 @@ type googlePlaceOpeningPeriodL struct{}
 
 var (
 	googlePlaceOpeningPeriodAllColumns            = []string{"id", "google_place_id", "open_day", "open_time", "close_day", "close_time", "created_at", "updated_at"}
-	googlePlaceOpeningPeriodColumnsWithoutDefault = []string{"google_place_id", "open_day", "open_time", "close_day", "close_time"}
-	googlePlaceOpeningPeriodColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	googlePlaceOpeningPeriodColumnsWithoutDefault = []string{"id", "google_place_id", "open_day", "open_time", "close_day", "close_time"}
+	googlePlaceOpeningPeriodColumnsWithDefault    = []string{"created_at", "updated_at"}
 	googlePlaceOpeningPeriodPrimaryKeyColumns     = []string{"id"}
 	googlePlaceOpeningPeriodGeneratedColumns      = []string{}
 )

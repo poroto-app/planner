@@ -100,8 +100,8 @@ type placeL struct{}
 
 var (
 	placeAllColumns            = []string{"id", "name", "created_at", "updated_at"}
-	placeColumnsWithoutDefault = []string{"name"}
-	placeColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	placeColumnsWithoutDefault = []string{"id", "name"}
+	placeColumnsWithDefault    = []string{"created_at", "updated_at"}
 	placePrimaryKeyColumns     = []string{"id"}
 	placeGeneratedColumns      = []string{}
 )

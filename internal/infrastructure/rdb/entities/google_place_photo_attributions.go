@@ -124,8 +124,8 @@ type googlePlacePhotoAttributionL struct{}
 
 var (
 	googlePlacePhotoAttributionAllColumns            = []string{"id", "google_place_id", "photo_reference", "html_attribution", "created_at", "updated_at"}
-	googlePlacePhotoAttributionColumnsWithoutDefault = []string{"google_place_id", "photo_reference", "html_attribution"}
-	googlePlacePhotoAttributionColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	googlePlacePhotoAttributionColumnsWithoutDefault = []string{"id", "google_place_id", "photo_reference", "html_attribution"}
+	googlePlacePhotoAttributionColumnsWithDefault    = []string{"created_at", "updated_at"}
 	googlePlacePhotoAttributionPrimaryKeyColumns     = []string{"id"}
 	googlePlacePhotoAttributionGeneratedColumns      = []string{}
 )
