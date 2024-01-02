@@ -122,12 +122,15 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 	}
 
 	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			defer cleanup(context.Background(), testDB)
 
-			_, err = placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
+			actualFirstSave, err := placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places: %v", err)
 			}
@@ -257,6 +260,42 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 
 					if int(htmlAttributionCount) != len(photoReference.HTMLAttributions) {
 						t.Fatalf("html attribution expected: %d, actual: %d", len(photoReference.HTMLAttributions), htmlAttributionCount)
+					}
+				}
+			}
+
+			// 一度保存したあとは、すでに保存されたものが取得される
+			actualSecondSave, err := placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
+			if err != nil {
+				t.Fatalf("error while saving places second time: %v", err)
+			}
+
+			if actualFirstSave.Id != actualSecondSave.Id {
+				t.Fatalf("place id expected: %s, actual: %s", actualFirstSave.Id, actualSecondSave.Id)
+			}
+
+			if len(actualFirstSave.Google.Types) != len(actualSecondSave.Google.Types) {
+				t.Fatalf("place type expected: %d, actual: %d", len(actualFirstSave.Google.Types), len(actualSecondSave.Google.Types))
+			}
+
+			if len(actualFirstSave.Google.PhotoReferences) != len(actualSecondSave.Google.PhotoReferences) {
+				t.Fatalf("photo reference expected: %d, actual: %d", len(actualFirstSave.Google.PhotoReferences), len(actualSecondSave.Google.PhotoReferences))
+			}
+
+			if c.googlePlace.Photos != nil {
+				if len(*c.googlePlace.Photos) != len(*actualSecondSave.Google.Photos) {
+					t.Fatalf("photo expected: %d, actual: %d", len(*c.googlePlace.Photos), len(*actualSecondSave.Google.Photos))
+				}
+			}
+
+			if c.googlePlace.PlaceDetail != nil {
+				if len(c.googlePlace.PlaceDetail.Reviews) != len(actualSecondSave.Google.PlaceDetail.Reviews) {
+					t.Fatalf("review expected: %d, actual: %d", len(c.googlePlace.PlaceDetail.Reviews), len(actualSecondSave.Google.PlaceDetail.Reviews))
+				}
+
+				if c.googlePlace.PlaceDetail.OpeningHours != nil {
+					if len(c.googlePlace.PlaceDetail.OpeningHours.Periods) != len(actualSecondSave.Google.PlaceDetail.OpeningHours.Periods) {
+						t.Fatalf("opening period expected: %d, actual: %d", len(c.googlePlace.PlaceDetail.OpeningHours.Periods), len(actualSecondSave.Google.PlaceDetail.OpeningHours.Periods))
 					}
 				}
 			}
