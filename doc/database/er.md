@@ -120,6 +120,7 @@ erDiagram
         char(36) plan_candidate_set_id FK
         double latitude_start
         double longitude_start
+        int plan_duration_minutes
         bool is_created_from_current_location
     }
 
@@ -147,7 +148,7 @@ erDiagram
         char(36) plan_candidate_id FK
         char(36) plan_candidate_set_id FK
         char(36) place_id FK
-        int sort_order 
+        int sort_order
     }
 
     plan_candidate_sets ||..o{ plan_candidates: "1:N"

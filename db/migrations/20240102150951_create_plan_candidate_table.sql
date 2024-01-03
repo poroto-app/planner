@@ -16,6 +16,7 @@ CREATE TABLE plan_candidate_set_meta_data
     latitude_start                   DOUBLE    NOT NULL,
     longitude_start                  DOUBLE    NOT NULL,
     is_created_from_current_location BOOL      NOT NULL,
+    plan_duration_minutes            INT,
     created_at                       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),
