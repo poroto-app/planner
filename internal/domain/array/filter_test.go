@@ -49,3 +49,45 @@ func TestFilter(t *testing.T) {
 		})
 	}
 }
+
+func TestDistinctBy(t *testing.T) {
+	cases := []struct {
+		name     string
+		slice    []int
+		selector func(int) int
+		expected []int
+	}{
+		{
+			name:     "empty slice",
+			selector: func(i int) int { return i },
+			slice:    []int{},
+			expected: []int{},
+		},
+		{
+			name:     "identical elements",
+			selector: func(i int) int { return i },
+			slice:    []int{1, 2, 3},
+			expected: []int{1, 2, 3},
+		},
+		{
+			name:     "duplicated elements",
+			selector: func(i int) int { return i },
+			slice:    []int{1, 2, 1},
+			expected: []int{1, 2},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			actual := DistinctBy(c.slice, c.selector)
+			if len(actual) != len(c.expected) {
+				t.Errorf("expected: %v, actual: %v", c.expected, actual)
+			}
+			for i, v := range actual {
+				if v != c.expected[i] {
+					t.Errorf("expected: %v, actual: %v", c.expected, actual)
+				}
+			}
+		})
+	}
+}
