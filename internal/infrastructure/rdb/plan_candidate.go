@@ -3,9 +3,11 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
@@ -34,6 +36,8 @@ func (p PlanCandidateRepository) GetDB() *sql.DB {
 	return p.db
 }
 
+// Create プラン候補を作成する
+// TODO: PlanCandidateSet のすべての値を保存できるようにする
 func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error {
 	if err := runTransaction(cxt, p, func(ctx context.Context, tx *sql.Tx) error {
 		planCandidateEntity := entities.PlanCandidateSet{ID: planCandidateId, ExpiresAt: expiresAt}
@@ -47,9 +51,75 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 	return nil
 }
 
-func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
-	//TODO implement me
-	panic("implement me")
+func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
+	planCandidateSetEntity, err := entities.PlanCandidateSets(
+		entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+		entities.PlanCandidateSetWhere.ExpiresAt.GT(now),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	).One(ctx, p.db)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
+	}
+
+	var places []models.Place
+	for _, planCandidatePlace := range planCandidateSetEntity.R.PlanCandidatePlaces {
+		if planCandidatePlace.R.Place == nil {
+			p.logger.Warn("planCandidatePlace.R.Place is nil", zap.String("planCandidatePlaceId", planCandidatePlace.ID))
+			continue
+		}
+
+		if planCandidatePlace.R.Place.R == nil {
+			panic("planCandidatePlace.R.Place.R is nil")
+		}
+
+		if len(planCandidatePlace.R.Place.R.GooglePlaces) == 0 || planCandidatePlace.R.Place.R.GooglePlaces[0] == nil {
+			p.logger.Warn("planCandidatePlace.R.Place.R.GooglePlaces is empty", zap.String("planCandidatePlaceId", planCandidatePlace.ID))
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*planCandidatePlace.R.Place,
+			*planCandidatePlace.R.Place.R.GooglePlaces[0],
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create place: %w", err)
+		}
+
+		places = append(places, *place)
+	}
+
+	planCandidateSet, err := factory.NewPlanCandidateSetFromEntity(
+		*planCandidateSetEntity,
+		planCandidateSetEntity.R.PlanCandidates,
+		planCandidateSetEntity.R.PlanCandidateSetMetaData,
+		planCandidateSetEntity.R.PlanCandidateSetCategories,
+		planCandidateSetEntity.R.PlanCandidatePlaces,
+		places,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create plan candidate: %w", err)
+	}
+
+	return planCandidateSet, nil
 }
 
 func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
