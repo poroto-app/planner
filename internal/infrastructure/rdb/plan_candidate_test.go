@@ -165,6 +165,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				}
 			})
 
+			// 事前にPlaceを作成しておく
+			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
+			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
@@ -202,7 +208,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 
 				// Place の数が一致する
 				if len(plan.Places) != len(c.expected.Plans[i].Places) {
-					t.Fatalf("wrong number of places expected: %v, actual: %v", len(c.expected.Plans[i].Places), len(plan.Places))
+					t.Fatalf("wrong number of placesInPlanCandidates expected: %v, actual: %v", len(c.expected.Plans[i].Places), len(plan.Places))
 				}
 
 				// Place の順番が一致する
@@ -249,6 +255,12 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 					t.Fatalf("failed to cleanup: %v", err)
 				}
 			})
+
+			// 事前にPlaceを作成しておく
+			placesInPlans := array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places })
+			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
@@ -314,6 +326,12 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 					t.Fatalf("failed to cleanup: %v", err)
 				}
 			})
+
+			// 事前にPlaceを作成しておく
+			placesInPlans := array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places })
+			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
@@ -387,6 +405,14 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 					t.Fatalf("failed to cleanup: %v", err)
 				}
 			})
+
+			// 事前にPlaceを作成しておく
+			placesInPlans := array.Flatten(array.Flatten(array.Map(c.savedPlanCandidateSets, func(planCandidate models.PlanCandidate) [][]models.Place {
+				return array.Map(planCandidate.Plans, func(plan models.Plan) []models.Place { return plan.Places })
+			})))
+			if err := savePlaces(testContext, testDB, placesInPlans); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 
 			// 事前にPlanCandidateSetを作成しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
@@ -714,6 +740,12 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 				}
 			})
 
+			// 事前にPlaceを作成しておく
+			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
+			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
@@ -782,6 +814,12 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 					t.Fatalf("failed to cleanup: %v", err)
 				}
 			})
+
+			// 事前にPlaceを作成しておく
+			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
+			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
@@ -854,6 +892,12 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 					t.Fatalf("failed to cleanup: %v", err)
 				}
 			})
+
+			// 事前にPlaceを作成しておく
+			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
+			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 
 			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
@@ -1040,6 +1084,10 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 			})
 
 			// 事前に Place を作成しておく
+			placesInPlanCandidates := array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places })
+			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlanCandidates)); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 			if err := savePlaces(testContext, testDB, []models.Place{c.placeToReplace}); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
@@ -1117,6 +1165,10 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 			})
 
 			// 事前に Place を作成しておく
+			placesInPlanCandidates := array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places })
+			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlanCandidates)); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
 			if err := savePlaces(testContext, testDB, []models.Place{c.placeToReplace}); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
@@ -1156,12 +1208,6 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 }
 
 func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateRepository PlanCandidateRepository, planCandidateSet models.PlanCandidate) error {
-	// Placeを作成
-	placesInPlanCandidates := array.Flatten(array.Map(planCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
-	if err := savePlaces(ctx, db, placesInPlanCandidates); err != nil {
-		return err
-	}
-
 	// PlanCandidateSetを作成
 	planCandidateSetEntity := entities.PlanCandidateSet{
 		ID:        planCandidateSet.Id,
