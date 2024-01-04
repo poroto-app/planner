@@ -117,7 +117,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 
 		placeSaved, err := factory.NewPlaceFromEntity(
 			placeEntity,
-			entities.GooglePlaceSlice{&googlePlaceEntity},
+			googlePlaceEntity,
 			googlePlaceEntity.R.GooglePlaceTypes,
 			googlePlaceEntity.R.GooglePlacePhotoReferences,
 			googlePlaceEntity.R.GooglePlacePhotoAttributions,
@@ -165,7 +165,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 
 		place, err := factory.NewPlaceFromEntity(
 			*googlePlaceEntity.R.Place,
-			entities.GooglePlaceSlice{googlePlaceEntity},
+			*googlePlaceEntity,
 			googlePlaceEntity.R.GooglePlaceTypes,
 			googlePlaceEntity.R.GooglePlacePhotoReferences,
 			googlePlaceEntity.R.GooglePlacePhotoAttributions,
@@ -336,7 +336,7 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 
 	place, err := factory.NewPlaceFromEntity(
 		*googlePlaceEntity.R.Place,
-		entities.GooglePlaceSlice{googlePlaceEntity},
+		*googlePlaceEntity,
 		googlePlaceEntity.R.GooglePlaceTypes,
 		googlePlaceEntity.R.GooglePlacePhotoReferences,
 		googlePlaceEntity.R.GooglePlacePhotoAttributions,

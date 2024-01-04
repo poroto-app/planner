@@ -3,14 +3,13 @@ package factory
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
 func NewPlaceFromEntity(
 	placeEntity entities.Place,
-	googlePlaceSlice entities.GooglePlaceSlice,
+	googlePlaceEntity entities.GooglePlace,
 	googlePlaceTypeSlice entities.GooglePlaceTypeSlice,
 	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
 	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
@@ -18,18 +17,8 @@ func NewPlaceFromEntity(
 	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
 	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
 ) (*models.Place, error) {
-	googlePlaceEntity, ok := array.Find(googlePlaceSlice, func(googlePlace *entities.GooglePlace) bool {
-		if googlePlace == nil {
-			return false
-		}
-		return googlePlace.PlaceID == placeEntity.ID
-	})
-	if !ok {
-		return nil, fmt.Errorf("failed to find google place")
-	}
-
 	googlePlace, err := NewGooglePlaceFromEntity(
-		*googlePlaceEntity,
+		googlePlaceEntity,
 		googlePlaceTypeSlice,
 		googlePlacePhotoReferenceSlice,
 		googlePlacePhotoAttributionSlice,
