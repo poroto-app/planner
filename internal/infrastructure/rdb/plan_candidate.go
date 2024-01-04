@@ -176,8 +176,17 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 }
 
 func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
-	//TODO implement me
-	panic("implement me")
+	planCandidateSetSlice, err := entities.PlanCandidateSets(entities.PlanCandidateSetWhere.ExpiresAt.LT(expiresAt)).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find expired plan candidate sets: %w", err)
+	}
+
+	var planCandidateIds []string
+	for _, planCandidateSet := range planCandidateSetSlice {
+		planCandidateIds = append(planCandidateIds, planCandidateSet.ID)
+	}
+
+	return &planCandidateIds, nil
 }
 
 func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {

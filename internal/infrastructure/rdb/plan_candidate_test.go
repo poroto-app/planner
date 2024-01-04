@@ -349,6 +349,69 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
+	cases := []struct {
+		name                   string
+		expiresAt              time.Time
+		savedPlanCandidateSets []models.PlanCandidate
+		expected               []string
+	}{
+		{
+			name:      "success",
+			expiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
+			savedPlanCandidateSets: []models.PlanCandidate{
+				{
+					Id:        "test-plan-candidate-set-1",
+					ExpiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
+				},
+				{
+					Id:        "test-plan-candidate-set-2",
+					ExpiresAt: time.Date(2020, 12, 1, 11, 59, 59, 0, time.Local),
+				},
+			},
+			expected: []string{"test-plan-candidate-set-1"},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			for _, planCandidateSet := range c.savedPlanCandidateSets {
+				if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, planCandidateSet); err != nil {
+					t.Fatalf("failed to save plan candidate: %v", err)
+				}
+			}
+
+			actual, err := planCandidateRepository.FindExpiredBefore(testContext, c.expiresAt)
+			if err != nil {
+				t.Fatalf("failed to find expired plan candidates: %v", err)
+			}
+
+			if actual == nil {
+				t.Fatalf("expired plan candidates should be found")
+			}
+
+			if len(*actual) != len(c.expected) {
+				t.Fatalf("wrong number of expired plan candidates expected: %v, actual: %v", len(c.expected), len(*actual))
+			}
+		})
+
+	}
+}
+
 func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T) {
 	cases := []struct {
 		name            string
