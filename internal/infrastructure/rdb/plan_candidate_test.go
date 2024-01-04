@@ -738,6 +738,136 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		placeIdsOrdered       []string
+		savedPlanCandidateSet models.PlanCandidate
+	}{
+		{
+			name:               "success",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdsOrdered:    []string{"third-place", "first-place", "second-place"},
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			err := planCandidateRepository.UpdatePlacesOrder(testContext, c.planCandidateId, c.planCandidateSetId, c.placeIdsOrdered)
+			if err != nil {
+				t.Fatalf("failed to update places order: %v", err)
+			}
+
+			for i, placeId := range c.placeIdsOrdered {
+				planCandidatePlaceEntity, err := entities.PlanCandidatePlaces(
+					entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+					entities.PlanCandidatePlaceWhere.PlaceID.EQ(placeId),
+				).One(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate place: %v", err)
+				}
+
+				if planCandidatePlaceEntity.SortOrder != i {
+					t.Fatalf("wrong order of plan candidate place expected: %v, actual: %v", i, planCandidatePlaceEntity.SortOrder)
+				}
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		placeIdsOrdered       []string
+		savedPlanCandidateSet models.PlanCandidate
+	}{
+		{
+			name:               "reorder with not existing place",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdsOrdered:    []string{"third-place", "first-place", "not-existing-place"},
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			err := planCandidateRepository.UpdatePlacesOrder(testContext, c.planCandidateId, c.planCandidateSetId, c.placeIdsOrdered)
+			if err == nil {
+				t.Fatalf("error should be returned")
+			}
+		})
+	}
+}
+
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {

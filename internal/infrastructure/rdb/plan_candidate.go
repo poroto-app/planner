@@ -304,9 +304,64 @@ func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCa
 	return nil
 }
 
-func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error) {
-	//TODO implement me
-	panic("implement me")
+func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateEntity, err := entities.PlanCandidates(
+			entities.PlanCandidateWhere.ID.EQ(planId),
+			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidate),
+			qm.Load(entities.PlanCandidateRels.PlanCandidatePlaces),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate: %w", err)
+		}
+
+		if planCandidateEntity.R == nil {
+			panic("planCandidateEntity.R is nil")
+		}
+
+		planCandidatePlaceSlice := planCandidateEntity.R.PlanCandidatePlaces
+
+		// 場所のID一覧に過不足がないかを確認
+		if len(placeIdsOrdered) != len(planCandidatePlaceSlice) {
+			return fmt.Errorf("invalid placeIdsOrdered length")
+		}
+
+		// すべての場所のIDが存在するかを確認
+		for _, placeId := range placeIdsOrdered {
+			if _, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+				if planCandidatePlace == nil {
+					return false
+				}
+				return planCandidatePlace.PlaceID == placeId
+			}); !ok {
+				return fmt.Errorf("invalid placeId %s", placeId)
+			}
+		}
+
+		// 場所の順序を更新
+		for i, placeId := range placeIdsOrdered {
+			planCandidatePlace, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+				if planCandidatePlace == nil {
+					return false
+				}
+				return planCandidatePlace.PlaceID == placeId
+			})
+			if !ok {
+				return fmt.Errorf("invalid placeId %s", placeId)
+			}
+
+			planCandidatePlace.SortOrder = i
+			if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.SortOrder)); err != nil {
+				return fmt.Errorf("failed to update plan candidate place: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {
