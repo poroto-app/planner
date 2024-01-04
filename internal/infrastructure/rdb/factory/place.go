@@ -3,21 +3,26 @@ package factory
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
-func NewPlaceFromEntity(placeEntity entities.Place) (*models.Place, error) {
-	if placeEntity.R == nil {
-		return nil, fmt.Errorf("placeEntity.R is nil")
+func NewPlaceFromEntity(
+	placeEntity entities.Place,
+	googlePlaceSlice entities.GooglePlaceSlice,
+) (*models.Place, error) {
+	googlePlaceEntity, ok := array.Find(googlePlaceSlice, func(googlePlace *entities.GooglePlace) bool {
+		if googlePlace == nil {
+			return false
+		}
+		return googlePlace.PlaceID == placeEntity.ID
+	})
+	if !ok {
+		return nil, fmt.Errorf("failed to find google place")
 	}
 
-	googlePlaceEntities := placeEntity.R.GetGooglePlaces()
-	if len(googlePlaceEntities) == 0 || googlePlaceEntities[0] == nil {
-		return nil, fmt.Errorf("placeEntity.R.GetGooglePlaces() is empty")
-	}
-
-	googlePlace, err := NewGooglePlaceFromEntity(*googlePlaceEntities[0])
+	googlePlace, err := NewGooglePlaceFromEntity(*googlePlaceEntity)
 	if err != nil {
 		return nil, fmt.Errorf("failed to NewGooglePlaceFromEntity: %w", err)
 	}
@@ -33,25 +38,6 @@ func NewPlaceFromEntity(placeEntity entities.Place) (*models.Place, error) {
 		Google:    *googlePlace,
 		LikeCount: 0, // TODO: implement me
 	}, nil
-}
-
-func NewPlaceFromGooglePlaceEntity(googlePlaceEntity entities.GooglePlace) (*models.Place, error) {
-	if googlePlaceEntity.R.Place == nil {
-		return nil, fmt.Errorf("googlePlaceEntity.R.Place is nil")
-	}
-
-	googlePlace, err := NewGooglePlaceFromEntity(googlePlaceEntity)
-	if googlePlace == nil {
-		return nil, err
-	}
-
-	return &models.Place{
-		Id:        googlePlaceEntity.R.Place.ID,
-		Name:      googlePlace.Name,
-		Location:  googlePlace.Location,
-		Google:    *googlePlace,
-		LikeCount: 0, // TODO: implement me
-	}, err
 }
 
 func NewPlaceEntityFromGooglePlaceEntity(googlePlace models.GooglePlace) entities.Place {

@@ -115,7 +115,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			return fmt.Errorf("failed to insert google place opening period: %w", err)
 		}
 
-		placeSaved, err := factory.NewPlaceFromGooglePlaceEntity(googlePlaceEntity)
+		placeSaved, err := factory.NewPlaceFromEntity(placeEntity, entities.GooglePlaceSlice{&googlePlaceEntity})
 		if err != nil {
 			return fmt.Errorf("failed to convert google place entity to place: %w", err)
 		}
@@ -134,7 +134,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 }
 
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error) {
-	entities, err := entities.GooglePlaces(
+	googlePlaceEntities, err := entities.GooglePlaces(
 		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, defaultMaxDistance),
 		qm.Load(entities.GooglePlaceRels.Place),
 		qm.Load(entities.GooglePlaceRels.GooglePlaceTypes),
@@ -149,14 +149,14 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 	}
 
 	var places []models.Place
-	for _, entity := range entities {
-		if entity == nil {
+	for _, googlePlaceEntity := range googlePlaceEntities {
+		if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
 			continue
 		}
 
-		place, err := factory.NewPlaceFromGooglePlaceEntity(*entity)
+		place, err := factory.NewPlaceFromEntity(*googlePlaceEntity.R.Place, entities.GooglePlaceSlice{googlePlaceEntity})
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
+			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
 		}
 		if place == nil {
 			continue
@@ -312,11 +312,11 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		return nil, fmt.Errorf("failed to find google place: %w", err)
 	}
 
-	if googlePlaceEntity == nil {
+	if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
 		return nil, nil
 	}
 
-	place, err := factory.NewPlaceFromGooglePlaceEntity(*googlePlaceEntity)
+	place, err := factory.NewPlaceFromEntity(*googlePlaceEntity.R.Place, entities.GooglePlaceSlice{googlePlaceEntity})
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
 	}
