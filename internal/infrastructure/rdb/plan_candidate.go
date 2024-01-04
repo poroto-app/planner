@@ -108,7 +108,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 		*planCandidateSetEntity,
 		planCandidateSetEntity.R.PlanCandidates,
 		planCandidateSetEntity.R.PlanCandidateSetMetaData,
-		planCandidateSetEntity.R.PlanCandidateSetCategories,
+		planCandidateSetEntity.R.PlanCandidateSetMetaDataCategories,
 		planCandidateSetEntity.R.PlanCandidatePlaces,
 		places,
 	)

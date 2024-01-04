@@ -11,7 +11,7 @@ func NewPlanCandidateSetFromEntity(
 	planCandidateSetEntity entities.PlanCandidateSet,
 	planCandidateSlice entities.PlanCandidateSlice,
 	planCandidateSetMetaDataSlice entities.PlanCandidateSetMetaDatumSlice,
-	planCandidateSetCategorySlice entities.PlanCandidateSetCategorySlice,
+	planCandidateSetCategorySlice entities.PlanCandidateSetMetaDataCategorySlice,
 	planCandidatePlaces entities.PlanCandidatePlaceSlice,
 	places []models.Place,
 ) (*models.PlanCandidate, error) {
