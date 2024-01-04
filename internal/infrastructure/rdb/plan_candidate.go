@@ -9,10 +9,12 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
+	"strings"
 	"time"
 )
 
@@ -52,20 +54,15 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 }
 
 func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
-	planCandidateSetEntity, err := entities.PlanCandidateSets(
-		entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
-		entities.PlanCandidateSetWhere.ExpiresAt.GT(now),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceTypes),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlacePhotos),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlacePhotoAttributions),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceReviews),
-		qm.Load(entities.PlanCandidateSetRels.PlanCandidatePlaces+"."+entities.PlanCandidatePlaceRels.Place+"."+entities.PlaceRels.GooglePlaces+"."+entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
-	).One(ctx, p.db)
+	planCandidateSetEntity, err := entities.PlanCandidateSets(concatQueryMod(
+		[]qm.QueryMod{
+			entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+			entities.PlanCandidateSetWhere.ExpiresAt.GT(now),
+			qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
+			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
+		},
+		placeQueryModes(entities.PlanCandidateSetRels.PlanCandidatePlaces),
+	)...).One(ctx, p.db)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -236,4 +233,26 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	//TODO implement me
 	panic("implement me")
+}
+
+func concatQueryMod(qms ...[]qm.QueryMod) []qm.QueryMod {
+	return array.Flatten(qms)
+}
+
+// placeQueryModes models.Place を作成するのに必要な関連をロードするための qm.QueryMod を返す
+// relations には X -> X -> "PlanCandidatePlace" というように "PlanCandidatePlace" までの関連を指定する
+func placeQueryModes(relations ...string) []qm.QueryMod {
+	var relation string
+	if len(relations) > 0 {
+		relation = strings.Join(relations, ".") + "."
+	}
+	return []qm.QueryMod{
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	}
 }
