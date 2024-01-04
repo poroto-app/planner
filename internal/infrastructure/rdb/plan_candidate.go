@@ -14,7 +14,6 @@ import (
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
-	"strings"
 	"time"
 )
 
@@ -61,7 +60,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
 			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
 		},
-		placeQueryModes(entities.PlanCandidateSetRels.PlanCandidatePlaces),
+		placeQueryModes(entities.PlanCandidateSetRels.PlanCandidatePlaces, entities.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
 
 	if err != nil {
@@ -125,7 +124,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			entities.PlanCandidateWhere.ID.EQ(planId),
 			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
 		},
-		placeQueryModes(entities.PlanCandidateRels.PlanCandidatePlaces),
+		placeQueryModes(entities.PlanCandidateRels.PlanCandidatePlaces, entities.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -480,26 +479,4 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	//TODO implement me
 	panic("implement me")
-}
-
-func concatQueryMod(qms ...[]qm.QueryMod) []qm.QueryMod {
-	return array.Flatten(qms)
-}
-
-// placeQueryModes models.Place を作成するのに必要な関連をロードするための qm.QueryMod を返す
-// relations には X -> X -> "PlanCandidatePlace" というように "PlanCandidatePlace" までの関連を指定する
-func placeQueryModes(relations ...string) []qm.QueryMod {
-	var relation string
-	if len(relations) > 0 {
-		relation = strings.Join(relations, ".") + "."
-	}
-	return []qm.QueryMod{
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceTypes),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotos),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotoAttributions),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceReviews),
-		qm.Load(relation + entities.PlanCandidatePlaceRels.Place + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
-	}
 }
