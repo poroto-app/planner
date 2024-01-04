@@ -440,8 +440,41 @@ func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidate
 }
 
 func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		// プラン候補場所を削除
+		if _, err := entities.PlanCandidatePlaces(entities.PlanCandidatePlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate places: %w", err)
+		}
+
+		// 検索履歴を削除
+		if _, err := entities.PlanCandidateSetSearchedPlaces(entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate set searched places: %w", err)
+		}
+
+		// プラン候補を削除
+		if _, err := entities.PlanCandidates(entities.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidates: %w", err)
+		}
+
+		// プラン候補メタデータを削除
+		if _, err := entities.PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate set meta data: %w", err)
+		}
+		if _, err := entities.PlanCandidateSetMetaDataCategories(entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate set meta data categories: %w", err)
+		}
+
+		// プラン候補一覧を削除
+		if _, err := entities.PlanCandidateSets(entities.PlanCandidateSetWhere.ID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate sets: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {

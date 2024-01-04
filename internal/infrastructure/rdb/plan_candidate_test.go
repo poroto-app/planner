@@ -1186,6 +1186,185 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
+	cases := []struct {
+		name                        string
+		savedPlanCandidateSets      []models.PlanCandidate
+		planCandidateIdsToDelete    []string
+		planCandidateIdsNotToDelete []string
+	}{
+		{
+			name: "success",
+			savedPlanCandidateSets: []models.PlanCandidate{
+				{
+					Id:        "test-plan-candidate-set-1",
+					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+					MetaData: models.PlanCandidateMetaData{
+						CreatedBasedOnCurrentLocation: true,
+						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+						CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
+						FreeTime:                      toPointer(60),
+					},
+					Plans: []models.Plan{
+						{
+							Id: "test-plan-candidate-1",
+							Places: []models.Place{
+								{Id: "first-place"},
+								{Id: "second-place"},
+								{Id: "third-place"},
+							},
+						},
+					},
+				},
+				{
+					Id:        "test-plan-candidate-set-2",
+					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+					MetaData: models.PlanCandidateMetaData{
+						CreatedBasedOnCurrentLocation: true,
+						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+						CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
+						FreeTime:                      toPointer(60),
+					},
+					Plans: []models.Plan{
+						{
+							Id: "test-plan-candidate-2",
+							Places: []models.Place{
+								{Id: "first-place"},
+							},
+						},
+					},
+				},
+			},
+			planCandidateIdsToDelete:    []string{"test-plan-candidate-set-1"},
+			planCandidateIdsNotToDelete: []string{"test-plan-candidate-set-2"},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlaceを作成しておく
+			var placesInPlanCandidates []models.Place
+			for _, planCandidateSet := range c.savedPlanCandidateSets {
+				for _, plan := range planCandidateSet.Plans {
+					placesInPlanCandidates = append(placesInPlanCandidates, plan.Places...)
+				}
+			}
+			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを作成しておく
+			for _, planCandidateSet := range c.savedPlanCandidateSets {
+				if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, planCandidateSet); err != nil {
+					t.Fatalf("failed to save plan candidate: %v", err)
+				}
+			}
+
+			if err := planCandidateRepository.DeleteAll(testContext, c.planCandidateIdsToDelete); err != nil {
+				t.Fatalf("failed to delete plan candidate: %v", err)
+			}
+
+			// 削除されていないことを確認
+			for _, planCandidateId := range c.planCandidateIdsNotToDelete {
+				planCandidateSetEntityExist, err := entities.PlanCandidateSets(
+					entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate set: %v", err)
+				}
+
+				if !planCandidateSetEntityExist {
+					t.Fatalf("plan candidate set should exist")
+				}
+			}
+
+			// 削除されていることを確認
+			for _, planCandidateId := range c.planCandidateIdsToDelete {
+				// PlanCandidateSet が削除されていることを確認
+				planCandidateSetEntityExist, err := entities.PlanCandidateSets(
+					entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate set: %v", err)
+				}
+				if planCandidateSetEntityExist {
+					t.Fatalf("plan candidate set should not exist")
+				}
+
+				// PlanCandidateSetMetaData が削除されていることを確認
+				planCandidateSetMetaDataEntityExist, err := entities.PlanCandidateSetMetaData(
+					entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate set meta data: %v", err)
+				}
+				if planCandidateSetMetaDataEntityExist {
+					t.Fatalf("plan candidate set meta data should not exist")
+				}
+
+				// PlanCandidateSetMetaDataCategory が削除されていることを確認
+				planCandidateSetMetaDataCategoryEntityExist, err := entities.PlanCandidateSetMetaDataCategories(
+					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate set meta data category: %v", err)
+				}
+				if planCandidateSetMetaDataCategoryEntityExist {
+					t.Fatalf("plan candidate set meta data category should not exist")
+				}
+
+				// PlanCandidate が削除されていることを確認
+				planCandidateEntityExist, err := entities.PlanCandidates(
+					entities.PlanCandidateWhere.ID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate: %v", err)
+				}
+				if planCandidateEntityExist {
+					t.Fatalf("plan candidate should not exist")
+				}
+
+				// PlanCandidatePlace が削除されていることを確認
+				planCandidatePlaceEntityExist, err := entities.PlanCandidatePlaces(
+					entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate place: %v", err)
+				}
+				if planCandidatePlaceEntityExist {
+					t.Fatalf("plan candidate place should not exist")
+				}
+
+				// PlanCandidateSetSearchedPlace が削除されていることを確認
+				planCandidateSetSearchedPlaceEntityExist, err := entities.PlanCandidateSetSearchedPlaces(
+					entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to get plan candidate set searched place: %v", err)
+				}
+				if planCandidateSetSearchedPlaceEntityExist {
+					t.Fatalf("plan candidate set searched place should not exist")
+				}
+			}
+		})
+	}
+}
+
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {
