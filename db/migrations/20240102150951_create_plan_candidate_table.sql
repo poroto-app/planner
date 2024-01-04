@@ -65,8 +65,8 @@ CREATE TABLE plan_candidate_places
     INDEX (plan_candidate_set_id)
 );
 
--- plan_candidate_set_categories テーブル
-CREATE TABLE plan_candidate_set_categories
+-- plan_candidate_set_meta_data_categories テーブル
+CREATE TABLE plan_candidate_set_meta_data_categories
 (
     id                    CHAR(36) PRIMARY KEY,
     plan_candidate_set_id CHAR(36)     NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE plan_candidate_set_categories
 -- +goose Down
 DROP TABLE IF EXISTS plan_candidate_places;
 DROP TABLE IF EXISTS plan_candidate_set_searched_places;
-DROP TABLE IF EXISTS plan_candidate_set_categories;
+DROP TABLE IF EXISTS plan_candidate_set_meta_data_categories;
 DROP TABLE IF EXISTS plan_candidates;
 DROP TABLE IF EXISTS plan_candidate_set_meta_data;
 DROP TABLE IF EXISTS plan_candidate_sets;

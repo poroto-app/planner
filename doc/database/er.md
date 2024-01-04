@@ -130,7 +130,7 @@ erDiagram
         char(36) place_id FK
     }
 
-    plan_candidate_set_categories {
+    plan_candidate_set__meta_data_categories {
         char(36) id PK
         char(36) plan_candidate_set_id FK
         string category
