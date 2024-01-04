@@ -81,8 +81,8 @@ func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.C
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		// TODO: BatchInsertする
-		for _, plan := range plans {
-			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId)
+		for iPlan, plan := range plans {
+			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId, iPlan)
 			if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 				return fmt.Errorf("failed to insert plan candidate: %w", err)
 			}
