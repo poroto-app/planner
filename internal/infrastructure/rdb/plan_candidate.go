@@ -365,13 +365,78 @@ func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId s
 }
 
 func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		savedPlanCandidateSetMetaDataEntity, err := entities.PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId)).One(ctx, tx)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("failed to get plan candidate set meta data: %w", err)
+			}
+		}
+
+		if savedPlanCandidateSetMetaDataEntity == nil {
+			// 保存されていない場合は新規作成
+			planCandidateSetMetaDataEntity := factory.NewPlanCandidateMetaDataFromDomainModel(meta, planCandidateId)
+			if err := planCandidateSetMetaDataEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set meta data: %w", err)
+			}
+
+		} else {
+			// 保存されている場合は更新
+			planCandidateMetaDataEntity := factory.NewPlanCandidateMetaDataFromDomainModel(meta, planCandidateId)
+			planCandidateMetaDataEntity.ID = savedPlanCandidateSetMetaDataEntity.ID
+			if _, err := planCandidateMetaDataEntity.Update(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to upsert plan candidate set meta data: %w", err)
+			}
+		}
+
+		// カテゴリを更新
+		if meta.CategoriesRejected != nil || meta.CategoriesPreferred != nil {
+			// すでに登録されているカテゴリを削除
+			if _, err := entities.PlanCandidateSetMetaDataCategories(entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId)).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to delete plan candidate set categories: %w", err)
+			}
+
+			// カテゴリを登録
+			// TODO: BatchInsertする
+			planCandidateSetMetaDataCategorySlice := factory.NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(meta.CategoriesPreferred, meta.CategoriesRejected, planCandidateId)
+			for _, planCandidateSetMetaDataCategory := range planCandidateSetMetaDataCategorySlice {
+				if err := planCandidateSetMetaDataCategory.Insert(ctx, tx, boil.Infer()); err != nil {
+					return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
+				}
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidatePlaceEntity, err := entities.PlanCandidatePlaces(
+			entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+			entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(planId),
+			entities.PlanCandidatePlaceWhere.PlaceID.EQ(placeIdToBeReplaced),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate place: %w", err)
+		}
+
+		planCandidatePlaceEntity.PlaceID = placeToReplace.Id
+
+		if _, err := planCandidatePlaceEntity.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.PlaceID)); err != nil {
+			return fmt.Errorf("failed to update plan candidate place: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {

@@ -868,6 +868,272 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 	}
 }
 
+func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		savedPlanCandidateSet models.PlanCandidate
+		metaData              models.PlanCandidateMetaData
+	}{
+		{
+			name:               "save plan candidate meta data",
+			planCandidateSetId: "test-plan-candidate-set",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				MetaData:  models.PlanCandidateMetaData{},
+			},
+			metaData: models.PlanCandidateMetaData{
+				CreatedBasedOnCurrentLocation: true,
+				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+				CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+				LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
+				FreeTime:                      toPointer(60),
+			},
+		},
+		{
+			name:               "update plan candidate meta data",
+			planCandidateSetId: "test-plan-candidate-set",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: false,
+					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+					CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+					LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
+					FreeTime:                      toPointer(60),
+				},
+			},
+			metaData: models.PlanCandidateMetaData{
+				CreatedBasedOnCurrentLocation: true,
+				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant, models.CategoryBookStore},
+				CategoriesRejected:            &[]models.LocationCategory{models.CategoryShopping, models.CategoryAmusements},
+				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
+				FreeTime:                      toPointer(120),
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			err := planCandidateRepository.UpdatePlanCandidateMetaData(testContext, c.planCandidateSetId, c.metaData)
+			if err != nil {
+				t.Fatalf("failed to update plan candidate meta data: %v", err)
+			}
+
+			planCandidateSetMetaDataEntity, err := entities.
+				PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(c.planCandidateSetId)).
+				One(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set meta data: %v", err)
+			}
+
+			if planCandidateSetMetaDataEntity.IsCreatedFromCurrentLocation != c.metaData.CreatedBasedOnCurrentLocation {
+				t.Fatalf("wrong is created from current location expected: %v, actual: %v", c.metaData.CreatedBasedOnCurrentLocation, planCandidateSetMetaDataEntity.IsCreatedFromCurrentLocation)
+			}
+
+			if planCandidateSetMetaDataEntity.LatitudeStart != c.metaData.LocationStart.Latitude {
+				t.Fatalf("wrong latitude start expected: %v, actual: %v", c.metaData.LocationStart.Latitude, planCandidateSetMetaDataEntity.LatitudeStart)
+			}
+
+			if planCandidateSetMetaDataEntity.LongitudeStart != c.metaData.LocationStart.Longitude {
+				t.Fatalf("wrong longitude start expected: %v, actual: %v", c.metaData.LocationStart.Longitude, planCandidateSetMetaDataEntity.LongitudeStart)
+			}
+
+			if planCandidateSetMetaDataEntity.PlanDurationMinutes.Int != *c.metaData.FreeTime {
+				t.Fatalf("wrong plan duration minutes expected: %v, actual: %v", c.metaData.FreeTime, planCandidateSetMetaDataEntity.PlanDurationMinutes.Int)
+			}
+
+			// CategoriesPreferred が一致する
+			numCategoriesPreferred, err := entities.
+				PlanCandidateSetMetaDataCategories(
+					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+					entities.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(true),
+				).Count(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
+			}
+			if int(numCategoriesPreferred) != len(*c.metaData.CategoriesPreferred) {
+				t.Fatalf("wrong number of plan candidate set meta data categories expected: %v, actual: %v", len(*c.metaData.CategoriesPreferred), numCategoriesPreferred)
+			}
+
+			// CategoriesRejected が一致する
+			numCategoriesRejected, err := entities.
+				PlanCandidateSetMetaDataCategories(
+					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+					entities.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(false),
+				).Count(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
+			}
+			if int(numCategoriesRejected) != len(*c.metaData.CategoriesRejected) {
+				t.Fatalf("wrong number of plan candidate set meta data categories expected: %v, actual: %v", len(*c.metaData.CategoriesRejected), numCategoriesRejected)
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		placeIdToReplace      string
+		placeToReplace        models.Place
+		savedPlanCandidateSet models.PlanCandidate
+	}{
+		{
+			name:               "success",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdToReplace:   "second-place",
+			placeToReplace:     models.Place{Id: "replaced-place"},
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前に Place を作成しておく
+			if err := savePlaces(testContext, testDB, []models.Place{c.placeToReplace}); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			if err := planCandidateRepository.ReplacePlace(testContext, c.planCandidateSetId, c.planCandidateId, c.placeIdToReplace, c.placeToReplace); err != nil {
+				t.Fatalf("failed to replace place: %v", err)
+			}
+
+			planCandidatePlaceEntityExist, err := entities.PlanCandidatePlaces(
+				entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+				entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+				entities.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeToReplace.Id),
+			).Exists(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate place: %v", err)
+			}
+
+			if !planCandidatePlaceEntityExist {
+				t.Fatalf("plan candidate place should exist")
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		placeIdToReplace      string
+		placeToReplace        models.Place
+		savedPlanCandidateSet models.PlanCandidate
+	}{
+		{
+			name:               "replace with not existing place",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdToReplace:   "not-existing-place",
+			placeToReplace:     models.Place{Id: "place-to-replace"},
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前に Place を作成しておく
+			if err := savePlaces(testContext, testDB, []models.Place{c.placeToReplace}); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			err := planCandidateRepository.ReplacePlace(testContext, c.planCandidateSetId, c.planCandidateId, c.placeIdToReplace, c.placeToReplace)
+			if err == nil {
+				t.Fatalf("error should be returned")
+			}
+		})
+	}
+}
+
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {
@@ -926,4 +1192,8 @@ func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateRepository 
 	}
 
 	return nil
+}
+
+func toPointer[T any](value T) *T {
+	return &value
 }
