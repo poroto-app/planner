@@ -649,6 +649,95 @@ func TestPlanCandidateRepository_AddPlaceToPlan(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		placeIdToDelete       string
+		savedPlanCandidateSet models.PlanCandidate
+	}{
+		{
+			name:               "success",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdToDelete:    "second-place",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:               "delete not existing place",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			placeIdToDelete:    "not-existing-place",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "first-place"},
+							{Id: "second-place"},
+							{Id: "third-place"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			if err := planCandidateRepository.RemovePlaceFromPlan(testContext, c.planCandidateSetId, c.planCandidateId, c.placeIdToDelete); err != nil {
+				t.Fatalf("failed to remove place from plan: %v", err)
+			}
+
+			isExistPlanCandidatePlace, err := entities.PlanCandidatePlaces(
+				entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+				entities.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeIdToDelete),
+			).Exists(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to check existence of plan candidate place: %v", err)
+			}
+
+			if isExistPlanCandidatePlace {
+				t.Fatalf("plan candidate place should be deleted")
+			}
+		})
+	}
+}
+
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {

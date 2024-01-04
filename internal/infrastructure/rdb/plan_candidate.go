@@ -266,8 +266,42 @@ func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandida
 }
 
 func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateEntity, err := entities.PlanCandidates(
+			entities.PlanCandidateWhere.ID.EQ(planId),
+			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
+			qm.Load(entities.PlanCandidateRels.PlanCandidatePlaces),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate: %w", err)
+		}
+
+		if planCandidateEntity.R == nil {
+			panic("planCandidateEntity.R is nil")
+		}
+
+		planCandidatePlaceSlice := planCandidateEntity.R.PlanCandidatePlaces
+		planCandidatePlaceToDelete, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+			if planCandidatePlace == nil {
+				return false
+			}
+			return planCandidatePlace.PlaceID == placeId
+		})
+		if !ok {
+			// もともと存在しない場所を削除しようとした場合は何もしない
+			return nil
+		}
+
+		if _, err := planCandidatePlaceToDelete.Delete(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate place: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error) {
