@@ -36,6 +36,7 @@ services:
     ports:
       - "3307:3306"
   db-migrator:
+    # TODO: Dockerfile でビルドする
     image: golang:1.18
     depends_on:
       db:
@@ -53,6 +54,7 @@ services:
       goose -dir /db/migrations mysql \"$$DB_USER:$$DB_PASSWORD@tcp($$DB_HOST)/$$DB_NAME?parseTime=true&loc=Asia%2FTokyo\" up
       "
   db-test-migrator:
+    # TODO: Dockerfile でビルドする
     image: golang:1.18
     depends_on:
       db-test:
