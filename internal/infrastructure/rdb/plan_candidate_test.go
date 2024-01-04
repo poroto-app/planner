@@ -267,6 +267,88 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_FindPlan(t *testing.T) {
+	cases := []struct {
+		name                  string
+		planCandidateSetId    string
+		planCandidateId       string
+		savedPlanCandidateSet models.PlanCandidate
+		expected              models.Plan
+	}{
+		{
+			name:               "success",
+			planCandidateSetId: "test-plan-candidate-set",
+			planCandidateId:    "test-plan-candidate",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan-candidate",
+						Places: []models.Place{
+							{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
+						},
+					},
+				},
+			},
+			expected: models.Plan{
+				Id: "test-plan-candidate",
+				Places: []models.Place{
+					{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			actual, err := planCandidateRepository.FindPlan(testContext, c.planCandidateSetId, c.planCandidateId)
+			if err != nil {
+				t.Fatalf("failed to find plan: %v", err)
+			}
+
+			if actual == nil {
+				t.Fatalf("plan should be found")
+			}
+
+			// Id の値が一致する
+			if actual.Id != c.expected.Id {
+				t.Fatalf("wrong plan id expected: %v, actual: %v", c.expected.Id, actual.Id)
+			}
+
+			// Place の数が一致する
+			if len(actual.Places) != len(c.expected.Places) {
+				t.Fatalf("wrong number of places expected: %v, actual: %v", len(c.expected.Places), len(actual.Places))
+			}
+
+			// Place の順番が一致する
+			for i, place := range actual.Places {
+				if place.Id != c.expected.Places[i].Id {
+					t.Fatalf("wrong place id expected: %v, actual: %v", c.expected.Places[i].Id, place.Id)
+				}
+			}
+		})
+	}
+}
+
 func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T) {
 	cases := []struct {
 		name            string

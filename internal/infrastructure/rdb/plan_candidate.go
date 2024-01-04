@@ -120,8 +120,59 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 }
 
 func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
-	//TODO implement me
-	panic("implement me")
+	planCandidate, err := entities.PlanCandidates(concatQueryMod(
+		[]qm.QueryMod{
+			entities.PlanCandidateWhere.ID.EQ(planId),
+			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
+		},
+		placeQueryModes(entities.PlanCandidateRels.PlanCandidatePlaces),
+	)...).One(ctx, p.db)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
+	}
+
+	var places []models.Place
+	for _, planCandidatePlace := range planCandidate.R.PlanCandidatePlaces {
+		if planCandidatePlace.R.Place == nil {
+			p.logger.Warn("planCandidatePlace.R.Place is nil", zap.String("planCandidatePlaceId", planCandidatePlace.ID))
+			continue
+		}
+
+		if planCandidatePlace.R.Place.R == nil {
+			panic("planCandidatePlace.R.Place.R is nil")
+		}
+
+		if len(planCandidatePlace.R.Place.R.GooglePlaces) == 0 || planCandidatePlace.R.Place.R.GooglePlaces[0] == nil {
+			p.logger.Warn("planCandidatePlace.R.Place.R.GooglePlaces is empty", zap.String("planCandidatePlaceId", planCandidatePlace.ID))
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*planCandidatePlace.R.Place,
+			*planCandidatePlace.R.Place.R.GooglePlaces[0],
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create place: %w", err)
+		}
+
+		places = append(places, *place)
+	}
+
+	plan, err := factory.NewPlanCandidateFromEntity(*planCandidate, planCandidate.R.PlanCandidatePlaces, places)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create plan candidate: %w", err)
+	}
+
+	return plan, nil
 }
 
 func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
