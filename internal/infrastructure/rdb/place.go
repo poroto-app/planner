@@ -115,7 +115,16 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			return fmt.Errorf("failed to insert google place opening period: %w", err)
 		}
 
-		placeSaved, err := factory.NewPlaceFromEntity(placeEntity, entities.GooglePlaceSlice{&googlePlaceEntity})
+		placeSaved, err := factory.NewPlaceFromEntity(
+			placeEntity,
+			entities.GooglePlaceSlice{&googlePlaceEntity},
+			googlePlaceEntity.R.GooglePlaceTypes,
+			googlePlaceEntity.R.GooglePlacePhotoReferences,
+			googlePlaceEntity.R.GooglePlacePhotoAttributions,
+			googlePlaceEntity.R.GooglePlacePhotos,
+			googlePlaceEntity.R.GooglePlaceReviews,
+			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+		)
 		if err != nil {
 			return fmt.Errorf("failed to convert google place entity to place: %w", err)
 		}
@@ -154,7 +163,16 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 			continue
 		}
 
-		place, err := factory.NewPlaceFromEntity(*googlePlaceEntity.R.Place, entities.GooglePlaceSlice{googlePlaceEntity})
+		place, err := factory.NewPlaceFromEntity(
+			*googlePlaceEntity.R.Place,
+			entities.GooglePlaceSlice{googlePlaceEntity},
+			googlePlaceEntity.R.GooglePlaceTypes,
+			googlePlaceEntity.R.GooglePlacePhotoReferences,
+			googlePlaceEntity.R.GooglePlacePhotoAttributions,
+			googlePlaceEntity.R.GooglePlacePhotos,
+			googlePlaceEntity.R.GooglePlaceReviews,
+			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
 		}
@@ -316,7 +334,16 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		return nil, nil
 	}
 
-	place, err := factory.NewPlaceFromEntity(*googlePlaceEntity.R.Place, entities.GooglePlaceSlice{googlePlaceEntity})
+	place, err := factory.NewPlaceFromEntity(
+		*googlePlaceEntity.R.Place,
+		entities.GooglePlaceSlice{googlePlaceEntity},
+		googlePlaceEntity.R.GooglePlaceTypes,
+		googlePlaceEntity.R.GooglePlacePhotoReferences,
+		googlePlaceEntity.R.GooglePlacePhotoAttributions,
+		googlePlaceEntity.R.GooglePlacePhotos,
+		googlePlaceEntity.R.GooglePlaceReviews,
+		googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
 	}

@@ -11,6 +11,12 @@ import (
 func NewPlaceFromEntity(
 	placeEntity entities.Place,
 	googlePlaceSlice entities.GooglePlaceSlice,
+	googlePlaceTypeSlice entities.GooglePlaceTypeSlice,
+	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
+	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
 ) (*models.Place, error) {
 	googlePlaceEntity, ok := array.Find(googlePlaceSlice, func(googlePlace *entities.GooglePlace) bool {
 		if googlePlace == nil {
@@ -22,7 +28,15 @@ func NewPlaceFromEntity(
 		return nil, fmt.Errorf("failed to find google place")
 	}
 
-	googlePlace, err := NewGooglePlaceFromEntity(*googlePlaceEntity)
+	googlePlace, err := NewGooglePlaceFromEntity(
+		*googlePlaceEntity,
+		googlePlaceTypeSlice,
+		googlePlacePhotoReferenceSlice,
+		googlePlacePhotoAttributionSlice,
+		googlePlacePhotoSlice,
+		googlePlaceReviewSlice,
+		googlePlaceOpeningPeriodSlice,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to NewGooglePlaceFromEntity: %w", err)
 	}
