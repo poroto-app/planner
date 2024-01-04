@@ -8,6 +8,23 @@ func Map[T any, U any](slice []T, transform func(T) U) []U {
 	return mapped
 }
 
+func MapWithErr[T any, U any](slice []T, transform func(T) (*U, error)) (*[]U, error) {
+	mapped := make([]U, 0, len(slice))
+	for _, v := range slice {
+		u, err := transform(v)
+		if err != nil {
+			return nil, err
+		}
+
+		if u == nil {
+			continue
+		}
+
+		mapped = append(mapped, *u)
+	}
+	return &mapped, nil
+}
+
 func MapAndFilter[T any, U any](slice []T, transform func(T) (U, bool)) []U {
 	var mapped []U
 	for _, v := range slice {
