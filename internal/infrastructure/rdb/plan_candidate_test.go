@@ -2,10 +2,13 @@ package rdb
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"testing"
@@ -64,7 +67,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 		now                   time.Time
 		savedPlanCandidateSet models.PlanCandidate
 		planCandidateId       string
-		expected              *models.PlanCandidate
+		expected              models.PlanCandidate
 	}{
 		{
 			name: "plan candidate set with only id",
@@ -74,20 +77,10 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 			},
 			planCandidateId: "test",
-			expected: &models.PlanCandidate{
+			expected: models.PlanCandidate{
 				Id:        "test",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 			},
-		},
-		{
-			name: "expired plan candidate set will not be returned",
-			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2019, 12, 1, 0, 0, 0, 0, time.Local),
-			},
-			planCandidateId: "test",
-			expected:        nil,
 		},
 		{
 			name: "plan candidate set with plan candidate",
@@ -108,7 +101,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				},
 			},
 			planCandidateId: "test",
-			expected: &models.PlanCandidate{
+			expected: models.PlanCandidate{
 				Id:        "test",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				MetaData: models.PlanCandidateMetaData{
@@ -126,8 +119,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 		},
 		{
-			name: "plan candidate set without PlanCandidateSetMetaData",
-			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			name:            "plan candidate set without PlanCandidateSetMetaData",
+			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateId: "test",
 			savedPlanCandidateSet: models.PlanCandidate{
 				Id:        "test",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -135,10 +129,19 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					{
 						Id: "test-plan",
 						Places: []models.Place{
-							{
-								Id:     "test-place",
-								Google: models.GooglePlace{PlaceId: "test-google-place"},
-							},
+							{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
+						},
+					},
+				},
+			},
+			expected: models.PlanCandidate{
+				Id:        "test",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "test-plan",
+						Places: []models.Place{
+							{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
 						},
 					},
 				},
@@ -162,44 +165,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				}
 			})
 
-			// 事前にPlaceを作成しておく
-			for _, plan := range c.savedPlanCandidateSet.Plans {
-				for _, place := range plan.Places {
-					placeEntity := entities.Place{ID: place.Id}
-					if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-						t.Fatalf("failed to insert place: %v", err)
-					}
-
-					googlePlaceEntity := entities.GooglePlace{PlaceID: place.Google.PlaceId}
-					if err := placeEntity.AddGooglePlaces(testContext, testDB, true, &googlePlaceEntity); err != nil {
-						t.Fatalf("failed to add google place: %v", err)
-					}
-				}
-			}
-
 			// 事前にPlanCandidateSetを作成しておく
-			if err := planCandidateRepository.Create(testContext, c.savedPlanCandidateSet.Id, c.savedPlanCandidateSet.ExpiresAt); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
-			}
-
-			// 事前にPlanCandidateSetMetaDataを作成しておく
-			if !c.savedPlanCandidateSet.MetaData.IsZero() {
-				planCandidateSetMetaDataEntity := entities.PlanCandidateSetMetaDatum{
-					ID:                           uuid.New().String(),
-					PlanCandidateSetID:           c.savedPlanCandidateSet.Id,
-					IsCreatedFromCurrentLocation: c.savedPlanCandidateSet.MetaData.CreatedBasedOnCurrentLocation,
-					LatitudeStart:                c.savedPlanCandidateSet.MetaData.LocationStart.Latitude,
-					LongitudeStart:               c.savedPlanCandidateSet.MetaData.LocationStart.Longitude,
-					PlanDurationMinutes:          null.IntFromPtr(c.savedPlanCandidateSet.MetaData.FreeTime),
-				}
-				if err := planCandidateSetMetaDataEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-					t.Fatalf("failed to insert plan candidate set meta data: %v", err)
-				}
-			}
-
-			// 事前にPlanCandidateを作成しておく
-			if err := planCandidateRepository.AddPlan(testContext, c.savedPlanCandidateSet.Id, c.savedPlanCandidateSet.Plans...); err != nil {
-				t.Fatalf("failed to add plan: %v", err)
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
 			actual, err := planCandidateRepository.Find(testContext, c.planCandidateId, c.now)
@@ -207,11 +175,8 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
 
-			if c.expected == nil {
-				if actual != nil {
-					t.Fatalf("plan candidate should not be found")
-				}
-				return
+			if actual == nil {
+				t.Fatalf("plan candidate should be found")
 			}
 
 			// Id の値が一致する
@@ -251,6 +216,57 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
+	cases := []struct {
+		name                  string
+		now                   time.Time
+		savedPlanCandidateSet models.PlanCandidate
+		planCandidateId       string
+	}{
+		{
+			name: "expired plan candidate set will not be returned",
+			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "test",
+				ExpiresAt: time.Date(2019, 12, 1, 0, 0, 0, 0, time.Local),
+			},
+			planCandidateId: "test",
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	testContext := context.Background()
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			actual, err := planCandidateRepository.Find(testContext, c.planCandidateId, c.now)
+			if err != nil {
+				t.Fatalf("failed to find plan candidate: %v", err)
+			}
+
+			if actual != nil {
+				t.Fatalf("plan candidate should not be found")
+			}
+		})
+	}
+}
+
 func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T) {
 	cases := []struct {
 		name            string
@@ -280,8 +296,8 @@ func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T)
 				}
 			})
 
-			// 事前にPlanCandidateSetを作成しておく
-			if err := planCandidateRepository.Create(testContext, c.planCandidateId, time.Now().Add(time.Hour)); err != nil {
+			// 事前にPlanCandidateSetを作成しておく]
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
@@ -355,19 +371,15 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				}
 			})
 
-			// 事前にPlanCandidateSetを作成しておく
-			if err := planCandidateRepository.Create(testContext, c.planCandidateId, time.Now().Add(time.Hour)); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
+			// 事前にPlaceを作成しておく
+			placesInPlans := array.Map(c.plans, func(plan models.Plan) []models.Place { return plan.Places })
+			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
+				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlaceを作成しておく
-			for _, plan := range c.plans {
-				for _, place := range plan.Places {
-					placeEntity := entities.Place{ID: place.Id}
-					if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-						t.Fatalf("failed to insert place: %v", err)
-					}
-				}
+			// 事前にPlanCandidateSetを作成しておく
+			if err := savePlanCandidate(testContext, testDB, *planCandidateRepository, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
+				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
 			if err := planCandidateRepository.AddPlan(testContext, c.planCandidateId, c.plans...); err != nil {
@@ -490,4 +502,64 @@ func TestPlanCandidateRepository_AddPlaceToPlan(t *testing.T) {
 			}
 		})
 	}
+}
+
+func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
+	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
+	for _, place := range places {
+		placeEntity := entities.Place{ID: place.Id}
+		if err := placeEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place: %v", err)
+		}
+
+		if place.Google.PlaceId == "" {
+			continue
+		}
+
+		googlePlaceEntity := entities.GooglePlace{PlaceID: place.Google.PlaceId}
+		if err := placeEntity.AddGooglePlaces(ctx, db, true, &googlePlaceEntity); err != nil {
+			return fmt.Errorf("failed to insert google place: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateRepository PlanCandidateRepository, planCandidateSet models.PlanCandidate) error {
+	// Placeを作成
+	placesInPlanCandidates := array.Flatten(array.Map(planCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
+	if err := savePlaces(ctx, db, placesInPlanCandidates); err != nil {
+		return err
+	}
+
+	// PlanCandidateSetを作成
+	planCandidateSetEntity := entities.PlanCandidateSet{
+		ID:        planCandidateSet.Id,
+		ExpiresAt: planCandidateSet.ExpiresAt,
+	}
+	if err := planCandidateSetEntity.Insert(ctx, db, boil.Infer()); err != nil {
+		return fmt.Errorf("failed to insert plan candidate set: %v", err)
+	}
+
+	// PlanCandidateSetMetaDataを作成
+	if !planCandidateSet.MetaData.IsZero() {
+		planCandidateSetMetaDataEntity := entities.PlanCandidateSetMetaDatum{
+			ID:                           uuid.New().String(),
+			PlanCandidateSetID:           planCandidateSet.Id,
+			IsCreatedFromCurrentLocation: planCandidateSet.MetaData.CreatedBasedOnCurrentLocation,
+			LatitudeStart:                planCandidateSet.MetaData.LocationStart.Latitude,
+			LongitudeStart:               planCandidateSet.MetaData.LocationStart.Longitude,
+			PlanDurationMinutes:          null.IntFromPtr(planCandidateSet.MetaData.FreeTime),
+		}
+		if err := planCandidateSetMetaDataEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate set meta data: %v", err)
+		}
+	}
+
+	// PlanCandidateを作成
+	if err := planCandidateRepository.AddPlan(ctx, planCandidateSet.Id, planCandidateSet.Plans...); err != nil {
+		return fmt.Errorf("failed to add plan: %v", err)
+	}
+
+	return nil
 }
