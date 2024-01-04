@@ -26,6 +26,7 @@ type PlanCandidate struct {
 	ID                 string    `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Name               string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	PlanCandidateSetID string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	SortOrder          int       `boil:"sort_order" json:"sort_order" toml:"sort_order" yaml:"sort_order"`
 	CreatedAt          time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt          time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
@@ -37,12 +38,14 @@ var PlanCandidateColumns = struct {
 	ID                 string
 	Name               string
 	PlanCandidateSetID string
+	SortOrder          string
 	CreatedAt          string
 	UpdatedAt          string
 }{
 	ID:                 "id",
 	Name:               "name",
 	PlanCandidateSetID: "plan_candidate_set_id",
+	SortOrder:          "sort_order",
 	CreatedAt:          "created_at",
 	UpdatedAt:          "updated_at",
 }
@@ -51,12 +54,14 @@ var PlanCandidateTableColumns = struct {
 	ID                 string
 	Name               string
 	PlanCandidateSetID string
+	SortOrder          string
 	CreatedAt          string
 	UpdatedAt          string
 }{
 	ID:                 "plan_candidates.id",
 	Name:               "plan_candidates.name",
 	PlanCandidateSetID: "plan_candidates.plan_candidate_set_id",
+	SortOrder:          "plan_candidates.sort_order",
 	CreatedAt:          "plan_candidates.created_at",
 	UpdatedAt:          "plan_candidates.updated_at",
 }
@@ -67,12 +72,14 @@ var PlanCandidateWhere = struct {
 	ID                 whereHelperstring
 	Name               whereHelperstring
 	PlanCandidateSetID whereHelperstring
+	SortOrder          whereHelperint
 	CreatedAt          whereHelpertime_Time
 	UpdatedAt          whereHelpertime_Time
 }{
 	ID:                 whereHelperstring{field: "`plan_candidates`.`id`"},
 	Name:               whereHelperstring{field: "`plan_candidates`.`name`"},
 	PlanCandidateSetID: whereHelperstring{field: "`plan_candidates`.`plan_candidate_set_id`"},
+	SortOrder:          whereHelperint{field: "`plan_candidates`.`sort_order`"},
 	CreatedAt:          whereHelpertime_Time{field: "`plan_candidates`.`created_at`"},
 	UpdatedAt:          whereHelpertime_Time{field: "`plan_candidates`.`updated_at`"},
 }
@@ -115,8 +122,8 @@ func (r *planCandidateR) GetPlanCandidatePlaces() PlanCandidatePlaceSlice {
 type planCandidateL struct{}
 
 var (
-	planCandidateAllColumns            = []string{"id", "name", "plan_candidate_set_id", "created_at", "updated_at"}
-	planCandidateColumnsWithoutDefault = []string{"id", "name", "plan_candidate_set_id"}
+	planCandidateAllColumns            = []string{"id", "name", "plan_candidate_set_id", "sort_order", "created_at", "updated_at"}
+	planCandidateColumnsWithoutDefault = []string{"id", "name", "plan_candidate_set_id", "sort_order"}
 	planCandidateColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidatePrimaryKeyColumns     = []string{"id"}
 	planCandidateGeneratedColumns      = []string{}
