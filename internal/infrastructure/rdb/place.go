@@ -191,8 +191,56 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 }
 
 func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
-	//TODO implement me
-	panic("implement me")
+	planCandidateSetSearchedPlaceSlice, err := entities.PlanCandidateSetSearchedPlaces(concatQueryMod(
+		[]qm.QueryMod{entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId)},
+		placeQueryModes(entities.PlanCandidateSetSearchedPlaceRels.Place),
+	)...).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find plan candidate set searched places: %w", err)
+	}
+
+	var places []models.Place
+	for _, planCandidateSetSearchedPlace := range planCandidateSetSearchedPlaceSlice {
+		if planCandidateSetSearchedPlace == nil {
+			continue
+		}
+
+		if planCandidateSetSearchedPlace.R == nil {
+			panic("planCandidateSetSearchedPlace.R is nil")
+		}
+
+		if planCandidateSetSearchedPlace.R.Place == nil {
+			p.logger.Warn("planCandidateSetSearchedPlace.R.Place is nil", zap.String("plan_candidate_set_searched_place_id", planCandidateSetSearchedPlace.ID))
+			continue
+		}
+
+		if planCandidateSetSearchedPlace.R.Place.R == nil {
+			panic("planCandidateSetSearchedPlace.R.Place.R is nil")
+		}
+
+		if len(planCandidateSetSearchedPlace.R.Place.R.GooglePlaces) == 0 {
+			p.logger.Warn("planCandidateSetSearchedPlace.R.Place.R.GooglePlaces is empty", zap.String("plan_candidate_set_searched_place_id", planCandidateSetSearchedPlace.ID))
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*planCandidateSetSearchedPlace.R.Place,
+			*planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0],
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
+		}
+
+		places = append(places, *place)
+	}
+
+	return places, nil
 }
 
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
