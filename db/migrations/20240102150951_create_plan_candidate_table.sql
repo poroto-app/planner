@@ -29,6 +29,7 @@ CREATE TABLE plan_candidates
     id                    CHAR(36) PRIMARY KEY,
     name                  VARCHAR(255) NOT NULL,
     plan_candidate_set_id CHAR(36)     NOT NULL,
+    sort_order            INT          NOT NULL,
     created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (plan_candidate_set_id) REFERENCES plan_candidate_sets (id),

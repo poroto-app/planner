@@ -141,6 +141,7 @@ erDiagram
         char(36) id PK
         char(36) plan_candidate_set_id FK
         VARCHAR(255) name
+        int sort_order
     }
 
     plan_candidate_places {
