@@ -102,3 +102,61 @@ erDiagram
 
 - types
     - 並び替えが発生しないため、単純な`order`カラムで順番を管理
+
+### Plan Candidate
+
+```mermaid
+---
+title: plan_candidate
+---
+erDiagram
+    plan_candidate_sets {
+        char(36) id PK
+        timestamp expires_at
+    }
+
+    plan_candidate_set_meta_data {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        double latitude_start
+        double longitude_start
+        int plan_duration_minutes
+        bool is_created_from_current_location
+    }
+
+    plan_candidate_set_searched_places {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        char(36) place_id FK
+    }
+
+    plan_candidate_set__meta_data_categories {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        string category
+        bool is_selected
+    }
+
+    plan_candidates {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        VARCHAR(255) name
+        int sort_order
+    }
+
+    plan_candidate_places {
+        char(36) id PK
+        char(36) plan_candidate_id FK
+        char(36) plan_candidate_set_id FK
+        char(36) place_id FK
+        int sort_order
+    }
+
+    plan_candidate_sets ||..o{ plan_candidates: "1:N"
+    plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
+    plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
+    plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
+    plan_candidates ||..o{ plan_candidate_places: "1:N"
+    plan_candidate_places ||..|| places: "1:1"
+    plan_candidate_set_searched_places ||..|| places: "1:1"
+```

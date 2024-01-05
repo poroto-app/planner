@@ -4,23 +4,35 @@
 package entities
 
 var TableNames = struct {
-	GooglePlaceOpeningPeriods    string
-	GooglePlacePhotoAttributions string
-	GooglePlacePhotoReferences   string
-	GooglePlacePhotos            string
-	GooglePlaceReviews           string
-	GooglePlaceTypes             string
-	GooglePlaces                 string
-	Places                       string
-	Users                        string
+	GooglePlaceOpeningPeriods          string
+	GooglePlacePhotoAttributions       string
+	GooglePlacePhotoReferences         string
+	GooglePlacePhotos                  string
+	GooglePlaceReviews                 string
+	GooglePlaceTypes                   string
+	GooglePlaces                       string
+	Places                             string
+	PlanCandidatePlaces                string
+	PlanCandidateSetMetaData           string
+	PlanCandidateSetMetaDataCategories string
+	PlanCandidateSetSearchedPlaces     string
+	PlanCandidateSets                  string
+	PlanCandidates                     string
+	Users                              string
 }{
-	GooglePlaceOpeningPeriods:    "google_place_opening_periods",
-	GooglePlacePhotoAttributions: "google_place_photo_attributions",
-	GooglePlacePhotoReferences:   "google_place_photo_references",
-	GooglePlacePhotos:            "google_place_photos",
-	GooglePlaceReviews:           "google_place_reviews",
-	GooglePlaceTypes:             "google_place_types",
-	GooglePlaces:                 "google_places",
-	Places:                       "places",
-	Users:                        "users",
+	GooglePlaceOpeningPeriods:          "google_place_opening_periods",
+	GooglePlacePhotoAttributions:       "google_place_photo_attributions",
+	GooglePlacePhotoReferences:         "google_place_photo_references",
+	GooglePlacePhotos:                  "google_place_photos",
+	GooglePlaceReviews:                 "google_place_reviews",
+	GooglePlaceTypes:                   "google_place_types",
+	GooglePlaces:                       "google_places",
+	Places:                             "places",
+	PlanCandidatePlaces:                "plan_candidate_places",
+	PlanCandidateSetMetaData:           "plan_candidate_set_meta_data",
+	PlanCandidateSetMetaDataCategories: "plan_candidate_set_meta_data_categories",
+	PlanCandidateSetSearchedPlaces:     "plan_candidate_set_searched_places",
+	PlanCandidateSets:                  "plan_candidate_sets",
+	PlanCandidates:                     "plan_candidates",
+	Users:                              "users",
 }
