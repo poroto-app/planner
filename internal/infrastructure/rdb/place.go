@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -69,13 +70,43 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 		}
 
 		// GooglePlaceを保存
+		// Point型を保存するのにカスタムクエリを使う必要がある
 		googlePlaceEntity := factory.NewGooglePlaceEntityFromGooglePlace(googlePlace, placeEntity.ID)
-		if err := placeEntity.AddGooglePlaces(ctx, tx, true, &googlePlaceEntity); err != nil {
+		if _, err := queries.Raw(
+			fmt.Sprintf(
+				"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?) )",
+				entities.TableNames.GooglePlaces,
+				entities.GooglePlaceColumns.GooglePlaceID,
+				entities.GooglePlaceColumns.PlaceID,
+				entities.GooglePlaceColumns.Name,
+				entities.GooglePlaceColumns.FormattedAddress,
+				entities.GooglePlaceColumns.Vicinity,
+				entities.GooglePlaceColumns.PriceLevel,
+				entities.GooglePlaceColumns.Rating,
+				entities.GooglePlaceColumns.UserRatingsTotal,
+				entities.GooglePlaceColumns.Latitude,
+				entities.GooglePlaceColumns.Longitude,
+				entities.GooglePlaceColumns.Location,
+			),
+			googlePlaceEntity.GooglePlaceID,
+			googlePlaceEntity.PlaceID,
+			googlePlaceEntity.Name,
+			googlePlaceEntity.FormattedAddress,
+			googlePlaceEntity.Vicinity,
+			googlePlaceEntity.PriceLevel,
+			googlePlaceEntity.Rating,
+			googlePlaceEntity.UserRatingsTotal,
+			googlePlaceEntity.Latitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Latitude,
+		).Exec(tx); err != nil {
 			return fmt.Errorf("failed to insert google place: %w", err)
 		}
 
 		// GooglePlacePhotoReference, GooglePlacePhotoAttributionを保存
 		if _, err := p.saveGooglePlacePhotoReferenceTx(ctx, tx, saveGooglePlacePhotoReferenceTxInput{
+			GooglePlaceEntity:          &googlePlaceEntity,
 			GooglePlacePhotoReferences: googlePlace.PhotoReferences,
 			GooglePlaceDetail:          googlePlace.PlaceDetail,
 			GooglePlaceEntity:          googlePlaceEntity,
@@ -113,6 +144,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 		googlePlaceOpeningPeriodEntities := factory.NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace)
 		if err := googlePlaceEntity.AddGooglePlaceOpeningPeriods(ctx, tx, true, googlePlaceOpeningPeriodEntities...); err != nil {
 			return fmt.Errorf("failed to insert google place opening period: %w", err)
+		}
+
+		// 自前のクエリを用いてInsertしているため、関連付けを手動で行う
+		if googlePlaceEntity.R != nil {
+			googlePlaceEntity.R.Place = &placeEntity
 		}
 
 		placeSaved, err := factory.NewPlaceFromGooglePlaceEntity(googlePlaceEntity)
