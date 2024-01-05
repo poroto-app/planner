@@ -3,10 +3,13 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"github.com/google/uuid"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"testing"
+	"time"
 )
 
 func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
@@ -301,6 +304,87 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 						t.Fatalf("opening period expected: %d, actual: %d", len(c.googlePlace.PlaceDetail.OpeningHours.Periods), len(actualSecondSave.Google.PlaceDetail.OpeningHours.Periods))
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestPlaceRepository_FindByPlanCandidateId(t *testing.T) {
+	cases := []struct {
+		name                               string
+		planCandidateId                    string
+		savedPlaces                        []models.Place
+		savedPlanCandidateSet              models.PlanCandidate
+		savedPlanCandidateSearchedPlaceIds []string
+		expectedPlaces                     []models.Place
+	}{
+		{
+			name:            "find places by plan candidate id",
+			planCandidateId: "plan_candidate_id",
+			savedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
+				{Id: "place_id_3", Google: models.GooglePlace{PlaceId: "google_place_id_3"}},
+			},
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:        "plan_candidate_id",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			},
+			savedPlanCandidateSearchedPlaceIds: []string{
+				"place_id_1",
+				"place_id_2",
+			},
+			expectedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
+			},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを保存しておく
+			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+				t.Fatalf("error while saving plan candidate set: %v", err)
+			}
+
+			// 事前にPlanCandidateSearchedPlaceを保存しておく
+			for _, searchedPlaceId := range c.savedPlanCandidateSearchedPlaceIds {
+				planCandidateSearchedPlaceEntity := entities.PlanCandidateSetSearchedPlace{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: c.savedPlanCandidateSet.Id,
+					PlaceID:            searchedPlaceId,
+				}
+				if err := planCandidateSearchedPlaceEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("error while saving plan candidate searched place: %v", err)
+				}
+			}
+
+			actualPlaces, err := placeRepository.FindByPlanCandidateId(testContext, c.planCandidateId)
+			if err != nil {
+				t.Fatalf("error while finding places: %v", err)
+			}
+
+			if len(actualPlaces) != len(c.expectedPlaces) {
+				t.Fatalf("place expected: %d, actual: %d", len(c.expectedPlaces), len(actualPlaces))
 			}
 		})
 	}

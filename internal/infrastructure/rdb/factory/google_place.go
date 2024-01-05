@@ -1,42 +1,45 @@
 package factory
 
 import (
-	"fmt"
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 )
 
-func NewGooglePlaceFromEntity(googlePlaceEntity entities.GooglePlace) (*models.GooglePlace, error) {
-	if googlePlaceEntity.R == nil {
-		return nil, fmt.Errorf("googlePlaceEntity.R is nil")
-	}
-
-	googlePlaceTypes := NewGooglePlaceTypesFromEntity(googlePlaceEntity.R.GetGooglePlaceTypes())
+func NewGooglePlaceFromEntity(
+	googlePlaceEntity entities.GooglePlace,
+	googlePlaceTypeSlice entities.GooglePlaceTypeSlice,
+	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
+	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
+) (*models.GooglePlace, error) {
+	googlePlaceTypes := NewGooglePlaceTypesFromEntity(googlePlaceTypeSlice)
 
 	var googlePlacePhotoReferences []models.GooglePlacePhotoReference
-	for _, googlePlacePhotoReferenceEntity := range googlePlaceEntity.R.GetGooglePlacePhotoReferences() {
+	for _, googlePlacePhotoReferenceEntity := range googlePlacePhotoReferenceSlice {
 		if googlePlacePhotoReferenceEntity == nil {
 			continue
 		}
 		if googlePlacePhotoReferenceEntity.GooglePlaceID != googlePlaceEntity.GooglePlaceID {
 			continue
 		}
-		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlaceEntity.R.GetGooglePlacePhotoAttributions())
+		gpr := NewGooglePlacePhotoReferenceFromEntity(*googlePlacePhotoReferenceEntity, googlePlacePhotoAttributionSlice)
 		googlePlacePhotoReferences = append(googlePlacePhotoReferences, gpr)
 	}
 
 	var googlePlacePhotos *[]models.GooglePlacePhoto
 	if len(googlePlacePhotoReferences) > 0 {
 		gp := make([]models.GooglePlacePhoto, 0, len(googlePlacePhotoReferences))
-		for _, googlePlacePhotoReferenceEntity := range googlePlaceEntity.R.GetGooglePlacePhotoReferences() {
+		for _, googlePlacePhotoReferenceEntity := range googlePlacePhotoReferenceSlice {
 			if googlePlacePhotoReferenceEntity == nil {
 				continue
 			}
 			googlePlacePhoto := NewGooglePlacePhotoFromEntity(
 				*googlePlacePhotoReferenceEntity,
-				googlePlaceEntity.R.GooglePlacePhotos,
-				googlePlaceEntity.R.GooglePlacePhotoAttributions,
+				googlePlacePhotoSlice,
+				googlePlacePhotoAttributionSlice,
 			)
 			if googlePlacePhoto == nil {
 				continue
@@ -47,10 +50,10 @@ func NewGooglePlaceFromEntity(googlePlaceEntity entities.GooglePlace) (*models.G
 	}
 
 	googlePlaceDetail, err := NewGooglePlaceDetailFromGooglePlaceEntity(
-		googlePlaceEntity.R.GetGooglePlaceReviews(),
-		googlePlaceEntity.R.GetGooglePlaceOpeningPeriods(),
-		googlePlaceEntity.R.GetGooglePlacePhotoReferences(),
-		googlePlaceEntity.R.GetGooglePlacePhotoAttributions(),
+		googlePlaceReviewSlice,
+		googlePlaceOpeningPeriodSlice,
+		googlePlacePhotoReferenceSlice,
+		googlePlacePhotoAttributionSlice,
 		googlePlaceEntity.GooglePlaceID,
 	)
 	if err != nil {

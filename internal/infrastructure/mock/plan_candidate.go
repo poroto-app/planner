@@ -63,7 +63,7 @@ func (p PlanRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId
 	panic("implement me")
 }
 
-func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error) {
+func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) error {
 	//TODO implement me
 	panic("implement me")
 }

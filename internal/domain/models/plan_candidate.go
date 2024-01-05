@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+// TODO: PlanCandidateSet という名前にする
+// TODO: Plans を PlanCandidate という名前にする
 type PlanCandidate struct {
 	Id            string
 	Plans         []Plan
