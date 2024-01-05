@@ -430,8 +430,6 @@ func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
 				}
 			}
 
-			boil.DebugMode = true
-
 			actualPlace, err := placeRepository.FindByGooglePlaceID(testContext, c.googlePlaceId)
 			if err != nil {
 				t.Fatalf("error while finding place: %v", err)
