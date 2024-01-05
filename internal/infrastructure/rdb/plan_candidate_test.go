@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"context"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -300,6 +301,114 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 
 			if actual != nil {
 				t.Fatalf("plan candidate should not be found")
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
+	cases := []struct {
+		name                                   string
+		now                                    time.Time
+		savedPlaces                            []models.Place
+		savedPlanCandidateSets                 []models.PlanCandidate
+		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
+		planCandidateId                        string
+		expected                               models.PlanCandidate
+	}{
+		{
+			name: "plan candidate set with place like count",
+			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			savedPlaces: []models.Place{
+				{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}},
+				{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}},
+			},
+			savedPlanCandidateSets: []models.PlanCandidate{
+				{
+					Id:        "plan-candidate-set-1",
+					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+					Plans: []models.Plan{
+						{
+							Id: "plan-candidate-1",
+							Places: []models.Place{
+								{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}},
+								{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}},
+							},
+						},
+					},
+				},
+				{
+					Id:        "plan-candidate-set-2",
+					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				},
+			},
+			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{
+				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-1", PlaceID: "test-place-1"},
+				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-1", PlaceID: "test-place-2"},
+				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-2", PlaceID: "test-place-1"},
+			},
+			planCandidateId: "plan-candidate-set-1",
+			expected: models.PlanCandidate{
+				Id:        "plan-candidate-set-1",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id: "plan-candidate-1",
+						Places: []models.Place{
+							{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}, LikeCount: 2},
+							{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}, LikeCount: 1},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		textContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(textContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前にPlaceを作成しておく
+			if err := savePlaces(textContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを作成しておく
+			for _, planCandidateSet := range c.savedPlanCandidateSets {
+				if err := savePlanCandidate(textContext, testDB, planCandidateSet); err != nil {
+					t.Fatalf("failed to save plan candidate: %v", err)
+				}
+			}
+
+			// 事前にPlanCandidateSetLikePlaceを作成しておく
+			for _, planCandidateSetLikePlaceEntity := range c.savedPlanCandidateSetLikePlaceEntities {
+				if err := planCandidateSetLikePlaceEntity.Insert(textContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("failed to save plan candidate set like place: %v", err)
+				}
+			}
+
+			actual, err := planCandidateRepository.Find(textContext, c.planCandidateId, c.now)
+			if err != nil {
+				t.Fatalf("failed to find plan candidate: %v", err)
+			}
+
+			if actual == nil {
+				t.Fatalf("plan candidate should be found")
+			}
+
+			if diff := cmp.Diff(c.expected, *actual); diff != "" {
+				t.Fatalf("wrong plan candidate (-expected, +actual): %v", diff)
 			}
 		})
 	}
