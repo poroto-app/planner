@@ -165,3 +165,43 @@ func TestMapWithErr(t *testing.T) {
 		})
 	}
 }
+func TestFlatten(t *testing.T) {
+	cases := []struct {
+		name     string
+		slice    [][]int
+		expected []int
+	}{
+		{
+			name:     "empty slice",
+			slice:    [][]int{},
+			expected: []int{},
+		},
+		{
+			name:     "one element",
+			slice:    [][]int{{1}},
+			expected: []int{1},
+		},
+		{
+			name:     "multiple elements",
+			slice:    [][]int{{1}, {2, 3}},
+			expected: []int{1, 2, 3},
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Flatten(c.slice)
+			if len(actual) != len(c.expected) {
+				t.Errorf("expected: %v, actual: %v", c.expected, actual)
+			}
+			for i, v := range actual {
+				if v != c.expected[i] {
+					t.Errorf("expected: %v, actual: %v", c.expected, actual)
+				}
+			}
+		})
+	}
+}
