@@ -31,6 +31,7 @@ go mod tidy
 
 ### MySQLの起動（Docker）
 ```shell
+cd docker
 docker compose up -d
 ```
 
