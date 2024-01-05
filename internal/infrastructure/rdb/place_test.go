@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -307,6 +308,137 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 						t.Fatalf("opening period expected: %d, actual: %d", len(c.googlePlace.PlaceDetail.OpeningHours.Periods), len(actualSecondSave.Google.PlaceDetail.OpeningHours.Periods))
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestPlaceRepository_FindByGooglePlaceID(t *testing.T) {
+	cases := []struct {
+		name          string
+		savedPlaces   []models.Place
+		googlePlaceId string
+		expectedPlace *models.Place
+	}{
+		{
+			name: "find place by google place id",
+			savedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
+			},
+			googlePlaceId: "google_place_id_1",
+			expectedPlace: &models.Place{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			actualPlace, err := placeRepository.FindByGooglePlaceID(testContext, c.googlePlaceId)
+			if err != nil {
+				t.Fatalf("error while finding place: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlace, actualPlace); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
+	cases := []struct {
+		name                            string
+		savedPlaces                     []models.Place
+		savedPlanCandidateSets          []models.PlanCandidate
+		savedPlanCandidateSetLikePlaces []generated.PlanCandidateSetLikePlace
+		googlePlaceId                   string
+		expectedPlace                   *models.Place
+	}{
+		{
+			name: "find place by google place id with like count",
+			savedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+			},
+			savedPlanCandidateSets: []models.PlanCandidate{
+				{Id: "plan_candidate_set_id_1", ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local)},
+			},
+			savedPlanCandidateSetLikePlaces: []generated.PlanCandidateSetLikePlace{
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: "plan_candidate_set_id_1",
+					PlaceID:            "place_id_1",
+				},
+			},
+			googlePlaceId: "google_place_id_1",
+			expectedPlace: &models.Place{
+				Id:        "place_id_1",
+				Google:    models.GooglePlace{PlaceId: "google_place_id_1"},
+				LikeCount: 1,
+			},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			// 事前にPlanCandidateSetを保存しておく
+			for _, planCandidateSet := range c.savedPlanCandidateSets {
+				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+					t.Fatalf("error while saving plan candidate set: %v", err)
+				}
+			}
+
+			// 事前にPlanCandidateSetLikePlaceを保存しておく
+			for _, planCandidateSetLikePlace := range c.savedPlanCandidateSetLikePlaces {
+				if err := planCandidateSetLikePlace.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("error while saving plan candidate set like place: %v", err)
+				}
+			}
+
+			boil.DebugMode = true
+
+			actualPlace, err := placeRepository.FindByGooglePlaceID(testContext, c.googlePlaceId)
+			if err != nil {
+				t.Fatalf("error while finding place: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlace, actualPlace); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
 			}
 		})
 	}
