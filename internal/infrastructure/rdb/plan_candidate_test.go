@@ -344,8 +344,8 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 			},
 			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{
 				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-1", PlaceID: "test-place-1"},
-				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-1", PlaceID: "test-place-2"},
 				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-2", PlaceID: "test-place-1"},
+				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-2", PlaceID: "test-place-2"},
 			},
 			planCandidateId: "plan-candidate-set-1",
 			expected: models.PlanCandidate{
@@ -360,6 +360,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 						},
 					},
 				},
+				LikedPlaceIds: []string{"test-place-1"},
 			},
 		},
 	}
