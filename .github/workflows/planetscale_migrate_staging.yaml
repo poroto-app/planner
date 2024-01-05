@@ -2,8 +2,8 @@ name: db-migrate-staging
 run-name: PlanetScale Migrate staging branch by @${{ github.actor }}
 on:
   push:
-#    branches: [ develop ]
-#    paths: [ "db/migrations/**" ]
+    branches: [ develop ]
+    paths: [ "db/migrations/**" ]
 
 jobs:
   migrate:
