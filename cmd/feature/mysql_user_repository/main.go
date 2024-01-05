@@ -16,6 +16,7 @@ import (
 )
 
 func init() {
+	os.Setenv("ENV", "development")
 	env.LoadEnv()
 }
 

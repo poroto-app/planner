@@ -1,8 +1,0 @@
-[mysql]
-dbname = "poroto"
-host = "localhost"
-port = 3307
-user = "root"
-pass = "password"
-sslmode = "false"
-blacklist = ["migrations", "goose_db_version"]

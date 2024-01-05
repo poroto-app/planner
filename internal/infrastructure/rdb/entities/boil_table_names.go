@@ -4,7 +4,23 @@
 package entities
 
 var TableNames = struct {
-	Users string
+	GooglePlaceOpeningPeriods    string
+	GooglePlacePhotoAttributions string
+	GooglePlacePhotoReferences   string
+	GooglePlacePhotos            string
+	GooglePlaceReviews           string
+	GooglePlaceTypes             string
+	GooglePlaces                 string
+	Places                       string
+	Users                        string
 }{
-	Users: "users",
+	GooglePlaceOpeningPeriods:    "google_place_opening_periods",
+	GooglePlacePhotoAttributions: "google_place_photo_attributions",
+	GooglePlacePhotoReferences:   "google_place_photo_references",
+	GooglePlacePhotos:            "google_place_photos",
+	GooglePlaceReviews:           "google_place_reviews",
+	GooglePlaceTypes:             "google_place_types",
+	GooglePlaces:                 "google_places",
+	Places:                       "places",
+	Users:                        "users",
 }
