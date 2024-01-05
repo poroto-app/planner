@@ -13,14 +13,21 @@ func NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(
 	planCandidateSetId string,
 ) entities.PlanCandidateSetMetaDataCategorySlice {
 	var planCandidateSetMetaDataCategorySlice entities.PlanCandidateSetMetaDataCategorySlice
-	for _, locationCategory := range *locationCategoriesPreferred {
-		planCandidateSetMetaDataCategoryEntity := newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory, true, planCandidateSetId)
-		planCandidateSetMetaDataCategorySlice = append(planCandidateSetMetaDataCategorySlice, &planCandidateSetMetaDataCategoryEntity)
+
+	if locationCategoriesPreferred != nil {
+		for _, locationCategory := range *locationCategoriesPreferred {
+			planCandidateSetMetaDataCategoryEntity := newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory, true, planCandidateSetId)
+			planCandidateSetMetaDataCategorySlice = append(planCandidateSetMetaDataCategorySlice, &planCandidateSetMetaDataCategoryEntity)
+		}
 	}
-	for _, locationCategory := range *locationCategoriesRejected {
-		planCandidateSetMetaDataCategoryEntity := newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory, false, planCandidateSetId)
-		planCandidateSetMetaDataCategorySlice = append(planCandidateSetMetaDataCategorySlice, &planCandidateSetMetaDataCategoryEntity)
+
+	if locationCategoriesRejected != nil {
+		for _, locationCategory := range *locationCategoriesRejected {
+			planCandidateSetMetaDataCategoryEntity := newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory, false, planCandidateSetId)
+			planCandidateSetMetaDataCategorySlice = append(planCandidateSetMetaDataCategorySlice, &planCandidateSetMetaDataCategoryEntity)
+		}
 	}
+
 	return planCandidateSetMetaDataCategorySlice
 }
 
