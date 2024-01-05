@@ -1,7 +1,7 @@
 name: build
 run-name: Build by @${{ github.actor }}
 on:
-  push:
+  pull_request:
     branches-ignore:
       - main
       - develop
