@@ -12,6 +12,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"time"
@@ -71,6 +72,14 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
 	}
 
+	if planCandidateSetEntity.R == nil {
+		panic("planCandidateSetEntity.R is nil")
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planCandidateSetEntity.R.PlanCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) string {
+		return planCandidatePlace.PlaceID
+	})...)
+
 	var places []models.Place
 	for _, planCandidatePlace := range planCandidateSetEntity.R.PlanCandidatePlaces {
 		if planCandidatePlace.R.Place == nil {
@@ -96,6 +105,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
@@ -134,6 +144,20 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
 	}
 
+	if planCandidate.R == nil {
+		panic("planCandidate.R is nil")
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(
+		ctx,
+		p.db,
+		array.Map(planCandidate.R.PlanCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) string {
+			return planCandidatePlace.PlaceID
+		})...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count place like counts: %w", err)
+	}
+
 	var places []models.Place
 	for _, planCandidatePlace := range planCandidate.R.PlanCandidatePlaces {
 		if planCandidatePlace.R.Place == nil {
@@ -159,6 +183,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)

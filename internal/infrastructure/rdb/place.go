@@ -10,6 +10,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
@@ -124,6 +125,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			googlePlaceEntity.R.GooglePlacePhotos,
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+			0,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to convert google place entity to place: %w", err)
@@ -157,6 +159,16 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		return nil, fmt.Errorf("failed to find google places: %w", err)
 	}
 
+	planCandidateSetLikePlaceCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(googlePlaceEntities, func(googlePlaceEntity *generated.GooglePlace) (string, bool) {
+		if googlePlaceEntity == nil {
+			return "", false
+		}
+		return googlePlaceEntity.PlaceID, true
+	})...)
+	if err != nil {
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
 	var places []models.Place
 	for _, googlePlaceEntity := range googlePlaceEntities {
 		if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
@@ -172,6 +184,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 			googlePlaceEntity.R.GooglePlacePhotos,
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -197,6 +210,16 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 	)...).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find plan candidate set searched places: %w", err)
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(planCandidateSetSearchedPlaceSlice, func(planCandidateSetSearchedPlace *generated.PlanCandidateSetSearchedPlace) (string, bool) {
+		if planCandidateSetSearchedPlace == nil {
+			return "", false
+		}
+		return planCandidateSetSearchedPlace.PlaceID, true
+	})...)
+	if err != nil {
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
 	var places []models.Place
@@ -232,6 +255,7 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidateSetSearchedPlace.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -382,6 +406,11 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		return nil, nil
 	}
 
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, exec, googlePlaceEntity.R.Place.ID)
+	if err != nil {
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
 	place, err := factory.NewPlaceFromEntity(
 		*googlePlaceEntity.R.Place,
 		*googlePlaceEntity,
@@ -391,12 +420,29 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		googlePlaceEntity.R.GooglePlacePhotos,
 		googlePlaceEntity.R.GooglePlaceReviews,
 		googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+		entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, googlePlaceEntity.PlaceID),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
 	}
 
 	return place, nil
+}
+
+func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeIds ...string) (*[]entities.PlanCandidateSetPlaceLikeCount, error) {
+	var planCandidateSetPlaceLikeCounts []entities.PlanCandidateSetPlaceLikeCount
+	if err := generated.NewQuery(
+		qm.Select("place_id", "COUNT(*) as like_count"),
+		qm.From(generated.TableNames.PlanCandidateSetLikePlaces),
+		qm.WhereIn(
+			fmt.Sprintf("%s IN ?", generated.PlanCandidateSetLikePlaceColumns.PlaceID),
+			array.Map(placeIds, func(placeId string) interface{} { return placeId })...,
+		),
+		qm.GroupBy(generated.PlanCandidateSetLikePlaceTableColumns.PlaceID),
+	).Bind(ctx, exec, &planCandidateSetPlaceLikeCounts); err != nil {
+		return nil, fmt.Errorf("failed to count place like counts: %w", err)
+	}
+	return &planCandidateSetPlaceLikeCounts, nil
 }
 
 type saveGooglePlacePhotoReferenceTxInput struct {

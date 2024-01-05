@@ -16,6 +16,7 @@ func NewPlaceFromEntity(
 	googlePlacePhotoSlice generated.GooglePlacePhotoSlice,
 	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
 	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
+	likeCount int,
 ) (*models.Place, error) {
 	googlePlace, err := NewGooglePlaceFromEntity(
 		googlePlaceEntity,
@@ -39,7 +40,7 @@ func NewPlaceFromEntity(
 		Name:      placeEntity.Name,
 		Location:  googlePlace.Location,
 		Google:    *googlePlace,
-		LikeCount: 0, // TODO: implement me
+		LikeCount: likeCount,
 	}, nil
 }
 
