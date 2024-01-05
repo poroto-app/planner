@@ -114,8 +114,8 @@ type googlePlaceTypeL struct{}
 
 var (
 	googlePlaceTypeAllColumns            = []string{"id", "google_place_id", "type", "order_num", "created_at", "updated_at"}
-	googlePlaceTypeColumnsWithoutDefault = []string{"id", "google_place_id", "type", "order_num"}
-	googlePlaceTypeColumnsWithDefault    = []string{"created_at", "updated_at"}
+	googlePlaceTypeColumnsWithoutDefault = []string{"google_place_id", "type", "order_num"}
+	googlePlaceTypeColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	googlePlaceTypePrimaryKeyColumns     = []string{"id"}
 	googlePlaceTypeGeneratedColumns      = []string{}
 )

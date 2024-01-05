@@ -121,25 +121,22 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 		},
 	}
 
-	if testDB == nil {
-		t.Fatalf("testDB is nil")
-	}
-
 	placeRepository, err := NewPlaceRepository(testDB)
 	if err != nil {
 		t.Fatalf("error while initializing place repository: %v", err)
 	}
 
 	for _, c := range cases {
+		testContext := context.Background()
 		t.Run(c.name, func(t *testing.T) {
 			defer func(ctx context.Context, db *sql.DB) {
 				err := cleanup(ctx, db)
 				if err != nil {
 					t.Fatalf("error while cleaning up: %v", err)
 				}
-			}(context.Background(), testDB)
+			}(testContext, testDB)
 
-			actualFirstSave, err := placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
+			actualFirstSave, err := placeRepository.SavePlacesFromGooglePlace(testContext, c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places: %v", err)
 			}
@@ -147,7 +144,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			// GooglePlace が保存されているか確認
 			isGooglePlaceSaved, err := entities.
 				GooglePlaces(entities.GooglePlaceWhere.GooglePlaceID.EQ(c.googlePlace.PlaceId)).
-				Exists(context.Background(), testDB)
+				Exists(testContext, testDB)
 			if err != nil {
 				t.Fatalf("error while checking google place existence: %v", err)
 			}
@@ -158,7 +155,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			// GooglePlaceType が保存されているか確認
 			placeTypeCount, err := entities.
 				GooglePlaceTypes(entities.GooglePlaceTypeWhere.GooglePlaceID.EQ(c.googlePlace.PlaceId)).
-				Count(context.Background(), testDB)
+				Count(testContext, testDB)
 			if err != nil {
 				t.Fatalf("error while counting place types: %v", err)
 			}
@@ -171,7 +168,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			for _, photoReference := range c.googlePlace.PhotoReferences {
 				isPhotoReferenceSaved, err := entities.
 					GooglePlacePhotoReferences(entities.GooglePlacePhotoReferenceWhere.PhotoReference.EQ(photoReference.PhotoReference)).
-					Exists(context.Background(), testDB)
+					Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("error while checking photo reference existence: %v", err)
 				}
@@ -184,7 +181,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			for _, photoReference := range c.googlePlace.PhotoReferences {
 				htmlAttributionCount, err := entities.
 					GooglePlacePhotoAttributions(entities.GooglePlacePhotoAttributionWhere.PhotoReference.EQ(photoReference.PhotoReference)).
-					Count(context.Background(), testDB)
+					Count(testContext, testDB)
 				if err != nil {
 					t.Fatalf("error while counting html attributions: %v", err)
 				}
@@ -208,7 +205,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 
 					photoCount, err := entities.
 						GooglePlacePhotos(entities.GooglePlacePhotoWhere.PhotoReference.EQ(photo.PhotoReference)).
-						Count(context.Background(), testDB)
+						Count(testContext, testDB)
 					if err != nil {
 						t.Fatalf("error while counting google photos: %v", err)
 					}
@@ -223,7 +220,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 				if c.googlePlace.PlaceDetail.OpeningHours != nil {
 					openingPeriodCount, err := entities.
 						GooglePlaceOpeningPeriods(entities.GooglePlaceOpeningPeriodWhere.GooglePlaceID.EQ(c.googlePlace.PlaceId)).
-						Count(context.Background(), testDB)
+						Count(testContext, testDB)
 					if err != nil {
 						t.Fatalf("error while counting opening periods: %v", err)
 					}
@@ -236,7 +233,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 				// GooglePlaceReviews が保存されているか確認
 				reviewCount, err := entities.
 					GooglePlaceReviews(entities.GooglePlaceReviewWhere.GooglePlaceID.EQ(c.googlePlace.PlaceId)).
-					Count(context.Background(), testDB)
+					Count(testContext, testDB)
 				if err != nil {
 					t.Fatalf("error while counting reviews: %v", err)
 				}
@@ -249,7 +246,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 				for _, photoReference := range c.googlePlace.PlaceDetail.PhotoReferences {
 					isPhotoReferenceSaved, err := entities.
 						GooglePlacePhotoReferences(entities.GooglePlacePhotoReferenceWhere.PhotoReference.EQ(photoReference.PhotoReference)).
-						Exists(context.Background(), testDB)
+						Exists(testContext, testDB)
 					if err != nil {
 						t.Fatalf("error while checking photo reference existence: %v", err)
 					}
@@ -262,7 +259,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 				for _, photoReference := range c.googlePlace.PlaceDetail.PhotoReferences {
 					htmlAttributionCount, err := entities.
 						GooglePlacePhotoAttributions(entities.GooglePlacePhotoAttributionWhere.PhotoReference.EQ(photoReference.PhotoReference)).
-						Count(context.Background(), testDB)
+						Count(testContext, testDB)
 					if err != nil {
 						t.Fatalf("error while counting html attributions: %v", err)
 					}
@@ -274,7 +271,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			}
 
 			// 一度保存したあとは、すでに保存されたものが取得される
-			actualSecondSave, err := placeRepository.SavePlacesFromGooglePlace(context.Background(), c.googlePlace)
+			actualSecondSave, err := placeRepository.SavePlacesFromGooglePlace(testContext, c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places second time: %v", err)
 			}

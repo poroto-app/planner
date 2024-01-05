@@ -2,6 +2,7 @@ package factory
 
 import (
 	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
@@ -11,22 +12,22 @@ import (
 
 func NewGooglePlacePhotoFromEntity(
 	googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference,
-	googlePlacePhotoEntities entities.GooglePlacePhotoSlice,
-	googlePlacePhotoAttributionEntities entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
+	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
 ) *models.GooglePlacePhoto {
-	var googlePlacePhotoEntitiesFiltered []entities.GooglePlacePhoto
-	for _, googlePlacePhotoEntity := range googlePlacePhotoEntities {
+
+	googlePlacePhotoEntitiesFiltered := array.MapAndFilter(googlePlacePhotoSlice, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) (entities.GooglePlacePhoto, bool) {
 		if googlePlacePhotoEntity == nil {
-			continue
+			return entities.GooglePlacePhoto{}, false
 		}
 
 		// PhotoReferenceが一致するものだけを抽出
 		if googlePlacePhotoEntity.PhotoReference != googlePlacePhotoReferenceEntity.PhotoReference {
-			continue
+			return entities.GooglePlacePhoto{}, false
 		}
 
-		googlePlacePhotoEntitiesFiltered = append(googlePlacePhotoEntitiesFiltered, *googlePlacePhotoEntity)
-	}
+		return *googlePlacePhotoEntity, true
+	})
 
 	if len(googlePlacePhotoEntitiesFiltered) == 0 {
 		return nil
@@ -38,19 +39,18 @@ func NewGooglePlacePhotoFromEntity(
 		return googlePlacePhotoEntitiesFiltered[i].Width < googlePlacePhotoEntitiesFiltered[j].Width
 	})
 
-	var googlePlacePhotoAttributions []string
-	for _, googlePlacePhotoAttribution := range googlePlacePhotoAttributionEntities {
-		if googlePlacePhotoAttribution == nil {
-			continue
+	googlePlacePhotoAttributions := array.MapAndFilter(googlePlacePhotoAttributionSlice, func(googlePlacePhotoAttributionEntity *entities.GooglePlacePhotoAttribution) (string, bool) {
+		if googlePlacePhotoAttributionEntity == nil {
+			return "", false
 		}
 
 		// PhotoReferenceが一致するものだけを抽出
-		if googlePlacePhotoAttribution.PhotoReference != googlePlacePhotoReferenceEntity.PhotoReference {
-			continue
+		if googlePlacePhotoAttributionEntity.PhotoReference != googlePlacePhotoReferenceEntity.PhotoReference {
+			return "", false
 		}
 
-		googlePlacePhotoAttributions = append(googlePlacePhotoAttributions, googlePlacePhotoAttribution.HTMLAttribution)
-	}
+		return googlePlacePhotoAttributionEntity.HTMLAttribution, true
+	})
 
 	return &models.GooglePlacePhoto{
 		PhotoReference:   googlePlacePhotoReferenceEntity.PhotoReference,

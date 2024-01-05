@@ -28,12 +28,6 @@ CREATE TABLE google_places
     SPATIAL INDEX (location)
 );
 
-CREATE TRIGGER google_places_before_insert
-    BEFORE INSERT
-    ON google_places
-    FOR EACH ROW
-    SET NEW.location = POINT(NEW.longitude, NEW.latitude);
-
 CREATE TABLE google_place_types
 (
     id              CHAR(36)     NOT NULL DEFAULT (UUID()),
@@ -129,8 +123,6 @@ DROP TABLE IF EXISTS google_place_photo_attributions;
 DROP TABLE IF EXISTS google_place_photo_references;
 
 DROP TABLE IF EXISTS google_place_types;
-
-DROP TRIGGER IF EXISTS google_places_before_insert;
 
 DROP TABLE IF EXISTS google_places;
 
