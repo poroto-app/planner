@@ -109,7 +109,6 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			GooglePlaceEntity:          &googlePlaceEntity,
 			GooglePlacePhotoReferences: googlePlace.PhotoReferences,
 			GooglePlaceDetail:          googlePlace.PlaceDetail,
-			GooglePlaceEntity:          googlePlaceEntity,
 		}); err != nil {
 			return fmt.Errorf("failed to insert google place photo reference: %w", err)
 		}
@@ -361,7 +360,7 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 }
 
 type saveGooglePlacePhotoReferenceTxInput struct {
-	GooglePlaceEntity          entities.GooglePlace
+	GooglePlaceEntity          *entities.GooglePlace
 	GooglePlacePhotoReferences []models.GooglePlacePhotoReference
 	GooglePlaceDetail          *models.GooglePlaceDetail
 }
