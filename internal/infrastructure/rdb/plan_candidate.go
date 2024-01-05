@@ -478,6 +478,42 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 }
 
 func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		if like {
+			isPlanCandidateSetLikePlaceEntityExist, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(placeId),
+			).Exists(ctx, tx)
+			if err != nil {
+				return fmt.Errorf("failed to check plan candidate set like place existence: %w", err)
+			}
+
+			if isPlanCandidateSetLikePlaceEntityExist {
+				// すでに存在する場合は何もしない
+				return nil
+			}
+
+			planCandidateSetPlaceEntity := generated.PlanCandidateSetLikePlace{
+				ID:                 uuid.New().String(),
+				PlanCandidateSetID: planCandidateId,
+				PlaceID:            placeId,
+			}
+			if err := planCandidateSetPlaceEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set like place: %w", err)
+			}
+		} else {
+			if _, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(placeId),
+			).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to delete plan candidate set like place: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }

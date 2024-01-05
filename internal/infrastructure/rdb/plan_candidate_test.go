@@ -1391,6 +1391,220 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testing.T) {
+	cases := []struct {
+		name                                   string
+		planCandidateSetId                     string
+		placeId                                string
+		savedPlaces                            []models.Place
+		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
+	}{
+		{
+			name:               "like from none",
+			planCandidateSetId: "test-plan-candidate-set",
+			placeId:            "test-place",
+			savedPlaces: []models.Place{
+				{Id: "test-place"},
+			},
+			savedPlanCandidate: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id:     "test-plan-candidate",
+						Places: []models.Place{{Id: "test-place"}},
+					},
+				},
+			},
+			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{},
+		},
+		{
+			name:               "like from like",
+			planCandidateSetId: "test-plan-candidate-set",
+			placeId:            "test-place",
+			savedPlaces: []models.Place{
+				{Id: "test-place"},
+			},
+			savedPlanCandidate: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id:     "test-plan-candidate",
+						Places: []models.Place{{Id: "test-place"}},
+					},
+				},
+			},
+			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: "test-plan-candidate-set",
+					PlaceID:            "test-place",
+				},
+			},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前に Place を作成しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前に PlanCandidateSet を作成しておく
+			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			// 事前に PlanCandidateSetLikePlace を作成しておく
+			for _, planCandidateSetLikePlaceEntity := range c.savedPlanCandidateSetLikePlaceEntities {
+				if err := planCandidateSetLikePlaceEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("failed to save plan candidate set like place: %v", err)
+				}
+			}
+
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, true)
+			if err != nil {
+				t.Fatalf("failed to update like to place in plan candidate: %v", err)
+			}
+
+			numPlanCandidateSetLikePlaceEntity, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(c.placeId),
+			).Count(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set like place: %v", err)
+			}
+
+			if numPlanCandidateSetLikePlaceEntity != 1 {
+				t.Fatalf("wrong number of plan candidate set like place expected: %v, actual: %v", 1, numPlanCandidateSetLikePlaceEntity)
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *testing.T) {
+	cases := []struct {
+		name                                   string
+		planCandidateSetId                     string
+		placeId                                string
+		savedPlaces                            []models.Place
+		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
+	}{
+		{
+			name:               "unlike from like",
+			planCandidateSetId: "test-plan-candidate-set",
+			placeId:            "test-place",
+			savedPlaces: []models.Place{
+				{Id: "test-place"},
+			},
+			savedPlanCandidate: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id:     "test-plan-candidate",
+						Places: []models.Place{{Id: "test-place"}},
+					},
+				},
+			},
+			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: "test-plan-candidate-set",
+					PlaceID:            "test-place",
+				},
+			},
+		},
+		{
+			name:               "unlike from none",
+			planCandidateSetId: "test-plan-candidate-set",
+			placeId:            "test-place",
+			savedPlaces: []models.Place{
+				{Id: "test-place"},
+			},
+			savedPlanCandidate: models.PlanCandidate{
+				Id:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans: []models.Plan{
+					{
+						Id:     "test-plan-candidate",
+						Places: []models.Place{{Id: "test-place"}},
+					},
+				},
+			},
+			savedPlanCandidateSetLikePlaceEntities: []generated.PlanCandidateSetLikePlace{},
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// 事前に Place を作成しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("failed to save places: %v", err)
+			}
+
+			// 事前に PlanCandidateSet を作成しておく
+			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			// 事前に PlanCandidateSetLikePlace を作成しておく
+			for _, planCandidateSetLikePlaceEntity := range c.savedPlanCandidateSetLikePlaceEntities {
+				if err := planCandidateSetLikePlaceEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("failed to save plan candidate set like place: %v", err)
+				}
+			}
+
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, false)
+			if err != nil {
+				t.Fatalf("failed to update like to place in plan candidate: %v", err)
+			}
+
+			isPlanCandidateSetLikePlaceEntityExist, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(c.placeId),
+			).Exists(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set like place: %v", err)
+			}
+
+			if isPlanCandidateSetLikePlaceEntityExist {
+				t.Fatalf("plan candidate set like place should not exist")
+			}
+		})
+	}
+}
+
 func toPointer[T any](value T) *T {
 	return &value
 }
