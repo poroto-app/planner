@@ -37,8 +37,8 @@ services:
       - "3307:3306"
   db-migrator:
     build:
-      context: .
-      dockerfile: ./docker/Dockerfile.db-setup
+      context: ..
+      dockerfile: docker/Dockerfile.db-setup
     depends_on:
       db:
         condition: service_healthy
@@ -48,11 +48,11 @@ services:
       DB_HOST: db:3306
       DB_NAME: poroto
     volumes:
-      - ./db/migrations:/db/migrations
+      - ../db/migrations:/db/migrations
   db-test-migrator:
     build:
-      context: .
-      dockerfile: ./docker/Dockerfile.db-setup
+      context: ..
+      dockerfile: docker/Dockerfile.db-setup
     depends_on:
       db-test:
         condition: service_healthy
@@ -62,6 +62,6 @@ services:
       DB_HOST: db-test:3306
       DB_NAME: poroto
     volumes:
-      - ./db/migrations:/db/migrations
+      - ../db/migrations:/db/migrations
 volumes:
   mysql-data:

@@ -1,12 +1,6 @@
 # ベースイメージの指定
 FROM golang:1.18
 
-# 環境変数の設定
-ENV DB_USER=root \
-    DB_PASSWORD=password \
-    DB_HOST=db:3306 \
-    DB_NAME=poroto
-
 # gooseのインストール
 RUN go install github.com/pressly/goose/cmd/goose@latest
 
@@ -14,7 +8,7 @@ RUN go install github.com/pressly/goose/cmd/goose@latest
 WORKDIR /app
 
 # マイグレーションファイルをコンテナ内にコピー
-COPY ./db/migrations /db/migrations
+COPY ../db/migrations /db/migrations
 
 # エントリポイント（またはコマンド）の指定
 # データベースマイグレーションを実行するコマンドを記述
