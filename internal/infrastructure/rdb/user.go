@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 type UserRepository struct {
@@ -27,7 +27,7 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 	}
 
 	// 同じFirebaseUIDのユーザーが存在するかどうかを確認する
-	exists, err := entities.Users(entities.UserWhere.FirebaseUID.EQ(user.FirebaseUID)).Exists(ctx, tx)
+	exists, err := generated.Users(generated.UserWhere.FirebaseUID.EQ(user.FirebaseUID)).Exists(ctx, tx)
 	if err != nil {
 		return fmt.Errorf("error while checking if the user with same firebase id already exists: %v", err)
 	}
@@ -49,7 +49,7 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 }
 
 func (u UserRepository) Find(ctx context.Context, id string) (*models.User, error) {
-	userEntity, err := entities.FindUser(ctx, u.db, id)
+	userEntity, err := generated.FindUser(ctx, u.db, id)
 	if err != nil {
 		return nil, fmt.Errorf("error while finding user: %v", err)
 	}
@@ -62,7 +62,7 @@ func (u UserRepository) Find(ctx context.Context, id string) (*models.User, erro
 }
 
 func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error) {
-	userEntity, err := entities.Users(entities.UserWhere.FirebaseUID.EQ(firebaseUID)).One(ctx, u.db)
+	userEntity, err := generated.Users(generated.UserWhere.FirebaseUID.EQ(firebaseUID)).One(ctx, u.db)
 	if err != nil {
 		return nil, fmt.Errorf("error while finding user: %v", err)
 	}

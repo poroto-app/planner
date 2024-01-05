@@ -4,15 +4,15 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(
 	locationCategoriesPreferred *[]models.LocationCategory,
 	locationCategoriesRejected *[]models.LocationCategory,
 	planCandidateSetId string,
-) entities.PlanCandidateSetMetaDataCategorySlice {
-	var planCandidateSetMetaDataCategorySlice entities.PlanCandidateSetMetaDataCategorySlice
+) generated.PlanCandidateSetMetaDataCategorySlice {
+	var planCandidateSetMetaDataCategorySlice generated.PlanCandidateSetMetaDataCategorySlice
 
 	if locationCategoriesPreferred != nil {
 		for _, locationCategory := range *locationCategoriesPreferred {
@@ -31,8 +31,8 @@ func NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(
 	return planCandidateSetMetaDataCategorySlice
 }
 
-func newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory models.LocationCategory, isSelected bool, planCandidateSetId string) entities.PlanCandidateSetMetaDataCategory {
-	return entities.PlanCandidateSetMetaDataCategory{
+func newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory models.LocationCategory, isSelected bool, planCandidateSetId string) generated.PlanCandidateSetMetaDataCategory {
+	return generated.PlanCandidateSetMetaDataCategory{
 		ID:                 uuid.New().String(),
 		PlanCandidateSetID: planCandidateSetId,
 		Category:           locationCategory.Name,
@@ -40,8 +40,8 @@ func newPlanCandidateSetMetaDataCategoryEntityFromDomainModel(locationCategory m
 	}
 }
 
-func newPlanCandidateSetMetaDataPreferredCategoriesFromEntity(planCandidateSetMetaDataCategorySlice entities.PlanCandidateSetMetaDataCategorySlice, planCandidateSetId string) *[]models.LocationCategory {
-	planCandidateSetMetaDataPreferredCategorySlice := array.Filter(planCandidateSetMetaDataCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) bool {
+func newPlanCandidateSetMetaDataPreferredCategoriesFromEntity(planCandidateSetMetaDataCategorySlice generated.PlanCandidateSetMetaDataCategorySlice, planCandidateSetId string) *[]models.LocationCategory {
+	planCandidateSetMetaDataPreferredCategorySlice := array.Filter(planCandidateSetMetaDataCategorySlice, func(planCandidateSetCategory *generated.PlanCandidateSetMetaDataCategory) bool {
 		if planCandidateSetCategory == nil {
 			return false
 		}
@@ -51,7 +51,7 @@ func newPlanCandidateSetMetaDataPreferredCategoriesFromEntity(planCandidateSetMe
 		return planCandidateSetCategory.PlanCandidateSetID == planCandidateSetId
 	})
 
-	categoriesPreferred := array.MapAndFilter(planCandidateSetMetaDataPreferredCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) (string, bool) {
+	categoriesPreferred := array.MapAndFilter(planCandidateSetMetaDataPreferredCategorySlice, func(planCandidateSetCategory *generated.PlanCandidateSetMetaDataCategory) (string, bool) {
 		if planCandidateSetCategory == nil {
 			return "", false
 		}
@@ -67,8 +67,8 @@ func newPlanCandidateSetMetaDataPreferredCategoriesFromEntity(planCandidateSetMe
 	return &locationCategoriesPreferred
 }
 
-func newPlanCandidateSetMetaDataRejectedCategoriesFromEntity(planCandidateSetMetaDataCategorySlice entities.PlanCandidateSetMetaDataCategorySlice, planCandidateSetId string) *[]models.LocationCategory {
-	planCandidateSetMetaDataRejectedCategorySlice := array.Filter(planCandidateSetMetaDataCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) bool {
+func newPlanCandidateSetMetaDataRejectedCategoriesFromEntity(planCandidateSetMetaDataCategorySlice generated.PlanCandidateSetMetaDataCategorySlice, planCandidateSetId string) *[]models.LocationCategory {
+	planCandidateSetMetaDataRejectedCategorySlice := array.Filter(planCandidateSetMetaDataCategorySlice, func(planCandidateSetCategory *generated.PlanCandidateSetMetaDataCategory) bool {
 		if planCandidateSetCategory == nil {
 			return false
 		}
@@ -78,7 +78,7 @@ func newPlanCandidateSetMetaDataRejectedCategoriesFromEntity(planCandidateSetMet
 		return planCandidateSetCategory.PlanCandidateSetID == planCandidateSetId
 	})
 
-	categoriesRequired := array.MapAndFilter(planCandidateSetMetaDataRejectedCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) (string, bool) {
+	categoriesRequired := array.MapAndFilter(planCandidateSetMetaDataRejectedCategorySlice, func(planCandidateSetCategory *generated.PlanCandidateSetMetaDataCategory) (string, bool) {
 		if planCandidateSetCategory == nil {
 			return "", false
 		}

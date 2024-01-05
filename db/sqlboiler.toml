@@ -1,6 +1,6 @@
 wipe     = true
-pkgname = "entities"
-output = "internal/infrastructure/rdb/entities"
+pkgname = "generated"
+output = "internal/infrastructure/rdb/generated"
 no-tests = true
 [mysql]
     dbname    = "poroto"

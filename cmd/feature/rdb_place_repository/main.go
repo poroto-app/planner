@@ -13,7 +13,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func init() {
@@ -238,13 +238,13 @@ func main() {
 func cleanup(ctx context.Context, db *sql.DB) {
 	// Truncate all tables
 	tx, _ := db.Begin()
-	_, _ = entities.GooglePlaceTypes().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlacePhotoAttributions().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlacePhotos().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlacePhotoReferences().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlaceReviews().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlaceOpeningPeriods().DeleteAll(ctx, tx)
-	_, _ = entities.GooglePlaces().DeleteAll(ctx, tx)
-	_, _ = entities.Places().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlaceTypes().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlacePhotoAttributions().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlacePhotos().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlacePhotoReferences().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlaceReviews().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlaceOpeningPeriods().DeleteAll(ctx, tx)
+	_, _ = generated.GooglePlaces().DeleteAll(ctx, tx)
+	_, _ = generated.Places().DeleteAll(ctx, tx)
 	_ = tx.Commit()
 }

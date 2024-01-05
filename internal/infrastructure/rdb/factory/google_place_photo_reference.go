@@ -3,15 +3,15 @@ package factory
 import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewGooglePlacePhotoReferenceFromEntity(
-	googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference,
-	googlePlacePhotoAttributionEntities entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoReferenceEntity generated.GooglePlacePhotoReference,
+	googlePlacePhotoAttributionEntities generated.GooglePlacePhotoAttributionSlice,
 ) models.GooglePlacePhotoReference {
 	// HTMLAttributionsを取得
-	googlePlacePhotoStrAttributions := array.MapAndFilter(googlePlacePhotoAttributionEntities, func(googlePlacePhotoAttributionEntity *entities.GooglePlacePhotoAttribution) (string, bool) {
+	googlePlacePhotoStrAttributions := array.MapAndFilter(googlePlacePhotoAttributionEntities, func(googlePlacePhotoAttributionEntity *generated.GooglePlacePhotoAttribution) (string, bool) {
 		if googlePlacePhotoAttributionEntity == nil {
 			return "", false
 		}
@@ -32,16 +32,16 @@ func NewGooglePlacePhotoReferenceFromEntity(
 	}
 }
 
-func NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePhotoReference models.GooglePlacePhotoReference) entities.GooglePlacePhotoReference {
-	return entities.GooglePlacePhotoReference{
+func NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePhotoReference models.GooglePlacePhotoReference) generated.GooglePlacePhotoReference {
+	return generated.GooglePlacePhotoReference{
 		PhotoReference: googlePhotoReference.PhotoReference,
 		Width:          googlePhotoReference.Width,
 		Height:         googlePhotoReference.Height,
 	}
 }
 
-func NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlacePhotoReferences []models.GooglePlacePhotoReference) entities.GooglePlacePhotoReferenceSlice {
-	var googlePlacePhotoReferenceEntities entities.GooglePlacePhotoReferenceSlice
+func NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlacePhotoReferences []models.GooglePlacePhotoReference) generated.GooglePlacePhotoReferenceSlice {
+	var googlePlacePhotoReferenceEntities generated.GooglePlacePhotoReferenceSlice
 	for _, googlePlacePhotoReference := range googlePlacePhotoReferences {
 		pr := NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePlacePhotoReference)
 		googlePlacePhotoReferenceEntities = append(googlePlacePhotoReferenceEntities, &pr)

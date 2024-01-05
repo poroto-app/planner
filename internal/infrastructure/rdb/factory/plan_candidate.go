@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"sort"
 )
 
-func PlanCandidateEntityFromDomainModel(planCandidate models.Plan, planCandidateSetId string, sortOrder int) entities.PlanCandidate {
-	return entities.PlanCandidate{
+func PlanCandidateEntityFromDomainModel(planCandidate models.Plan, planCandidateSetId string, sortOrder int) generated.PlanCandidate {
+	return generated.PlanCandidate{
 		ID:                 planCandidate.Id,
 		PlanCandidateSetID: planCandidateSetId,
 		Name:               planCandidate.Name,
@@ -19,18 +19,18 @@ func PlanCandidateEntityFromDomainModel(planCandidate models.Plan, planCandidate
 
 // NewPlanCandidatesFromEntities プラン候補一覧を順番を考慮して生成する
 func NewPlanCandidatesFromEntities(
-	planCandidateSlice entities.PlanCandidateSlice,
-	planCandidatePlaces entities.PlanCandidatePlaceSlice,
+	planCandidateSlice generated.PlanCandidateSlice,
+	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	planCandidateSetId string,
 	places []models.Place,
 ) (*[]models.Plan, error) {
-	planCandidateEntities := array.MapAndFilter(planCandidateSlice, func(planCandidate *entities.PlanCandidate) (entities.PlanCandidate, bool) {
+	planCandidateEntities := array.MapAndFilter(planCandidateSlice, func(planCandidate *generated.PlanCandidate) (generated.PlanCandidate, bool) {
 		if planCandidate == nil {
-			return entities.PlanCandidate{}, false
+			return generated.PlanCandidate{}, false
 		}
 
 		if planCandidate.PlanCandidateSetID != planCandidateSetId {
-			return entities.PlanCandidate{}, false
+			return generated.PlanCandidate{}, false
 		}
 
 		return *planCandidate, true
@@ -41,7 +41,7 @@ func NewPlanCandidatesFromEntities(
 		return planCandidateEntitiesOrdered[i].SortOrder < planCandidateEntitiesOrdered[j].SortOrder
 	})
 
-	plans, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidateEntity entities.PlanCandidate) (*models.Plan, error) {
+	plans, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidateEntity generated.PlanCandidate) (*models.Plan, error) {
 		plan, err := NewPlanCandidateFromEntity(planCandidateEntity, planCandidatePlaces, places)
 		if err != nil {
 			return nil, err
@@ -58,17 +58,17 @@ func NewPlanCandidatesFromEntities(
 
 // NewPlanCandidateFromEntity プラン候補を場所の順番を考慮して生成する
 func NewPlanCandidateFromEntity(
-	planCandidateEntity entities.PlanCandidate,
-	planCandidatePlaces entities.PlanCandidatePlaceSlice,
+	planCandidateEntity generated.PlanCandidate,
+	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	places []models.Place,
 ) (*models.Plan, error) {
-	planCandidateEntities := array.MapAndFilter(planCandidatePlaces, func(planCandidatePlace *entities.PlanCandidatePlace) (entities.PlanCandidatePlace, bool) {
+	planCandidateEntities := array.MapAndFilter(planCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) (generated.PlanCandidatePlace, bool) {
 		if planCandidatePlace == nil {
-			return entities.PlanCandidatePlace{}, false
+			return generated.PlanCandidatePlace{}, false
 		}
 
 		if planCandidatePlace.PlanCandidateID != planCandidateEntity.ID {
-			return entities.PlanCandidatePlace{}, false
+			return generated.PlanCandidatePlace{}, false
 		}
 
 		return *planCandidatePlace, true
@@ -79,7 +79,7 @@ func NewPlanCandidateFromEntity(
 		return planCandidateEntitiesOrdered[i].SortOrder < planCandidateEntitiesOrdered[j].SortOrder
 	})
 
-	placesOrdered, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidatePlace entities.PlanCandidatePlace) (*models.Place, error) {
+	placesOrdered, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidatePlace generated.PlanCandidatePlace) (*models.Place, error) {
 		place, ok := array.Find(places, func(place models.Place) bool {
 			return place.Id == planCandidatePlace.PlaceID
 		})

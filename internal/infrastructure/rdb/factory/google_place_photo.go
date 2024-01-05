@@ -5,25 +5,23 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
-
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"sort"
 )
 
 func NewGooglePlacePhotoFromEntity(
-	googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference,
-	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
-	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoReferenceEntity generated.GooglePlacePhotoReference,
+	googlePlacePhotoSlice generated.GooglePlacePhotoSlice,
+	googlePlacePhotoAttributionSlice generated.GooglePlacePhotoAttributionSlice,
 ) *models.GooglePlacePhoto {
-
-	googlePlacePhotoEntitiesFiltered := array.MapAndFilter(googlePlacePhotoSlice, func(googlePlacePhotoEntity *entities.GooglePlacePhoto) (entities.GooglePlacePhoto, bool) {
+	googlePlacePhotoEntitiesFiltered := array.MapAndFilter(googlePlacePhotoSlice, func(googlePlacePhotoEntity *generated.GooglePlacePhoto) (generated.GooglePlacePhoto, bool) {
 		if googlePlacePhotoEntity == nil {
-			return entities.GooglePlacePhoto{}, false
+			return generated.GooglePlacePhoto{}, false
 		}
 
 		// PhotoReferenceが一致するものだけを抽出
 		if googlePlacePhotoEntity.PhotoReference != googlePlacePhotoReferenceEntity.PhotoReference {
-			return entities.GooglePlacePhoto{}, false
+			return generated.GooglePlacePhoto{}, false
 		}
 
 		return *googlePlacePhotoEntity, true
@@ -39,7 +37,7 @@ func NewGooglePlacePhotoFromEntity(
 		return googlePlacePhotoEntitiesFiltered[i].Width < googlePlacePhotoEntitiesFiltered[j].Width
 	})
 
-	googlePlacePhotoAttributions := array.MapAndFilter(googlePlacePhotoAttributionSlice, func(googlePlacePhotoAttributionEntity *entities.GooglePlacePhotoAttribution) (string, bool) {
+	googlePlacePhotoAttributions := array.MapAndFilter(googlePlacePhotoAttributionSlice, func(googlePlacePhotoAttributionEntity *generated.GooglePlacePhotoAttribution) (string, bool) {
 		if googlePlacePhotoAttributionEntity == nil {
 			return "", false
 		}
@@ -62,11 +60,11 @@ func NewGooglePlacePhotoFromEntity(
 	}
 }
 
-func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) entities.GooglePlacePhotoSlice {
-	var googlePlacePhotoEntities entities.GooglePlacePhotoSlice
+func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) generated.GooglePlacePhotoSlice {
+	var googlePlacePhotoEntities generated.GooglePlacePhotoSlice
 
 	if googlePlacePhoto.Small != nil {
-		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
+		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &generated.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
@@ -77,7 +75,7 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 	}
 
 	if googlePlacePhoto.Large != nil {
-		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
+		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &generated.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,

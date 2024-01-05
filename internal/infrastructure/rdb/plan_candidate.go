@@ -14,6 +14,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"time"
 )
 
@@ -41,7 +42,7 @@ func (p PlanCandidateRepository) GetDB() *sql.DB {
 // TODO: PlanCandidateSet のすべての値を保存できるようにする
 func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error {
 	if err := runTransaction(cxt, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateEntity := entities.PlanCandidateSet{ID: planCandidateId, ExpiresAt: expiresAt}
+		planCandidateEntity := generated.PlanCandidateSet{ID: planCandidateId, ExpiresAt: expiresAt}
 		if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan candidate: %w", err)
 		}
@@ -53,15 +54,16 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 }
 
 func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
-	planCandidateSetEntity, err := entities.PlanCandidateSets(concatQueryMod(
+	planCandidateSetEntity, err := generated.PlanCandidateSets(concatQueryMod(
 		[]qm.QueryMod{
-			entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
-			entities.PlanCandidateSetWhere.ExpiresAt.GT(now),
-			qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
-			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
-			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaDataCategories),
+			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+			generated.PlanCandidateSetWhere.ExpiresAt.GT(now),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidates),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaData),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaDataCategories),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetLikePlaces),
 		},
-		placeQueryModes(entities.PlanCandidateSetRels.PlanCandidatePlaces, entities.PlanCandidatePlaceRels.Place),
+		placeQueryModes(generated.PlanCandidateSetRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
 
 	if err != nil {
@@ -69,6 +71,18 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
+	}
+
+	if planCandidateSetEntity.R == nil {
+		panic("planCandidateSetEntity.R is nil")
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planCandidateSetEntity.R.PlanCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) string {
+		return planCandidatePlace.PlaceID
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
 	var places []models.Place
@@ -96,6 +110,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
@@ -110,6 +125,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 		planCandidateSetEntity.R.PlanCandidateSetMetaData,
 		planCandidateSetEntity.R.PlanCandidateSetMetaDataCategories,
 		planCandidateSetEntity.R.PlanCandidatePlaces,
+		planCandidateSetEntity.R.PlanCandidateSetLikePlaces,
 		places,
 	)
 	if err != nil {
@@ -120,18 +136,33 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 }
 
 func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
-	planCandidate, err := entities.PlanCandidates(concatQueryMod(
+	planCandidate, err := generated.PlanCandidates(concatQueryMod(
 		[]qm.QueryMod{
-			entities.PlanCandidateWhere.ID.EQ(planId),
-			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
+			generated.PlanCandidateWhere.ID.EQ(planId),
+			generated.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
 		},
-		placeQueryModes(entities.PlanCandidateRels.PlanCandidatePlaces, entities.PlanCandidatePlaceRels.Place),
+		placeQueryModes(generated.PlanCandidateRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to find plan candidate: %w", err)
+	}
+
+	if planCandidate.R == nil {
+		panic("planCandidate.R is nil")
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(
+		ctx,
+		p.db,
+		array.Map(planCandidate.R.PlanCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) string {
+			return planCandidatePlace.PlaceID
+		})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
 	var places []models.Place
@@ -159,6 +190,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
@@ -176,7 +208,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 }
 
 func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
-	planCandidateSetSlice, err := entities.PlanCandidateSets(entities.PlanCandidateSetWhere.ExpiresAt.LT(expiresAt)).All(ctx, p.db)
+	planCandidateSetSlice, err := generated.PlanCandidateSets(generated.PlanCandidateSetWhere.ExpiresAt.LT(expiresAt)).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find expired plan candidate sets: %w", err)
 	}
@@ -193,7 +225,7 @@ func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.C
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		// TODO: BatchInsertする
 		for _, placeId := range placeIds {
-			planCandidatePlace := entities.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
+			planCandidatePlace := generated.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
 			if err := planCandidatePlace.Insert(ctx, tx, boil.Infer()); err != nil {
 				return fmt.Errorf("failed to insert plan candidate place: %w", err)
 			}
@@ -231,8 +263,8 @@ func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId st
 
 func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidatePlaceSlice, err := entities.
-			PlanCandidatePlaces(entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId)).
+		planCandidatePlaceSlice, err := generated.
+			PlanCandidatePlaces(generated.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId)).
 			All(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to get plan candidate places: %w", err)
@@ -246,7 +278,7 @@ func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandida
 			} else if planCandidatePlace.SortOrder >= newOrder {
 				// 後続の場所の順序を更新
 				planCandidatePlace.SortOrder++
-				if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.SortOrder)); err != nil {
+				if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(generated.PlanCandidatePlaceColumns.SortOrder)); err != nil {
 					return fmt.Errorf("failed to update plan candidate place: %w", err)
 				}
 			}
@@ -267,10 +299,10 @@ func (p PlanCandidateRepository) AddPlaceToPlan(ctx context.Context, planCandida
 
 func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateEntity, err := entities.PlanCandidates(
-			entities.PlanCandidateWhere.ID.EQ(planId),
-			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
-			qm.Load(entities.PlanCandidateRels.PlanCandidatePlaces),
+		planCandidateEntity, err := generated.PlanCandidates(
+			generated.PlanCandidateWhere.ID.EQ(planId),
+			generated.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
+			qm.Load(generated.PlanCandidateRels.PlanCandidatePlaces),
 		).One(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to get plan candidate: %w", err)
@@ -281,7 +313,7 @@ func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCa
 		}
 
 		planCandidatePlaceSlice := planCandidateEntity.R.PlanCandidatePlaces
-		planCandidatePlaceToDelete, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+		planCandidatePlaceToDelete, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *generated.PlanCandidatePlace) bool {
 			if planCandidatePlace == nil {
 				return false
 			}
@@ -306,10 +338,10 @@ func (p PlanCandidateRepository) RemovePlaceFromPlan(ctx context.Context, planCa
 
 func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateEntity, err := entities.PlanCandidates(
-			entities.PlanCandidateWhere.ID.EQ(planId),
-			entities.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidate),
-			qm.Load(entities.PlanCandidateRels.PlanCandidatePlaces),
+		planCandidateEntity, err := generated.PlanCandidates(
+			generated.PlanCandidateWhere.ID.EQ(planId),
+			generated.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidate),
+			qm.Load(generated.PlanCandidateRels.PlanCandidatePlaces),
 		).One(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to get plan candidate: %w", err)
@@ -328,7 +360,7 @@ func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId s
 
 		// すべての場所のIDが存在するかを確認
 		for _, placeId := range placeIdsOrdered {
-			if _, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+			if _, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *generated.PlanCandidatePlace) bool {
 				if planCandidatePlace == nil {
 					return false
 				}
@@ -340,7 +372,7 @@ func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId s
 
 		// 場所の順序を更新
 		for i, placeId := range placeIdsOrdered {
-			planCandidatePlace, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *entities.PlanCandidatePlace) bool {
+			planCandidatePlace, ok := array.Find(planCandidatePlaceSlice, func(planCandidatePlace *generated.PlanCandidatePlace) bool {
 				if planCandidatePlace == nil {
 					return false
 				}
@@ -351,7 +383,7 @@ func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId s
 			}
 
 			planCandidatePlace.SortOrder = i
-			if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.SortOrder)); err != nil {
+			if _, err := planCandidatePlace.Update(ctx, tx, boil.Whitelist(generated.PlanCandidatePlaceColumns.SortOrder)); err != nil {
 				return fmt.Errorf("failed to update plan candidate place: %w", err)
 			}
 		}
@@ -366,7 +398,7 @@ func (p PlanCandidateRepository) UpdatePlacesOrder(ctx context.Context, planId s
 
 func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		savedPlanCandidateSetMetaDataEntity, err := entities.PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId)).One(ctx, tx)
+		savedPlanCandidateSetMetaDataEntity, err := generated.PlanCandidateSetMetaData(generated.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId)).One(ctx, tx)
 		if err != nil {
 			if !errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("failed to get plan candidate set meta data: %w", err)
@@ -392,7 +424,7 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 		// カテゴリを更新
 		if meta.CategoriesRejected != nil || meta.CategoriesPreferred != nil {
 			// すでに登録されているカテゴリを削除
-			if _, err := entities.PlanCandidateSetMetaDataCategories(entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId)).DeleteAll(ctx, tx); err != nil {
+			if _, err := generated.PlanCandidateSetMetaDataCategories(generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId)).DeleteAll(ctx, tx); err != nil {
 				return fmt.Errorf("failed to delete plan candidate set categories: %w", err)
 			}
 
@@ -416,10 +448,10 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 
 func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidatePlaceEntity, err := entities.PlanCandidatePlaces(
-			entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
-			entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(planId),
-			entities.PlanCandidatePlaceWhere.PlaceID.EQ(placeIdToBeReplaced),
+		planCandidatePlaceEntity, err := generated.PlanCandidatePlaces(
+			generated.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+			generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(planId),
+			generated.PlanCandidatePlaceWhere.PlaceID.EQ(placeIdToBeReplaced),
 		).One(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to get plan candidate place: %w", err)
@@ -427,7 +459,7 @@ func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidate
 
 		planCandidatePlaceEntity.PlaceID = placeToReplace.Id
 
-		if _, err := planCandidatePlaceEntity.Update(ctx, tx, boil.Whitelist(entities.PlanCandidatePlaceColumns.PlaceID)); err != nil {
+		if _, err := planCandidatePlaceEntity.Update(ctx, tx, boil.Whitelist(generated.PlanCandidatePlaceColumns.PlaceID)); err != nil {
 			return fmt.Errorf("failed to update plan candidate place: %w", err)
 		}
 
@@ -442,30 +474,30 @@ func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidate
 func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		// プラン候補場所を削除
-		if _, err := entities.PlanCandidatePlaces(entities.PlanCandidatePlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidatePlaces(generated.PlanCandidatePlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate places: %w", err)
 		}
 
 		// 検索履歴を削除
-		if _, err := entities.PlanCandidateSetSearchedPlaces(entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate set searched places: %w", err)
 		}
 
 		// プラン候補を削除
-		if _, err := entities.PlanCandidates(entities.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidates: %w", err)
 		}
 
 		// プラン候補メタデータを削除
-		if _, err := entities.PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidateSetMetaData(generated.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate set meta data: %w", err)
 		}
-		if _, err := entities.PlanCandidateSetMetaDataCategories(entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidateSetMetaDataCategories(generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate set meta data categories: %w", err)
 		}
 
 		// プラン候補一覧を削除
-		if _, err := entities.PlanCandidateSets(entities.PlanCandidateSetWhere.ID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
+		if _, err := generated.PlanCandidateSets(generated.PlanCandidateSetWhere.ID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate sets: %w", err)
 		}
 
@@ -478,6 +510,42 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 }
 
 func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
-	//TODO implement me
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		if like {
+			isPlanCandidateSetLikePlaceEntityExist, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(placeId),
+			).Exists(ctx, tx)
+			if err != nil {
+				return fmt.Errorf("failed to check plan candidate set like place existence: %w", err)
+			}
+
+			if isPlanCandidateSetLikePlaceEntityExist {
+				// すでに存在する場合は何もしない
+				return nil
+			}
+
+			planCandidateSetPlaceEntity := generated.PlanCandidateSetLikePlace{
+				ID:                 uuid.New().String(),
+				PlanCandidateSetID: planCandidateId,
+				PlaceID:            placeId,
+			}
+			if err := planCandidateSetPlaceEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set like place: %w", err)
+			}
+		} else {
+			if _, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				generated.PlanCandidateSetLikePlaceWhere.PlaceID.EQ(placeId),
+			).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to delete plan candidate set like place: %w", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
 }

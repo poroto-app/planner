@@ -12,7 +12,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func init() {
@@ -86,7 +86,7 @@ func main() {
 		panic(err)
 	}
 
-	if _, err := entities.Users().DeleteAll(ctx, db); err != nil {
+	if _, err := generated.Users().DeleteAll(ctx, db); err != nil {
 		panic(err)
 	}
 }

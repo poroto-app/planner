@@ -3,7 +3,7 @@ package rdb
 import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"strings"
 )
 
@@ -20,11 +20,11 @@ func placeQueryModes(relationsToPlaces ...string) []qm.QueryMod {
 	relation := strings.Join(relationsToPlaces, ".")
 	return []qm.QueryMod{
 		qm.Load(relation),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceTypes),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotos),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlacePhotoAttributions),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceReviews),
-		qm.Load(relation + "." + entities.PlaceRels.GooglePlaces + "." + entities.GooglePlaceRels.GooglePlaceOpeningPeriods),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
 	}
 }

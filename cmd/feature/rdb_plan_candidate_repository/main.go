@@ -12,7 +12,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"time"
 )
 
@@ -61,10 +61,10 @@ func main() {
 	// 終了時に削除する
 	defer func() {
 		cleanup(ctx, db)
-		if _, err := entities.GooglePlaces(entities.GooglePlaceWhere.GooglePlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db); err != nil {
+		if _, err := generated.GooglePlaces(generated.GooglePlaceWhere.GooglePlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db); err != nil {
 			log.Fatalf("failed to delete google places: %v", err)
 		}
-		if _, err := entities.Places(entities.PlaceWhere.ID.EQ(testPlace.Id)).DeleteAll(ctx, db); err != nil {
+		if _, err := generated.Places(generated.PlaceWhere.ID.EQ(testPlace.Id)).DeleteAll(ctx, db); err != nil {
 			log.Fatalf("failed to delete places: %v", err)
 		}
 	}()
@@ -118,12 +118,12 @@ func cleanup(ctx context.Context, db *sql.DB) {
 	}
 
 	tables := []Deletable{
-		entities.PlanCandidateSetSearchedPlaces(),
-		entities.PlanCandidatePlaces(),
-		entities.PlanCandidateSetMetaData(),
-		entities.PlanCandidateSetMetaDataCategories(),
-		entities.PlanCandidates(),
-		entities.PlanCandidateSets(),
+		generated.PlanCandidateSetSearchedPlaces(),
+		generated.PlanCandidatePlaces(),
+		generated.PlanCandidateSetMetaData(),
+		generated.PlanCandidateSetMetaDataCategories(),
+		generated.PlanCandidates(),
+		generated.PlanCandidateSets(),
 	}
 
 	for _, table := range tables {

@@ -9,7 +9,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"log"
 	"os"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"strings"
 	"testing"
 )
@@ -71,21 +71,22 @@ type Deletable interface {
 
 func cleanup(ctx context.Context, db *sql.DB) error {
 	tables := []Deletable{
-		entities.PlanCandidatePlaces(),
-		entities.PlanCandidateSetMetaDataCategories(),
-		entities.PlanCandidateSetMetaData(),
-		entities.PlanCandidateSetSearchedPlaces(),
-		entities.PlanCandidates(),
-		entities.PlanCandidateSets(),
-		entities.GooglePlaceOpeningPeriods(),
-		entities.GooglePlaceReviews(),
-		entities.GooglePlacePhotos(),
-		entities.GooglePlacePhotoAttributions(),
-		entities.GooglePlacePhotoReferences(),
-		entities.GooglePlaceTypes(),
-		entities.GooglePlaces(),
-		entities.Places(),
-		entities.Users(),
+		generated.PlanCandidateSetLikePlaces(),
+		generated.PlanCandidatePlaces(),
+		generated.PlanCandidateSetMetaDataCategories(),
+		generated.PlanCandidateSetMetaData(),
+		generated.PlanCandidateSetSearchedPlaces(),
+		generated.PlanCandidates(),
+		generated.PlanCandidateSets(),
+		generated.GooglePlaceOpeningPeriods(),
+		generated.GooglePlaceReviews(),
+		generated.GooglePlacePhotos(),
+		generated.GooglePlacePhotoAttributions(),
+		generated.GooglePlacePhotoReferences(),
+		generated.GooglePlaceTypes(),
+		generated.GooglePlaces(),
+		generated.Places(),
+		generated.Users(),
 	}
 
 	for _, table := range tables {

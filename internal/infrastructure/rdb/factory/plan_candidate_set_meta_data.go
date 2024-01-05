@@ -6,11 +6,11 @@ import (
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-func NewPlanCandidateMetaDataFromDomainModel(planCandidateSetMetaData models.PlanCandidateMetaData, planCandidateSetId string) entities.PlanCandidateSetMetaDatum {
-	return entities.PlanCandidateSetMetaDatum{
+func NewPlanCandidateMetaDataFromDomainModel(planCandidateSetMetaData models.PlanCandidateMetaData, planCandidateSetId string) generated.PlanCandidateSetMetaDatum {
+	return generated.PlanCandidateSetMetaDatum{
 		ID:                           uuid.New().String(),
 		PlanCandidateSetID:           planCandidateSetId,
 		IsCreatedFromCurrentLocation: planCandidateSetMetaData.CreatedBasedOnCurrentLocation,
@@ -21,11 +21,11 @@ func NewPlanCandidateMetaDataFromDomainModel(planCandidateSetMetaData models.Pla
 }
 
 func NewPlanCandidateMetaDataFromEntity(
-	planCandidateSetMetaDataSlice entities.PlanCandidateSetMetaDatumSlice,
-	planCandidateSetCategorySlice entities.PlanCandidateSetMetaDataCategorySlice,
+	planCandidateSetMetaDataSlice generated.PlanCandidateSetMetaDatumSlice,
+	planCandidateSetCategorySlice generated.PlanCandidateSetMetaDataCategorySlice,
 	planCandidateSetId string,
 ) (*models.PlanCandidateMetaData, error) {
-	planCandidateSetMetaData, ok := array.Find(planCandidateSetMetaDataSlice, func(planCandidateSetMetaData *entities.PlanCandidateSetMetaDatum) bool {
+	planCandidateSetMetaData, ok := array.Find(planCandidateSetMetaDataSlice, func(planCandidateSetMetaData *generated.PlanCandidateSetMetaDatum) bool {
 		if planCandidateSetMetaData == nil {
 			return false
 		}

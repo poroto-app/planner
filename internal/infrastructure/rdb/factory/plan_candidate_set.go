@@ -2,17 +2,19 @@ package factory
 
 import (
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewPlanCandidateSetFromEntity(
-	planCandidateSetEntity entities.PlanCandidateSet,
-	planCandidateSlice entities.PlanCandidateSlice,
-	planCandidateSetMetaDataSlice entities.PlanCandidateSetMetaDatumSlice,
-	planCandidateSetCategorySlice entities.PlanCandidateSetMetaDataCategorySlice,
-	planCandidatePlaces entities.PlanCandidatePlaceSlice,
+	planCandidateSetEntity generated.PlanCandidateSet,
+	planCandidateSlice generated.PlanCandidateSlice,
+	planCandidateSetMetaDataSlice generated.PlanCandidateSetMetaDatumSlice,
+	planCandidateSetCategorySlice generated.PlanCandidateSetMetaDataCategorySlice,
+	planCandidatePlaces generated.PlanCandidatePlaceSlice,
+	planCandidateSetLikePlaceSlice generated.PlanCandidateSetLikePlaceSlice,
 	places []models.Place,
 ) (*models.PlanCandidate, error) {
 	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetEntity.ID)
@@ -38,11 +40,21 @@ func NewPlanCandidateSetFromEntity(
 		return nil, err
 	}
 
+	likedPlaceIds := array.MapAndFilter(planCandidateSetLikePlaceSlice, func(planCandidateSetLikePlace *generated.PlanCandidateSetLikePlace) (string, bool) {
+		if planCandidateSetLikePlace == nil {
+			return "", false
+		}
+		if planCandidateSetLikePlace.PlanCandidateSetID != planCandidateSetEntity.ID {
+			return "", false
+		}
+		return planCandidateSetLikePlace.PlaceID, true
+	})
+
 	return &models.PlanCandidate{
 		Id:            planCandidateSetEntity.ID,
 		Plans:         *plans,
 		MetaData:      *planCandidateSetMetaData,
 		ExpiresAt:     planCandidateSetEntity.ExpiresAt,
-		LikedPlaceIds: nil, //TODO: implement me!
+		LikedPlaceIds: likedPlaceIds,
 	}, nil
 }
