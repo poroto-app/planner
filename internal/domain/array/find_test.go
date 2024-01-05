@@ -35,6 +35,8 @@ func TestFind(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			actual, ok := Find(c.slice, c.condition)
 			if !ok {
 				if c.expected != 0 {

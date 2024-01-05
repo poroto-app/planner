@@ -82,6 +82,8 @@ func TestMapAndFilter(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			actual := MapAndFilter(c.slice, c.transform)
 			if len(actual) != len(c.expected) {
 				t.Errorf("expected: %v, actual: %v", c.expected, actual)
