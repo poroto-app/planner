@@ -85,6 +85,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			savedPlanCandidateSet: models.PlanCandidate{
 				Id:        "test",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: true,
+					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+					CategoriesRejected:            &[]models.LocationCategory{models.CategoryCafe},
+				},
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -104,6 +110,8 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
+					CategoriesRejected:            &[]models.LocationCategory{models.CategoryCafe},
 				},
 				Plans: []models.Plan{
 					{
@@ -214,6 +222,27 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 						t.Fatalf("wrong place id expected: %v, actual: %v", c.expected.Plans[i].Places[j].Id, place.Id)
 					}
 				}
+			}
+
+			// MetaData の値が一致する
+			if actual.MetaData.CreatedBasedOnCurrentLocation != c.expected.MetaData.CreatedBasedOnCurrentLocation {
+				t.Fatalf("wrong created based on current location expected: %v, actual: %v", c.expected.MetaData.CreatedBasedOnCurrentLocation, actual.MetaData.CreatedBasedOnCurrentLocation)
+			}
+
+			if valueOrZero(actual.MetaData.FreeTime) != valueOrZero(c.expected.MetaData.FreeTime) {
+				t.Fatalf("wrong free time expected: %v, actual: %v", valueOrZero(c.expected.MetaData.FreeTime), valueOrZero(actual.MetaData.FreeTime))
+			}
+
+			if !valueOrZero(actual.MetaData.LocationStart).Equal(valueOrZero(c.expected.MetaData.LocationStart)) {
+				t.Fatalf("wrong location start expected: %v, actual: %v", valueOrZero(c.expected.MetaData.LocationStart), valueOrZero(actual.MetaData.LocationStart))
+			}
+
+			if len(valueOrZero(actual.MetaData.CategoriesPreferred)) != len(valueOrZero(c.expected.MetaData.CategoriesPreferred)) {
+				t.Fatalf("wrong number of categories preferred expected: %v, actual: %v", len(valueOrZero(c.expected.MetaData.CategoriesPreferred)), len(valueOrZero(actual.MetaData.CategoriesPreferred)))
+			}
+
+			if len(valueOrZero(actual.MetaData.CategoriesRejected)) != len(valueOrZero(c.expected.MetaData.CategoriesRejected)) {
+				t.Fatalf("wrong number of categories rejected expected: %v, actual: %v", len(valueOrZero(c.expected.MetaData.CategoriesRejected)), len(valueOrZero(actual.MetaData.CategoriesRejected)))
 			}
 		})
 	}
@@ -1364,4 +1393,12 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 
 func toPointer[T any](value T) *T {
 	return &value
+}
+
+func valueOrZero[T any](value *T) T {
+	var zero T
+	if value == nil {
+		return zero
+	}
+	return *value
 }

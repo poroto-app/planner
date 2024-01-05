@@ -56,6 +56,34 @@ func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.
 		if err := planCandidateSetMetaDataEntity.Insert(ctx, db, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan candidate set meta data: %v", err)
 		}
+
+		if planCandidateSet.MetaData.CategoriesPreferred != nil {
+			for _, category := range *planCandidateSet.MetaData.CategoriesPreferred {
+				planCandidateSetCategoryEntity := entities.PlanCandidateSetMetaDataCategory{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: planCandidateSet.Id,
+					Category:           category.Name,
+					IsSelected:         true,
+				}
+				if err := planCandidateSetCategoryEntity.Insert(ctx, db, boil.Infer()); err != nil {
+					return fmt.Errorf("failed to insert plan candidate set category: %v", err)
+				}
+			}
+		}
+
+		if planCandidateSet.MetaData.CategoriesRejected != nil {
+			for _, category := range *planCandidateSet.MetaData.CategoriesRejected {
+				planCandidateSetCategoryEntity := entities.PlanCandidateSetMetaDataCategory{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: planCandidateSet.Id,
+					Category:           category.Name,
+					IsSelected:         false,
+				}
+				if err := planCandidateSetCategoryEntity.Insert(ctx, db, boil.Infer()); err != nil {
+					return fmt.Errorf("failed to insert plan candidate set category: %v", err)
+				}
+			}
+		}
 	}
 
 	// PlanCandidateを作成
