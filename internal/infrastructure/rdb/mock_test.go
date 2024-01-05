@@ -9,13 +9,13 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {
-		placeEntity := entities.Place{ID: place.Id}
+		placeEntity := generated.Place{ID: place.Id}
 		if err := placeEntity.Insert(ctx, db, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert place: %v", err)
 		}
@@ -24,7 +24,7 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 			continue
 		}
 
-		googlePlaceEntity := entities.GooglePlace{GooglePlaceID: place.Google.PlaceId, PlaceID: place.Id}
+		googlePlaceEntity := generated.GooglePlace{GooglePlaceID: place.Google.PlaceId, PlaceID: place.Id}
 		if err := placeEntity.AddGooglePlaces(ctx, db, true, &googlePlaceEntity); err != nil {
 			return fmt.Errorf("failed to insert google place: %v", err)
 		}
@@ -35,7 +35,7 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 
 func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.PlanCandidate) error {
 	// PlanCandidateSetを作成
-	planCandidateSetEntity := entities.PlanCandidateSet{
+	planCandidateSetEntity := generated.PlanCandidateSet{
 		ID:        planCandidateSet.Id,
 		ExpiresAt: planCandidateSet.ExpiresAt,
 	}
@@ -45,7 +45,7 @@ func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.
 
 	// PlanCandidateSetMetaDataを作成
 	if !planCandidateSet.MetaData.IsZero() {
-		planCandidateSetMetaDataEntity := entities.PlanCandidateSetMetaDatum{
+		planCandidateSetMetaDataEntity := generated.PlanCandidateSetMetaDatum{
 			ID:                           uuid.New().String(),
 			PlanCandidateSetID:           planCandidateSet.Id,
 			IsCreatedFromCurrentLocation: planCandidateSet.MetaData.CreatedBasedOnCurrentLocation,
@@ -59,7 +59,7 @@ func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.
 
 		if planCandidateSet.MetaData.CategoriesPreferred != nil {
 			for _, category := range *planCandidateSet.MetaData.CategoriesPreferred {
-				planCandidateSetCategoryEntity := entities.PlanCandidateSetMetaDataCategory{
+				planCandidateSetCategoryEntity := generated.PlanCandidateSetMetaDataCategory{
 					ID:                 uuid.New().String(),
 					PlanCandidateSetID: planCandidateSet.Id,
 					Category:           category.Name,
@@ -73,7 +73,7 @@ func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.
 
 		if planCandidateSet.MetaData.CategoriesRejected != nil {
 			for _, category := range *planCandidateSet.MetaData.CategoriesRejected {
-				planCandidateSetCategoryEntity := entities.PlanCandidateSetMetaDataCategory{
+				planCandidateSetCategoryEntity := generated.PlanCandidateSetMetaDataCategory{
 					ID:                 uuid.New().String(),
 					PlanCandidateSetID: planCandidateSet.Id,
 					Category:           category.Name,

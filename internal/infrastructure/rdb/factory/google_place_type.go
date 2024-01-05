@@ -3,12 +3,12 @@ package factory
 import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"sort"
 )
 
-func NewGooglePlaceTypesFromEntity(googlePlaceTypeEntitySlice entities.GooglePlaceTypeSlice) []string {
-	var googlePlaceTypeEntities []entities.GooglePlaceType
+func NewGooglePlaceTypesFromEntity(googlePlaceTypeEntitySlice generated.GooglePlaceTypeSlice) []string {
+	var googlePlaceTypeEntities []generated.GooglePlaceType
 	for _, googlePlaceTypeEntity := range googlePlaceTypeEntitySlice {
 		if googlePlaceTypeEntity == nil {
 			continue
@@ -28,10 +28,10 @@ func NewGooglePlaceTypesFromEntity(googlePlaceTypeEntitySlice entities.GooglePla
 	return googlePlaceTypes
 }
 
-func NewGooglePlaceTypeSliceFromGooglePlace(googlePlace models.GooglePlace) entities.GooglePlaceTypeSlice {
-	var googlePlaceTypeEntities entities.GooglePlaceTypeSlice
+func NewGooglePlaceTypeSliceFromGooglePlace(googlePlace models.GooglePlace) generated.GooglePlaceTypeSlice {
+	var googlePlaceTypeEntities generated.GooglePlaceTypeSlice
 	for i, googlePlaceType := range googlePlace.Types {
-		googlePlaceTypeEntities = append(googlePlaceTypeEntities, &entities.GooglePlaceType{
+		googlePlaceTypeEntities = append(googlePlaceTypeEntities, &generated.GooglePlaceType{
 			ID:            uuid.New().String(),
 			GooglePlaceID: googlePlaceType,
 			Type:          googlePlaceType,

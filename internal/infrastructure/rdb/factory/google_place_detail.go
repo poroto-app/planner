@@ -3,17 +3,17 @@ package factory
 import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewGooglePlaceDetailFromGooglePlaceEntity(
-	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
-	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
-	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
-	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
+	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
+	googlePlacePhotoReferenceSlice generated.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice generated.GooglePlacePhotoAttributionSlice,
 	googlePlaceId string,
 ) (*models.GooglePlaceDetail, error) {
-	googlePlaceReviews := array.MapAndFilter(googlePlaceReviewSlice, func(googlePlaceReviewEntity *entities.GooglePlaceReview) (models.GooglePlaceReview, bool) {
+	googlePlaceReviews := array.MapAndFilter(googlePlaceReviewSlice, func(googlePlaceReviewEntity *generated.GooglePlaceReview) (models.GooglePlaceReview, bool) {
 		if googlePlaceReviewEntity == nil {
 			return models.GooglePlaceReview{}, false
 		}
@@ -25,7 +25,7 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(
 		return NewGooglePlaceReviewFromEntity(*googlePlaceReviewEntity), true
 	})
 
-	googlePlaceOpeningPeriods := array.MapAndFilter(googlePlaceOpeningPeriodSlice, func(googlePlaceOpeningPeriodEntity *entities.GooglePlaceOpeningPeriod) (models.GooglePlaceOpeningPeriod, bool) {
+	googlePlaceOpeningPeriods := array.MapAndFilter(googlePlaceOpeningPeriodSlice, func(googlePlaceOpeningPeriodEntity *generated.GooglePlaceOpeningPeriod) (models.GooglePlaceOpeningPeriod, bool) {
 		if googlePlaceOpeningPeriodEntity == nil {
 			return models.GooglePlaceOpeningPeriod{}, false
 		}
@@ -37,7 +37,7 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(
 		return NewGooglePlaceOpeningPeriodFromEntity(*googlePlaceOpeningPeriodEntity), true
 	})
 
-	googlePlacePhotoReferenceEntities := array.Filter(googlePlacePhotoReferenceSlice, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) bool {
+	googlePlacePhotoReferenceEntities := array.Filter(googlePlacePhotoReferenceSlice, func(googlePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
 		if googlePlacePhotoReferenceEntity == nil {
 			return false
 		}
@@ -48,7 +48,7 @@ func NewGooglePlaceDetailFromGooglePlaceEntity(
 
 		return true
 	})
-	googlePlacePhotoReferences := array.MapAndFilter(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *entities.GooglePlacePhotoReference) (models.GooglePlacePhotoReference, bool) {
+	googlePlacePhotoReferences := array.MapAndFilter(googlePlacePhotoReferenceEntities, func(googlePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) (models.GooglePlacePhotoReference, bool) {
 		if googlePlacePhotoReferenceEntity == nil {
 			return models.GooglePlacePhotoReference{}, false
 		}

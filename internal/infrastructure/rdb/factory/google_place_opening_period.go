@@ -3,11 +3,11 @@ package factory
 import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"time"
 )
 
-func NewGooglePlaceOpeningPeriodFromEntity(googlePlaceOpeningPeriodEntity entities.GooglePlaceOpeningPeriod) models.GooglePlaceOpeningPeriod {
+func NewGooglePlaceOpeningPeriodFromEntity(googlePlaceOpeningPeriodEntity generated.GooglePlaceOpeningPeriod) models.GooglePlaceOpeningPeriod {
 	return models.GooglePlaceOpeningPeriod{
 		DayOfWeekOpen:  time.Weekday(googlePlaceOpeningPeriodEntity.OpenDay).String(),
 		DayOfWeekClose: time.Weekday(googlePlaceOpeningPeriodEntity.CloseDay).String(),
@@ -16,8 +16,8 @@ func NewGooglePlaceOpeningPeriodFromEntity(googlePlaceOpeningPeriodEntity entiti
 	}
 }
 
-func NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod models.GooglePlaceOpeningPeriod, googlePlaceId string) entities.GooglePlaceOpeningPeriod {
-	return entities.GooglePlaceOpeningPeriod{
+func NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod models.GooglePlaceOpeningPeriod, googlePlaceId string) generated.GooglePlaceOpeningPeriod {
+	return generated.GooglePlaceOpeningPeriod{
 		ID:            uuid.New().String(),
 		OpenDay:       int(weekdayFromWeekdayString(googlePlaceOpeningPeriod.DayOfWeekOpen)),
 		CloseDay:      int(weekdayFromWeekdayString(googlePlaceOpeningPeriod.DayOfWeekClose)),
@@ -27,12 +27,12 @@ func NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod m
 	}
 }
 
-func NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail, googlePlaceId string) entities.GooglePlaceOpeningPeriodSlice {
+func NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail, googlePlaceId string) generated.GooglePlaceOpeningPeriodSlice {
 	if googlePlaceDetail.OpeningHours == nil || len(googlePlaceDetail.OpeningHours.Periods) == 0 {
 		return nil
 	}
 
-	var googlePlaceOpeningPeriodEntities entities.GooglePlaceOpeningPeriodSlice
+	var googlePlaceOpeningPeriodEntities generated.GooglePlaceOpeningPeriodSlice
 	for _, googlePlaceOpeningPeriod := range googlePlaceDetail.OpeningHours.Periods {
 		gpop := NewGooglePlaceOpeningPeriodEntityFromDomainModel(googlePlaceOpeningPeriod, googlePlaceId)
 		googlePlaceOpeningPeriodEntities = append(googlePlaceOpeningPeriodEntities, &gpop)
@@ -40,7 +40,7 @@ func NewGooglePlaceOpeningPeriodSliceFromGooglePlaceDetail(googlePlaceDetail mod
 	return googlePlaceOpeningPeriodEntities
 }
 
-func NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace models.GooglePlace) entities.GooglePlaceOpeningPeriodSlice {
+func NewGooglePlaceOpeningPeriodSliceFromGooglePlace(googlePlace models.GooglePlace) generated.GooglePlaceOpeningPeriodSlice {
 	if googlePlace.PlaceDetail == nil {
 		return nil
 	}

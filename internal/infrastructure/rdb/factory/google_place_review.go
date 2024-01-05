@@ -4,10 +4,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-func NewGooglePlaceReviewFromEntity(googlePlaceReviewEntity entities.GooglePlaceReview) models.GooglePlaceReview {
+func NewGooglePlaceReviewFromEntity(googlePlaceReviewEntity generated.GooglePlaceReview) models.GooglePlaceReview {
 	return models.GooglePlaceReview{
 		Rating:                uint(googlePlaceReviewEntity.Rating.Int),
 		Text:                  googlePlaceReviewEntity.Text.Ptr(),
@@ -19,8 +19,8 @@ func NewGooglePlaceReviewFromEntity(googlePlaceReviewEntity entities.GooglePlace
 	}
 }
 
-func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.GooglePlaceReview) entities.GooglePlaceReview {
-	return entities.GooglePlaceReview{
+func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.GooglePlaceReview) generated.GooglePlaceReview {
+	return generated.GooglePlaceReview{
 		ID:                    uuid.New().String(),
 		Rating:                null.IntFrom(int(googlePlaceReview.Rating)),
 		Text:                  null.StringFromPtr(googlePlaceReview.Text),
@@ -32,12 +32,12 @@ func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.Go
 	}
 }
 
-func NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail) entities.GooglePlaceReviewSlice {
+func NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail) generated.GooglePlaceReviewSlice {
 	if len(googlePlaceDetail.Reviews) == 0 {
 		return nil
 	}
 
-	var googlePlaceReviewEntities entities.GooglePlaceReviewSlice
+	var googlePlaceReviewEntities generated.GooglePlaceReviewSlice
 	for _, googlePlaceReview := range googlePlaceDetail.Reviews {
 		gpr := NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview)
 		googlePlaceReviewEntities = append(googlePlaceReviewEntities, &gpr)
@@ -45,7 +45,7 @@ func NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail models.Goo
 	return googlePlaceReviewEntities
 }
 
-func NewGooglePlaceReviewSliceFromGooglePlace(googlePlace models.GooglePlace) entities.GooglePlaceReviewSlice {
+func NewGooglePlaceReviewSliceFromGooglePlace(googlePlace models.GooglePlace) generated.GooglePlaceReviewSlice {
 	if googlePlace.PlaceDetail == nil {
 		return nil
 	}

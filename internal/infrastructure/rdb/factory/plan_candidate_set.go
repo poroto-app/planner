@@ -4,15 +4,15 @@ import (
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewPlanCandidateSetFromEntity(
-	planCandidateSetEntity entities.PlanCandidateSet,
-	planCandidateSlice entities.PlanCandidateSlice,
-	planCandidateSetMetaDataSlice entities.PlanCandidateSetMetaDatumSlice,
-	planCandidateSetCategorySlice entities.PlanCandidateSetMetaDataCategorySlice,
-	planCandidatePlaces entities.PlanCandidatePlaceSlice,
+	planCandidateSetEntity generated.PlanCandidateSet,
+	planCandidateSlice generated.PlanCandidateSlice,
+	planCandidateSetMetaDataSlice generated.PlanCandidateSetMetaDatumSlice,
+	planCandidateSetCategorySlice generated.PlanCandidateSetMetaDataCategorySlice,
+	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	places []models.Place,
 ) (*models.PlanCandidate, error) {
 	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetEntity.ID)

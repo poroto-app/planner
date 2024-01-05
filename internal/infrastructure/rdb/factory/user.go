@@ -4,11 +4,11 @@ import (
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-func NewUserEntityFromUser(user models.User) entities.User {
-	return entities.User{
+func NewUserEntityFromUser(user models.User) generated.User {
+	return generated.User{
 		ID:          user.Id,
 		FirebaseUID: user.FirebaseUID,
 		Name:        null.StringFrom(user.Name),
@@ -17,7 +17,7 @@ func NewUserEntityFromUser(user models.User) entities.User {
 	}
 }
 
-func NewUserFromUserEntity(userEntity *entities.User) *models.User {
+func NewUserFromUserEntity(userEntity *generated.User) *models.User {
 	return &models.User{
 		Id:          userEntity.ID,
 		FirebaseUID: userEntity.FirebaseUID,

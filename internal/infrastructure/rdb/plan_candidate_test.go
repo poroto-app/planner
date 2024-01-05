@@ -7,7 +7,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"testing"
 	"time"
 )
@@ -45,7 +45,7 @@ func TestPlanCandidateRepository_Create(t *testing.T) {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
-			exists, err := entities.PlanCandidateSetExists(testContext, testDB, c.planCandidateId)
+			exists, err := generated.PlanCandidateSetExists(testContext, testDB, c.planCandidateId)
 			if err != nil {
 				t.Fatalf("failed to check plan candidate existence: %v", err)
 			}
@@ -500,7 +500,7 @@ func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T)
 
 			// 事前にPlaceを作成しておく
 			for _, placeId := range c.placeIds {
-				placeEntity := entities.Place{ID: placeId}
+				placeEntity := generated.Place{ID: placeId}
 				if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
 					t.Fatalf("failed to insert place: %v", err)
 				}
@@ -510,8 +510,8 @@ func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T)
 				t.Fatalf("failed to add searched places for plan candidate: %v", err)
 			}
 
-			numPlanCandidateSetSearchedPlaces, err := entities.
-				PlanCandidateSetSearchedPlaces(entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
+			numPlanCandidateSetSearchedPlaces, err := generated.
+				PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
 				Count(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate places: %v", err)
@@ -584,8 +584,8 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			// すべてのPlanCandidateが保存されている
-			numPlanCandidates, err := entities.
-				PlanCandidates(entities.PlanCandidateWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
+			numPlanCandidates, err := generated.
+				PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
 				Count(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidates: %v", err)
@@ -596,8 +596,8 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 
 			// すべてのPlanCandidateに対して、すべてのPlaceが保存されている
 			for _, plan := range c.plans {
-				numPlanCandidatePlaces, err := entities.
-					PlanCandidatePlaces(entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(plan.Id)).
+				numPlanCandidatePlaces, err := generated.
+					PlanCandidatePlaces(generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(plan.Id)).
 					Count(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate places: %v", err)
@@ -651,10 +651,10 @@ func TestPlanCandidateRepository_AddPlaceToPlan(t *testing.T) {
 			})
 
 			// 事前にPlaceを作成しておく
-			var placeEntitySlice entities.PlaceSlice
-			placeEntitySlice = append(placeEntitySlice, &entities.Place{ID: c.place.Id})
+			var placeEntitySlice generated.PlaceSlice
+			placeEntitySlice = append(placeEntitySlice, &generated.Place{ID: c.place.Id})
 			for _, place := range c.savedPlanCandidatePlaces {
-				placeEntitySlice = append(placeEntitySlice, &entities.Place{ID: place.Id})
+				placeEntitySlice = append(placeEntitySlice, &generated.Place{ID: place.Id})
 			}
 			for _, placeEntity := range placeEntitySlice {
 				if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
@@ -676,10 +676,10 @@ func TestPlanCandidateRepository_AddPlaceToPlan(t *testing.T) {
 				t.Fatalf("failed to add place to plan: %v", err)
 			}
 
-			savedPlanCandidatePlaceSlice, err := entities.
+			savedPlanCandidatePlaceSlice, err := generated.
 				PlanCandidatePlaces(
-					entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
-					qm.OrderBy(entities.PlanCandidatePlaceColumns.SortOrder),
+					generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+					qm.OrderBy(generated.PlanCandidatePlaceColumns.SortOrder),
 				).All(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate places: %v", err)
@@ -781,9 +781,9 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 				t.Fatalf("failed to remove place from plan: %v", err)
 			}
 
-			isExistPlanCandidatePlace, err := entities.PlanCandidatePlaces(
-				entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
-				entities.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeIdToDelete),
+			isExistPlanCandidatePlace, err := generated.PlanCandidatePlaces(
+				generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+				generated.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeIdToDelete),
 			).Exists(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to check existence of plan candidate place: %v", err)
@@ -858,9 +858,9 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 			}
 
 			for i, placeId := range c.placeIdsOrdered {
-				planCandidatePlaceEntity, err := entities.PlanCandidatePlaces(
-					entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
-					entities.PlanCandidatePlaceWhere.PlaceID.EQ(placeId),
+				planCandidatePlaceEntity, err := generated.PlanCandidatePlaces(
+					generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+					generated.PlanCandidatePlaceWhere.PlaceID.EQ(placeId),
 				).One(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate place: %v", err)
@@ -1010,8 +1010,8 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				t.Fatalf("failed to update plan candidate meta data: %v", err)
 			}
 
-			planCandidateSetMetaDataEntity, err := entities.
-				PlanCandidateSetMetaData(entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(c.planCandidateSetId)).
+			planCandidateSetMetaDataEntity, err := generated.
+				PlanCandidateSetMetaData(generated.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(c.planCandidateSetId)).
 				One(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate set meta data: %v", err)
@@ -1034,10 +1034,10 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			}
 
 			// CategoriesPreferred が一致する
-			numCategoriesPreferred, err := entities.
+			numCategoriesPreferred, err := generated.
 				PlanCandidateSetMetaDataCategories(
-					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
-					entities.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(true),
+					generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+					generated.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(true),
 				).Count(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
@@ -1047,10 +1047,10 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			}
 
 			// CategoriesRejected が一致する
-			numCategoriesRejected, err := entities.
+			numCategoriesRejected, err := generated.
 				PlanCandidateSetMetaDataCategories(
-					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
-					entities.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(false),
+					generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+					generated.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(false),
 				).Count(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
@@ -1127,10 +1127,10 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 				t.Fatalf("failed to replace place: %v", err)
 			}
 
-			planCandidatePlaceEntityExist, err := entities.PlanCandidatePlaces(
-				entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
-				entities.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
-				entities.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeToReplace.Id),
+			planCandidatePlaceEntityExist, err := generated.PlanCandidatePlaces(
+				generated.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
+				generated.PlanCandidatePlaceWhere.PlanCandidateID.EQ(c.planCandidateId),
+				generated.PlanCandidatePlaceWhere.PlaceID.EQ(c.placeToReplace.Id),
 			).Exists(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate place: %v", err)
@@ -1307,8 +1307,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 
 			// 削除されていないことを確認
 			for _, planCandidateId := range c.planCandidateIdsNotToDelete {
-				planCandidateSetEntityExist, err := entities.PlanCandidateSets(
-					entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+				planCandidateSetEntityExist, err := generated.PlanCandidateSets(
+					generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate set: %v", err)
@@ -1322,8 +1322,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 			// 削除されていることを確認
 			for _, planCandidateId := range c.planCandidateIdsToDelete {
 				// PlanCandidateSet が削除されていることを確認
-				planCandidateSetEntityExist, err := entities.PlanCandidateSets(
-					entities.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+				planCandidateSetEntityExist, err := generated.PlanCandidateSets(
+					generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate set: %v", err)
@@ -1333,8 +1333,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 
 				// PlanCandidateSetMetaData が削除されていることを確認
-				planCandidateSetMetaDataEntityExist, err := entities.PlanCandidateSetMetaData(
-					entities.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId),
+				planCandidateSetMetaDataEntityExist, err := generated.PlanCandidateSetMetaData(
+					generated.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate set meta data: %v", err)
@@ -1344,8 +1344,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 
 				// PlanCandidateSetMetaDataCategory が削除されていることを確認
-				planCandidateSetMetaDataCategoryEntityExist, err := entities.PlanCandidateSetMetaDataCategories(
-					entities.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId),
+				planCandidateSetMetaDataCategoryEntityExist, err := generated.PlanCandidateSetMetaDataCategories(
+					generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate set meta data category: %v", err)
@@ -1355,8 +1355,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 
 				// PlanCandidate が削除されていることを確認
-				planCandidateEntityExist, err := entities.PlanCandidates(
-					entities.PlanCandidateWhere.ID.EQ(planCandidateId),
+				planCandidateEntityExist, err := generated.PlanCandidates(
+					generated.PlanCandidateWhere.ID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate: %v", err)
@@ -1366,8 +1366,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 
 				// PlanCandidatePlace が削除されていることを確認
-				planCandidatePlaceEntityExist, err := entities.PlanCandidatePlaces(
-					entities.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				planCandidatePlaceEntityExist, err := generated.PlanCandidatePlaces(
+					generated.PlanCandidatePlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate place: %v", err)
@@ -1377,8 +1377,8 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 
 				// PlanCandidateSetSearchedPlace が削除されていることを確認
-				planCandidateSetSearchedPlaceEntityExist, err := entities.PlanCandidateSetSearchedPlaces(
-					entities.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
+				planCandidateSetSearchedPlaceEntityExist, err := generated.PlanCandidateSetSearchedPlaces(
+					generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("failed to get plan candidate set searched place: %v", err)

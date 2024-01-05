@@ -3,13 +3,13 @@ package factory
 import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-func NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) entities.GooglePlacePhotoAttributionSlice {
-	photoAttributions := make(entities.GooglePlacePhotoAttributionSlice, len(googlePlacePhotoReference.HTMLAttributions))
+func NewGooglePlacePhotoAttributionSliceFromPhotoReference(googlePlacePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) generated.GooglePlacePhotoAttributionSlice {
+	photoAttributions := make(generated.GooglePlacePhotoAttributionSlice, len(googlePlacePhotoReference.HTMLAttributions))
 	for i, attribution := range googlePlacePhotoReference.HTMLAttributions {
-		photoAttributions[i] = &entities.GooglePlacePhotoAttribution{
+		photoAttributions[i] = &generated.GooglePlacePhotoAttribution{
 			ID:              uuid.New().String(),
 			GooglePlaceID:   googlePlaceId,
 			PhotoReference:  googlePlacePhotoReference.PhotoReference,

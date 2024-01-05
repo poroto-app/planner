@@ -3,17 +3,17 @@ package factory
 import (
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewGooglePlaceFromEntity(
-	googlePlaceEntity entities.GooglePlace,
-	googlePlaceTypeSlice entities.GooglePlaceTypeSlice,
-	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
-	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
-	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
-	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
-	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
+	googlePlaceEntity generated.GooglePlace,
+	googlePlaceTypeSlice generated.GooglePlaceTypeSlice,
+	googlePlacePhotoReferenceSlice generated.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice generated.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoSlice generated.GooglePlacePhotoSlice,
+	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
 ) (*models.GooglePlace, error) {
 	googlePlaceTypes := NewGooglePlaceTypesFromEntity(googlePlaceTypeSlice)
 
@@ -82,8 +82,8 @@ func NewGooglePlaceFromEntity(
 	}, nil
 }
 
-func NewGooglePlaceEntityFromGooglePlace(googlePlace models.GooglePlace, placeId string) entities.GooglePlace {
-	return entities.GooglePlace{
+func NewGooglePlaceEntityFromGooglePlace(googlePlace models.GooglePlace, placeId string) generated.GooglePlace {
+	return generated.GooglePlace{
 		GooglePlaceID:    googlePlace.PlaceId,
 		PlaceID:          placeId,
 		Name:             googlePlace.Name,

@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 func NewPlaceFromEntity(
-	placeEntity entities.Place,
-	googlePlaceEntity entities.GooglePlace,
-	googlePlaceTypeSlice entities.GooglePlaceTypeSlice,
-	googlePlacePhotoReferenceSlice entities.GooglePlacePhotoReferenceSlice,
-	googlePlacePhotoAttributionSlice entities.GooglePlacePhotoAttributionSlice,
-	googlePlacePhotoSlice entities.GooglePlacePhotoSlice,
-	googlePlaceReviewSlice entities.GooglePlaceReviewSlice,
-	googlePlaceOpeningPeriodSlice entities.GooglePlaceOpeningPeriodSlice,
+	placeEntity generated.Place,
+	googlePlaceEntity generated.GooglePlace,
+	googlePlaceTypeSlice generated.GooglePlaceTypeSlice,
+	googlePlacePhotoReferenceSlice generated.GooglePlacePhotoReferenceSlice,
+	googlePlacePhotoAttributionSlice generated.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoSlice generated.GooglePlacePhotoSlice,
+	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
+	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
 ) (*models.Place, error) {
 	googlePlace, err := NewGooglePlaceFromEntity(
 		googlePlaceEntity,
@@ -43,8 +43,8 @@ func NewPlaceFromEntity(
 	}, nil
 }
 
-func NewPlaceEntityFromGooglePlaceEntity(googlePlace models.GooglePlace) entities.Place {
-	return entities.Place{
+func NewPlaceEntityFromGooglePlaceEntity(googlePlace models.GooglePlace) generated.Place {
+	return generated.Place{
 		ID:   uuid.New().String(),
 		Name: googlePlace.Name,
 	}

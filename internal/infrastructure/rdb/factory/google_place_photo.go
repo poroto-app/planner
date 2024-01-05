@@ -4,17 +4,16 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
-
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"sort"
 )
 
 func NewGooglePlacePhotoFromEntity(
-	googlePlacePhotoReferenceEntity entities.GooglePlacePhotoReference,
-	googlePlacePhotoEntities entities.GooglePlacePhotoSlice,
-	googlePlacePhotoAttributionEntities entities.GooglePlacePhotoAttributionSlice,
+	googlePlacePhotoReferenceEntity generated.GooglePlacePhotoReference,
+	googlePlacePhotoEntities generated.GooglePlacePhotoSlice,
+	googlePlacePhotoAttributionEntities generated.GooglePlacePhotoAttributionSlice,
 ) *models.GooglePlacePhoto {
-	var googlePlacePhotoEntitiesFiltered []entities.GooglePlacePhoto
+	var googlePlacePhotoEntitiesFiltered []generated.GooglePlacePhoto
 	for _, googlePlacePhotoEntity := range googlePlacePhotoEntities {
 		if googlePlacePhotoEntity == nil {
 			continue
@@ -62,11 +61,11 @@ func NewGooglePlacePhotoFromEntity(
 	}
 }
 
-func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) entities.GooglePlacePhotoSlice {
-	var googlePlacePhotoEntities entities.GooglePlacePhotoSlice
+func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlacePhoto, googlePlaceId string) generated.GooglePlacePhotoSlice {
+	var googlePlacePhotoEntities generated.GooglePlacePhotoSlice
 
 	if googlePlacePhoto.Small != nil {
-		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
+		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &generated.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
@@ -77,7 +76,7 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 	}
 
 	if googlePlacePhoto.Large != nil {
-		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &entities.GooglePlacePhoto{
+		googlePlacePhotoEntities = append(googlePlacePhotoEntities, &generated.GooglePlacePhoto{
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
