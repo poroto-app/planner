@@ -41,16 +41,19 @@ func NewPlanCandidatesFromEntities(
 		return planCandidateEntitiesOrdered[i].SortOrder < planCandidateEntitiesOrdered[j].SortOrder
 	})
 
-	var plans []models.Plan
-	for _, planCandidateEntity := range planCandidateEntitiesOrdered {
+	plans, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidateEntity entities.PlanCandidate) (*models.Plan, error) {
 		plan, err := NewPlanCandidateFromEntity(planCandidateEntity, planCandidatePlaces, places)
 		if err != nil {
 			return nil, err
 		}
-		plans = append(plans, *plan)
+
+		return plan, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plans: %w", err)
 	}
 
-	return &plans, nil
+	return plans, nil
 }
 
 // NewPlanCandidateFromEntity プラン候補を場所の順番を考慮して生成する
