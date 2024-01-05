@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
@@ -10,19 +11,18 @@ func NewGooglePlacePhotoReferenceFromEntity(
 	googlePlacePhotoAttributionEntities generated.GooglePlacePhotoAttributionSlice,
 ) models.GooglePlacePhotoReference {
 	// HTMLAttributionsを取得
-	var googlePlacePhotoStrAttributions []string
-	for _, googlePlacePhotoAttributionEntity := range googlePlacePhotoAttributionEntities {
+	googlePlacePhotoStrAttributions := array.MapAndFilter(googlePlacePhotoAttributionEntities, func(googlePlacePhotoAttributionEntity *generated.GooglePlacePhotoAttribution) (string, bool) {
 		if googlePlacePhotoAttributionEntity == nil {
-			continue
+			return "", false
 		}
 
 		// PhotoReferenceが一致するものだけを抽出
 		if googlePlacePhotoAttributionEntity.PhotoReference != googlePlacePhotoReferenceEntity.PhotoReference {
-			continue
+			return "", false
 		}
 
-		googlePlacePhotoStrAttributions = append(googlePlacePhotoStrAttributions, googlePlacePhotoAttributionEntity.HTMLAttribution)
-	}
+		return googlePlacePhotoAttributionEntity.HTMLAttribution, true
+	})
 
 	return models.GooglePlacePhotoReference{
 		PhotoReference:   googlePlacePhotoReferenceEntity.PhotoReference,

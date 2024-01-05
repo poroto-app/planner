@@ -2,9 +2,6 @@ name: build
 run-name: Build by @${{ github.actor }}
 on:
   pull_request:
-    branches-ignore:
-      - main
-      - develop
 jobs:
   build:
     uses: ./.github/workflows/workflow_build.yaml

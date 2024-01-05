@@ -36,7 +36,10 @@ func TestFilter(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			actual := Filter(c.slice, c.condition)
 			if len(actual) != len(c.expected) {
 				t.Errorf("expected: %v, actual: %v", c.expected, actual)
@@ -78,7 +81,10 @@ func TestDistinctBy(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			actual := DistinctBy(c.slice, c.selector)
 			if len(actual) != len(c.expected) {
 				t.Errorf("expected: %v, actual: %v", c.expected, actual)

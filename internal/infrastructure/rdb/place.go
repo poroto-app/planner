@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -70,16 +71,45 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 		}
 
 		// GooglePlaceを保存
+		// Point型を保存するのにカスタムクエリを使う必要がある
 		googlePlaceEntity := factory.NewGooglePlaceEntityFromGooglePlace(googlePlace, placeEntity.ID)
-		if err := placeEntity.AddGooglePlaces(ctx, tx, true, &googlePlaceEntity); err != nil {
+		if _, err := queries.Raw(
+			fmt.Sprintf(
+				"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?) )",
+				generated.TableNames.GooglePlaces,
+				generated.GooglePlaceColumns.GooglePlaceID,
+				generated.GooglePlaceColumns.PlaceID,
+				generated.GooglePlaceColumns.Name,
+				generated.GooglePlaceColumns.FormattedAddress,
+				generated.GooglePlaceColumns.Vicinity,
+				generated.GooglePlaceColumns.PriceLevel,
+				generated.GooglePlaceColumns.Rating,
+				generated.GooglePlaceColumns.UserRatingsTotal,
+				generated.GooglePlaceColumns.Latitude,
+				generated.GooglePlaceColumns.Longitude,
+				generated.GooglePlaceColumns.Location,
+			),
+			googlePlaceEntity.GooglePlaceID,
+			googlePlaceEntity.PlaceID,
+			googlePlaceEntity.Name,
+			googlePlaceEntity.FormattedAddress,
+			googlePlaceEntity.Vicinity,
+			googlePlaceEntity.PriceLevel,
+			googlePlaceEntity.Rating,
+			googlePlaceEntity.UserRatingsTotal,
+			googlePlaceEntity.Latitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Latitude,
+		).Exec(tx); err != nil {
 			return fmt.Errorf("failed to insert google place: %w", err)
 		}
 
 		// GooglePlacePhotoReference, GooglePlacePhotoAttributionを保存
 		if _, err := p.saveGooglePlacePhotoReferenceTx(ctx, tx, saveGooglePlacePhotoReferenceTxInput{
+			GooglePlaceEntity:          &googlePlaceEntity,
 			GooglePlacePhotoReferences: googlePlace.PhotoReferences,
 			GooglePlaceDetail:          googlePlace.PlaceDetail,
-			GooglePlaceEntity:          googlePlaceEntity,
 		}); err != nil {
 			return fmt.Errorf("failed to insert google place photo reference: %w", err)
 		}
@@ -116,6 +146,11 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			return fmt.Errorf("failed to insert google place opening period: %w", err)
 		}
 
+		// 自前のクエリを用いてInsertしているため、関連付けを手動で行う
+		if googlePlaceEntity.R != nil {
+			googlePlaceEntity.R.Place = &placeEntity
+		}
+
 		placeSaved, err := factory.NewPlaceFromEntity(
 			placeEntity,
 			googlePlaceEntity,
@@ -127,6 +162,7 @@ func (p PlaceRepository) SavePlacesFromGooglePlace(ctx context.Context, googlePl
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			0,
 		)
+
 		if err != nil {
 			return fmt.Errorf("failed to convert google place entity to place: %w", err)
 		}
@@ -452,7 +488,7 @@ func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeI
 }
 
 type saveGooglePlacePhotoReferenceTxInput struct {
-	GooglePlaceEntity          generated.GooglePlace
+	GooglePlaceEntity          *generated.GooglePlace
 	GooglePlacePhotoReferences []models.GooglePlacePhotoReference
 	GooglePlaceDetail          *models.GooglePlaceDetail
 }
