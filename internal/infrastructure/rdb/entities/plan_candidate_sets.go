@@ -73,12 +73,14 @@ var PlanCandidateSetWhere = struct {
 // PlanCandidateSetRels is where relationship names are stored.
 var PlanCandidateSetRels = struct {
 	PlanCandidatePlaces                string
+	PlanCandidateSetLikePlaces         string
 	PlanCandidateSetMetaData           string
 	PlanCandidateSetMetaDataCategories string
 	PlanCandidateSetSearchedPlaces     string
 	PlanCandidates                     string
 }{
 	PlanCandidatePlaces:                "PlanCandidatePlaces",
+	PlanCandidateSetLikePlaces:         "PlanCandidateSetLikePlaces",
 	PlanCandidateSetMetaData:           "PlanCandidateSetMetaData",
 	PlanCandidateSetMetaDataCategories: "PlanCandidateSetMetaDataCategories",
 	PlanCandidateSetSearchedPlaces:     "PlanCandidateSetSearchedPlaces",
@@ -88,6 +90,7 @@ var PlanCandidateSetRels = struct {
 // planCandidateSetR is where relationships are stored.
 type planCandidateSetR struct {
 	PlanCandidatePlaces                PlanCandidatePlaceSlice               `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
+	PlanCandidateSetLikePlaces         PlanCandidateSetLikePlaceSlice        `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
 	PlanCandidateSetMetaData           PlanCandidateSetMetaDatumSlice        `boil:"PlanCandidateSetMetaData" json:"PlanCandidateSetMetaData" toml:"PlanCandidateSetMetaData" yaml:"PlanCandidateSetMetaData"`
 	PlanCandidateSetMetaDataCategories PlanCandidateSetMetaDataCategorySlice `boil:"PlanCandidateSetMetaDataCategories" json:"PlanCandidateSetMetaDataCategories" toml:"PlanCandidateSetMetaDataCategories" yaml:"PlanCandidateSetMetaDataCategories"`
 	PlanCandidateSetSearchedPlaces     PlanCandidateSetSearchedPlaceSlice    `boil:"PlanCandidateSetSearchedPlaces" json:"PlanCandidateSetSearchedPlaces" toml:"PlanCandidateSetSearchedPlaces" yaml:"PlanCandidateSetSearchedPlaces"`
@@ -104,6 +107,13 @@ func (r *planCandidateSetR) GetPlanCandidatePlaces() PlanCandidatePlaceSlice {
 		return nil
 	}
 	return r.PlanCandidatePlaces
+}
+
+func (r *planCandidateSetR) GetPlanCandidateSetLikePlaces() PlanCandidateSetLikePlaceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidateSetLikePlaces
 }
 
 func (r *planCandidateSetR) GetPlanCandidateSetMetaData() PlanCandidateSetMetaDatumSlice {
@@ -437,6 +447,20 @@ func (o *PlanCandidateSet) PlanCandidatePlaces(mods ...qm.QueryMod) planCandidat
 	return PlanCandidatePlaces(queryMods...)
 }
 
+// PlanCandidateSetLikePlaces retrieves all the plan_candidate_set_like_place's PlanCandidateSetLikePlaces with an executor.
+func (o *PlanCandidateSet) PlanCandidateSetLikePlaces(mods ...qm.QueryMod) planCandidateSetLikePlaceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`plan_candidate_set_like_places`.`plan_candidate_set_id`=?", o.ID),
+	)
+
+	return PlanCandidateSetLikePlaces(queryMods...)
+}
+
 // PlanCandidateSetMetaData retrieves all the plan_candidate_set_meta_datum's PlanCandidateSetMetaData with an executor.
 func (o *PlanCandidateSet) PlanCandidateSetMetaData(mods ...qm.QueryMod) planCandidateSetMetaDatumQuery {
 	var queryMods []qm.QueryMod
@@ -597,6 +621,120 @@ func (planCandidateSetL) LoadPlanCandidatePlaces(ctx context.Context, e boil.Con
 				local.R.PlanCandidatePlaces = append(local.R.PlanCandidatePlaces, foreign)
 				if foreign.R == nil {
 					foreign.R = &planCandidatePlaceR{}
+				}
+				foreign.R.PlanCandidateSet = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadPlanCandidateSetLikePlaces allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (planCandidateSetL) LoadPlanCandidateSetLikePlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidateSet interface{}, mods queries.Applicator) error {
+	var slice []*PlanCandidateSet
+	var object *PlanCandidateSet
+
+	if singular {
+		var ok bool
+		object, ok = maybePlanCandidateSet.(*PlanCandidateSet)
+		if !ok {
+			object = new(PlanCandidateSet)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanCandidateSet))
+			}
+		}
+	} else {
+		s, ok := maybePlanCandidateSet.(*[]*PlanCandidateSet)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanCandidateSet))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &planCandidateSetR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &planCandidateSetR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidate_set_like_places`),
+		qm.WhereIn(`plan_candidate_set_like_places.plan_candidate_set_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load plan_candidate_set_like_places")
+	}
+
+	var resultSlice []*PlanCandidateSetLikePlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_set_like_places")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_set_like_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_set_like_places")
+	}
+
+	if len(planCandidateSetLikePlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlanCandidateSetLikePlaces = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &planCandidateSetLikePlaceR{}
+			}
+			foreign.R.PlanCandidateSet = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlanCandidateSetID {
+				local.R.PlanCandidateSetLikePlaces = append(local.R.PlanCandidateSetLikePlaces, foreign)
+				if foreign.R == nil {
+					foreign.R = &planCandidateSetLikePlaceR{}
 				}
 				foreign.R.PlanCandidateSet = local
 				break
@@ -1107,6 +1245,59 @@ func (o *PlanCandidateSet) AddPlanCandidatePlaces(ctx context.Context, exec boil
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &planCandidatePlaceR{
+				PlanCandidateSet: o,
+			}
+		} else {
+			rel.R.PlanCandidateSet = o
+		}
+	}
+	return nil
+}
+
+// AddPlanCandidateSetLikePlaces adds the given related objects to the existing relationships
+// of the plan_candidate_set, optionally inserting them as new records.
+// Appends related to o.R.PlanCandidateSetLikePlaces.
+// Sets related.R.PlanCandidateSet appropriately.
+func (o *PlanCandidateSet) AddPlanCandidateSetLikePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetLikePlace) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlanCandidateSetID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `plan_candidate_set_like_places` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"plan_candidate_set_id"}),
+				strmangle.WhereClause("`", "`", 0, planCandidateSetLikePlacePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlanCandidateSetID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &planCandidateSetR{
+			PlanCandidateSetLikePlaces: related,
+		}
+	} else {
+		o.R.PlanCandidateSetLikePlaces = append(o.R.PlanCandidateSetLikePlaces, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &planCandidateSetLikePlaceR{
 				PlanCandidateSet: o,
 			}
 		} else {

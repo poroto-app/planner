@@ -13,6 +13,7 @@ var TableNames = struct {
 	GooglePlaces                       string
 	Places                             string
 	PlanCandidatePlaces                string
+	PlanCandidateSetLikePlaces         string
 	PlanCandidateSetMetaData           string
 	PlanCandidateSetMetaDataCategories string
 	PlanCandidateSetSearchedPlaces     string
@@ -29,6 +30,7 @@ var TableNames = struct {
 	GooglePlaces:                       "google_places",
 	Places:                             "places",
 	PlanCandidatePlaces:                "plan_candidate_places",
+	PlanCandidateSetLikePlaces:         "plan_candidate_set_like_places",
 	PlanCandidateSetMetaData:           "plan_candidate_set_meta_data",
 	PlanCandidateSetMetaDataCategories: "plan_candidate_set_meta_data_categories",
 	PlanCandidateSetSearchedPlaces:     "plan_candidate_set_searched_places",
