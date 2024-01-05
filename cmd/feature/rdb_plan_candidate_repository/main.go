@@ -58,8 +58,10 @@ func main() {
 		log.Fatalf("failed to save places from google place: %v", err)
 	}
 
+	// 終了時に削除する
 	defer func() {
-		if _, err := entities.GooglePlaces(entities.GooglePlaceWhere.PlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db); err != nil {
+		cleanup(ctx, db)
+		if _, err := entities.GooglePlaces(entities.GooglePlaceWhere.GooglePlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db); err != nil {
 			log.Fatalf("failed to delete google places: %v", err)
 		}
 		if _, err := entities.Places(entities.PlaceWhere.ID.EQ(testPlace.Id)).DeleteAll(ctx, db); err != nil {
