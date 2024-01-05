@@ -9,4 +9,4 @@ no-tests = true
     user      = "root"
     pass      = "password"
     sslmode   = "false"
-    blacklist = ["migrations", "goose_db_version", "google_places.location"]
+    blacklist = ["migrations", "goose_db_version"]
