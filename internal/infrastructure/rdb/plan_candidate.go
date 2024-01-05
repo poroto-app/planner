@@ -59,6 +59,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			entities.PlanCandidateSetWhere.ExpiresAt.GT(now),
 			qm.Load(entities.PlanCandidateSetRels.PlanCandidates),
 			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaData),
+			qm.Load(entities.PlanCandidateSetRels.PlanCandidateSetMetaDataCategories),
 		},
 		placeQueryModes(entities.PlanCandidateSetRels.PlanCandidatePlaces, entities.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
