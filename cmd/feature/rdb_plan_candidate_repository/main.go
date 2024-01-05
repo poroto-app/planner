@@ -54,8 +54,18 @@ func main() {
 		PlaceId: "test-google-place-id",
 		Name:    "test-place",
 	})
-	defer entities.GooglePlaces(entities.GooglePlaceWhere.PlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db)
-	defer entities.Places(entities.PlaceWhere.ID.EQ(testPlace.Id)).DeleteAll(ctx, db)
+	if err != nil {
+		log.Fatalf("failed to save places from google place: %v", err)
+	}
+
+	defer func() {
+		if _, err := entities.GooglePlaces(entities.GooglePlaceWhere.PlaceID.EQ(testPlace.Google.PlaceId)).DeleteAll(ctx, db); err != nil {
+			log.Fatalf("failed to delete google places: %v", err)
+		}
+		if _, err := entities.Places(entities.PlaceWhere.ID.EQ(testPlace.Id)).DeleteAll(ctx, db); err != nil {
+			log.Fatalf("failed to delete places: %v", err)
+		}
+	}()
 
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
 	if err != nil {
@@ -101,10 +111,22 @@ func main() {
 }
 
 func cleanup(ctx context.Context, db *sql.DB) {
-	entities.PlanCandidateSetSearchedPlaces().DeleteAll(ctx, db)
-	entities.PlanCandidatePlaces().DeleteAll(ctx, db)
-	entities.PlanCandidateSetMetaData().DeleteAll(ctx, db)
-	entities.PlanCandidateSetMetaDataCategories().DeleteAll(ctx, db)
-	entities.PlanCandidates().DeleteAll(ctx, db)
-	entities.PlanCandidateSets().DeleteAll(ctx, db)
+	type Deletable interface {
+		DeleteAll(context.Context, boil.ContextExecutor) (int64, error)
+	}
+
+	tables := []Deletable{
+		entities.PlanCandidateSetSearchedPlaces(),
+		entities.PlanCandidatePlaces(),
+		entities.PlanCandidateSetMetaData(),
+		entities.PlanCandidateSetMetaDataCategories(),
+		entities.PlanCandidates(),
+		entities.PlanCandidateSets(),
+	}
+
+	for _, table := range tables {
+		if _, err := table.DeleteAll(ctx, db); err != nil {
+			panic(err)
+		}
+	}
 }
