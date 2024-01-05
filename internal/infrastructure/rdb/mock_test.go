@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
@@ -25,8 +26,36 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 		}
 
 		googlePlaceEntity := entities.GooglePlace{GooglePlaceID: place.Google.PlaceId, PlaceID: place.Id}
-		if err := placeEntity.AddGooglePlaces(ctx, db, true, &googlePlaceEntity); err != nil {
-			return fmt.Errorf("failed to insert google place: %v", err)
+		if _, err := queries.Raw(
+			fmt.Sprintf(
+				"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?) )",
+				entities.TableNames.GooglePlaces,
+				entities.GooglePlaceColumns.GooglePlaceID,
+				entities.GooglePlaceColumns.PlaceID,
+				entities.GooglePlaceColumns.Name,
+				entities.GooglePlaceColumns.FormattedAddress,
+				entities.GooglePlaceColumns.Vicinity,
+				entities.GooglePlaceColumns.PriceLevel,
+				entities.GooglePlaceColumns.Rating,
+				entities.GooglePlaceColumns.UserRatingsTotal,
+				entities.GooglePlaceColumns.Latitude,
+				entities.GooglePlaceColumns.Longitude,
+				entities.GooglePlaceColumns.Location,
+			),
+			googlePlaceEntity.GooglePlaceID,
+			googlePlaceEntity.PlaceID,
+			googlePlaceEntity.Name,
+			googlePlaceEntity.FormattedAddress,
+			googlePlaceEntity.Vicinity,
+			googlePlaceEntity.PriceLevel,
+			googlePlaceEntity.Rating,
+			googlePlaceEntity.UserRatingsTotal,
+			googlePlaceEntity.Latitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Longitude,
+			googlePlaceEntity.Latitude,
+		).Exec(db); err != nil {
+			return fmt.Errorf("failed to insert google place: %w", err)
 		}
 	}
 
