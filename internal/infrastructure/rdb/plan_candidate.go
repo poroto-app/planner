@@ -80,6 +80,10 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planCandidateSetEntity.R.PlanCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) string {
 		return planCandidatePlace.PlaceID
 	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
 
 	var places []models.Place
 	for _, planCandidatePlace := range planCandidateSetEntity.R.PlanCandidatePlaces {
@@ -157,7 +161,8 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			return planCandidatePlace.PlaceID
 		})...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to count place like counts: %w", err)
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
 	var places []models.Place

@@ -166,6 +166,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		return googlePlaceEntity.PlaceID, true
 	})...)
 	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
@@ -219,6 +220,7 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 		return planCandidateSetSearchedPlace.PlaceID, true
 	})...)
 	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
@@ -408,6 +410,7 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 
 	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, exec, googlePlaceEntity.PlaceID)
 	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
