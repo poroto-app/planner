@@ -231,8 +231,8 @@ type googlePlaceReviewL struct{}
 
 var (
 	googlePlaceReviewAllColumns            = []string{"id", "google_place_id", "author_name", "author_url", "author_profile_photo_url", "language", "rating", "text", "time", "created_at", "updated_at"}
-	googlePlaceReviewColumnsWithoutDefault = []string{"id", "google_place_id", "author_name", "author_url", "author_profile_photo_url", "language", "rating", "text", "time"}
-	googlePlaceReviewColumnsWithDefault    = []string{"created_at", "updated_at"}
+	googlePlaceReviewColumnsWithoutDefault = []string{"google_place_id", "author_name", "author_url", "author_profile_photo_url", "language", "rating", "text", "time"}
+	googlePlaceReviewColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
 	googlePlaceReviewPrimaryKeyColumns     = []string{"id"}
 	googlePlaceReviewGeneratedColumns      = []string{}
 )
