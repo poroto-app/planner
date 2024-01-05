@@ -160,3 +160,22 @@ erDiagram
     plan_candidate_places ||..|| places: "1:1"
     plan_candidate_set_searched_places ||..|| places: "1:1"
 ```
+
+### Like Place
+
+```mermaid
+---
+title: like_place
+---
+erDiagram
+    plan_candidate_set_like_places {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK "UNIQUE(plan_candidate_set_id, place_id)"
+        char(36) place_id FK "UNIQUE(plan_candidate_set_id, place_id)"
+    }
+    
+    plan_candidate_set_like_places ||..|| places: "1:1"
+    plan_candidate_set_like_places ||..|| plan_candidate_sets: "1:1"
+```
+
+- ログイン済みユーザーがLIKEした場合は別のテーブル(`user_like_places`等)に保存する
