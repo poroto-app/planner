@@ -36,8 +36,9 @@ services:
     ports:
       - "3307:3306"
   db-migrator:
-    # TODO: Dockerfile でビルドする
-    image: golang:1.18
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.db-setup
     depends_on:
       db:
         condition: service_healthy
@@ -48,14 +49,10 @@ services:
       DB_NAME: poroto
     volumes:
       - ./db/migrations:/db/migrations
-    command: >
-      sh -c "
-      go install github.com/pressly/goose/cmd/goose@latest &&
-      goose -dir /db/migrations mysql \"$$DB_USER:$$DB_PASSWORD@tcp($$DB_HOST)/$$DB_NAME?parseTime=true&loc=Asia%2FTokyo\" up
-      "
   db-test-migrator:
-    # TODO: Dockerfile でビルドする
-    image: golang:1.18
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.db-setup
     depends_on:
       db-test:
         condition: service_healthy
@@ -66,10 +63,5 @@ services:
       DB_NAME: poroto
     volumes:
       - ./db/migrations:/db/migrations
-    command: >
-      sh -c "
-      go install github.com/pressly/goose/cmd/goose@latest &&
-      goose -dir /db/migrations mysql \"$$DB_USER:$$DB_PASSWORD@tcp($$DB_HOST)/$$DB_NAME?parseTime=true&loc=Asia%2FTokyo\" up
-      "
 volumes:
   mysql-data:
