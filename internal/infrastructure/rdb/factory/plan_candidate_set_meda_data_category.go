@@ -44,10 +44,12 @@ func newPlanCandidateSetMetaDataPreferredCategoriesFromEntity(planCandidateSetMe
 		return planCandidateSetCategory.PlanCandidateSetID == planCandidateSetId
 	})
 
-	var categoriesPreferred []string
-	for _, planCandidateSetCategory := range planCandidateSetMetaDataPreferredCategorySlice {
-		categoriesPreferred = append(categoriesPreferred, planCandidateSetCategory.Category)
-	}
+	categoriesPreferred := array.MapAndFilter(planCandidateSetMetaDataPreferredCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) (string, bool) {
+		if planCandidateSetCategory == nil {
+			return "", false
+		}
+		return planCandidateSetCategory.Category, true
+	})
 
 	if len(categoriesPreferred) == 0 {
 		return nil
@@ -69,10 +71,12 @@ func newPlanCandidateSetMetaDataRejectedCategoriesFromEntity(planCandidateSetMet
 		return planCandidateSetCategory.PlanCandidateSetID == planCandidateSetId
 	})
 
-	var categoriesRequired []string
-	for _, planCandidateSetCategory := range planCandidateSetMetaDataRejectedCategorySlice {
-		categoriesRequired = append(categoriesRequired, planCandidateSetCategory.Category)
-	}
+	categoriesRequired := array.MapAndFilter(planCandidateSetMetaDataRejectedCategorySlice, func(planCandidateSetCategory *entities.PlanCandidateSetMetaDataCategory) (string, bool) {
+		if planCandidateSetCategory == nil {
+			return "", false
+		}
+		return planCandidateSetCategory.Category, true
+	})
 
 	if len(categoriesRequired) == 0 {
 		return nil
