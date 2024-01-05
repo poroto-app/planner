@@ -145,7 +145,9 @@ func TestMapWithErr(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
 			actual, err := MapWithErr(c.slice, c.transform)
 			if err != nil {
 				if c.expected != nil {
