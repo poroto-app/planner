@@ -406,7 +406,7 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		return nil, nil
 	}
 
-	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, exec, googlePlaceEntity.R.Place.ID)
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, exec, googlePlaceEntity.PlaceID)
 	if err != nil {
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
@@ -432,7 +432,10 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeIds ...string) (*[]entities.PlanCandidateSetPlaceLikeCount, error) {
 	var planCandidateSetPlaceLikeCounts []entities.PlanCandidateSetPlaceLikeCount
 	if err := generated.NewQuery(
-		qm.Select("place_id", "COUNT(*) as like_count"),
+		qm.Select(
+			entities.PlanCandidateSetPlaceLikeCountColumns.Name,
+			fmt.Sprintf("COUNT(*) as `%s`", entities.PlanCandidateSetPlaceLikeCountColumns.LikeCount),
+		),
 		qm.From(generated.TableNames.PlanCandidateSetLikePlaces),
 		qm.WhereIn(
 			fmt.Sprintf("%s IN ?", generated.PlanCandidateSetLikePlaceColumns.PlaceID),
