@@ -1,0 +1,137 @@
+-- +goose Up
+CREATE TABLE places
+(
+    id         CHAR(36)     NOT NULL DEFAULT (UUID()),
+    name       VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE google_places
+(
+    google_place_id    VARCHAR(255) NOT NULL,
+    place_id           CHAR(36)     NOT NULL,
+    name               VARCHAR(255) NOT NULL,
+    formatted_address  VARCHAR(255),
+    vicinity           VARCHAR(255),
+    price_level        INT,
+    rating             FLOAT,
+    user_ratings_total INT,
+    latitude           DOUBLE       NOT NULL,
+    longitude          DOUBLE       NOT NULL,
+    location           POINT        NOT NULL COMMENT "This column value will be set by the trigger(google_places_before_insert)",
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (google_place_id),
+    FOREIGN KEY (place_id) REFERENCES places (id),
+    SPATIAL INDEX (location)
+);
+
+CREATE TRIGGER google_places_before_insert
+    BEFORE INSERT
+    ON google_places
+    FOR EACH ROW
+    SET NEW.location = POINT(NEW.longitude, NEW.latitude);
+
+CREATE TABLE google_place_types
+(
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id VARCHAR(255) NOT NULL,
+    type            VARCHAR(255) NOT NULL,
+    order_num       INT          NOT NULL,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+
+CREATE TABLE google_place_photo_references
+(
+    photo_reference VARCHAR(255) NOT NULL,
+    google_place_id VARCHAR(255) NOT NULL,
+    width           INT          NOT NULL,
+    height          INT          NOT NULL,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (photo_reference),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+
+CREATE TABLE google_place_photo_attributions
+(
+    id               CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id  VARCHAR(255) NOT NULL,
+    photo_reference  VARCHAR(255) NOT NULL,
+    html_attribution TEXT         NOT NULL,
+    created_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id),
+    FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
+);
+
+CREATE TABLE google_place_photos
+(
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id VARCHAR(255) NOT NULL,
+    photo_reference VARCHAR(255) NOT NULL,
+    width           INT          NOT NULL,
+    height          INT          NOT NULL,
+    url             VARCHAR(255) NOT NULL,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id),
+    FOREIGN KEY (photo_reference) REFERENCES google_place_photo_references (photo_reference)
+);
+
+CREATE TABLE google_place_reviews
+(
+    id                       CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id          VARCHAR(255) NOT NULL,
+    author_name              VARCHAR(255),
+    author_url               VARCHAR(255),
+    author_profile_photo_url VARCHAR(255),
+    language                 VARCHAR(255),
+    rating                   INT,
+    text                     TEXT,
+    time                     INT,
+    created_at               TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at               TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+
+CREATE TABLE google_place_opening_periods
+(
+    id              CHAR(36)     NOT NULL DEFAULT (UUID()),
+    google_place_id VARCHAR(255) NOT NULL,
+    open_day        INT          NOT NULL,
+    open_time       CHAR(4)      NOT NULL,
+    close_day       INT          NOT NULL,
+    close_time      CHAR(4)      NOT NULL,
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (google_place_id) REFERENCES google_places (google_place_id)
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS google_place_opening_periods;
+
+DROP TABLE IF EXISTS google_place_reviews;
+
+DROP TABLE IF EXISTS google_place_photos;
+
+DROP TABLE IF EXISTS google_place_photo_attributions;
+
+DROP TABLE IF EXISTS google_place_photo_references;
+
+DROP TABLE IF EXISTS google_place_types;
+
+DROP TRIGGER IF EXISTS google_places_before_insert;
+
+DROP TABLE IF EXISTS google_places;
+
+DROP TABLE IF EXISTS places;
