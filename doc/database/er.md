@@ -172,6 +172,7 @@ erDiagram
         char(36) id PK
         char(36) user_id FK
         string name
+        point location "プランの大まかな場所"
     }
 
     plan_places {
