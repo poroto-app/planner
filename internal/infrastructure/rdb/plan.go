@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -48,9 +49,29 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 		return nil
 	}
 
+	if len(plan.Places) == 0 {
+		return fmt.Errorf("plan places is empty")
+	}
+
+	startLocation := plan.Places[0].Location
+
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planEntity := factory.NewPlanEntityFromDomainModel(*plan)
-		if err := planEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+		if _, err := queries.Raw(
+			fmt.Sprintf(
+				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
+				generated.TableNames.Plans,
+				generated.PlanColumns.ID,
+				generated.PlanColumns.UserID,
+				generated.PlanColumns.Name,
+				generated.PlanColumns.Location,
+			),
+			planEntity.ID,
+			planEntity.UserID,
+			planEntity.Name,
+			startLocation.Longitude,
+			startLocation.Latitude,
+		).ExecContext(ctx, tx); err != nil {
 			return fmt.Errorf("failed to insert plan: %w", err)
 		}
 
