@@ -17,3 +17,21 @@ func NewPlanEntityFromDomainModel(plan models.Plan) generated.Plan {
 		Name:   plan.Name,
 	}
 }
+
+func NewPlanFromEntity(
+	planEntity generated.Plan,
+	planPlaceSlice generated.PlanPlaceSlice,
+	places []models.Place,
+) (*models.Plan, error) {
+	planPlaces, err := NewPlanPlacesFromEntities(planPlaceSlice, places, planEntity.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.Plan{
+		Id:       planEntity.ID,
+		Name:     planEntity.Name,
+		AuthorId: planEntity.UserID.Ptr(),
+		Places:   *planPlaces,
+	}, nil
+}
