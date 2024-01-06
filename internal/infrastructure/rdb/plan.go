@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
@@ -131,8 +132,81 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 }
 
 func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[]models.Plan, error) {
-	//TODO implement me
-	panic("implement me")
+	planEntities, err := generated.Plans(concatQueryMod(
+		[]qm.QueryMod{
+			generated.PlanWhere.UserID.EQ(null.StringFrom(authorId)),
+			qm.Load(generated.PlanRels.PlanPlaces),
+			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
+		},
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+	)...).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find plans: %w", err)
+	}
+
+	if len(planEntities) == 0 {
+		return &[]models.Plan{}, nil
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
+		return planEntity.ID
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
+		if planEntity.R == nil {
+			return nil, fmt.Errorf("planEntity.R is nil")
+		}
+
+		if planEntity.R.PlanPlaces == nil {
+			return nil, fmt.Errorf("planEntity.R.PlanPlaces is nil")
+		}
+
+		return array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
+			if planPlace.R == nil {
+				return nil, fmt.Errorf("planPlace.R is nil")
+			}
+
+			if planPlace.R.Place == nil {
+				return nil, fmt.Errorf("planPlace.R.Place is nil")
+			}
+
+			if len(planPlace.R.Place.R.GooglePlaces) == 0 || planPlace.R.Place.R.GooglePlaces[0].R == nil {
+				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
+			}
+
+			return factory.NewPlaceFromEntity(
+				*planPlace.R.Place,
+				*planPlace.R.Place.R.GooglePlaces[0],
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+			)
+		})
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plan places: %w", err)
+	}
+
+	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
+		return factory.NewPlanFromEntity(
+			*planEntity,
+			planEntity.R.PlanPlaces,
+			array.Flatten(*places),
+		)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plans: %w", err)
+	}
+
+	return plans, nil
 }
 
 func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
