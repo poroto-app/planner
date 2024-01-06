@@ -131,8 +131,8 @@ type planL struct{}
 
 var (
 	planAllColumns            = []string{"id", "user_id", "name", "created_at", "updated_at", "location", "geohash"}
-	planColumnsWithoutDefault = []string{"id", "user_id", "name", "location", "geohash"}
-	planColumnsWithDefault    = []string{"created_at", "updated_at"}
+	planColumnsWithoutDefault = []string{"id", "user_id", "name", "geohash"}
+	planColumnsWithDefault    = []string{"created_at", "updated_at", "location"}
 	planPrimaryKeyColumns     = []string{"id"}
 	planGeneratedColumns      = []string{}
 )
