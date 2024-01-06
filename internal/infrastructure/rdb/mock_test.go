@@ -10,6 +10,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
@@ -59,6 +60,21 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 		}
 	}
 
+	return nil
+}
+
+func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
+	for _, plan := range plans {
+		planEntity := factory.NewPlanEntityFromDomainModel(plan)
+		if err := planEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan: %v", err)
+		}
+
+		planPlaceSlice := factory.NewPlanPlaceSliceFromDomainMode(plan.Places, plan.Id)
+		if _, err := planPlaceSlice.InsertAll(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan places: %v", err)
+		}
+	}
 	return nil
 }
 
