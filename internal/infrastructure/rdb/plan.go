@@ -14,6 +14,9 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type PlanRepository struct {
@@ -64,9 +67,103 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 	return nil
 }
 
+// TODO: QueryCursor をこの関数内で生成する
 func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error) {
-	//TODO implement me
-	panic("implement me")
+	planQueryMod := []qm.QueryMod{
+		qm.Load(generated.PlanRels.PlanPlaces),
+		qm.OrderBy(fmt.Sprintf("%s %s, %s %s", generated.PlanColumns.CreatedAt, "desc", generated.PlanColumns.ID, "desc")),
+		qm.Limit(limit),
+	}
+
+	if queryCursor != nil {
+		components := strings.Split(*queryCursor, "_")
+		if len(components) != 2 {
+			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
+		}
+
+		unixTime, err := strconv.ParseInt(components[0], 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
+		}
+		dateTime := time.Unix(unixTime, 0)
+
+		id := components[1]
+
+		// WHERE (created_at, id) < (dateTime, id)
+		planQueryMod = append(planQueryMod, qm.Where(
+			fmt.Sprintf("(%s, %s) < (?, ?)", generated.PlanColumns.CreatedAt, generated.PlanColumns.ID),
+			dateTime,
+			id,
+		))
+	}
+
+	planEntities, err := generated.Plans(concatQueryMod(
+		planQueryMod,
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+	)...).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find plans: %w", err)
+	}
+
+	if len(planEntities) == 0 {
+		return &[]models.Plan{}, nil
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
+		return planEntity.ID
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
+		if planEntity.R == nil {
+			return nil, fmt.Errorf("planEntity.R is nil")
+		}
+
+		return array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
+			if planPlace.R == nil {
+				return nil, fmt.Errorf("planPlace.R is nil")
+			}
+
+			if planPlace.R.Place == nil {
+				return nil, fmt.Errorf("planPlace.R.Place is nil")
+			}
+
+			if len(planPlace.R.Place.R.GooglePlaces) == 0 || planPlace.R.Place.R.GooglePlaces[0].R == nil {
+				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
+			}
+
+			return factory.NewPlaceFromEntity(
+				*planPlace.R.Place,
+				*planPlace.R.Place.R.GooglePlaces[0],
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+			)
+		})
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plan places: %w", err)
+	}
+
+	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
+		return factory.NewPlanFromEntity(
+			*planEntity,
+			planEntity.R.PlanPlaces,
+			array.Flatten(*places),
+		)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plans: %w", err)
+	}
+
+	return plans, nil
 }
 
 func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
@@ -212,4 +309,8 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func newQueryCursor(createdAt time.Time, planId string) string {
+	return fmt.Sprintf("%d_%s", createdAt.Unix(), planId)
 }
