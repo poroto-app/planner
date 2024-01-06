@@ -224,6 +224,9 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		planEntity.R.PlanPlaces,
 		*places,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plan: %w", err)
+	}
 
 	return plan, nil
 }
