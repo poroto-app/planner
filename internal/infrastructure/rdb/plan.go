@@ -5,10 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
 type PlanRepository struct {
@@ -65,8 +69,65 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 }
 
 func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
-	//TODO implement me
-	panic("implement me")
+	planEntity, err := generated.Plans(concatQueryMod(
+		[]qm.QueryMod{
+			generated.PlanWhere.ID.EQ(planId),
+			qm.Load(generated.PlanRels.PlanPlaces),
+		},
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+	)...).One(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find plan: %w", err)
+	}
+
+	if planEntity.R == nil {
+		return nil, fmt.Errorf("planEntity.R is nil")
+	}
+
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) string {
+		return planPlace.PlaceID
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	places, err := array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
+		if planPlace.R == nil {
+			return nil, fmt.Errorf("planPlace.R is nil")
+		}
+
+		if planPlace.R.Place == nil {
+			return nil, fmt.Errorf("planPlace.R.Place is nil")
+		}
+
+		if len(planPlace.R.Place.R.GooglePlaces) == 0 || planPlace.R.Place.R.GooglePlaces[0].R == nil {
+			return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
+		}
+
+		return factory.NewPlaceFromEntity(
+			*planPlace.R.Place,
+			*planPlace.R.Place.R.GooglePlaces[0],
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+		)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to map plan places: %w", err)
+	}
+
+	plan, err := factory.NewPlanFromEntity(
+		*planEntity,
+		planEntity.R.PlanPlaces,
+		*places,
+	)
+
+	return plan, nil
 }
 
 func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[]models.Plan, error) {
