@@ -84,16 +84,18 @@ func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 		}
 		if _, err := queries.Raw(
 			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
+				"INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, POINT(?, ?))",
 				generated.TableNames.Plans,
 				generated.PlanColumns.ID,
 				generated.PlanColumns.UserID,
 				generated.PlanColumns.Name,
+				generated.PlanColumns.Geohash,
 				generated.PlanColumns.Location,
 			),
 			planEntity.ID,
 			planEntity.UserID,
 			planEntity.Name,
+			startLocation.GeoHash(),
 			startLocation.Longitude,
 			startLocation.Latitude,
 		).ExecContext(ctx, db); err != nil {
