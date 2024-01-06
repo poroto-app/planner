@@ -30,6 +30,7 @@ type Plan struct {
 	CreatedAt time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 	Location  string      `boil:"location" json:"location" toml:"location" yaml:"location"`
+	Geohash   string      `boil:"geohash" json:"geohash" toml:"geohash" yaml:"geohash"`
 
 	R *planR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -42,6 +43,7 @@ var PlanColumns = struct {
 	CreatedAt string
 	UpdatedAt string
 	Location  string
+	Geohash   string
 }{
 	ID:        "id",
 	UserID:    "user_id",
@@ -49,6 +51,7 @@ var PlanColumns = struct {
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
 	Location:  "location",
+	Geohash:   "geohash",
 }
 
 var PlanTableColumns = struct {
@@ -58,6 +61,7 @@ var PlanTableColumns = struct {
 	CreatedAt string
 	UpdatedAt string
 	Location  string
+	Geohash   string
 }{
 	ID:        "plans.id",
 	UserID:    "plans.user_id",
@@ -65,6 +69,7 @@ var PlanTableColumns = struct {
 	CreatedAt: "plans.created_at",
 	UpdatedAt: "plans.updated_at",
 	Location:  "plans.location",
+	Geohash:   "plans.geohash",
 }
 
 // Generated where
@@ -76,6 +81,7 @@ var PlanWhere = struct {
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 	Location  whereHelperstring
+	Geohash   whereHelperstring
 }{
 	ID:        whereHelperstring{field: "`plans`.`id`"},
 	UserID:    whereHelpernull_String{field: "`plans`.`user_id`"},
@@ -83,6 +89,7 @@ var PlanWhere = struct {
 	CreatedAt: whereHelpertime_Time{field: "`plans`.`created_at`"},
 	UpdatedAt: whereHelpertime_Time{field: "`plans`.`updated_at`"},
 	Location:  whereHelperstring{field: "`plans`.`location`"},
+	Geohash:   whereHelperstring{field: "`plans`.`geohash`"},
 }
 
 // PlanRels is where relationship names are stored.
@@ -123,9 +130,9 @@ func (r *planR) GetPlanPlaces() PlanPlaceSlice {
 type planL struct{}
 
 var (
-	planAllColumns            = []string{"id", "user_id", "name", "created_at", "updated_at", "location"}
-	planColumnsWithoutDefault = []string{"id", "user_id", "name"}
-	planColumnsWithDefault    = []string{"created_at", "updated_at", "location"}
+	planAllColumns            = []string{"id", "user_id", "name", "created_at", "updated_at", "location", "geohash"}
+	planColumnsWithoutDefault = []string{"id", "user_id", "name", "location", "geohash"}
+	planColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planPrimaryKeyColumns     = []string{"id"}
 	planGeneratedColumns      = []string{}
 )
