@@ -1172,3 +1172,457 @@ func PlanCandidateSetMetaDataCategoryExists(ctx context.Context, exec boil.Conte
 func (o *PlanCandidateSetMetaDataCategory) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	return PlanCandidateSetMetaDataCategoryExists(ctx, exec, o.ID)
 }
+
+// /////////////////////////////// BEGIN EXTENSIONS /////////////////////////////////
+// Expose table columns
+var (
+	PlanCandidateSetMetaDataCategoryAllColumns            = planCandidateSetMetaDataCategoryAllColumns
+	PlanCandidateSetMetaDataCategoryColumnsWithoutDefault = planCandidateSetMetaDataCategoryColumnsWithoutDefault
+	PlanCandidateSetMetaDataCategoryColumnsWithDefault    = planCandidateSetMetaDataCategoryColumnsWithDefault
+	PlanCandidateSetMetaDataCategoryPrimaryKeyColumns     = planCandidateSetMetaDataCategoryPrimaryKeyColumns
+	PlanCandidateSetMetaDataCategoryGeneratedColumns      = planCandidateSetMetaDataCategoryGeneratedColumns
+)
+
+// GetID get ID from model object
+func (o *PlanCandidateSetMetaDataCategory) GetID() string {
+	return o.ID
+}
+
+// GetIDs extract IDs from model objects
+func (s PlanCandidateSetMetaDataCategorySlice) GetIDs() []string {
+	result := make([]string, len(s))
+	for i := range s {
+		result[i] = s[i].ID
+	}
+	return result
+}
+
+// GetIntfIDs extract IDs from model objects as interface slice
+func (s PlanCandidateSetMetaDataCategorySlice) GetIntfIDs() []interface{} {
+	result := make([]interface{}, len(s))
+	for i := range s {
+		result[i] = s[i].ID
+	}
+	return result
+}
+
+// ToIDMap convert a slice of model objects to a map with ID as key
+func (s PlanCandidateSetMetaDataCategorySlice) ToIDMap() map[string]*PlanCandidateSetMetaDataCategory {
+	result := make(map[string]*PlanCandidateSetMetaDataCategory, len(s))
+	for _, o := range s {
+		result[o.ID] = o
+	}
+	return result
+}
+
+// ToUniqueItems construct a slice of unique items from the given slice
+func (s PlanCandidateSetMetaDataCategorySlice) ToUniqueItems() PlanCandidateSetMetaDataCategorySlice {
+	result := make(PlanCandidateSetMetaDataCategorySlice, 0, len(s))
+	mapChk := make(map[string]struct{}, len(s))
+	for i := len(s) - 1; i >= 0; i-- {
+		o := s[i]
+		if _, ok := mapChk[o.ID]; !ok {
+			mapChk[o.ID] = struct{}{}
+			result = append(result, o)
+		}
+	}
+	return result
+}
+
+// FindItemByID find item by ID in the slice
+func (s PlanCandidateSetMetaDataCategorySlice) FindItemByID(id string) *PlanCandidateSetMetaDataCategory {
+	for _, o := range s {
+		if o.ID == id {
+			return o
+		}
+	}
+	return nil
+}
+
+// FindMissingItemIDs find all item IDs that are not in the list
+// NOTE: the input ID slice should contain unique values
+func (s PlanCandidateSetMetaDataCategorySlice) FindMissingItemIDs(expectedIDs []string) []string {
+	if len(s) == 0 {
+		return expectedIDs
+	}
+	result := []string{}
+	mapChk := s.ToIDMap()
+	for _, id := range expectedIDs {
+		if _, ok := mapChk[id]; !ok {
+			result = append(result, id)
+		}
+	}
+	return result
+}
+
+// InsertAll inserts all rows with the specified column values, using an executor.
+func (o PlanCandidateSetMetaDataCategorySlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+	if len(o) == 0 {
+		return 0, nil
+	}
+
+	var sql string
+	vals := []interface{}{}
+	for i, row := range o {
+		if !boil.TimestampsAreSkipped(ctx) {
+			currTime := time.Now().In(boil.GetLocation())
+			if row.CreatedAt.IsZero() {
+				row.CreatedAt = currTime
+			}
+			if row.UpdatedAt.IsZero() {
+				row.UpdatedAt = currTime
+			}
+		}
+
+		if err := row.doBeforeInsertHooks(ctx, exec); err != nil {
+			return 0, err
+		}
+
+		wl, _ := columns.InsertColumnSet(
+			planCandidateSetMetaDataCategoryAllColumns,
+			planCandidateSetMetaDataCategoryColumnsWithDefault,
+			planCandidateSetMetaDataCategoryColumnsWithoutDefault,
+			queries.NonZeroDefaultSet(planCandidateSetMetaDataCategoryColumnsWithDefault, row),
+		)
+		if i == 0 {
+			sql = "INSERT INTO `plan_candidate_set_meta_data_categories` " + "(`" + strings.Join(wl, "`,`") + "`)" + " VALUES "
+		}
+		sql += strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), len(vals)+1, len(wl))
+		if i != len(o)-1 {
+			sql += ","
+		}
+		valMapping, err := queries.BindMapping(planCandidateSetMetaDataCategoryType, planCandidateSetMetaDataCategoryMapping, wl)
+		if err != nil {
+			return 0, err
+		}
+
+		value := reflect.Indirect(reflect.ValueOf(row))
+		vals = append(vals, queries.ValuesFromMapping(value, valMapping)...)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, sql)
+		fmt.Fprintln(writer, vals)
+	}
+
+	result, err := exec.ExecContext(ctx, sql, vals...)
+	if err != nil {
+		return 0, errors.Wrap(err, "generated: unable to insert all from planCandidateSetMetaDataCategory slice")
+	}
+
+	rowsAff, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by insertall for plan_candidate_set_meta_data_categories")
+	}
+
+	if len(planCandidateSetMetaDataCategoryAfterInsertHooks) != 0 {
+		for _, obj := range o {
+			if err := obj.doAfterInsertHooks(ctx, exec); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return rowsAff, nil
+}
+
+// UpsertAll inserts or updates all rows
+// Currently it doesn't support "NoContext" and "NoRowsAffected"
+func (o PlanCandidateSetMetaDataCategorySlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) (int64, error) {
+	if len(o) == 0 {
+		return 0, nil
+	}
+
+	nzDefaults := queries.NonZeroDefaultSet(planCandidateSetMetaDataCategoryColumnsWithDefault, o[0])
+	nzUniques := queries.NonZeroDefaultSet(mySQLPlanCandidateSetMetaDataCategoryUniqueColumns, o[0])
+	if len(nzUniques) == 0 {
+		return 0, errors.New("cannot upsert with a table that cannot conflict on a unique column")
+	}
+
+	insert, _ := insertColumns.InsertColumnSet(
+		planCandidateSetMetaDataCategoryAllColumns,
+		planCandidateSetMetaDataCategoryColumnsWithDefault,
+		planCandidateSetMetaDataCategoryColumnsWithoutDefault,
+		nzDefaults,
+	)
+	update := updateColumns.UpdateColumnSet(
+		planCandidateSetMetaDataCategoryAllColumns,
+		planCandidateSetMetaDataCategoryPrimaryKeyColumns,
+	)
+	if !updateColumns.IsNone() && len(update) == 0 {
+		return 0, errors.New("generated: unable to upsert plan_candidate_set_meta_data_categories, could not build update column list")
+	}
+
+	buf := strmangle.GetBuffer()
+	defer strmangle.PutBuffer(buf)
+
+	if len(update) == 0 {
+		fmt.Fprintf(
+			buf,
+			"INSERT IGNORE INTO `plan_candidate_set_meta_data_categories`(%s) VALUES %s",
+			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
+			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
+		)
+	} else {
+		fmt.Fprintf(
+			buf,
+			"INSERT INTO `plan_candidate_set_meta_data_categories`(%s) VALUES %s ON DUPLICATE KEY UPDATE ",
+			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
+			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
+		)
+
+		for i, v := range update {
+			if i != 0 {
+				buf.WriteByte(',')
+			}
+			quoted := strmangle.IdentQuote(dialect.LQ, dialect.RQ, v)
+			buf.WriteString(quoted)
+			buf.WriteString(" = VALUES(")
+			buf.WriteString(quoted)
+			buf.WriteByte(')')
+		}
+	}
+
+	query := buf.String()
+	valueMapping, err := queries.BindMapping(planCandidateSetMetaDataCategoryType, planCandidateSetMetaDataCategoryMapping, insert)
+	if err != nil {
+		return 0, err
+	}
+
+	var vals []interface{}
+	for _, row := range o {
+		if !boil.TimestampsAreSkipped(ctx) {
+			currTime := time.Now().In(boil.GetLocation())
+			if row.CreatedAt.IsZero() {
+				row.CreatedAt = currTime
+			}
+
+			row.UpdatedAt = currTime
+		}
+
+		if err := row.doBeforeUpsertHooks(ctx, exec); err != nil {
+			return 0, err
+		}
+
+		value := reflect.Indirect(reflect.ValueOf(row))
+		vals = append(vals, queries.ValuesFromMapping(value, valueMapping)...)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, vals)
+	}
+
+	result, err := exec.ExecContext(ctx, query, vals...)
+	if err != nil {
+		return 0, errors.Wrap(err, "generated: unable to upsert for plan_candidate_set_meta_data_categories")
+	}
+
+	rowsAff, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by upsert for plan_candidate_set_meta_data_categories")
+	}
+
+	if len(planCandidateSetMetaDataCategoryAfterUpsertHooks) != 0 {
+		for _, obj := range o {
+			if err := obj.doAfterUpsertHooks(ctx, exec); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return rowsAff, nil
+}
+
+// DeleteAllByPage delete all PlanCandidateSetMetaDataCategory records from the slice.
+// This function deletes data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
+// Mysql Error 1390: Prepared statement contains too many placeholders.
+func (s PlanCandidateSetMetaDataCategorySlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecutor, limits ...int) (int64, error) {
+	length := len(s)
+	if length == 0 {
+		return 0, nil
+	}
+
+	// MySQL max placeholders = 65535
+	chunkSize := DefaultPageSize
+	if len(limits) > 0 && limits[0] > 0 && limits[0] <= MaxPageSize {
+		chunkSize = limits[0]
+	}
+	if length <= chunkSize {
+		return s.DeleteAll(ctx, exec)
+	}
+
+	rowsAffected := int64(0)
+	start := 0
+	for {
+		end := start + chunkSize
+		if end > length {
+			end = length
+		}
+		rows, err := s[start:end].DeleteAll(ctx, exec)
+		if err != nil {
+			return rowsAffected, err
+		}
+
+		rowsAffected += rows
+		start = end
+		if start >= length {
+			break
+		}
+	}
+	return rowsAffected, nil
+}
+
+// UpdateAllByPage update all PlanCandidateSetMetaDataCategory records from the slice.
+// This function updates data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
+// Mysql Error 1390: Prepared statement contains too many placeholders.
+func (s PlanCandidateSetMetaDataCategorySlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecutor, cols M, limits ...int) (int64, error) {
+	length := len(s)
+	if length == 0 {
+		return 0, nil
+	}
+
+	// MySQL max placeholders = 65535
+	// NOTE (eric): len(cols) should not be too big
+	chunkSize := DefaultPageSize
+	if len(limits) > 0 && limits[0] > 0 && limits[0] <= MaxPageSize {
+		chunkSize = limits[0]
+	}
+	if length <= chunkSize {
+		return s.UpdateAll(ctx, exec, cols)
+	}
+
+	rowsAffected := int64(0)
+	start := 0
+	for {
+		end := start + chunkSize
+		if end > length {
+			end = length
+		}
+		rows, err := s[start:end].UpdateAll(ctx, exec, cols)
+		if err != nil {
+			return rowsAffected, err
+		}
+
+		rowsAffected += rows
+		start = end
+		if start >= length {
+			break
+		}
+	}
+	return rowsAffected, nil
+}
+
+// InsertAllByPage insert all PlanCandidateSetMetaDataCategory records from the slice.
+// This function inserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
+// Mysql Error 1390: Prepared statement contains too many placeholders.
+func (s PlanCandidateSetMetaDataCategorySlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
+	length := len(s)
+	if length == 0 {
+		return 0, nil
+	}
+
+	// MySQL max placeholders = 65535
+	chunkSize := MaxPageSize / reflect.ValueOf(&PlanCandidateSetMetaDataCategoryColumns).Elem().NumField()
+	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
+		chunkSize = limits[0]
+	}
+	if length <= chunkSize {
+		return s.InsertAll(ctx, exec, columns)
+	}
+
+	rowsAffected := int64(0)
+	start := 0
+	for {
+		end := start + chunkSize
+		if end > length {
+			end = length
+		}
+		rows, err := s[start:end].InsertAll(ctx, exec, columns)
+		if err != nil {
+			return rowsAffected, err
+		}
+
+		rowsAffected += rows
+		start = end
+		if start >= length {
+			break
+		}
+	}
+	return rowsAffected, nil
+}
+
+// UpsertAllByPage upsert all PlanCandidateSetMetaDataCategory records from the slice.
+// This function upserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
+// Mysql Error 1390: Prepared statement contains too many placeholders.
+func (s PlanCandidateSetMetaDataCategorySlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns, limits ...int) (int64, error) {
+	length := len(s)
+	if length == 0 {
+		return 0, nil
+	}
+
+	// MySQL max placeholders = 65535
+	chunkSize := MaxPageSize / reflect.ValueOf(&PlanCandidateSetMetaDataCategoryColumns).Elem().NumField()
+	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
+		chunkSize = limits[0]
+	}
+	if length <= chunkSize {
+		return s.UpsertAll(ctx, exec, updateColumns, insertColumns)
+	}
+
+	rowsAffected := int64(0)
+	start := 0
+	for {
+		end := start + chunkSize
+		if end > length {
+			end = length
+		}
+		rows, err := s[start:end].UpsertAll(ctx, exec, updateColumns, insertColumns)
+		if err != nil {
+			return rowsAffected, err
+		}
+
+		rowsAffected += rows
+		start = end
+		if start >= length {
+			break
+		}
+	}
+	return rowsAffected, nil
+}
+
+// LoadPlanCandidateSetsByPage performs eager loading of values by page. This is for a N-1 relationship.
+func (s PlanCandidateSetMetaDataCategorySlice) LoadPlanCandidateSetsByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadPlanCandidateSetsByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlanCandidateSetMetaDataCategorySlice) LoadPlanCandidateSetsByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*PlanCandidateSetMetaDataCategory](s, pageSize) {
+		if err := chunk[0].L.LoadPlanCandidateSet(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlanCandidateSetMetaDataCategorySlice) GetLoadedPlanCandidateSets() PlanCandidateSetSlice {
+	result := make(PlanCandidateSetSlice, 0, len(s))
+	mapCheckDup := make(map[*PlanCandidateSet]struct{})
+	for _, item := range s {
+		if item.R == nil || item.R.PlanCandidateSet == nil {
+			continue
+		}
+		if _, ok := mapCheckDup[item.R.PlanCandidateSet]; ok {
+			continue
+		}
+		result = append(result, item.R.PlanCandidateSet)
+		mapCheckDup[item.R.PlanCandidateSet] = struct{}{}
+	}
+	return result
+}
+
+///////////////////////////////// END EXTENSIONS /////////////////////////////////
