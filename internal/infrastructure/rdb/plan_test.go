@@ -151,6 +151,19 @@ func TestPlanRepository_Find(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "plan with empty places should be found",
+			savedPlan: models.Plan{
+				Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
+				Name:   "plan title",
+				Places: []models.Place{},
+			},
+			expected: models.Plan{
+				Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
+				Name:   "plan title",
+				Places: []models.Place{},
+			},
+		},
 	}
 
 	planRepository, err := NewPlanRepository(testDB)
