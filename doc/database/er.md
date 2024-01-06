@@ -173,6 +173,7 @@ erDiagram
         char(36) user_id FK
         string name
         point location "プランの大まかな場所"
+        string geohash
     }
 
     plan_places {
