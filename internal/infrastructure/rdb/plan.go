@@ -59,18 +59,16 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 		planEntity := factory.NewPlanEntityFromDomainModel(*plan)
 		if _, err := queries.Raw(
 			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, POINT(?, ?))",
+				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
 				generated.TableNames.Plans,
 				generated.PlanColumns.ID,
 				generated.PlanColumns.UserID,
 				generated.PlanColumns.Name,
-				generated.PlanColumns.Geohash,
 				generated.PlanColumns.Location,
 			),
 			planEntity.ID,
 			planEntity.UserID,
 			planEntity.Name,
-			planEntity.Geohash,
 			startLocation.Longitude,
 			startLocation.Latitude,
 		).ExecContext(ctx, tx); err != nil {
