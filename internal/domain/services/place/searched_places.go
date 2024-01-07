@@ -13,6 +13,7 @@ func (s Service) SaveSearchedPlaces(ctx context.Context, planCandidateId string,
 	}
 
 	// models.Google を保存し，models.Place を取得する
+	// TODO: バッチ保存できるようにする
 	chPlaces := make(chan savePlaceFromGooglePlaceResult, len(googlePlaces))
 	for _, googlePlace := range googlePlaces {
 		go func(googlePlace models.GooglePlace) {

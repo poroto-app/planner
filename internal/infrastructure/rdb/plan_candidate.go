@@ -137,10 +137,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 
 func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error) {
 	planCandidate, err := generated.PlanCandidates(concatQueryMod(
-		[]qm.QueryMod{
-			generated.PlanCandidateWhere.ID.EQ(planId),
-			generated.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId),
-		},
+		[]qm.QueryMod{generated.PlanCandidateWhere.ID.EQ(planId)},
 		placeQueryModes(generated.PlanCandidateRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
 	if err != nil {

@@ -374,7 +374,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 		}
 
 		// GooglePlacePhotoReferenceを保存
-		googlePlacePhotoReferenceSlice := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlaceDetail.PhotoReferences)
+		googlePlacePhotoReferenceSlice := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlaceDetail.PhotoReferences, googlePlaceId)
 		googlePlacePhotoReferenceSlice = array.Filter(googlePlacePhotoReferenceSlice, func(googlePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
 			if googlePlacePhotoReferenceEntity == nil {
 				return false
@@ -499,12 +499,15 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 	var googlePhotoReferences []models.GooglePlacePhotoReference
 	googlePhotoReferences = input.GooglePlacePhotoReferences
 	if input.GooglePlaceDetail != nil {
-		// TODO: 重複を削除する
 		googlePhotoReferences = append(googlePhotoReferences, input.GooglePlaceDetail.PhotoReferences...)
 	}
+	// 重複を削除する
+	googlePhotoReferences = array.DistinctBy(googlePhotoReferences, func(googlePhotoReference models.GooglePlacePhotoReference) string {
+		return googlePhotoReference.PhotoReference
+	})
 
 	// GooglePlacePhotoReferenceを保存
-	googlePlacePhotoReferenceEntities := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePhotoReferences)
+	googlePlacePhotoReferenceEntities := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePhotoReferences, input.GooglePlaceEntity.GooglePlaceID)
 	if err := input.GooglePlaceEntity.AddGooglePlacePhotoReferences(ctx, tx, true, googlePlacePhotoReferenceEntities...); err != nil {
 		return nil, fmt.Errorf("failed to insert google place photo reference: %w", err)
 	}
@@ -548,7 +551,7 @@ func (p PlaceRepository) addGooglePlacePhotosTx(ctx context.Context, tx *sql.Tx,
 	})
 
 	if !ok || googlePlacePhotoReferenceEntity == nil {
-		return fmt.Errorf("failed to find google place photo reference entity")
+		return fmt.Errorf("failed to find google place photo reference entity: %s", input.GooglePlacePhoto.PhotoReference)
 	}
 
 	googlePlacePhotoEntities := factory.NewGooglePlacePhotoSliceFromDomainModel(input.GooglePlacePhoto, input.GooglePlaceId)

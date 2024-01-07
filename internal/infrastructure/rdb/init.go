@@ -3,8 +3,11 @@ package rdb
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"go.uber.org/zap"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
 func InitDB(debugMode bool) (*sql.DB, error) {
@@ -27,7 +30,20 @@ func InitDB(debugMode bool) (*sql.DB, error) {
 	boil.SetDB(db)
 
 	if debugMode {
+		logger, err := utils.NewLogger(utils.LoggerOption{
+			Tag: "sqlboiler",
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error while creating logger: %v\n", err)
+		}
+
+		stdOutLogger, err := zap.NewStdLogAt(logger, zap.InfoLevel)
+		if err != nil {
+			return nil, fmt.Errorf("error while creating logger: %v\n", err)
+		}
+
 		boil.DebugMode = true
+		boil.DebugWriter = stdOutLogger.Writer()
 	}
 
 	return db, nil
