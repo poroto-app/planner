@@ -10,6 +10,16 @@ import (
 
 // FetchGooglePlace PlaceDetail APIを用いて場所の情報を取得する
 func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*models.GooglePlace, error) {
+	// キャッシュがある場合は取得する
+	savedPlace, err := s.placeRepository.FindByGooglePlaceID(ctx, googlePlaceId)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch google place detail: %v", err)
+	}
+
+	if savedPlace != nil {
+		return &savedPlace.Google, nil
+	}
+
 	placeDetailEntity, err := s.placesApi.FetchPlaceDetail(ctx, places.FetchPlaceDetailRequest{
 		PlaceId:  googlePlaceId,
 		Language: "ja",
@@ -23,6 +33,8 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 	}
 
 	googlePlace := factory.GooglePlaceFromPlaceEntity(*placeDetailEntity, nil)
+
+	// TODO: キャッシュする
 
 	return &googlePlace, nil
 }
