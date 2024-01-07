@@ -78,8 +78,26 @@ func saveUsers(ctx context.Context, db *sql.DB, users []models.User) error {
 func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 	for _, plan := range plans {
 		planEntity := factory.NewPlanEntityFromDomainModel(plan)
-		if err := planEntity.Insert(ctx, db, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert plan: %v", err)
+		var startLocation models.GeoLocation
+		if len(plan.Places) > 0 {
+			startLocation = plan.Places[0].Location
+		}
+		if _, err := queries.Raw(
+			fmt.Sprintf(
+				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
+				generated.TableNames.Plans,
+				generated.PlanColumns.ID,
+				generated.PlanColumns.UserID,
+				generated.PlanColumns.Name,
+				generated.PlanColumns.Location,
+			),
+			planEntity.ID,
+			planEntity.UserID,
+			planEntity.Name,
+			startLocation.Longitude,
+			startLocation.Latitude,
+		).ExecContext(ctx, db); err != nil {
+			return fmt.Errorf("failed to insert plan: %w", err)
 		}
 
 		planPlaceSlice := factory.NewPlanPlaceSliceFromDomainMode(plan.Places, plan.Id)
