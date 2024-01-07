@@ -38,13 +38,13 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			planCandidateId:              createPlanSessionId,
-			locationStart:                placeStart.Location,
-			placeStart:                   *placeStart,
-			places:                       places,
-			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
-			createBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-			shouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+			PlanCandidateId:              createPlanSessionId,
+			LocationStart:                placeStart.Location,
+			PlaceStart:                   *placeStart,
+			Places:                       places,
+			FreeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
+			CreateBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+			ShouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
 		},
 	)
 	if err != nil {

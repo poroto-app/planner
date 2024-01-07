@@ -37,6 +37,14 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 
 	places := input.Places
 
+	places = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        places,
+		StartLocation: input.BaseLocation,
+	})
+
+	// レビューが低い、またはレビュー数が少ない場所を除外する
+	places = placefilter.FilterByRating(places, 3.0, 10)
+
 	// スタート地点から800m圏外の場所を除外する
 	places = placefilter.FilterWithinDistanceRange(places, input.BaseLocation, 0, float64(input.Radius))
 

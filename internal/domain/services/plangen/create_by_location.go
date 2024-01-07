@@ -8,7 +8,6 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
-	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
 func (s Service) CreatePlanByLocation(
@@ -30,15 +29,15 @@ func (s Service) CreatePlanByLocation(
 	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		s.logger.Warn(
-			"error while fetching searched places",
-			zap.String("planCandidateId", createPlanSessionId),
+			"error while fetching searched Places",
+			zap.String("PlanCandidateId", createPlanSessionId),
 			zap.Error(err),
 		)
 	} else if placesSearched != nil {
 		s.logger.Debug(
-			"places fetched",
-			zap.String("planCandidateId", createPlanSessionId),
-			zap.Int("places", len(placesSearched)),
+			"Places fetched",
+			zap.String("PlanCandidateId", createPlanSessionId),
+			zap.Int("Places", len(placesSearched)),
 		)
 		places = placesSearched
 	}
@@ -47,41 +46,23 @@ func (s Service) CreatePlanByLocation(
 	if places == nil {
 		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: baseLocation})
 		if err != nil {
-			return nil, fmt.Errorf("error while fetching google places: %v\n", err)
+			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
 		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
 		if err != nil {
-			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
+			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
 
 		places = placesSaved
 	}
 
-	placesFiltered := places
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
-		StartLocation: baseLocation,
-	})
-
-	// レビューが低い、またはレビュー数が少ない場所を除外する
-	placesFiltered = placefilter.FilterByRating(placesFiltered, 3.0, 10)
-
-	// 除外されたカテゴリがある場合はそのカテゴリを除外する
-	if categoryNamesDisliked != nil {
-		var categoriesDisliked []models.LocationCategory
-		for _, categoryName := range *categoryNamesDisliked {
-			if category := models.GetCategoryOfName(categoryName); category != nil {
-				categoriesDisliked = append(categoriesDisliked, *category)
-			}
-		}
-		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
-	}
-
 	s.logger.Debug(
-		"places filtered",
-		zap.String("planCandidateId", createPlanSessionId),
-		zap.Int("places", len(placesFiltered)),
+		"Places searched",
+		zap.String("PlanCandidateId", createPlanSessionId),
+		zap.Float64("lat", baseLocation.Latitude),
+		zap.Float64("lng", baseLocation.Longitude),
+		zap.Int("Places", len(places)),
 	)
 
 	// プラン作成の基準となる場所を選択
@@ -103,7 +84,7 @@ func (s Service) CreatePlanByLocation(
 		if place != nil && array.IsContain(place.Google.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
 			placesRecommend = append(placesRecommend, *place)
 			if !found {
-				placesFiltered = append(placesFiltered, *place)
+				places = append(places, *place)
 			}
 		}
 	}
@@ -116,7 +97,7 @@ func (s Service) CreatePlanByLocation(
 
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
 		BaseLocation:           baseLocation,
-		Places:                 placesFiltered,
+		Places:                 places,
 		CategoryNamesPreferred: categoryNamesPreferred,
 		CategoryNamesDisliked:  categoryNamesDisliked,
 		ShouldOpenNow:          false,
@@ -140,14 +121,15 @@ func (s Service) CreatePlanByLocation(
 		planPlaces, err := s.createPlanPlaces(
 			ctx,
 			CreatePlanPlacesParams{
-				planCandidateId:              createPlanSessionId,
-				locationStart:                baseLocation,
-				placeStart:                   placeRecommend,
-				places:                       placesFiltered,
-				placesOtherPlansContain:      placesInPlan,
-				freeTime:                     freeTime,
-				createBasedOnCurrentLocation: createBasedOnCurrentLocation,
-				shouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
+				PlanCandidateId:              createPlanSessionId,
+				LocationStart:                baseLocation,
+				PlaceStart:                   placeRecommend,
+				Places:                       places,
+				PlacesOtherPlansContain:      placesInPlan,
+				FreeTime:                     freeTime,
+				CategoryNamesDisliked:        categoryNamesDisliked,
+				CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+				ShouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
 			},
 		)
 		if err != nil {
@@ -193,39 +175,27 @@ func (s Service) findOrFetchPlaceById(
 	planCandidateId string,
 	placesSearched []models.Place,
 	googlePlaceId string,
-) (place *models.Place, found bool, err error) {
+) (*models.Place, bool, error) {
 	for _, placeSearched := range placesSearched {
 		if placeSearched.Google.PlaceId == googlePlaceId {
-			place = &placeSearched
-			break
+			// すでに取得されている場合はそれを返す
+			return &placeSearched, true, nil
 		}
 	}
 
-	// すでに取得されている場合はそれを返す
-	if place != nil {
-		return place, true, nil
-	}
-
-	googlePlaceEntity, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
+	place, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
 
-	if googlePlaceEntity == nil {
+	if place == nil {
 		return nil, false, nil
 	}
 
 	// キャッシュする
-	places, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{*googlePlaceEntity})
-	if err != nil {
-		return nil, false, fmt.Errorf("error while saving searched places: %v", err)
+	if _, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
+		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
-
-	if len(places) == 0 {
-		return nil, false, fmt.Errorf("could not save searched places")
-	}
-
-	place = &places[0]
 
 	return place, false, nil
 }
