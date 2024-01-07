@@ -78,8 +78,8 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
-			Width:          googlePlacePhoto.Width,
-			Height:         googlePlacePhoto.Height,
+			Width:          int(googlePlacePhoto.Small.Width),
+			Height:         int(googlePlacePhoto.Small.Height),
 			URL:            googlePlacePhoto.Small.URL,
 		})
 	}
@@ -89,8 +89,8 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
-			Width:          googlePlacePhoto.Width,
-			Height:         googlePlacePhoto.Height,
+			Width:          int(googlePlacePhoto.Large.Width),
+			Height:         int(googlePlacePhoto.Large.Height),
 			URL:            googlePlacePhoto.Large.URL,
 		})
 	}
