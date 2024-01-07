@@ -107,7 +107,6 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 		Places:                 places,
 		CategoryNamesPreferred: input.CategoryNamesPreferred,
 		CategoryNamesDisliked:  input.CategoryNamesDisliked,
-		ShouldOpenNow:          *input.ShouldOpenNow,
 		MaxBasePlaceCount:      defaultMaxBasePlaceCount - 1,
 	})...)
 	for _, place := range placesRecommend {
@@ -128,15 +127,14 @@ func (s Service) CreatePlanByGooglePlaceId(ctx context.Context, input CreatePlan
 
 		// フィルタ処理は select base place などの中で行う
 		placesInPlan, err := s.createPlanPlaces(ctx, CreatePlanPlacesParams{
-			PlanCandidateId:              input.PlanCandidateId,
-			LocationStart:                startPlace.Location,
-			PlaceStart:                   placeRecommended,
-			Places:                       places,
-			PlacesOtherPlansContain:      placesAlreadyInPlan,
-			FreeTime:                     input.FreeTime,
-			CreateBasedOnCurrentLocation: false,
-			CategoryNamesDisliked:        input.CategoryNamesDisliked,
-			ShouldOpenWhileTraveling:     *input.ShouldOpenNow,
+			PlanCandidateId:          input.PlanCandidateId,
+			LocationStart:            startPlace.Location,
+			PlaceStart:               placeRecommended,
+			Places:                   places,
+			PlacesOtherPlansContain:  placesAlreadyInPlan,
+			FreeTime:                 input.FreeTime,
+			CategoryNamesDisliked:    input.CategoryNamesDisliked,
+			ShouldOpenWhileTraveling: *input.ShouldOpenNow,
 		})
 		if err != nil {
 			s.logger.Warn(

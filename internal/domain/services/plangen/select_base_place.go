@@ -16,7 +16,6 @@ type SelectBasePlaceInput struct {
 	Places                 []models.Place
 	CategoryNamesPreferred *[]string
 	CategoryNamesDisliked  *[]string
-	ShouldOpenNow          bool
 	MaxBasePlaceCount      int
 	Radius                 int
 }
@@ -52,10 +51,6 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 	if input.CategoryNamesDisliked != nil {
 		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
-	}
-
-	if input.ShouldOpenNow {
-		places = placefilter.FilterByOpeningNow(places)
 	}
 
 	// カテゴリごとにレビューの高い場所から選択する

@@ -60,13 +60,14 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	// プランの作成
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
-		planCandidateId,
-		locationStart,
-		input.GooglePlaceID,
-		&input.CategoriesPreferred,
-		&input.CategoriesDisliked,
-		input.FreeTime,
-		createBasedOnCurrentLocation,
+		plangen.CreatePlanByLocationInput{
+			PlanCandidateId:              planCandidateId,
+			LocationStart:                locationStart,
+			CategoryNamesPreferred:       &input.CategoriesPreferred,
+			CategoryNamesDisliked:        &input.CategoriesDisliked,
+			FreeTime:                     input.FreeTime,
+			CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		},
 	)
 	if err != nil {
 		log.Printf("error while creating plan by location: %v", err)

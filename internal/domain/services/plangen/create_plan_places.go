@@ -18,16 +18,15 @@ const (
 )
 
 type CreatePlanPlacesParams struct {
-	PlanCandidateId              string
-	LocationStart                models.GeoLocation
-	PlaceStart                   models.Place
-	Places                       []models.Place
-	PlacesOtherPlansContain      []models.Place
-	CategoryNamesDisliked        *[]string
-	FreeTime                     *int
-	CreateBasedOnCurrentLocation bool
-	ShouldOpenWhileTraveling     bool
-	MaxPlace                     int
+	PlanCandidateId          string
+	LocationStart            models.GeoLocation
+	PlaceStart               models.Place
+	Places                   []models.Place
+	PlacesOtherPlansContain  []models.Place
+	CategoryNamesDisliked    *[]string
+	FreeTime                 *int
+	ShouldOpenWhileTraveling bool
+	MaxPlace                 int
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
@@ -45,11 +44,6 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		Places:        placesFiltered,
 		StartLocation: params.LocationStart,
 	})
-
-	// 現在、開いている場所のみに絞る
-	if params.ShouldOpenWhileTraveling {
-		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-	}
 
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
@@ -140,7 +134,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		if params.ShouldOpenWhileTraveling && params.FreeTime == nil {
+		// この場所に行く時点で閉まってしまう場合はスキップ
+		if params.ShouldOpenWhileTraveling {
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
 			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
 			if err != nil {
