@@ -62,7 +62,6 @@ func TestGooglePlaceEntity_ToGooglePlace(t *testing.T) {
 				Name:             "name",
 				Types:            []string{"type1", "type2"},
 				Location:         models.GeoLocation{Latitude: 1.0, Longitude: 2.0},
-				OpenNow:          true,
 				Rating:           3.0,
 				UserRatingsTotal: 10,
 				PriceLevel:       2,

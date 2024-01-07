@@ -22,7 +22,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	placeIdToPlaceWithPlaceDetail := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
 	s.logger.Info(
 		"fetching reviews and images",
-		zap.String("planCandidateId", planCandidateId),
+		zap.String("PlanCandidateId", planCandidateId),
 		zap.Duration("duration", time.Since(performanceTimer)),
 	)
 
@@ -41,14 +41,14 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				if err != nil {
 					s.logger.Warn(
 						"error while generating plan title",
-						zap.String("planCandidateId", planCandidateId),
+						zap.String("PlanCandidateId", planCandidateId),
 						zap.Error(err),
 					)
 					title = &param.placeStart.Google.Name
 				}
 				s.logger.Info(
 					"generating plan title",
-					zap.String("planCandidateId", planCandidateId),
+					zap.String("PlanCandidateId", planCandidateId),
 					zap.Duration("duration", time.Since(performanceTimer)),
 				)
 				chPlanTitle <- *title
@@ -63,7 +63,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			case <-chTitleTimeOut.C:
 				s.logger.Warn(
 					"timeout while generating plan title",
-					zap.String("planCandidateId", planCandidateId),
+					zap.String("PlanCandidateId", planCandidateId),
 				)
 				title = param.placeStart.Google.Name
 			}

@@ -422,9 +422,8 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 					CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 				},
 			},
-			queryCursor: toPointer(newQueryCursor(
+			queryCursor: toPointer(newSortByCreatedAtQueryCursor(
 				time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
-				"c61a8b42-2c07-4957-913d-6930f0d881ec",
 			)),
 			limit: 10,
 			expected: []models.Plan{

@@ -35,7 +35,6 @@ func GooglePlaceFromPlaceEntity(place googleplaces.Place, photos *[]models.Googl
 			Longitude: place.Location.Longitude,
 		},
 		PhotoReferences:  photoReferences,
-		OpenNow:          place.OpenNow,
 		Rating:           place.Rating,
 		UserRatingsTotal: place.UserRatingsTotal,
 		PriceLevel:       place.PriceLevel,
