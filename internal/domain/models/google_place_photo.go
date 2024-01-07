@@ -1,20 +1,26 @@
 package models
 
-import "poroto.app/poroto/planner/internal/domain/utils"
-
 type GooglePlacePhoto struct {
 	PhotoReference   string
 	Width            int
 	Height           int
 	HTMLAttributions []string
-	Small            *string
-	Large            *string
+	Small            *Image
+	Large            *Image
 }
 
 func (g GooglePlacePhoto) ToImage() ImageSmallLarge {
+	var small, large *string
+	if g.Small != nil {
+		small = &g.Small.URL
+	}
+
+	if g.Large != nil {
+		large = &g.Large.URL
+	}
 	return ImageSmallLarge{
-		Small: utils.StrCopyPointerValue(g.Small),
-		Large: utils.StrCopyPointerValue(g.Large),
+		Small: small,
+		Large: large,
 	}
 }
 

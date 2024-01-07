@@ -451,9 +451,16 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 								Width:            4032,
 								Height:           3024,
 								HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-								// TODO: Image型にして大きさを判別できるようにする
-								//Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
-								Large: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+								Small: &models.Image{
+									Width:  400,
+									Height: 400,
+									URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+								},
+								Large: &models.Image{
+									Width:  4032,
+									Height: 3024,
+									URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+								},
 							},
 						},
 						PlaceDetail: &models.GooglePlaceDetail{
@@ -504,10 +511,16 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 									Width:            4032,
 									Height:           3024,
 									HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-									// TODO: Image型にして大きさを判別できるようにする
-									//Small: 		  utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
-									Small: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-									Large: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+									Small: &models.Image{
+										Width:  400,
+										Height: 400,
+										URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+									},
+									Large: &models.Image{
+										Width:  4032,
+										Height: 3024,
+										URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+									},
 								},
 							},
 							PlaceDetail: &models.GooglePlaceDetail{

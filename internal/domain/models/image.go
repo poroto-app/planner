@@ -6,8 +6,8 @@ import (
 )
 
 type Image struct {
-	Width  int
-	Height int
+	Width  uint
+	Height uint
 	URL    string
 }
 
