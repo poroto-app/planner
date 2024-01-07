@@ -22,6 +22,7 @@ func placeQueryModes(relationsToPlaces ...string) []qm.QueryMod {
 		qm.Load(relation),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoReferences),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotos),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceReviews),

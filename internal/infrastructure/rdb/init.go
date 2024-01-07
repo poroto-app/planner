@@ -3,6 +3,7 @@ package rdb
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"go.uber.org/zap"
 	"os"

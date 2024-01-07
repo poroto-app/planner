@@ -3,11 +3,13 @@ package rdb
 import (
 	"context"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"testing"
 	"time"
@@ -420,6 +422,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 		name                  string
 		planCandidateSetId    string
 		planCandidateId       string
+		savedPlaces           []models.Place
 		savedPlanCandidateSet models.PlanCandidate
 		expected              models.Plan
 	}{
@@ -427,22 +430,109 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 			name:               "success",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
+			savedPlaces: []models.Place{
+				{
+					Id: "test-place",
+					Google: models.GooglePlace{
+						PlaceId: "test-google-place",
+						Name:    "東京駅",
+						Types:   []string{"train_station", "transit_station", "point_of_interest", "establishment"},
+						PhotoReferences: []models.GooglePlacePhotoReference{
+							{
+								PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+								Width:            4032,
+								Height:           3024,
+								HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+							},
+						},
+						Photos: &[]models.GooglePlacePhoto{
+							{
+								PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+								Width:            4032,
+								Height:           3024,
+								HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+								// TODO: Image型にして大きさを判別できるようにする
+								//Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+								Large: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+							},
+						},
+						PlaceDetail: &models.GooglePlaceDetail{
+							Reviews: []models.GooglePlaceReview{
+								{
+									Rating:                4,
+									Text:                  utils.StrPointer("とても大きな駅です。地下街も広く、お店もたくさんあります。駅員さんも多く、親切です。"),
+									Time:                  1648126226,
+									AuthorName:            "Alice Alicia",
+									AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a/ACg8ocKaPr9FWIiqs88c_Fugafugafugafugagfuagaufaugafufa=s128-c0x00000000-cc-rp-mo-ba5"),
+									AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/117028493732372946396/reviews"),
+								},
+							},
+						},
+					},
+				},
+			},
 			savedPlanCandidateSet: models.PlanCandidate{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
 					{
-						Id: "test-plan-candidate",
-						Places: []models.Place{
-							{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
-						},
+						Id:     "test-plan-candidate",
+						Places: []models.Place{{Id: "test-place"}},
 					},
 				},
 			},
 			expected: models.Plan{
 				Id: "test-plan-candidate",
 				Places: []models.Place{
-					{Id: "test-place", Google: models.GooglePlace{PlaceId: "test-google-place"}},
+					{
+						Id: "test-place",
+						Google: models.GooglePlace{
+							PlaceId: "test-google-place",
+							Name:    "東京駅",
+							Types:   []string{"train_station", "transit_station", "point_of_interest", "establishment"},
+							PhotoReferences: []models.GooglePlacePhotoReference{
+								{
+									PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+									Width:            4032,
+									Height:           3024,
+									HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+								},
+							},
+							Photos: &[]models.GooglePlacePhoto{
+								{
+									PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+									Width:            4032,
+									Height:           3024,
+									HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+									// TODO: Image型にして大きさを判別できるようにする
+									//Small: 		  utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+									Small: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+									Large: utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+								},
+							},
+							PlaceDetail: &models.GooglePlaceDetail{
+								OpeningHours: &models.GooglePlaceOpeningHours{},
+								Reviews: []models.GooglePlaceReview{
+									{
+										Rating:                4,
+										Text:                  utils.StrPointer("とても大きな駅です。地下街も広く、お店もたくさんあります。駅員さんも多く、親切です。"),
+										Time:                  1648126226,
+										AuthorName:            "Alice Alicia",
+										AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a/ACg8ocKaPr9FWIiqs88c_Fugafugafugafugagfuagaufaugafufa=s128-c0x00000000-cc-rp-mo-ba5"),
+										AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/117028493732372946396/reviews"),
+									},
+								},
+								PhotoReferences: []models.GooglePlacePhotoReference{
+									{
+										PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+										Width:            4032,
+										Height:           3024,
+										HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
@@ -464,8 +554,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 			})
 
 			// 事前にPlaceを作成しておく
-			placesInPlans := array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places })
-			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
@@ -488,7 +577,15 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 				t.Fatalf("wrong plan id expected: %v, actual: %v", c.expected.Id, actual.Id)
 			}
 
-			// Place の数が一致する
+			// Place が一致する
+			if diff := cmp.Diff(
+				c.expected.Places,
+				actual.Places,
+				cmpopts.SortSlices(func(a, b models.Place) bool { return a.Id < b.Id }),
+			); diff != "" {
+				t.Fatalf("wrong places (-expected, +actual): %v", diff)
+			}
+
 			if len(actual.Places) != len(c.expected.Places) {
 				t.Fatalf("wrong number of places expected: %v, actual: %v", len(c.expected.Places), len(actual.Places))
 			}
