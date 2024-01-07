@@ -3,6 +3,7 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )
@@ -12,7 +13,7 @@ func (s Service) CreatePlanFromPlace(
 	createPlanSessionId string,
 	placeId string,
 ) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}

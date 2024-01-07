@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string, authToken *string) (*models.Plan, error) {
 	// プラン候補から対応するプランを取得
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, err
 	}

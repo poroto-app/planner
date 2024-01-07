@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
 // AddPlaceAfterPlace プランに指定された場所を追加する
 // すでに指定された場所が登録されている場合は、なにもしない
 func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, placeId string) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}
@@ -87,7 +88,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}

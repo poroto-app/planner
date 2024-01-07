@@ -13,7 +13,6 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore/entity"
-	"time"
 )
 
 const (
@@ -83,7 +82,7 @@ func (p *PlanRepository) find(ctx context.Context, planId string) (*entity.PlanE
 	return &planEntity, nil
 }
 
-func (p *PlanRepository) Find(ctx context.Context, planId string, now time.Time) (*models.Plan, error) {
+func (p *PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
 	planEntity, err := p.find(ctx, planId)
 	if err != nil {
 		return nil, err

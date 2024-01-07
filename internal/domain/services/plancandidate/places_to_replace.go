@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"time"
 )
 
 func (s *Service) FetchPlacesToReplace(
@@ -14,7 +15,7 @@ func (s *Service) FetchPlacesToReplace(
 	placeId string,
 	nLimit uint,
 ) ([]models.Place, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}

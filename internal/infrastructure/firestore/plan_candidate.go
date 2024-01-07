@@ -83,7 +83,7 @@ func (p *PlanCandidateFirestoreRepository) Create(ctx context.Context, planCandi
 	return nil
 }
 
-func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
+func (p *PlanCandidateFirestoreRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
 	chPlanCandidate := make(chan *entity.PlanCandidateEntity, 1)
 	chMetaData := make(chan *entity.PlanCandidateMetaDataV1Entity, 1)
 	chPlans := make(chan *[]entity.PlanInCandidateEntity, 1)
