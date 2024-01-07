@@ -5,6 +5,12 @@ import (
 	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
+type Image struct {
+	Width  int
+	Height int
+	URL    string
+}
+
 type ImageSmallLarge struct {
 	Small *string
 	Large *string
