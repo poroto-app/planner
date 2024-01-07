@@ -12,7 +12,7 @@ type PlanCandidateRepository interface {
 	// この時点ではプランは保存されない
 	Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error
 
-	Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error)
+	Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error)
 
 	FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error)
 

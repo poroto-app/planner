@@ -22,7 +22,7 @@ func (p PlanRepository) Create(ctx context.Context, planCandidateId string, expi
 	panic("implement me")
 }
 
-func (p PlanRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
+func (p PlanRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
 	//TODO implement me
 	panic("implement me")
 }
