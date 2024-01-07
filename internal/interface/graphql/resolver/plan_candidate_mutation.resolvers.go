@@ -20,7 +20,7 @@ import (
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
-	planGenService, err := plangen.NewService(ctx)
+	planGenService, err := plangen.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan generator service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -92,7 +92,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // CreatePlanByPlace is the resolver for the createPlanByPlace field.
 func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
-	planGenService, err := plangen.NewService(ctx)
+	planGenService, err := plangen.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan generator service: ", err)
 		return nil, fmt.Errorf("internal server error")
