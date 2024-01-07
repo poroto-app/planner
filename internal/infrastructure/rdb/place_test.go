@@ -816,3 +816,180 @@ func TestPlaceRepository_SaveGooglePlaceDetail(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
+	cases := []struct {
+		name              string
+		savedPlace        models.Place
+		googlePlaceId     string
+		googlePlacePhotos []models.GooglePlacePhoto
+	}{
+		{
+			name: "save google place photos with nearby search result",
+			savedPlace: models.Place{
+				Id: uuid.New().String(),
+				Google: models.GooglePlace{
+					PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					PhotoReferences: []models.GooglePlacePhotoReference{
+						{
+							PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+							Width:            4032,
+							Height:           3024,
+							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+						},
+					},
+					Photos: nil,
+				},
+			},
+			googlePlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+			googlePlacePhotos: []models.GooglePlacePhoto{
+				{
+					PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+					Width:            4032,
+					Height:           3024,
+					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/HOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHGOEHOGEHOGEHOH=s1600-w1000-h1000"),
+					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/FFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUG=s1600-w1000-h1000"),
+				},
+			},
+		},
+		{
+			name: "save google place photos with place detail result",
+			savedPlace: models.Place{
+				Id: uuid.New().String(),
+				Google: models.GooglePlace{
+					PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					PhotoReferences: []models.GooglePlacePhotoReference{
+						{
+							PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+							Width:            4032,
+							Height:           3024,
+							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+						},
+					},
+					PlaceDetail: &models.GooglePlaceDetail{
+						PhotoReferences: []models.GooglePlacePhotoReference{
+							{
+								PhotoReference:   "photo-2-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+								Width:            1920,
+								Height:           1080,
+								HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+							},
+						},
+					},
+					Photos: nil,
+				},
+			},
+			googlePlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+			googlePlacePhotos: []models.GooglePlacePhoto{
+				{
+					PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+					Width:            4032,
+					Height:           3024,
+					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+				},
+				{
+					PhotoReference:   "photo-2-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+					Width:            1920,
+					Height:           1080,
+					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1920-h1080"),
+					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1000-h1000"),
+				},
+			},
+		},
+		{
+			name: "save already saved google place photos",
+			savedPlace: models.Place{
+				Id: uuid.New().String(),
+				Google: models.GooglePlace{
+					PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					PhotoReferences: []models.GooglePlacePhotoReference{
+						{
+							PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+							Width:            4032,
+							Height:           3024,
+							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+						},
+					},
+					Photos: &[]models.GooglePlacePhoto{
+						{
+							PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+							Width:            4032,
+							Height:           3024,
+							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+						},
+					},
+				},
+			},
+			googlePlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+			googlePlacePhotos: []models.GooglePlacePhoto{
+				{
+					PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
+					Width:            4032,
+					Height:           3024,
+					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
+					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
+					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+				},
+			},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, []models.Place{c.savedPlace}); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			if err := placeRepository.SaveGooglePlacePhotos(testContext, c.googlePlaceId, c.googlePlacePhotos); err != nil {
+				t.Fatalf("error while saving google place photos: %v", err)
+			}
+
+			// GooglePlacePhotos が保存されているか確認
+			for _, photo := range c.googlePlacePhotos {
+				isPhotoSmallSaved, err := generated.
+					GooglePlacePhotos(
+						generated.GooglePlacePhotoWhere.PhotoReference.EQ(photo.PhotoReference),
+						generated.GooglePlacePhotoWhere.URL.EQ(*photo.Small),
+					).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while checking photo existence: %v", err)
+				}
+				if !isPhotoSmallSaved {
+					t.Fatalf("photo small is not saved")
+				}
+
+				isPhotoLargeSaved, err := generated.
+					GooglePlacePhotos(
+						generated.GooglePlacePhotoWhere.PhotoReference.EQ(photo.PhotoReference),
+						generated.GooglePlacePhotoWhere.URL.EQ(*photo.Large),
+					).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while checking photo existence: %v", err)
+				}
+				if !isPhotoLargeSaved {
+					t.Fatalf("photo large is not saved")
+				}
+			}
+		})
+	}
+}
