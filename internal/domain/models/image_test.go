@@ -8,26 +8,26 @@ import (
 func TestImageDefault(t *testing.T) {
 	cases := []struct {
 		name     string
-		image    Image
+		image    ImageSmallLarge
 		expected string
 	}{
 		{
 			name: "small image",
-			image: Image{
+			image: ImageSmallLarge{
 				Small: utils.StrPointer("small"),
 			},
 			expected: "small",
 		},
 		{
 			name: "large image",
-			image: Image{
+			image: ImageSmallLarge{
 				Large: utils.StrPointer("large"),
 			},
 			expected: "large",
 		},
 		{
 			name: "both small and large image",
-			image: Image{
+			image: ImageSmallLarge{
 				Small: utils.StrPointer("small"),
 				Large: utils.StrPointer("large"),
 			},

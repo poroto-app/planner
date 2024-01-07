@@ -21,12 +21,12 @@ type GooglePlace struct {
 	PlaceDetail      *GooglePlaceDetail
 }
 
-func (g GooglePlace) Images() []Image {
+func (g GooglePlace) Images() []ImageSmallLarge {
 	if g.Photos == nil {
 		return nil
 	}
 
-	var images []Image
+	var images []ImageSmallLarge
 	for _, photo := range *g.Photos {
 		image, err := NewImage(photo.Small, photo.Large)
 		if err != nil {

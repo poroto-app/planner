@@ -11,8 +11,8 @@ type GooglePlacePhoto struct {
 	Large            *string
 }
 
-func (g GooglePlacePhoto) ToImage() Image {
-	return Image{
+func (g GooglePlacePhoto) ToImage() ImageSmallLarge {
+	return ImageSmallLarge{
 		Small: utils.StrCopyPointerValue(g.Small),
 		Large: utils.StrCopyPointerValue(g.Large),
 	}
