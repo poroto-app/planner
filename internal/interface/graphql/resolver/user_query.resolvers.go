@@ -16,7 +16,7 @@ import (
 
 // FirebaseUser is the resolver for the firebaseUser field.
 func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error) {
-	service, err := user.NewService(ctx)
+	service, err := user.NewService(ctx, r.DB)
 	if err != nil {
 		log.Printf("error while initializing user service: %v\n", err)
 		return nil, fmt.Errorf("internal error")
