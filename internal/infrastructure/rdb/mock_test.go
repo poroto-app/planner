@@ -17,7 +17,7 @@ import (
 func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	places = array.DistinctBy(places, func(place models.Place) string { return place.Id })
 	for _, place := range places {
-		placeEntity := generated.Place{ID: place.Id}
+		placeEntity := generated.Place{ID: place.Id, Name: place.Name}
 		if err := placeEntity.Insert(ctx, db, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert place: %v", err)
 		}
@@ -26,7 +26,7 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 			continue
 		}
 
-		googlePlaceEntity := generated.GooglePlace{GooglePlaceID: place.Google.PlaceId, PlaceID: place.Id}
+		googlePlaceEntity := factory.NewGooglePlaceEntityFromGooglePlace(place.Google, place.Id)
 		if _, err := queries.Raw(
 			fmt.Sprintf(
 				"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?) )",
