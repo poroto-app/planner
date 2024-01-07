@@ -1,0 +1,67 @@
+version: '3.1'
+
+services:
+  db:
+    # SEE: https://planetscale.com/docs/reference/mysql-compatibility#overview
+    image: mysql:8.0
+    restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: poroto
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+  db-test:
+    image: mysql:8.0
+    restart: always
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: poroto
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+    ports:
+      - "3307:3306"
+  db-migrator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.db-setup
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_HOST: db:3306
+      DB_NAME: poroto
+    volumes:
+      - ../db/migrations:/db/migrations
+  db-test-migrator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.db-setup
+    depends_on:
+      db-test:
+        condition: service_healthy
+    environment:
+      DB_USER: root
+      DB_PASSWORD: password
+      DB_HOST: db-test:3306
+      DB_NAME: poroto
+    volumes:
+      - ../db/migrations:/db/migrations
+volumes:
+  mysql-data:

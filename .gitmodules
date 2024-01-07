@@ -1,0 +1,3 @@
+[submodule "db/extensions"]
+	path = db/extensions
+	url = https://github.com/tiendc/sqlboiler-extensions.git

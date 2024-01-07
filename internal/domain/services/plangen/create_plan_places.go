@@ -105,13 +105,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		// 飲食店やカフェは複数回含めない
-		categoriesFood := []models.LocationCategory{
-			models.CategoryRestaurant,
-			models.CategoryMealTakeaway,
-			models.CategoryCafe,
-		}
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Google.Types, categoriesFood) {
+		// 飲食店を複数回含めない
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, models.FoodCategories()) && isCategoryOf(place.Google.Types, models.FoodCategories()) {
 			s.logger.Debug(
 				"skip place because the cafe or restaurant is already in plan",
 				zap.String("place", place.Google.Name),
