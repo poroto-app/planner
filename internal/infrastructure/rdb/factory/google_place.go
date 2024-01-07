@@ -71,7 +71,6 @@ func NewGooglePlaceFromEntity(
 		Types:            googlePlaceTypes,
 		Location:         geolocation,
 		PhotoReferences:  googlePlacePhotoReferences,
-		OpenNow:          false, // TODO: DELETE ME
 		PriceLevel:       googlePlaceEntity.PriceLevel.Int,
 		Rating:           googlePlaceEntity.Rating.Float32,
 		UserRatingsTotal: googlePlaceEntity.UserRatingsTotal.Int,
