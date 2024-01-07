@@ -482,3 +482,118 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanRepository_SortedByLocation(t *testing.T) {
+	cases := []struct {
+		name        string
+		savedPlaces []models.Place
+		savedPlans  []models.Plan
+		location    models.GeoLocation
+		limit       int
+		expected    []models.Plan
+	}{
+		{
+			name: "should find plans sorted by location",
+			savedPlaces: []models.Place{
+				{
+					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
+					Name: "高島屋新宿店",
+					Google: models.GooglePlace{
+						PlaceId:  "ChIJN1t_tDeuEmsRUsoyG83frY4",
+						Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+					},
+				},
+				{
+					Id:   "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					Name: "札幌市時計台",
+					Google: models.GooglePlace{
+						PlaceId:  "CwVXAAAAQwXg3w8QKxQZ6Q0X3Z4",
+						Location: models.GeoLocation{Latitude: 43.062558697622, Longitude: 141.35355044447},
+					},
+				},
+			},
+			savedPlans: []models.Plan{
+				{
+					Id:   "9c93c944-ac8e-11ee-a506-0242ac120002",
+					Name: "新宿",
+					Places: []models.Place{
+						{
+							Id:       "f2c98d68-3904-455b-8832-a0f723a96735",
+							Name:     "高島屋新宿店",
+							Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+						},
+					},
+				},
+				{
+					Id:   "9c93c944-ac8e-11ee-a506-0242ac120003",
+					Name: "札幌",
+					Places: []models.Place{
+						{
+							Id:       "c61a8b42-2c07-4957-913d-6930f0d881ec",
+							Name:     "札幌市時計台",
+							Location: models.GeoLocation{Latitude: 43.062558697622, Longitude: 141.35355044447},
+						},
+					},
+				},
+			},
+			location: models.GeoLocation{Latitude: 35.6905, Longitude: 139.6995},
+			limit:    10,
+			expected: []models.Plan{
+				{
+					Id:   "9c93c944-ac8e-11ee-a506-0242ac120002",
+					Name: "新宿",
+					Places: []models.Place{
+						{
+							Id:       "f2c98d68-3904-455b-8832-a0f723a96735",
+							Name:     "高島屋新宿店",
+							Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+							Google: models.GooglePlace{
+								PlaceId:  "ChIJN1t_tDeuEmsRUsoyG83frY4",
+								Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	planRepository, err := NewPlanRepository(testDB)
+	if err != nil {
+		t.Errorf("error initializing plan repository: %v", err)
+	}
+
+	for _, c := range cases {
+		textContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				if err := cleanup(textContext, planRepository.GetDB()); err != nil {
+					t.Errorf("error cleaning up: %v", err)
+				}
+			})
+
+			// 事前に Place を保存
+			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {
+				t.Errorf("error saving places: %v", err)
+			}
+
+			// 事前に Plan を保存
+			if err := savePlans(textContext, planRepository.GetDB(), c.savedPlans); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			plans, _, err := planRepository.SortedByLocation(textContext, c.location, nil, c.limit)
+			if err != nil {
+				t.Errorf("error finding plans: %v", err)
+			}
+
+			if diff := cmp.Diff(
+				c.expected,
+				*plans,
+				cmpopts.SortSlices(func(a, b models.Plan) bool { return a.Id < b.Id }),
+			); diff != "" {
+				t.Errorf("plan mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
