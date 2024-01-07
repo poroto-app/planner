@@ -636,3 +636,183 @@ func TestPlaceRepository_FindByPlanCandidateId(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaceRepository_SaveGooglePlaceDetail(t *testing.T) {
+	cases := []struct {
+		name              string
+		savedPlace        models.Place
+		googlePlaceId     string
+		googlePlaceDetail models.GooglePlaceDetail
+	}{
+		{
+			name: "save google place detail",
+			savedPlace: models.Place{
+				Id:     uuid.New().String(),
+				Google: models.GooglePlace{PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA"},
+			},
+			googlePlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+			googlePlaceDetail: models.GooglePlaceDetail{
+				OpeningHours: &models.GooglePlaceOpeningHours{
+					Periods: []models.GooglePlaceOpeningPeriod{
+						{DayOfWeekOpen: "Monday", DayOfWeekClose: "Monday", OpeningTime: "1030", ClosingTime: "2130"},
+						{DayOfWeekOpen: "Tuesday", DayOfWeekClose: "Tuesday", OpeningTime: "1030", ClosingTime: "2130"},
+						{DayOfWeekOpen: "Wednesday", DayOfWeekClose: "Wednesday", OpeningTime: "1030", ClosingTime: "2130"},
+						{DayOfWeekOpen: "Thursday", DayOfWeekClose: "Thursday", OpeningTime: "1030", ClosingTime: "2130"},
+						{DayOfWeekOpen: "Friday", DayOfWeekClose: "Friday", OpeningTime: "1030", ClosingTime: "2130"},
+						{DayOfWeekOpen: "Saturday", DayOfWeekClose: "Saturday", OpeningTime: "1030", ClosingTime: "2130"},
+					},
+				},
+				PhotoReferences: []models.GooglePlacePhotoReference{
+					{
+
+						PhotoReference:   "AWU5eFgYAi-FUGAFUGA-lHUN-8Cbcl2xGP49EwZ5xzfo10jvcvuegwztrqV1iJmAjtG0XVs8Ph52lfav7mROP2Srh7h74CMNtXsQBKhIdFsjLp03zOcpfAWNkHqi4H54hyJ3VekpHvbiWOrayPbhnmWchlB5sLwcn17snJQ2uWA",
+						Width:            4032,
+						Height:           3024,
+						HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
+					},
+				},
+				Reviews: []models.GooglePlaceReview{
+					{
+						Rating:                4,
+						Text:                  utils.StrPointer("とても大きな駅です。地下街も広く、お店もたくさんあります。駅員さんも多く、親切です。"),
+						Time:                  1648126226,
+						AuthorName:            "Alice Alicia",
+						AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a/ACg8ocKaPr9FWIiqs88c_Fugafugafugafugagfuagaufaugafufa=s128-c0x00000000-cc-rp-mo-ba5"),
+						AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/117028493732372946396/reviews"),
+					},
+					{
+						Rating:                5,
+						Text:                  utils.StrPointer("近くに住んでいるので、よく利用しています。駅員さんも親切で、地下街も広く、お店もたくさんあります。"),
+						Time:                  1618085426,
+						AuthorName:            "Bob Bobson",
+						AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a-/ALV-HOGEhogehogehoge_wD8wQ5y5NPqCU7qZM9rnp00GHZYagec=s128-c0x00000000-cc-rp-mo-ba4"),
+						AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/2849473937494373893093/reviews"),
+					},
+				},
+			},
+		},
+		{
+			name: "already saved google place detail",
+			savedPlace: models.Place{
+				Id: uuid.New().String(),
+				Google: models.GooglePlace{
+					PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					PlaceDetail: &models.GooglePlaceDetail{
+						OpeningHours: &models.GooglePlaceOpeningHours{
+							Periods: []models.GooglePlaceOpeningPeriod{{DayOfWeekOpen: "Monday", DayOfWeekClose: "Monday", OpeningTime: "1030", ClosingTime: "2130"}},
+						},
+						PhotoReferences: []models.GooglePlacePhotoReference{
+							{
+
+								PhotoReference:   "AWU5eFgYAi-FUGAFUGA-lHUN-8Cbcl2xGP49EwZ5xzfo10jvcvuegwztrqV1iJmAjtG0XVs8Ph52lfav7mROP2Srh7h74CMNtXsQBKhIdFsjLp03zOcpfAWNkHqi4H54hyJ3VekpHvbiWOrayPbhnmWchlB5sLwcn17snJQ2uWA",
+								Width:            4032,
+								Height:           3024,
+								HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
+							},
+						},
+						Reviews: []models.GooglePlaceReview{
+							{
+								Rating:                4,
+								Text:                  utils.StrPointer("とても大きな駅です。地下街も広く、お店もたくさんあります。駅員さんも多く、親切です。"),
+								Time:                  1648126226,
+								AuthorName:            "Alice Alicia",
+								AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a/ACg8ocKaPr9FWIiqs88c_Fugafugafugafugagfuagaufaugafufa=s128-c0x00000000-cc-rp-mo-ba5"),
+								AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/117028493732372946396/reviews"),
+							},
+						},
+					},
+				},
+			},
+			googlePlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+			googlePlaceDetail: models.GooglePlaceDetail{
+				OpeningHours: &models.GooglePlaceOpeningHours{
+					Periods: []models.GooglePlaceOpeningPeriod{{DayOfWeekOpen: "Monday", DayOfWeekClose: "Monday", OpeningTime: "1030", ClosingTime: "2130"}},
+				},
+				PhotoReferences: []models.GooglePlacePhotoReference{
+					{
+
+						PhotoReference:   "AWU5eFgYAi-FUGAFUGA-lHUN-8Cbcl2xGP49EwZ5xzfo10jvcvuegwztrqV1iJmAjtG0XVs8Ph52lfav7mROP2Srh7h74CMNtXsQBKhIdFsjLp03zOcpfAWNkHqi4H54hyJ3VekpHvbiWOrayPbhnmWchlB5sLwcn17snJQ2uWA",
+						Width:            4032,
+						Height:           3024,
+						HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
+					},
+				},
+				Reviews: []models.GooglePlaceReview{
+					{
+						Rating:                4,
+						Text:                  utils.StrPointer("とても大きな駅です。地下街も広く、お店もたくさんあります。駅員さんも多く、親切です。"),
+						Time:                  1648126226,
+						AuthorName:            "Alice Alicia",
+						AuthorProfileImageUrl: utils.StrPointer("https://lh3.googleusercontent.com/a/ACg8ocKaPr9FWIiqs88c_Fugafugafugafugagfuagaufaugafufa=s128-c0x00000000-cc-rp-mo-ba5"),
+						AuthorUrl:             utils.StrPointer("https://www.google.com/maps/contrib/117028493732372946396/reviews"),
+					},
+				},
+			},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, []models.Place{c.savedPlace}); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			if err := placeRepository.SaveGooglePlaceDetail(testContext, c.googlePlaceId, c.googlePlaceDetail); err != nil {
+				t.Fatalf("error while saving google place detail: %v", err)
+			}
+
+			// GooglePlaceOpeningPeriods が保存されているか確認
+			if c.googlePlaceDetail.OpeningHours != nil {
+				openingPeriodCount, err := generated.
+					GooglePlaceOpeningPeriods(generated.GooglePlaceOpeningPeriodWhere.GooglePlaceID.EQ(c.googlePlaceId)).
+					Count(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while counting opening periods: %v", err)
+				}
+
+				if int(openingPeriodCount) != len(c.googlePlaceDetail.OpeningHours.Periods) {
+					t.Fatalf("opening period expected: %d, actual: %d", len(c.googlePlaceDetail.OpeningHours.Periods), openingPeriodCount)
+				}
+			}
+
+			// GooglePlaceReviews が保存されているか確認
+			reviewCount, err := generated.
+				GooglePlaceReviews(generated.GooglePlaceReviewWhere.GooglePlaceID.EQ(c.googlePlaceId)).
+				Count(testContext, testDB)
+			if err != nil {
+				t.Fatalf("error while counting reviews: %v", err)
+			}
+
+			if int(reviewCount) != len(c.googlePlaceDetail.Reviews) {
+				t.Fatalf("review expected: %d, actual: %d", len(c.googlePlaceDetail.Reviews), reviewCount)
+			}
+
+			// GooglePhotoReference が保存されているか確認
+			for _, photoReference := range c.googlePlaceDetail.PhotoReferences {
+				isPhotoReferenceSaved, err := generated.
+					GooglePlacePhotoReferences(generated.GooglePlacePhotoReferenceWhere.PhotoReference.EQ(photoReference.PhotoReference)).
+					Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while checking photo reference existence: %v", err)
+				}
+				if !isPhotoReferenceSaved {
+					t.Fatalf("photo is not saved")
+				}
+			}
+		})
+	}
+}
