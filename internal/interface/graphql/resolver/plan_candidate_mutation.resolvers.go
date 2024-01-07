@@ -26,7 +26,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -121,7 +121,7 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	service, err := plancandidate.NewService(ctx)
+	service, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -184,7 +184,7 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // AddPlaceToPlanCandidateAfterPlace is the resolver for the addPlaceToPlanCandidateAfterPlace field.
 func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -215,7 +215,7 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -247,7 +247,7 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 
 // ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
 func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -284,7 +284,7 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 
 // AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
 func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -313,7 +313,7 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
