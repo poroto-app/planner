@@ -65,12 +65,11 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-type Deletable interface {
-	DeleteAll(context.Context, boil.ContextExecutor) (int64, error)
-}
-
 func cleanup(ctx context.Context, db *sql.DB) error {
-	tables := []Deletable{
+	tables := []interface {
+		DeleteAll(context.Context, boil.ContextExecutor) (int64, error)
+	}{
+		// PlanCandidate
 		generated.PlanCandidateSetLikePlaces(),
 		generated.PlanCandidatePlaces(),
 		generated.PlanCandidateSetMetaDataCategories(),
@@ -78,6 +77,10 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.PlanCandidateSetSearchedPlaces(),
 		generated.PlanCandidates(),
 		generated.PlanCandidateSets(),
+		// Plan
+		generated.PlanPlaces(),
+		generated.Plans(),
+		// GooglePlace
 		generated.GooglePlaceOpeningPeriods(),
 		generated.GooglePlaceReviews(),
 		generated.GooglePlacePhotos(),
@@ -85,7 +88,9 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.GooglePlacePhotoReferences(),
 		generated.GooglePlaceTypes(),
 		generated.GooglePlaces(),
+		// Place
 		generated.Places(),
+		// User
 		generated.Users(),
 	}
 

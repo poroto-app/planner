@@ -1066,7 +1066,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			metaData: models.PlanCandidateMetaData{
 				CreatedBasedOnCurrentLocation: true,
 				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
-				CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+				CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 				LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
 				FreeTime:                      toPointer(60),
 			},
@@ -1080,14 +1080,14 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: false,
 					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
-					CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+					CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 					LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
 					FreeTime:                      toPointer(60),
 				},
 			},
 			metaData: models.PlanCandidateMetaData{
 				CreatedBasedOnCurrentLocation: true,
-				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant, models.CategoryBookStore},
+				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant, models.CategoryBakery},
 				CategoriesRejected:            &[]models.LocationCategory{models.CategoryShopping, models.CategoryAmusements},
 				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
 				FreeTime:                      toPointer(120),
@@ -1338,7 +1338,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 					MetaData: models.PlanCandidateMetaData{
 						CreatedBasedOnCurrentLocation: true,
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
-						CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
 						FreeTime:                      toPointer(60),
 					},
@@ -1359,7 +1359,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 					MetaData: models.PlanCandidateMetaData{
 						CreatedBasedOnCurrentLocation: true,
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
-						CategoriesRejected:            &[]models.LocationCategory{models.CategoryBookStore},
+						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
 						FreeTime:                      toPointer(60),
 					},
