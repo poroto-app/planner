@@ -58,6 +58,28 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 		).Exec(db); err != nil {
 			return fmt.Errorf("failed to insert google place: %w", err)
 		}
+
+		photoReferenceSlice := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(place.Google.PhotoReferences, place.Google.PlaceId)
+		if _, err := photoReferenceSlice.InsertAll(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert google place photo references: %v", err)
+		}
+
+		placeRepository, err := NewPlaceRepository(db)
+		if err != nil {
+			return fmt.Errorf("failed to create place repository: %v", err)
+		}
+
+		if place.Google.PlaceDetail != nil {
+			if err := placeRepository.SaveGooglePlaceDetail(ctx, place.Google.PlaceId, *place.Google.PlaceDetail); err != nil {
+				return fmt.Errorf("failed to save google place detail: %v", err)
+			}
+		}
+
+		if place.Google.Photos != nil {
+			if err := placeRepository.SaveGooglePlacePhotos(ctx, place.Google.PlaceId, *place.Google.Photos); err != nil {
+				return fmt.Errorf("failed to save google place photos: %v", err)
+			}
+		}
 	}
 
 	return nil
