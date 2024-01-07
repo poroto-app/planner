@@ -499,9 +499,12 @@ func (p PlaceRepository) saveGooglePlacePhotoReferenceTx(ctx context.Context, tx
 	var googlePhotoReferences []models.GooglePlacePhotoReference
 	googlePhotoReferences = input.GooglePlacePhotoReferences
 	if input.GooglePlaceDetail != nil {
-		// TODO: 重複を削除する
 		googlePhotoReferences = append(googlePhotoReferences, input.GooglePlaceDetail.PhotoReferences...)
 	}
+	// 重複を削除する
+	googlePhotoReferences = array.DistinctBy(googlePhotoReferences, func(googlePhotoReference models.GooglePlacePhotoReference) string {
+		return googlePhotoReference.PhotoReference
+	})
 
 	// GooglePlacePhotoReferenceを保存
 	googlePlacePhotoReferenceEntities := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePhotoReferences, input.GooglePlaceEntity.GooglePlaceID)
