@@ -15,7 +15,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -76,16 +75,10 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 	}
 
 	if queryCursor != nil {
-		components := strings.Split(*queryCursor, "_")
-		if len(components) != 2 {
-			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
-		}
-
-		unixTime, err := strconv.ParseInt(components[0], 10, 64)
+		dateTime, err := parseSortByCreatedAtQueryCursor(*queryCursor)
 		if err != nil {
-			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
+			return nil, err
 		}
-		dateTime := time.Unix(unixTime, 0)
 
 		// WHERE (created_at) < (dateTime)
 		planQueryMod = append(planQueryMod, qm.Where(
@@ -311,6 +304,15 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 	panic("implement me")
 }
 
-func newQueryCursor(createdAt time.Time, planId string) string {
-	return fmt.Sprintf("%d_%s", createdAt.Unix(), planId)
+func newSortByCreatedAtQueryCursor(createdAt time.Time) string {
+	return fmt.Sprintf("%d", createdAt.Unix())
+}
+
+func parseSortByCreatedAtQueryCursor(queryCursor string) (*time.Time, error) {
+	unixTime, err := strconv.ParseInt(queryCursor, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid query cursor: %s", queryCursor)
+	}
+	dateTime := time.Unix(unixTime, 0)
+	return &dateTime, nil
 }
