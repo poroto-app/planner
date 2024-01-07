@@ -87,13 +87,10 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 		}
 		dateTime := time.Unix(unixTime, 0)
 
-		id := components[1]
-
-		// WHERE (created_at, id) < (dateTime, id)
+		// WHERE (created_at) < (dateTime)
 		planQueryMod = append(planQueryMod, qm.Where(
-			fmt.Sprintf("(%s, %s) < (?, ?)", generated.PlanColumns.CreatedAt, generated.PlanColumns.ID),
+			fmt.Sprintf("%s < ?", generated.PlanColumns.CreatedAt),
 			dateTime,
-			id,
 		))
 	}
 
