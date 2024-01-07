@@ -130,13 +130,13 @@ func (r *mutationResolver) CreatePlanByGooglePlaceID(ctx context.Context, input 
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planGenService, err := plangen.NewService(ctx)
+	planGenService, err := plangen.NewService(r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan generator service", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan candidate service", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
