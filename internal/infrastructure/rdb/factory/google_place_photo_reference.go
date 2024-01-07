@@ -32,18 +32,19 @@ func NewGooglePlacePhotoReferenceFromEntity(
 	}
 }
 
-func NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePhotoReference models.GooglePlacePhotoReference) generated.GooglePlacePhotoReference {
+func NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePhotoReference models.GooglePlacePhotoReference, googlePlaceId string) generated.GooglePlacePhotoReference {
 	return generated.GooglePlacePhotoReference{
 		PhotoReference: googlePhotoReference.PhotoReference,
+		GooglePlaceID:  googlePlaceId,
 		Width:          googlePhotoReference.Width,
 		Height:         googlePhotoReference.Height,
 	}
 }
 
-func NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlacePhotoReferences []models.GooglePlacePhotoReference) generated.GooglePlacePhotoReferenceSlice {
+func NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(googlePlacePhotoReferences []models.GooglePlacePhotoReference, googlePlaceId string) generated.GooglePlacePhotoReferenceSlice {
 	var googlePlacePhotoReferenceEntities generated.GooglePlacePhotoReferenceSlice
 	for _, googlePlacePhotoReference := range googlePlacePhotoReferences {
-		pr := NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePlacePhotoReference)
+		pr := NewGooglePlacePhotoReferenceEntityFromGooglePhotoReference(googlePlacePhotoReference, googlePlaceId)
 		googlePlacePhotoReferenceEntities = append(googlePlacePhotoReferenceEntities, &pr)
 	}
 	return googlePlacePhotoReferenceEntities
