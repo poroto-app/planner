@@ -18,7 +18,8 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}
 
-	places, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}

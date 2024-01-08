@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
-	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/api/openai"
@@ -14,7 +14,7 @@ import (
 
 type Service struct {
 	placesApi                  places.PlacesApi
-	placeService               place.Service
+	placeSearchService         placesearch.Service
 	planCandidateRepository    repository.PlanCandidateRepository
 	openaiChatCompletionClient openai.ChatCompletionClient
 	logger                     *zap.Logger
@@ -26,9 +26,9 @@ func NewService(db *sql.DB) (*Service, error) {
 		return nil, fmt.Errorf("error while initizalizing Places api: %v", err)
 	}
 
-	placeService, err := place.NewPlaceService(db)
+	placeSearchService, err := placesearch.NewPlaceSearchService(db)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing place service: %v", err)
+		return nil, fmt.Errorf("error while initializing place search service: %v", err)
 	}
 
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
@@ -50,7 +50,7 @@ func NewService(db *sql.DB) (*Service, error) {
 
 	return &Service{
 		placesApi:                  *placesApi,
-		placeService:               *placeService,
+		placeSearchService:         *placeSearchService,
 		planCandidateRepository:    planCandidateRepository,
 		openaiChatCompletionClient: *openaiChatCompletionClient,
 		logger:                     logger,

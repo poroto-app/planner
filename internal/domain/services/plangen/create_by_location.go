@@ -7,7 +7,7 @@ import (
 	"googlemaps.github.io/maps"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 )
 
 // CreatePlanByLocationInput
@@ -27,7 +27,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 	var places []models.Place
 
 	// すでに検索を行っている場合はその結果を取得
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		s.logger.Warn(
 			"error while fetching searched Places",
@@ -45,12 +45,12 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: input.LocationStart})
+		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: input.LocationStart})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
-		placesSaved, err := s.placeService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
+		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
 		if err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
@@ -166,7 +166,7 @@ func (s Service) findOrFetchPlaceById(
 		}
 	}
 
-	place, err := s.placeService.FetchGooglePlace(ctx, googlePlaceId)
+	place, err := s.placeSearchService.FetchGooglePlace(ctx, googlePlaceId)
 	if err != nil {
 		return nil, false, fmt.Errorf("error while fetching place: %v", err)
 	}
@@ -176,7 +176,7 @@ func (s Service) findOrFetchPlaceById(
 	}
 
 	// キャッシュする
-	if _, err := s.placeService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
+	if _, err := s.placeSearchService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
 		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
 

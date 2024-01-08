@@ -25,7 +25,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching searched places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	places, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching photos and reviews for places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, *placeToAdd)
+	placesWithPhoto := s.placeSearchService.FetchPlacesPhotosAndSave(ctx, *placeToAdd)
 	placeToAdd = &placesWithPhoto[0]
 	s.logger.Info(
 		"Successfully fetched photos and reviews for places for plan candidate",
