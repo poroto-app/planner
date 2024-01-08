@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"time"
 
@@ -17,14 +18,10 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 		return nil, err
 	}
 
-	var planToSave *models.Plan
-	for _, plan := range planCandidate.Plans {
-		if plan.Id == planId {
-			planToSave = &plan
-			break
-		}
-	}
-	if planToSave == nil {
+	planToSave, ok := array.Find(planCandidate.Plans, func(plan models.Plan) bool {
+		return plan.Id == planId
+	})
+	if !ok {
 		return nil, fmt.Errorf("plan(%v) not found in plan candidate(%v)", planId, planCandidateId)
 	}
 
@@ -62,9 +59,9 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 	}
 
 	// プランを保存
-	if err := s.planRepository.Save(ctx, planToSave); err != nil {
+	if err := s.planRepository.Save(ctx, &planToSave); err != nil {
 		return nil, err
 	}
 
-	return planToSave, nil
+	return &planToSave, nil
 }
