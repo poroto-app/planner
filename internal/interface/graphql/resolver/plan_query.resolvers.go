@@ -42,20 +42,23 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 }
 
 // Plans is the resolver for the plans field.
-func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error) {
+func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*model.PlansOutput, error) {
 	service, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println("error while initializing places api: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, err := service.FetchPlans(ctx, pageKey)
+	plans, err := service.FetchPlans(ctx, input.PageKey)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
-	return factory.PlansFromDomainModel(plans, nil), nil
+	return &model.PlansOutput{
+		Plans:       factory.PlansFromDomainModel(plans, nil),
+		NextPageKey: nil, // TODO: implement me!
+	}, nil
 }
 
 // PlansByLocation is the resolver for the plansByLocation field.

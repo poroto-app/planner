@@ -264,6 +264,15 @@ type PlansByUserOutput struct {
 	Author *User   `json:"author"`
 }
 
+type PlansInput struct {
+	PageKey *string `json:"pageKey,omitempty"`
+}
+
+type PlansOutput struct {
+	Plans       []*Plan `json:"plans"`
+	NextPageKey *string `json:"nextPageKey,omitempty"`
+}
+
 type PriceRange struct {
 	PriceRangeMin    int `json:"priceRangeMin"`
 	PriceRangeMax    int `json:"priceRangeMax"`
