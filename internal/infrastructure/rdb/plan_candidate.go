@@ -220,12 +220,12 @@ func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresA
 
 func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		// TODO: BatchInsertする
-		for _, placeId := range placeIds {
+		var planCandidateSlice generated.PlanCandidateSetSearchedPlaceSlice = array.Map(placeIds, func(placeId string) *generated.PlanCandidateSetSearchedPlace {
 			planCandidatePlace := generated.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
-			if err := planCandidatePlace.Insert(ctx, tx, boil.Infer()); err != nil {
-				return fmt.Errorf("failed to insert plan candidate place: %w", err)
-			}
+			return &planCandidatePlace
+		})
+		if _, err := planCandidateSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate places: %w", err)
 		}
 		return nil
 	}); err != nil {
