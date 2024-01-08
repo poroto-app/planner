@@ -432,12 +432,9 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 			}
 
 			// カテゴリを登録
-			// TODO: BatchInsertする
 			planCandidateSetMetaDataCategorySlice := factory.NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(meta.CategoriesPreferred, meta.CategoriesRejected, planCandidateId)
-			for _, planCandidateSetMetaDataCategory := range planCandidateSetMetaDataCategorySlice {
-				if err := planCandidateSetMetaDataCategory.Insert(ctx, tx, boil.Infer()); err != nil {
-					return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
-				}
+			if _, err := planCandidateSetMetaDataCategorySlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
 			}
 		}
 
