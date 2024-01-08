@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"log"
 
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
@@ -42,20 +44,32 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 }
 
 // Plans is the resolver for the plans field.
-func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error) {
-	service, err := plan.NewService(ctx, r.DB)
+func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*model.PlansOutput, error) {
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing logger: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, err := service.FetchPlans(ctx, pageKey)
+	service, err := plan.NewService(ctx, r.DB)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while initializing plan service", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plans, nextPageToken, err := service.FetchPlans(ctx, plan.FetchPlansInput{
+		PageToken: input.PageToken,
+		Limit:     input.Limit,
+	})
+	if err != nil {
+		logger.Error("error while fetching plans", zap.Error(err))
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
-	return factory.PlansFromDomainModel(plans, nil), nil
+	return &model.PlansOutput{
+		Plans:         factory.PlansFromDomainModel(plans, nil),
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 // PlansByLocation is the resolver for the plansByLocation field.

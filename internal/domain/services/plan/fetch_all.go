@@ -3,14 +3,41 @@ package plan
 import (
 	"context"
 	"fmt"
-
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/utils"
 )
 
-func (s Service) FetchPlans(ctx context.Context, nextPageToken *string) (*[]models.Plan, error) {
-	plans, err := s.planRepository.SortedByCreatedAt(ctx, nextPageToken, 10)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching plans: %v", err)
+const (
+	defaultPlanPageSize = 10
+)
+
+type FetchPlansInput struct {
+	PageToken *string
+	Limit     *int
+}
+
+func (s Service) FetchPlans(ctx context.Context, input FetchPlansInput) (*[]models.Plan, *string, error) {
+	var queryCursor *repository.SortedByCreatedAtQueryCursor
+	if input.PageToken != nil {
+		queryCursor = utils.ToPointer(repository.SortedByCreatedAtQueryCursor(*input.PageToken))
 	}
-	return plans, nil
+
+	limit := defaultPlanPageSize
+	if input.Limit != nil {
+		limit = *input.Limit
+	}
+
+	plans, nextQueryCursor, err := s.planRepository.SortedByCreatedAt(ctx, queryCursor, limit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error while fetching plans: %v", err)
+	}
+
+	var nextPageToken *string
+	if nextQueryCursor != nil {
+		pk := string(*nextQueryCursor)
+		nextPageToken = &pk
+	}
+
+	return plans, nextPageToken, nil
 }

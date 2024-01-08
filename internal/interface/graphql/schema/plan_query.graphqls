@@ -1,11 +1,21 @@
 extend type Query {
     plan(id: String!): Plan
 
-    plans(pageKey: String): [Plan!]!
+    plans(input: PlansInput): PlansOutput!
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
     plansByUser(input: PlansByUserInput!): PlansByUserOutput!
+}
+
+input PlansInput {
+    pageToken: String
+    limit: Int
+}
+
+type PlansOutput {
+    plans: [Plan!]!
+    nextPageToken: String
 }
 
 input PlansByLocationInput {
