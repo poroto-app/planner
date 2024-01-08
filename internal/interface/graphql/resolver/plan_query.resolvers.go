@@ -7,7 +7,9 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/utils"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
@@ -43,21 +45,27 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 
 // Plans is the resolver for the plans field.
 func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*model.PlansOutput, error) {
-	service, err := plan.NewService(ctx, r.DB)
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing logger: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, _, err := service.FetchPlans(ctx, input.PageToken)
+	service, err := plan.NewService(ctx, r.DB)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while initializing plan service", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plans, nextPageToken, err := service.FetchPlans(ctx, input.PageToken)
+	if err != nil {
+		logger.Error("error while fetching plans", zap.Error(err))
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
 	return &model.PlansOutput{
 		Plans:         factory.PlansFromDomainModel(plans, nil),
-		NextPageToken: nil, // TODO: implement me!
+		NextPageToken: nextPageToken,
 	}, nil
 }
 
