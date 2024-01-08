@@ -105,7 +105,6 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 		numParamsOfGooglePlaceEntity := 12
 		queryParamsGooglePlaceEntity := make([]interface{}, 0, len(googlePlaceEntities)*numParamsOfGooglePlaceEntity)
 		for i, googlePlaceEntity := range googlePlaceEntities {
-			p.logger.Info("query", zap.String("query", sqlGooglePlaceEntity))
 			sqlGooglePlaceEntity += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?))"
 			if i != len(googlePlaceEntities)-1 {
 				// (), (), ...のようにカンマ区切りにする
