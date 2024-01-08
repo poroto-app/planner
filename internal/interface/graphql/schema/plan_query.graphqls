@@ -9,12 +9,12 @@ extend type Query {
 }
 
 input PlansInput {
-    pageKey: String
+    pageToken: String
 }
 
 type PlansOutput {
     plans: [Plan!]!
-    nextPageKey: String
+    nextPageToken: String
 }
 
 input PlansByLocationInput {

@@ -210,8 +210,8 @@ type ComplexityRoot struct {
 	}
 
 	PlansOutput struct {
-		NextPageKey func(childComplexity int) int
-		Plans       func(childComplexity int) int
+		NextPageToken func(childComplexity int) int
+		Plans         func(childComplexity int) int
 	}
 
 	PriceRange struct {
@@ -949,12 +949,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PlansByUserOutput.Plans(childComplexity), true
 
-	case "PlansOutput.nextPageKey":
-		if e.complexity.PlansOutput.NextPageKey == nil {
+	case "PlansOutput.nextPageToken":
+		if e.complexity.PlansOutput.NextPageToken == nil {
 			break
 		}
 
-		return e.complexity.PlansOutput.NextPageKey(childComplexity), true
+		return e.complexity.PlansOutput.NextPageToken(childComplexity), true
 
 	case "PlansOutput.plans":
 		if e.complexity.PlansOutput.Plans == nil {
@@ -1612,12 +1612,12 @@ type PlacesToReplaceForPlanCandidateOutput {
 }
 
 input PlansInput {
-    pageKey: String
+    pageToken: String
 }
 
 type PlansOutput {
     plans: [Plan!]!
-    nextPageKey: String
+    nextPageToken: String
 }
 
 input PlansByLocationInput {
@@ -6397,8 +6397,8 @@ func (ec *executionContext) fieldContext_PlansOutput_plans(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _PlansOutput_nextPageKey(ctx context.Context, field graphql.CollectedField, obj *model.PlansOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PlansOutput_nextPageKey(ctx, field)
+func (ec *executionContext) _PlansOutput_nextPageToken(ctx context.Context, field graphql.CollectedField, obj *model.PlansOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlansOutput_nextPageToken(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -6411,7 +6411,7 @@ func (ec *executionContext) _PlansOutput_nextPageKey(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.NextPageKey, nil
+		return obj.NextPageToken, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6425,7 +6425,7 @@ func (ec *executionContext) _PlansOutput_nextPageKey(ctx context.Context, field 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PlansOutput_nextPageKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PlansOutput_nextPageToken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "PlansOutput",
 		Field:      field,
@@ -7083,8 +7083,8 @@ func (ec *executionContext) fieldContext_Query_plans(ctx context.Context, field 
 			switch field.Name {
 			case "plans":
 				return ec.fieldContext_PlansOutput_plans(ctx, field)
-			case "nextPageKey":
-				return ec.fieldContext_PlansOutput_nextPageKey(ctx, field)
+			case "nextPageToken":
+				return ec.fieldContext_PlansOutput_nextPageToken(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PlansOutput", field.Name)
 		},
@@ -10491,22 +10491,22 @@ func (ec *executionContext) unmarshalInputPlansInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"pageKey"}
+	fieldsInOrder := [...]string{"pageToken"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "pageKey":
+		case "pageToken":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageKey"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageToken"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.PageKey = data
+			it.PageToken = data
 		}
 	}
 
@@ -11971,8 +11971,8 @@ func (ec *executionContext) _PlansOutput(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "nextPageKey":
-			out.Values[i] = ec._PlansOutput_nextPageKey(ctx, field, obj)
+		case "nextPageToken":
+			out.Values[i] = ec._PlansOutput_nextPageToken(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

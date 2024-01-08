@@ -49,15 +49,15 @@ func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*mo
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, err := service.FetchPlans(ctx, input.PageKey)
+	plans, _, err := service.FetchPlans(ctx, input.PageToken)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
 	return &model.PlansOutput{
-		Plans:       factory.PlansFromDomainModel(plans, nil),
-		NextPageKey: nil, // TODO: implement me!
+		Plans:         factory.PlansFromDomainModel(plans, nil),
+		NextPageToken: nil, // TODO: implement me!
 	}, nil
 }
 

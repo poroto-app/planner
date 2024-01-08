@@ -265,12 +265,12 @@ type PlansByUserOutput struct {
 }
 
 type PlansInput struct {
-	PageKey *string `json:"pageKey,omitempty"`
+	PageToken *string `json:"pageToken,omitempty"`
 }
 
 type PlansOutput struct {
-	Plans       []*Plan `json:"plans"`
-	NextPageKey *string `json:"nextPageKey,omitempty"`
+	Plans         []*Plan `json:"plans"`
+	NextPageToken *string `json:"nextPageToken,omitempty"`
 }
 
 type PriceRange struct {
