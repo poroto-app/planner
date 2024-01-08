@@ -3,6 +3,8 @@ extend type Mutation {
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
 
+    createPlanByGooglePlaceId(input: CreatePlanByGooglePlaceIdInput!): CreatePlanByGooglePlaceIdOutput!
+
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
@@ -51,6 +53,18 @@ input CreatePlanByPlaceInput {
 type CreatePlanByPlaceOutput {
     session: String!
     plan: Plan!
+}
+
+input CreatePlanByGooglePlaceIdInput {
+    planCandidateId: String
+    googlePlaceId: String!
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
+    freeTime: Int
+}
+
+type CreatePlanByGooglePlaceIdOutput {
+    planCandidate: PlanCandidate!
 }
 
 input ChangePlacesOrderInPlanCandidateInput {

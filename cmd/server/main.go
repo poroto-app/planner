@@ -15,7 +15,7 @@ func init() {
 }
 
 func main() {
-	db, err := rdb.InitDB(os.Getenv("ENV") == "development")
+	db, err := rdb.InitDB(false)
 	if err != nil {
 		log.Fatalf("error while initializing db: %v", err)
 	}

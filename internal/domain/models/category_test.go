@@ -95,3 +95,17 @@ func TestGetCategoriesFromSubCategories(t *testing.T) {
 		})
 	}
 }
+
+func TestGetCategoryToFilter(t *testing.T) {
+	t.Run("should have DefaultPhoto and EstimatedStayDuration", func(t *testing.T) {
+		categories := GetCategoryToFilter()
+		for _, category := range categories {
+			if category.DefaultPhoto == "" {
+				t.Errorf("category %v should have DefaultPhoto", category.Name)
+			}
+			if category.EstimatedStayDuration == 0 {
+				t.Errorf("category %v should have EstimatedStayDuration", category.Name)
+			}
+		}
+	})
+}

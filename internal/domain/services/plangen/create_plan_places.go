@@ -12,59 +12,60 @@ import (
 
 const (
 	defaultMaxPlanDuration = 180
-	defaultMaxPlace        = 4
+	defaultMaxPlaceInPlan  = 4
 
 	placeDistanceRangeInPlan = 1500
 )
 
 type CreatePlanPlacesParams struct {
-	planCandidateId              string
-	locationStart                models.GeoLocation
-	placeStart                   models.Place
-	places                       []models.Place
-	placesOtherPlansContain      []models.Place
-	freeTime                     *int
-	createBasedOnCurrentLocation bool
-	shouldOpenWhileTraveling     bool
-	maxPlace                     int
+	PlanCandidateId          string
+	LocationStart            models.GeoLocation
+	PlaceStart               models.Place
+	Places                   []models.Place
+	PlacesOtherPlansContain  []models.Place
+	CategoryNamesDisliked    *[]string
+	FreeTime                 *int
+	ShouldOpenWhileTraveling bool
+	MaxPlace                 int
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
 func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.Place, error) {
-	if params.planCandidateId == "" {
-		panic("planCandidateId is required")
+	if params.PlanCandidateId == "" {
+		panic("PlanCandidateId is required")
 	}
 
-	if params.maxPlace == 0 {
-		params.maxPlace = defaultMaxPlace
+	if params.MaxPlace == 0 {
+		params.MaxPlace = defaultMaxPlaceInPlan
 	}
 
-	placesFiltered := params.places
+	placesFiltered := params.Places
 	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
 		Places:        placesFiltered,
-		StartLocation: params.locationStart,
+		StartLocation: params.LocationStart,
 	})
-
-	// 現在、開いている場所のみに絞る
-	if params.shouldOpenWhileTraveling {
-		placesFiltered = placefilter.FilterByOpeningNow(placesFiltered)
-	}
 
 	// 開始地点となる場所から1500m圏内の場所に絞る
 	placesFiltered = placefilter.FilterWithinDistanceRange(
 		placesFiltered,
-		params.placeStart.Location,
+		params.PlaceStart.Location,
 		0,
 		placeDistanceRangeInPlan,
 	)
 
+	// ユーザーが拒否した場所は取り除く
+	if params.CategoryNamesDisliked != nil {
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*params.CategoryNamesDisliked)
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+	}
+
 	// 他のプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
-		if params.placesOtherPlansContain == nil {
+		if params.PlacesOtherPlansContain == nil {
 			return true
 		}
 
-		for _, placeOtherPlanContain := range params.placesOtherPlansContain {
+		for _, placeOtherPlanContain := range params.PlacesOtherPlansContain {
 			if place.Id == placeOtherPlanContain.Id {
 				return false
 			}
@@ -78,33 +79,28 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	placesInPlan := make([]models.Place, 0)
 
 	// 指定された場所を基準としてプランを作成するときは必ず含める
-	if params.locationStart.Equal(params.placeStart.Location) {
-		placesInPlan = append(placesInPlan, params.placeStart)
+	if params.LocationStart.Equal(params.PlaceStart.Location) {
+		placesInPlan = append(placesInPlan, params.PlaceStart)
 	}
 
 	for _, place := range placesSorted {
 		// プランに含まれる場所の数が上限に達したら終了
-		if len(placesInPlan) >= params.maxPlace {
+		if len(placesInPlan) >= params.MaxPlace {
 			s.logger.Debug(
-				"skip place because the number of places in plan is over",
+				"skip place because the number of Places in plan is over",
 				zap.String("place", place.Google.Name),
-				zap.Int("maxPlace", params.maxPlace),
+				zap.Int("MaxPlace", params.MaxPlace),
 				zap.Int("placesInPlan", len(placesInPlan)),
 			)
 			break
 		}
 
-		if place.Id == params.placeStart.Id {
+		if place.Id == params.PlaceStart.Id {
 			continue
 		}
 
-		// 飲食店やカフェは複数回含めない
-		categoriesFood := []models.LocationCategory{
-			models.CategoryRestaurant,
-			models.CategoryMealTakeaway,
-			models.CategoryCafe,
-		}
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, categoriesFood) && isCategoryOf(place.Google.Types, categoriesFood) {
+		// 飲食店を複数回含めない
+		if isAlreadyHavePlaceCategoryOf(placesInPlan, models.FoodCategories()) && isCategoryOf(place.Google.Types, models.FoodCategories()) {
 			s.logger.Debug(
 				"skip place because the cafe or restaurant is already in plan",
 				zap.String("place", place.Google.Name),
@@ -113,22 +109,22 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 
 		// 最適経路で巡ったときの所要時間を計算
-		sortedByDistance := sortPlacesByDistanceFrom(params.locationStart, append(placesInPlan, place))
-		timeInPlan := planTimeFromPlaces(params.locationStart, sortedByDistance)
+		sortedByDistance := sortPlacesByDistanceFrom(params.LocationStart, append(placesInPlan, place))
+		timeInPlan := planTimeFromPlaces(params.LocationStart, sortedByDistance)
 
 		// 予定の時間内に収まらない場合はスキップ
-		if params.freeTime != nil && timeInPlan > uint(*params.freeTime) {
+		if params.FreeTime != nil && timeInPlan > uint(*params.FreeTime) {
 			s.logger.Debug(
 				"skip place because it will be over time",
 				zap.String("place", place.Google.Name),
 				zap.Uint("timeInPlan", timeInPlan),
-				zap.Int("freeTime", *params.freeTime),
+				zap.Int("FreeTime", *params.FreeTime),
 			)
 			continue
 		}
 
 		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
-		if params.freeTime == nil && timeInPlan > defaultMaxPlanDuration {
+		if params.FreeTime == nil && timeInPlan > defaultMaxPlanDuration {
 			s.logger.Debug(
 				"skip place because it will be over time",
 				zap.String("place", place.Google.Name),
@@ -138,7 +134,8 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 			continue
 		}
 
-		if params.shouldOpenWhileTraveling && params.freeTime == nil {
+		// この場所に行く時点で閉まってしまう場合はスキップ
+		if params.ShouldOpenWhileTraveling {
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
 			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
 			if err != nil {
@@ -176,7 +173,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	}
 
 	if len(placesInPlan) == 0 {
-		return nil, fmt.Errorf("could not contain any places in plan")
+		return nil, fmt.Errorf("could not contain any Places in plan")
 	}
 
 	return placesInPlan, nil
