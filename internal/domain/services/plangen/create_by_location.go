@@ -10,33 +10,34 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 )
 
-func (s Service) CreatePlanByLocation(
-	ctx context.Context,
-	createPlanSessionId string,
-	baseLocation models.GeoLocation,
-	// baseLocation に対応する場所のID
-	// これが指定されると、対応する場所を起点としてプランを作成する
-	googlePlaceId *string,
-	categoryNamesPreferred *[]string,
-	categoryNamesDisliked *[]string,
-	freeTime *int,
-	createBasedOnCurrentLocation bool,
-) (*[]models.Plan, error) {
+// CreatePlanByLocationInput
+// GooglePlaceId が指定された場合は、その場所を起点としてプランを作成する
+type CreatePlanByLocationInput struct {
+	PlanCandidateId              string
+	LocationStart                models.GeoLocation
+	GooglePlaceId                *string
+	CategoryNamesPreferred       *[]string
+	CategoryNamesDisliked        *[]string
+	FreeTime                     *int
+	CreateBasedOnCurrentLocation bool
+}
+
+func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLocationInput) (*[]models.Plan, error) {
 	// 付近の場所を検索
 	var places []models.Place
 
 	// すでに検索を行っている場合はその結果を取得
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		s.logger.Warn(
 			"error while fetching searched Places",
-			zap.String("PlanCandidateId", createPlanSessionId),
+			zap.String("PlanCandidateId", input.PlanCandidateId),
 			zap.Error(err),
 		)
 	} else if placesSearched != nil {
 		s.logger.Debug(
 			"Places fetched",
-			zap.String("PlanCandidateId", createPlanSessionId),
+			zap.String("PlanCandidateId", input.PlanCandidateId),
 			zap.Int("Places", len(placesSearched)),
 		)
 		places = placesSearched
@@ -44,12 +45,12 @@ func (s Service) CreatePlanByLocation(
 
 	// 検索を行っていない場合は検索を行う
 	if places == nil {
-		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: baseLocation})
+		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: input.LocationStart})
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 		}
 
-		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlaces)
+		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
 		if err != nil {
 			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
 		}
@@ -59,9 +60,9 @@ func (s Service) CreatePlanByLocation(
 
 	s.logger.Debug(
 		"Places searched",
-		zap.String("PlanCandidateId", createPlanSessionId),
-		zap.Float64("lat", baseLocation.Latitude),
-		zap.Float64("lng", baseLocation.Longitude),
+		zap.String("PlanCandidateId", input.PlanCandidateId),
+		zap.Float64("lat", input.LocationStart.Latitude),
+		zap.Float64("lng", input.LocationStart.Longitude),
 		zap.Int("Places", len(places)),
 	)
 
@@ -69,13 +70,13 @@ func (s Service) CreatePlanByLocation(
 	var placesRecommend []models.Place
 
 	// 指定された場所の情報を取得する
-	if googlePlaceId != nil {
+	if input.GooglePlaceId != nil {
 		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
-		place, found, err := s.findOrFetchPlaceById(ctx, createPlanSessionId, places, *googlePlaceId)
+		place, found, err := s.findOrFetchPlaceById(ctx, input.PlanCandidateId, places, *input.GooglePlaceId)
 		if err != nil {
 			s.logger.Warn(
 				"error while fetching place",
-				zap.String("place", *googlePlaceId),
+				zap.String("place", *input.GooglePlaceId),
 				zap.Error(err),
 			)
 		}
@@ -91,16 +92,15 @@ func (s Service) CreatePlanByLocation(
 
 	// 場所を指定してプランを作成する場合は、指定した場所も含めて３つの場所を基準にプランを作成する
 	maxBasePlaceCount := 3
-	if googlePlaceId != nil {
+	if input.GooglePlaceId != nil {
 		maxBasePlaceCount = 2
 	}
 
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
-		BaseLocation:           baseLocation,
+		BaseLocation:           input.LocationStart,
 		Places:                 places,
-		CategoryNamesPreferred: categoryNamesPreferred,
-		CategoryNamesDisliked:  categoryNamesDisliked,
-		ShouldOpenNow:          false,
+		CategoryNamesPreferred: input.CategoryNamesPreferred,
+		CategoryNamesDisliked:  input.CategoryNamesDisliked,
 		MaxBasePlaceCount:      maxBasePlaceCount,
 	})...)
 	for _, place := range placesRecommend {
@@ -112,53 +112,36 @@ func (s Service) CreatePlanByLocation(
 
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	var createPlanParams []CreatePlanParams
+	shouldOpenWhileTraveling := input.CreateBasedOnCurrentLocation
 	for _, placeRecommend := range placesRecommend {
-		var placesInPlan []models.Place
-		for _, createPlanParam := range createPlanParams {
-			placesInPlan = append(placesInPlan, createPlanParam.places...)
+		createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, shouldOpenWhileTraveling)
+		if createPlanParam != nil {
+			createPlanParams = append(createPlanParams, *createPlanParam)
 		}
-
-		planPlaces, err := s.createPlanPlaces(
-			ctx,
-			CreatePlanPlacesParams{
-				PlanCandidateId:              createPlanSessionId,
-				LocationStart:                baseLocation,
-				PlaceStart:                   placeRecommend,
-				Places:                       places,
-				PlacesOtherPlansContain:      placesInPlan,
-				FreeTime:                     freeTime,
-				CategoryNamesDisliked:        categoryNamesDisliked,
-				CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
-				ShouldOpenWhileTraveling:     createBasedOnCurrentLocation, // 現在地からプランを作成した場合は、今から出発した場合に閉まってしまうお店は含めない
-			},
-		)
-		if err != nil {
-			s.logger.Warn(
-				"error while creating plan",
-				zap.String("place", placeRecommend.Google.Name),
-				zap.Error(err),
-			)
-			continue
-		}
-
-		createPlanParams = append(createPlanParams, CreatePlanParams{
-			locationStart: baseLocation,
-			placeStart:    placeRecommend,
-			places:        planPlaces,
-		})
 	}
 
-	plans := s.createPlanData(ctx, createPlanSessionId, createPlanParams...)
+	// 開店時刻を考慮して、プランが作成できなかった場合は、開店時刻を無視してプランを作成する
+	if len(createPlanParams) == 0 && shouldOpenWhileTraveling {
+		s.logger.Warn("no plan created", zap.String("PlanCandidateId", input.PlanCandidateId))
+		for _, placeRecommend := range placesRecommend {
+			createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, false)
+			if createPlanParam != nil {
+				createPlanParams = append(createPlanParams, *createPlanParam)
+			}
+		}
+	}
+
+	plans := s.createPlanData(ctx, input.PlanCandidateId, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
-	if googlePlaceId != nil {
+	if input.GooglePlaceId != nil {
 		for i, plan := range plans {
 			if len(plan.Places) == 0 {
 				continue
 			}
 
 			firstPlace := plan.Places[0]
-			if firstPlace.Google.PlaceId == *googlePlaceId {
+			if firstPlace.Google.PlaceId == *input.GooglePlaceId {
 				plans[0], plans[i] = plans[i], plans[0]
 				break
 			}
@@ -198,4 +181,39 @@ func (s Service) findOrFetchPlaceById(
 	}
 
 	return place, false, nil
+}
+
+func (s Service) createPlan(ctx context.Context, input CreatePlanByLocationInput, places []models.Place, placeRecommend models.Place, createdPlanParams []CreatePlanParams, shouldOpenWhileTraveling bool) *CreatePlanParams {
+	var placesInPlan []models.Place
+	for _, createPlanParam := range createdPlanParams {
+		placesInPlan = append(placesInPlan, createPlanParam.places...)
+	}
+
+	planPlaces, err := s.createPlanPlaces(
+		ctx,
+		CreatePlanPlacesParams{
+			PlanCandidateId:          input.PlanCandidateId,
+			LocationStart:            input.LocationStart,
+			PlaceStart:               placeRecommend,
+			Places:                   places,
+			PlacesOtherPlansContain:  placesInPlan,
+			FreeTime:                 input.FreeTime,
+			CategoryNamesDisliked:    input.CategoryNamesDisliked,
+			ShouldOpenWhileTraveling: shouldOpenWhileTraveling,
+		},
+	)
+	if err != nil {
+		s.logger.Warn(
+			"error while creating plan",
+			zap.String("place", placeRecommend.Google.Name),
+			zap.Error(err),
+		)
+		return nil
+	}
+
+	return &CreatePlanParams{
+		locationStart: input.LocationStart,
+		placeStart:    placeRecommend,
+		places:        planPlaces,
+	}
 }

@@ -29,8 +29,7 @@ type PlanCandidateRepository interface {
 
 	RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) error
 
-	// TODO: errorだけを返すようにする
-	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error)
+	UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) error
 
 	UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error
 

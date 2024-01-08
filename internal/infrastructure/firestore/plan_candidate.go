@@ -486,7 +486,7 @@ func (p *PlanCandidateFirestoreRepository) RemovePlaceFromPlan(ctx context.Conte
 	return nil
 }
 
-func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) (*models.Plan, error) {
+func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidateId string, placeIdsOrdered []string) error {
 	if err := p.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		doc := p.subCollectionPlans(planCandidateId).Doc(planId)
 		snapshot, err := tx.Get(doc)
@@ -522,23 +522,10 @@ func (p *PlanCandidateFirestoreRepository) UpdatePlacesOrder(ctx context.Context
 
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("error while updating places order: %v", err)
+		return fmt.Errorf("error while updating places order: %v", err)
 	}
 
-	planCandidate, err := p.Find(ctx, planCandidateId)
-	if err != nil {
-		return nil, fmt.Errorf("error while finding plan candidate: %v", err)
-	}
-
-	var plan *models.Plan
-	for _, p := range planCandidate.Plans {
-		if p.Id == planId {
-			plan = &p
-			break
-		}
-	}
-
-	return plan, nil
+	return nil
 }
 
 func (p *PlanCandidateFirestoreRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error {

@@ -35,16 +35,23 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
+	var categoryNamesRejected []string
+	if planCandidate.MetaData.CategoriesRejected == nil {
+		for _, category := range *planCandidate.MetaData.CategoriesRejected {
+			categoryNamesRejected = append(categoryNamesRejected, category.Name)
+		}
+	}
+
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			PlanCandidateId:              createPlanSessionId,
-			LocationStart:                placeStart.Location,
-			PlaceStart:                   *placeStart,
-			Places:                       places,
-			FreeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
-			CreateBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-			ShouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+			PlanCandidateId:          createPlanSessionId,
+			LocationStart:            placeStart.Location,
+			PlaceStart:               *placeStart,
+			Places:                   places,
+			CategoryNamesDisliked:    &categoryNamesRejected,
+			FreeTime:                 planCandidate.MetaData.FreeTime,
+			ShouldOpenWhileTraveling: false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
 		},
 	)
 	if err != nil {

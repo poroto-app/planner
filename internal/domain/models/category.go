@@ -30,14 +30,14 @@ var (
 		EstimatedStayDuration: 30,
 	}
 
-	CategoryBookStore = LocationCategory{
-		Name:        "book_store",
-		DisplayName: "本屋",
+	CategoryBakery = LocationCategory{
+		Name:        "bakery",
+		DisplayName: "パン屋",
 		SubCategories: []string{
-			string(maps.PlaceTypeBookStore),
+			string(maps.PlaceTypeBakery),
 		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_books_re_8gea.svg",
-		EstimatedStayDuration: 10,
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pancakes_238t.svg",
+		EstimatedStayDuration: 20,
 	}
 
 	CategoryCafe = LocationCategory{
@@ -48,17 +48,6 @@ var (
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_coffee_re_x35h.svg",
 		EstimatedStayDuration: 20,
-	}
-
-	CategoryCamp = LocationCategory{
-		Name:        "camp",
-		DisplayName: "キャンプ",
-		SubCategories: []string{
-			string(maps.PlaceTypeCampground),
-			string(maps.PlaceTypeRvPark),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_camping_noc8.svg",
-		EstimatedStayDuration: 30,
 	}
 
 	CategoryCulture = LocationCategory{
@@ -85,7 +74,7 @@ var (
 
 	CategoryPark = LocationCategory{
 		Name:        "park",
-		DisplayName: "公園でゆったり",
+		DisplayName: "公園",
 		SubCategories: []string{
 			string(maps.PlaceTypePark),
 		},
@@ -95,41 +84,22 @@ var (
 
 	CategoryRestaurant = LocationCategory{
 		Name:        "restaurant",
-		DisplayName: "ご飯",
+		DisplayName: "ごはん",
 		SubCategories: []string{
 			"food",
-			string(maps.PlaceTypeBakery),
 			string(maps.PlaceTypeBar),
 			string(maps.PlaceTypeRestaurant),
+			string(maps.PlaceTypeMealTakeaway),
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_breakfast_psiw.svg",
 		EstimatedStayDuration: 20,
 	}
 
-	CategoryLibrary = LocationCategory{
-		Name:        "library",
-		DisplayName: "図書館",
-		SubCategories: []string{
-			string(maps.PlaceTypeLibrary),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_book_reading_re_fu2c.svg",
-		EstimatedStayDuration: 20,
-	}
-
-	CategoryMealTakeaway = LocationCategory{
-		Name:        "meal_takeaway",
-		DisplayName: "テイクアウト",
-		SubCategories: []string{
-			string(maps.PlaceTypeMealTakeaway),
-		},
-		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_pizza_sharing_wxop.svg",
-		EstimatedStayDuration: 20,
-	}
-
 	CategoryShopping = LocationCategory{
 		Name:        "shopping",
-		DisplayName: "ショッピング",
+		DisplayName: "お買い物",
 		SubCategories: []string{
+			string(maps.PlaceTypeBookStore),
 			string(maps.PlaceTypeClothingStore),
 			string(maps.PlaceTypeDepartmentStore),
 			string(maps.PlaceTypeFurnitureStore),
@@ -142,6 +112,16 @@ var (
 		},
 		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_shopping_bags_o6w5.svg",
 		EstimatedStayDuration: 20,
+	}
+
+	CategorySpa = LocationCategory{
+		Name:        "spa",
+		DisplayName: "ゆったり温泉",
+		SubCategories: []string{
+			string(maps.PlaceTypeSpa),
+		},
+		DefaultPhoto:          "https://storage.googleapis.com/planner-public-asset-bucket/undraw_mint_tea_-7-su0.svg",
+		EstimatedStayDuration: 30,
 	}
 
 	CategoryOther = LocationCategory{
@@ -166,6 +146,7 @@ var (
 
 			string(maps.PlaceTypeBusStation),
 
+			string(maps.PlaceTypeCampground),
 			string(maps.PlaceTypeCarDealer),
 			string(maps.PlaceTypeCarRental),
 			string(maps.PlaceTypeCarRepair),
@@ -236,32 +217,28 @@ var (
 func GetCategoryToFilter() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
-		CategoryBookStore,
-		CategoryCamp,
+		CategoryBakery,
 		CategoryCafe,
 		CategoryCulture,
-		CategoryLibrary,
 		CategoryNatural,
-		CategoryMealTakeaway,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
+		CategorySpa,
 	}
 }
 
 func getAllCategories() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
-		CategoryBookStore,
+		CategoryBakery,
 		CategoryCafe,
-		CategoryCamp,
 		CategoryCulture,
-		CategoryLibrary,
 		CategoryNatural,
-		CategoryMealTakeaway,
 		CategoryPark,
 		CategoryRestaurant,
 		CategoryShopping,
+		CategorySpa,
 	}
 }
 
@@ -306,4 +283,12 @@ func GetCategoriesFromSubCategories(subCategories []string) []LocationCategory {
 	}
 
 	return categories
+}
+
+func FoodCategories() []LocationCategory {
+	return []LocationCategory{
+		CategoryRestaurant,
+		CategoryCafe,
+		CategoryBakery,
+	}
 }
