@@ -220,12 +220,12 @@ func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresA
 
 func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		// TODO: BatchInsertする
-		for _, placeId := range placeIds {
+		var planCandidateSlice generated.PlanCandidateSetSearchedPlaceSlice = array.Map(placeIds, func(placeId string) *generated.PlanCandidateSetSearchedPlace {
 			planCandidatePlace := generated.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
-			if err := planCandidatePlace.Insert(ctx, tx, boil.Infer()); err != nil {
-				return fmt.Errorf("failed to insert plan candidate place: %w", err)
-			}
+			return &planCandidatePlace
+		})
+		if _, err := planCandidateSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate places: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -236,20 +236,26 @@ func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.C
 
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		// TODO: BatchInsertする
+		var planCandidateSlice generated.PlanCandidateSlice
+		var planCandidatePlaceSlice generated.PlanCandidatePlaceSlice
 		for iPlan, plan := range plans {
 			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId, iPlan)
-			if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
-				return fmt.Errorf("failed to insert plan candidate: %w", err)
-			}
+			planCandidateSlice = append(planCandidateSlice, &planCandidateEntity)
 
-			planCandidatePlaceSlice := factory.NewPlanCandidatePlaceSliceFromDomainModel(plan.Places, planCandidateId, plan.Id)
-			for _, planCandidatePlace := range planCandidatePlaceSlice {
-				if err := planCandidatePlace.Insert(ctx, tx, boil.Infer()); err != nil {
-					return fmt.Errorf("failed to insert plan candidate place: %w", err)
-				}
-			}
+			planCandidatePlaceSlice = append(
+				planCandidatePlaceSlice,
+				factory.NewPlanCandidatePlaceSliceFromDomainModel(plan.Places, planCandidateId, plan.Id)...,
+			)
 		}
+
+		if _, err := planCandidateSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate: %w", err)
+		}
+
+		if _, err := planCandidatePlaceSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan candidate place: %w", err)
+		}
+
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to run transaction: %w", err)
@@ -426,12 +432,9 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 			}
 
 			// カテゴリを登録
-			// TODO: BatchInsertする
 			planCandidateSetMetaDataCategorySlice := factory.NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(meta.CategoriesPreferred, meta.CategoriesRejected, planCandidateId)
-			for _, planCandidateSetMetaDataCategory := range planCandidateSetMetaDataCategorySlice {
-				if err := planCandidateSetMetaDataCategory.Insert(ctx, tx, boil.Infer()); err != nil {
-					return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
-				}
+			if _, err := planCandidateSetMetaDataCategorySlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
 			}
 		}
 

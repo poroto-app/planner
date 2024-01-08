@@ -19,9 +19,10 @@ func NewGooglePlaceReviewFromEntity(googlePlaceReviewEntity generated.GooglePlac
 	}
 }
 
-func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.GooglePlaceReview) generated.GooglePlaceReview {
+func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.GooglePlaceReview, googlePlaceId string) generated.GooglePlaceReview {
 	return generated.GooglePlaceReview{
 		ID:                    uuid.New().String(),
+		GooglePlaceID:         googlePlaceId,
 		Rating:                null.IntFrom(int(googlePlaceReview.Rating)),
 		Text:                  null.StringFromPtr(googlePlaceReview.Text),
 		Time:                  null.IntFrom(googlePlaceReview.Time),
@@ -32,14 +33,14 @@ func NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview models.Go
 	}
 }
 
-func NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail) generated.GooglePlaceReviewSlice {
+func NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail models.GooglePlaceDetail, googlePlaceId string) generated.GooglePlaceReviewSlice {
 	if len(googlePlaceDetail.Reviews) == 0 {
 		return nil
 	}
 
 	var googlePlaceReviewEntities generated.GooglePlaceReviewSlice
 	for _, googlePlaceReview := range googlePlaceDetail.Reviews {
-		gpr := NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview)
+		gpr := NewGooglePlaceReviewEntityFromGooglePlaceReview(googlePlaceReview, googlePlaceId)
 		googlePlaceReviewEntities = append(googlePlaceReviewEntities, &gpr)
 	}
 	return googlePlaceReviewEntities
@@ -49,5 +50,5 @@ func NewGooglePlaceReviewSliceFromGooglePlace(googlePlace models.GooglePlace) ge
 	if googlePlace.PlaceDetail == nil {
 		return nil
 	}
-	return NewGooglePlaceReviewSliceFromGooglePlaceDetail(*googlePlace.PlaceDetail)
+	return NewGooglePlaceReviewSliceFromGooglePlaceDetail(*googlePlace.PlaceDetail, googlePlace.PlaceId)
 }
