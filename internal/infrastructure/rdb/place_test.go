@@ -183,7 +183,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 				}
 			}(testContext, testDB)
 
-			actualFirstSave, err := placeRepository.SavePlacesFromGooglePlace(testContext, c.googlePlace)
+			firstSaveResult, err := placeRepository.SavePlacesFromGooglePlaces(testContext, c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places: %v", err)
 			}
@@ -318,10 +318,13 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 			}
 
 			// 一度保存したあとは、すでに保存されたものが取得される
-			actualSecondSave, err := placeRepository.SavePlacesFromGooglePlace(testContext, c.googlePlace)
+			secondSaveResult, err := placeRepository.SavePlacesFromGooglePlaces(testContext, c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places second time: %v", err)
 			}
+
+			actualFirstSave := (*firstSaveResult)[0]
+			actualSecondSave := (*secondSaveResult)[0]
 
 			if actualFirstSave.Id != actualSecondSave.Id {
 				t.Fatalf("place id expected: %s, actual: %s", actualFirstSave.Id, actualSecondSave.Id)
@@ -585,10 +588,12 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 				t.Fatalf("error while saving places: %v", err)
 			}
 
-			actual, err := placeRepository.SavePlacesFromGooglePlace(testContext, c.googlePlace)
+			result, err := placeRepository.SavePlacesFromGooglePlaces(testContext, c.googlePlace)
 			if err != nil {
 				t.Fatalf("error while saving places: %v", err)
 			}
+
+			actual := (*result)[0]
 
 			// すでに保存されている Google Place が取得される
 			if c.expected.Id != actual.Id {
