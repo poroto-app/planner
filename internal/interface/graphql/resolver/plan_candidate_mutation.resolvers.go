@@ -236,21 +236,33 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
 func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
-	service, err := plan.NewService(ctx, r.DB)
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		log.Println("error while initializing logger: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	service, err := plan.NewService(ctx, r.DB)
+	if err != nil {
+		logger.Error("error while initializing PlanService", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	logger.Info(
+		"SavePlanFromCandidate",
+		zap.String("planCandidateId", input.Session),
+		zap.String("planId", input.PlanID),
+	)
+
 	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID, input.AuthToken)
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		logger.Error("error while saving plan from plan candidate", zap.Error(err))
 		return nil, fmt.Errorf("could not save plan")
 	}
 
 	graphqlPlan, err := factory.PlanFromDomainModel(*planSaved, nil)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while converting plan to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
