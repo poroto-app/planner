@@ -10,6 +10,7 @@ extend type Query {
 
 input PlansInput {
     pageToken: String
+    limit: Int
 }
 
 type PlansOutput {

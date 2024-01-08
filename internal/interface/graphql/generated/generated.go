@@ -1613,6 +1613,7 @@ type PlacesToReplaceForPlanCandidateOutput {
 
 input PlansInput {
     pageToken: String
+    limit: Int
 }
 
 type PlansOutput {
@@ -10491,7 +10492,7 @@ func (ec *executionContext) unmarshalInputPlansInput(ctx context.Context, obj in
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"pageToken"}
+	fieldsInOrder := [...]string{"pageToken", "limit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10507,6 +10508,15 @@ func (ec *executionContext) unmarshalInputPlansInput(ctx context.Context, obj in
 				return it, err
 			}
 			it.PageToken = data
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
 		}
 	}
 

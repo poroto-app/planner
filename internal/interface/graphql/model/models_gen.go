@@ -266,6 +266,7 @@ type PlansByUserOutput struct {
 
 type PlansInput struct {
 	PageToken *string `json:"pageToken,omitempty"`
+	Limit     *int    `json:"limit,omitempty"`
 }
 
 type PlansOutput struct {
