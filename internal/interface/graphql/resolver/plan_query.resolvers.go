@@ -57,7 +57,10 @@ func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*mo
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, nextPageToken, err := service.FetchPlans(ctx, input.PageToken)
+	plans, nextPageToken, err := service.FetchPlans(ctx, plan.FetchPlansInput{
+		PageToken: input.PageToken,
+		Limit:     input.Limit,
+	})
 	if err != nil {
 		logger.Error("error while fetching plans", zap.Error(err))
 		return nil, fmt.Errorf("could not fetch plans")
