@@ -37,7 +37,7 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	var categoryNamesRejected []string
-	if planCandidate.MetaData.CategoriesRejected == nil {
+	if planCandidate.MetaData.CategoriesRejected != nil {
 		for _, category := range *planCandidate.MetaData.CategoriesRejected {
 			categoryNamesRejected = append(categoryNamesRejected, category.Name)
 		}
