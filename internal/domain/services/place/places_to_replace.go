@@ -1,4 +1,4 @@
-package plancandidate
+package place
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
 
-func (s *Service) FetchPlacesToReplace(
+func (s Service) FetchPlacesToReplace(
 	ctx context.Context,
 	planCandidateId string,
 	planId string,
@@ -46,7 +46,7 @@ func (s *Service) FetchPlacesToReplace(
 		return nil, fmt.Errorf("place to replace not found")
 	}
 
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching placesToReplace searched: %v", err)
 	}
@@ -115,7 +115,7 @@ func (s *Service) FetchPlacesToReplace(
 	}
 
 	// 画像を取得
-	placesToReplace = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToReplace...)
+	placesToReplace = s.placeSearchService.FetchPlacesPhotosAndSave(ctx, placesToReplace...)
 
 	return placesToReplace, nil
 }

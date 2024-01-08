@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"sort"
 )
 
@@ -47,13 +47,13 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	// 付近の場所を検索
-	placesSearched, err := s.placeService.SearchNearbyPlaces(ctx, place.SearchNearbyPlacesInput{Location: params.Location})
+	placesSearched, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: params.Location})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
 	// 検索された場所を保存
-	places, err := s.placeService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
+	places, err := s.placeSearchService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
 	if err != nil {
 		return nil, fmt.Errorf("error while saving searched places: %v\n", err)
 	}
@@ -115,7 +115,7 @@ func (s Service) CategoriesNearLocation(
 		placesSortedByCategoryIndex = models.SortPlacesByRating(placesSortedByCategoryIndex)
 
 		// 場所の写真を取得する
-		placesWithPhotos := s.placeService.FetchPlacesPhotosAndSave(ctx, placesSortedByCategoryIndex...)
+		placesWithPhotos := s.placeSearchService.FetchPlacesPhotosAndSave(ctx, placesSortedByCategoryIndex...)
 
 		categoriesWithPlaces = append(categoriesWithPlaces, models.NewLocationCategoryWithPlaces(*category, placesWithPhotos))
 	}

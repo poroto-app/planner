@@ -1,11 +1,10 @@
-package plancandidate
+package placesearch
 
 import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
-	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 	"poroto.app/poroto/planner/internal/infrastructure/firestore"
@@ -13,29 +12,29 @@ import (
 
 type Service struct {
 	placesApi               places.PlacesApi
+	placeRepository         repository.PlaceRepository
 	planCandidateRepository repository.PlanCandidateRepository
-	placeSearchService      placesearch.Service
 	logger                  *zap.Logger
 }
 
-func NewService(ctx context.Context) (*Service, error) {
+func NewPlaceSearchService(ctx context.Context) (*Service, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing places api: %v", err)
 	}
 
-	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
+	placeRepository, err := firestore.NewPlaceRepository(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
-	placeSearchService, err := placesearch.NewPlaceSearchService(ctx)
+	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing place search service: %v", err)
+		return nil, err
 	}
 
 	logger, err := utils.NewLogger(utils.LoggerOption{
-		Tag: "PlanCandidateService",
+		Tag: "PlaceService",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing logger: %v", err)
@@ -43,8 +42,8 @@ func NewService(ctx context.Context) (*Service, error) {
 
 	return &Service{
 		placesApi:               *placesApi,
+		placeRepository:         *placeRepository,
 		planCandidateRepository: planCandidateRepository,
-		placeSearchService:      *placeSearchService,
 		logger:                  logger,
 	}, nil
 }

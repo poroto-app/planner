@@ -1,4 +1,4 @@
-package plancandidate
+package place
 
 import (
 	"context"
@@ -43,7 +43,7 @@ func (s Service) FetchCandidatePlaces(
 		return nil, nil
 	}
 
-	placesSearched, err := s.placeService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s Service) FetchCandidatePlaces(
 			continue
 		}
 
-		placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, place)
+		placesWithPhoto := s.placeSearchService.FetchPlacesPhotosAndSave(ctx, place)
 		place = placesWithPhoto[0]
 
 		placesToSuggest = append(placesToSuggest, place)

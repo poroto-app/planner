@@ -137,7 +137,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		// この場所に行く時点で閉まってしまう場合はスキップ
 		if params.ShouldOpenWhileTraveling {
 			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
-			placeDetail, err := s.placeService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
+			placeDetail, err := s.placeSearchService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
 			if err != nil {
 				s.logger.Warn(
 					"error while fetching place detail",

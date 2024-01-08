@@ -116,7 +116,7 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 		placesToUpdate = append(placesToUpdate, place)
 	}
 
-	placesToUpdate = s.placeService.FetchPlacesPhotosAndSave(ctx, placesToUpdate...)
+	placesToUpdate = s.placeSearchService.FetchPlacesPhotosAndSave(ctx, placesToUpdate...)
 
 	for _, place := range placesToUpdate {
 		placeIdToPlace[place.Id] = place
