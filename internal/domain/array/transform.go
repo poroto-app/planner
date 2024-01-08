@@ -35,6 +35,14 @@ func MapAndFilter[T any, U any](slice []T, transform func(T) (U, bool)) []U {
 	return mapped
 }
 
+func FlatMap[T any, U any](slice []T, transform func(T) []U) []U {
+	var mapped []U
+	for _, v := range slice {
+		mapped = append(mapped, transform(v)...)
+	}
+	return mapped
+}
+
 func Flatten[T any](slice [][]T) []T {
 	var flattened []T
 	for _, v := range slice {
