@@ -11,7 +11,7 @@ type ImageEntity struct {
 	Large         *string `firestore:"large,omitempty"`
 }
 
-func ToImageEntity(googlePlaceId string, image models.Image) ImageEntity {
+func ToImageEntity(googlePlaceId string, image models.ImageSmallLarge) ImageEntity {
 	return ImageEntity{
 		GooglePlaceId: googlePlaceId,
 		Small:         utils.StrCopyPointerValue(image.Small),
@@ -19,8 +19,8 @@ func ToImageEntity(googlePlaceId string, image models.Image) ImageEntity {
 	}
 }
 
-func FromImageEntity(image ImageEntity) models.Image {
-	return models.Image{
+func FromImageEntity(image ImageEntity) models.ImageSmallLarge {
+	return models.ImageSmallLarge{
 		Small: utils.StrCopyPointerValue(image.Small),
 		Large: utils.StrCopyPointerValue(image.Large),
 	}

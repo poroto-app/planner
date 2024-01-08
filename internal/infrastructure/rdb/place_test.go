@@ -66,8 +66,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 						Width:            4032,
 						Height:           3024,
 						HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-						Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-						Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+						Small: &models.Image{
+							Width:  400,
+							Height: 400,
+							URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+						},
+						Large: &models.Image{
+							Width:  4032,
+							Height: 3024,
+							URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+						},
 					},
 					{
 
@@ -75,8 +83,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
 						Width:            1920,
 						Height:           1080,
 						HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
-						Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1920-h1080"),
-						Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1000-h1000"),
+						Small: &models.Image{
+							Width:  400,
+							Height: 400,
+							URL:    "https://lh3.googleusercontent.com/places/photo-2=s1600-w400-h400",
+						},
+						Large: &models.Image{
+							Width:  1920,
+							Height: 1080,
+							URL:    "https://lh3.googleusercontent.com/places/photo-2=s1600-w1920-h1080",
+						},
 					},
 				},
 				PlaceDetail: &models.GooglePlaceDetail{
@@ -376,8 +392,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/HOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHGOEHOGEHOGEHOH=s1600-w1000-h1000"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/FFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUG=s1600-w1000-h1000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+							},
 						},
 						{
 
@@ -385,8 +409,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/PPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYO=s1600-w1000-h1000"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/PPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYO=s1600-w3000-h3000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/photo-2=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/photo-2=s1600-w4032-h3024",
+							},
 						},
 					},
 					PlaceDetail: &models.GooglePlaceDetail{
@@ -460,8 +492,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/HOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHGOEHOGEHOGEHOH=s1600-w1000-h1000"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/FFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUG=s1600-w1000-h1000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w4032-h3024",
+							},
 						},
 						{
 
@@ -469,8 +509,16 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100755868001879781001\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/PPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYO=s1600-w1000-h1000"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/PPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYOPIYO=s1600-w3000-h3000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w4032-h3024",
+							},
 						},
 					},
 					PlaceDetail: &models.GooglePlaceDetail{
@@ -971,8 +1019,16 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 					Width:            4032,
 					Height:           3024,
 					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/HOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHOGEHGOEHOGEHOGEHOH=s1600-w1000-h1000"),
-					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/FFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUGAFUG=s1600-w1000-h1000"),
+					Small: &models.Image{
+						Width:  400,
+						Height: 400,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+					},
+					Large: &models.Image{
+						Width:  4032,
+						Height: 3024,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+					},
 				},
 			},
 		},
@@ -1010,16 +1066,32 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 					Width:            4032,
 					Height:           3024,
 					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+					Small: &models.Image{
+						Width:  400,
+						Height: 400,
+						URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400",
+					},
+					Large: &models.Image{
+						Width:  4032,
+						Height: 3024,
+						URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w4032-h3024",
+					},
 				},
 				{
 					PhotoReference:   "photo-2-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
 					Width:            1920,
 					Height:           1080,
 					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1920-h1080"),
-					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-2=s1600-w1000-h1000"),
+					Small: &models.Image{
+						Width:  400,
+						Height: 400,
+						URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w400-h400",
+					},
+					Large: &models.Image{
+						Width:  4032,
+						Height: 3024,
+						URL:    "https://lh3.googleusercontent.com/places/ANXAkqEs-dl0rT1eITFJ3j4kMuMKgoRtb-Ws8lhKidWPL7LU4e-57yzhuN5UisB2S-fn4yj23gDQIrlQReGkuMI1Y8QU3ZsxQk2wwgw=s1600-w4032-h3024",
+					},
 				},
 			},
 		},
@@ -1043,8 +1115,16 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+							},
 						},
 					},
 				},
@@ -1056,8 +1136,16 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 					Width:            4032,
 					Height:           3024,
 					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+					Small: &models.Image{
+						Width:  400,
+						Height: 400,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+					},
+					Large: &models.Image{
+						Width:  4032,
+						Height: 3024,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+					},
 				},
 			},
 		},
@@ -1081,16 +1169,32 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+							},
 						},
 						{
 							PhotoReference:   "photo-1-AWU5eFjiROQJEeMpt7Hh2Pv-fdsabvls-wKBKNsJwobLXjjnbzXSBxTTW3bOtTbsrxkaoE1xx8RU3XFzv64gtTL137nfZtz0YAwpRsWThU7FtEpuJ3xGYOEQ2BFIHKLF5OLpVoGUybE-NryBdtAF7MDlYwBS7XACG",
 							Width:            4032,
 							Height:           3024,
 							HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-							Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-							Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+							Small: &models.Image{
+								Width:  400,
+								Height: 400,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+							},
+							Large: &models.Image{
+								Width:  4032,
+								Height: 3024,
+								URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+							},
 						},
 					},
 				},
@@ -1102,8 +1206,16 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 					Width:            4032,
 					Height:           3024,
 					HTMLAttributions: []string{"<a href=\"https://maps.google.com/maps/contrib/100969420913538879622\">A Google User</a>"},
-					Small:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024"),
-					Large:            utils.StrPointer("https://lh3.googleusercontent.com/places/photo-1=s1600-w1000-h1000"),
+					Small: &models.Image{
+						Width:  400,
+						Height: 400,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w400-h400",
+					},
+					Large: &models.Image{
+						Width:  4032,
+						Height: 3024,
+						URL:    "https://lh3.googleusercontent.com/places/photo-1=s1600-w4032-h3024",
+					},
 				},
 			},
 		},
@@ -1138,7 +1250,7 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 				isPhotoSmallSaved, err := generated.
 					GooglePlacePhotos(
 						generated.GooglePlacePhotoWhere.PhotoReference.EQ(photo.PhotoReference),
-						generated.GooglePlacePhotoWhere.URL.EQ(*photo.Small),
+						generated.GooglePlacePhotoWhere.URL.EQ(photo.Small.URL),
 					).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("error while checking photo existence: %v", err)
@@ -1150,7 +1262,7 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 				isPhotoLargeSaved, err := generated.
 					GooglePlacePhotos(
 						generated.GooglePlacePhotoWhere.PhotoReference.EQ(photo.PhotoReference),
-						generated.GooglePlacePhotoWhere.URL.EQ(*photo.Large),
+						generated.GooglePlacePhotoWhere.URL.EQ(photo.Large.URL),
 					).Exists(testContext, testDB)
 				if err != nil {
 					t.Fatalf("error while checking photo existence: %v", err)

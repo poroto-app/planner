@@ -22,8 +22,8 @@ func GooglePlacePhotoEntityFromGooglePlacePhoto(googlePlacePhoto models.GooglePl
 		Width:            googlePlacePhoto.Width,
 		Height:           googlePlacePhoto.Height,
 		HTMLAttributions: googlePlacePhoto.HTMLAttributions,
-		Small:            utils.StrCopyPointerValue(googlePlacePhoto.Small),
-		Large:            utils.StrCopyPointerValue(googlePlacePhoto.Large),
+		Small:            utils.ToPointer(googlePlacePhoto.Small.URL),
+		Large:            utils.ToPointer(googlePlacePhoto.Large.URL),
 	}
 }
 
@@ -49,8 +49,16 @@ func (g GooglePlacePhotoEntity) ToGooglePlacePhoto() *models.GooglePlacePhoto {
 		Width:            g.Width,
 		Height:           g.Height,
 		HTMLAttributions: g.HTMLAttributions,
-		Small:            utils.StrCopyPointerValue(g.Small),
-		Large:            utils.StrCopyPointerValue(g.Large),
+		Small: &models.Image{
+			URL:    *g.Small,
+			Width:  uint(g.Width),
+			Height: uint(g.Height),
+		},
+		Large: &models.Image{
+			URL:    *g.Large,
+			Width:  uint(g.Width),
+			Height: uint(g.Height),
+		},
 	}
 }
 
