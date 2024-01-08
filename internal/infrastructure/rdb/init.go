@@ -37,7 +37,7 @@ func InitDB(debugMode bool) (*sql.DB, error) {
 			return nil, fmt.Errorf("error while creating logger: %v\n", err)
 		}
 
-		stdOutLogger, err := zap.NewStdLogAt(logger, zap.DebugLevel)
+		stdOutLogger, err := zap.NewStdLogAt(logger, zap.InfoLevel)
 		if err != nil {
 			return nil, fmt.Errorf("error while creating logger: %v\n", err)
 		}

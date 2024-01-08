@@ -17,7 +17,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -103,24 +102,15 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 	}
 
 	if queryCursor != nil {
-		components := strings.Split(*queryCursor, "_")
-		if len(components) != 2 {
-			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
-		}
-
-		unixTime, err := strconv.ParseInt(components[0], 10, 64)
+		dateTime, err := parseSortByCreatedAtQueryCursor(*queryCursor)
 		if err != nil {
-			return nil, fmt.Errorf("invalid query cursor: %s", *queryCursor)
+			return nil, err
 		}
-		dateTime := time.Unix(unixTime, 0)
 
-		id := components[1]
-
-		// WHERE (created_at, id) < (dateTime, id)
+		// WHERE (created_at) < (dateTime)
 		planQueryMod = append(planQueryMod, qm.Where(
-			fmt.Sprintf("(%s, %s) < (?, ?)", generated.PlanColumns.CreatedAt, generated.PlanColumns.ID),
+			fmt.Sprintf("%s < ?", generated.PlanColumns.CreatedAt),
 			dateTime,
-			id,
 		))
 	}
 
@@ -424,8 +414,17 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 	return plans, nil, nil
 }
 
-func newQueryCursor(createdAt time.Time, planId string) string {
-	return fmt.Sprintf("%d_%s", createdAt.Unix(), planId)
+func newSortByCreatedAtQueryCursor(createdAt time.Time) string {
+	return fmt.Sprintf("%d", createdAt.Unix())
+}
+
+func parseSortByCreatedAtQueryCursor(queryCursor string) (*time.Time, error) {
+	unixTime, err := strconv.ParseInt(queryCursor, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid query cursor: %s", queryCursor)
+	}
+	dateTime := time.Unix(unixTime, 0)
+	return &dateTime, nil
 }
 
 // calculateMBR 特定の位置からの距離を元に、緯度の差分を計算する

@@ -23,7 +23,7 @@ type Service struct {
 func NewService(db *sql.DB) (*Service, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
-		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
+		return nil, fmt.Errorf("error while initizalizing Places api: %v", err)
 	}
 
 	placeService, err := place.NewPlaceService(db)

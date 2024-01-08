@@ -13,7 +13,7 @@ func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 		expected   bool
 	}{
 		{
-			name: "should return true when places has a place of category",
+			name: "should return true when Places has a place of category",
 			places: []models.Place{
 				{
 					Google: models.GooglePlace{
@@ -27,7 +27,7 @@ func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 			expected: true,
 		},
 		{
-			name: "should return false when places does not have a place of category",
+			name: "should return false when Places does not have a place of category",
 			places: []models.Place{
 				{
 					Google: models.GooglePlace{
@@ -41,7 +41,7 @@ func TestIsAlreadyHavePlaceCategoryOf(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "should return true when places has a place of category",
+			name: "should return true when Places has a place of category",
 			places: []models.Place{
 				{
 
@@ -76,7 +76,7 @@ func TestSortPlacesByDistanceFrom(t *testing.T) {
 		expected []models.Place
 	}{
 		{
-			name: "should return places sorted by distance from location",
+			name: "should return Places sorted by distance from location",
 			location: models.GeoLocation{
 				Latitude:  0,
 				Longitude: 0,
