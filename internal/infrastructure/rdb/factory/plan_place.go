@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
@@ -12,7 +13,7 @@ func NewPlanPlaceSliceFromDomainMode(planPlaces []models.Place, planId string) g
 	var planPlaceSlice generated.PlanPlaceSlice
 	for i, place := range planPlaces {
 		planPlaceSlice = append(planPlaceSlice, &generated.PlanPlace{
-			ID:        place.Id,
+			ID:        uuid.New().String(),
 			PlaceID:   place.Id,
 			PlanID:    planId,
 			SortOrder: i,
