@@ -33,7 +33,7 @@ func NewGooglePlaceTypeSliceFromGooglePlace(googlePlace models.GooglePlace) gene
 	for i, googlePlaceType := range googlePlace.Types {
 		googlePlaceTypeEntities = append(googlePlaceTypeEntities, &generated.GooglePlaceType{
 			ID:            uuid.New().String(),
-			GooglePlaceID: googlePlaceType,
+			GooglePlaceID: googlePlace.PlaceId,
 			Type:          googlePlaceType,
 			OrderNum:      i,
 		})

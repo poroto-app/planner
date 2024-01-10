@@ -11,6 +11,7 @@ func LoadEnv() {
 	env := os.Getenv("ENV")
 	if "" == env {
 		env = "development"
+		os.Setenv("ENV", env)
 	}
 
 	if err := godotenv.Load(".env.local"); err != nil {

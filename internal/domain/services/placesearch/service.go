@@ -1,13 +1,13 @@
 package placesearch
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 )
 
 type Service struct {
@@ -17,18 +17,18 @@ type Service struct {
 	logger                  *zap.Logger
 }
 
-func NewPlaceSearchService(ctx context.Context) (*Service, error) {
+func NewPlaceSearchService(db *sql.DB) (*Service, error) {
 	placesApi, err := places.NewPlacesApi()
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing places api: %v", err)
 	}
 
-	placeRepository, err := firestore.NewPlaceRepository(ctx)
+	placeRepository, err := rdb.NewPlaceRepository(db)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
-	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
+	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
 	if err != nil {
 		return nil, err
 	}

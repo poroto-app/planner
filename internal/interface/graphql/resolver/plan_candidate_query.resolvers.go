@@ -21,7 +21,7 @@ import (
 
 // CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
 func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := plancandidate.NewService(ctx)
+	planService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -54,7 +54,7 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planService, err := plancandidate.NewService(ctx)
+	planService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan candidate service", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
@@ -87,7 +87,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	service, err := plancandidate.NewService(ctx)
+	service, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -139,7 +139,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := place.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -165,7 +165,7 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
-	s, err := place.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -208,7 +208,7 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		zap.String("placeId", input.PlaceID),
 	)
 
-	s, err := place.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")

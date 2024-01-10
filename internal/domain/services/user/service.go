@@ -2,10 +2,11 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/auth"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 )
 
 type Service struct {
@@ -13,8 +14,8 @@ type Service struct {
 	firebaseAuth   *auth.FirebaseAuth
 }
 
-func NewService(ctx context.Context) (*Service, error) {
-	userRepository, err := firestore.NewUserRepository(ctx)
+func NewService(ctx context.Context, db *sql.DB) (*Service, error) {
+	userRepository, err := rdb.NewUserRepository(db)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing user repository: %v", err)
 	}

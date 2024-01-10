@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"time"
 )
 
 // FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する
 // nLimit によって取得する場所の数を制限することができる
 func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, planId string, nLimit uint) ([]models.Place, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}

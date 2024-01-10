@@ -9,16 +9,18 @@ import (
 	"fmt"
 	"log"
 
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // Plan is the resolver for the plan field.
 func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
-	planService, err := plan.NewService(ctx)
+	planService, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
@@ -42,25 +44,37 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 }
 
 // Plans is the resolver for the plans field.
-func (r *queryResolver) Plans(ctx context.Context, pageKey *string) ([]*model.Plan, error) {
-	service, err := plan.NewService(ctx)
+func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*model.PlansOutput, error) {
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
-		log.Println("error while initializing places api: ", err)
+		log.Println("error while initializing logger: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	plans, err := service.FetchPlans(ctx, pageKey)
+	service, err := plan.NewService(ctx, r.DB)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while initializing plan service", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	plans, nextPageToken, err := service.FetchPlans(ctx, plan.FetchPlansInput{
+		PageToken: input.PageToken,
+		Limit:     input.Limit,
+	})
+	if err != nil {
+		logger.Error("error while fetching plans", zap.Error(err))
 		return nil, fmt.Errorf("could not fetch plans")
 	}
 
-	return factory.PlansFromDomainModel(plans, nil), nil
+	return &model.PlansOutput{
+		Plans:         factory.PlansFromDomainModel(plans, nil),
+		NextPageToken: nextPageToken,
+	}, nil
 }
 
 // PlansByLocation is the resolver for the plansByLocation field.
 func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
-	planService, err := plan.NewService(ctx)
+	planService, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		log.Printf("error while initializing plan service: %v", err)
 		return nil, fmt.Errorf("internal server error")
@@ -88,13 +102,13 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 
 // PlansByUser is the resolver for the plansByUser field.
 func (r *queryResolver) PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error) {
-	planService, err := plan.NewService(ctx)
+	planService, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println("error while initializing plan service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	userService, err := user.NewService(ctx)
+	userService, err := user.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println("error while initializing user service: ", err)
 		return nil, fmt.Errorf("internal server error")

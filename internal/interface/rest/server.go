@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"database/sql"
 	"net/url"
 	"os"
 	"time"
@@ -32,7 +33,7 @@ func NewRestServer(env string) *Server {
 	}
 }
 
-func (s Server) ServeHTTP() error {
+func (s Server) ServeHTTP(db *sql.DB) error {
 	if s.isStaging() || s.isProduction() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -68,7 +69,7 @@ func (s Server) ServeHTTP() error {
 		})
 	})
 
-	r.POST("/graphql", GraphQlQuery)
+	r.POST("/graphql", GraphQlQueryHandler(db))
 	if s.isDevelopment() || s.isStaging() {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}

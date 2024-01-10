@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
 // RemovePlaceFromPlan プラン候補から場所を削除する
 // planId に対応するプランが存在しない場合はエラーを返す
 // 指定された場所をプランから除外すると、プランに含まれる場所が0になる場合はエラーを返す
 func (s Service) RemovePlaceFromPlan(ctx context.Context, planCandidateId string, planId string, placeId string) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while retrieving plan candidate: %v", err)
 	}
@@ -32,7 +33,7 @@ func (s Service) RemovePlaceFromPlan(ctx context.Context, planCandidateId string
 	}
 
 	// 更新後のプラン候補を取得
-	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while retrieving plan candidate: %v", err)
 	}

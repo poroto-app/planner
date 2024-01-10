@@ -12,6 +12,7 @@ import (
 	"math"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
@@ -94,7 +95,7 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 }
 
 // TODO: QueryCursor をこの関数内で生成する
-func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *string, limit int) (*[]models.Plan, error) {
+func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repository.SortedByCreatedAtQueryCursor, limit int) (*[]models.Plan, *repository.SortedByCreatedAtQueryCursor, error) {
 	planQueryMod := []qm.QueryMod{
 		qm.Load(generated.PlanRels.PlanPlaces),
 		qm.OrderBy(fmt.Sprintf("%s %s, %s %s", generated.PlanColumns.CreatedAt, "desc", generated.PlanColumns.ID, "desc")),
@@ -104,7 +105,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 	if queryCursor != nil {
 		dateTime, err := parseSortByCreatedAtQueryCursor(*queryCursor)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// WHERE (created_at) < (dateTime)
@@ -119,11 +120,11 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).All(ctx, p.db)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find plans: %w", err)
+		return nil, nil, fmt.Errorf("failed to find plans: %w", err)
 	}
 
 	if len(planEntities) == 0 {
-		return &[]models.Plan{}, nil
+		return &[]models.Plan{}, nil, nil
 	}
 
 	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
@@ -166,7 +167,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 		})
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to map plan places: %w", err)
+		return nil, nil, fmt.Errorf("failed to map plan places: %w", err)
 	}
 
 	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
@@ -177,10 +178,16 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *stri
 		)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to map plans: %w", err)
+		return nil, nil, fmt.Errorf("failed to map plans: %w", err)
 	}
 
-	return plans, nil
+	var nextQueryCursor *repository.SortedByCreatedAtQueryCursor
+	if len(*plans) == limit {
+		qc := newSortByCreatedAtQueryCursor(planEntities[limit-1].CreatedAt)
+		nextQueryCursor = &qc
+	}
+
+	return plans, nextQueryCursor, nil
 }
 
 func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, error) {
@@ -414,12 +421,12 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 	return plans, nil, nil
 }
 
-func newSortByCreatedAtQueryCursor(createdAt time.Time) string {
-	return fmt.Sprintf("%d", createdAt.Unix())
+func newSortByCreatedAtQueryCursor(createdAt time.Time) repository.SortedByCreatedAtQueryCursor {
+	return repository.SortedByCreatedAtQueryCursor(fmt.Sprintf("%d", createdAt.Unix()))
 }
 
-func parseSortByCreatedAtQueryCursor(queryCursor string) (*time.Time, error) {
-	unixTime, err := strconv.ParseInt(queryCursor, 10, 64)
+func parseSortByCreatedAtQueryCursor(queryCursor repository.SortedByCreatedAtQueryCursor) (*time.Time, error) {
+	unixTime, err := strconv.ParseInt(string(queryCursor), 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid query cursor: %s", queryCursor)
 	}

@@ -6,11 +6,11 @@ import (
 	"fmt"
 )
 
-type repository interface {
+type Repository interface {
 	GetDB() *sql.DB
 }
 
-func runTransaction(ctx context.Context, r repository, f func(ctx context.Context, tx *sql.Tx) error) error {
+func runTransaction(ctx context.Context, r Repository, f func(ctx context.Context, tx *sql.Tx) error) error {
 	tx, err := r.GetDB().BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

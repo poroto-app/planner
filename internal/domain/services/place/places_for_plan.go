@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"time"
 )
 
 const (
@@ -29,7 +30,7 @@ func (s Service) FetchCandidatePlaces(
 		input.NLimit = defaultMaxPlacesToSuggest
 	}
 
-	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
 	if err != nil {
 		return nil, err
 	}

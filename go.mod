@@ -3,7 +3,6 @@ module poroto.app/poroto/planner
 go 1.19
 
 require (
-	cloud.google.com/go/firestore v1.14.0
 	firebase.google.com/go/v4 v4.13.0
 	github.com/99designs/gqlgen v0.17.34
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
@@ -21,7 +20,6 @@ require (
 	github.com/volatiletech/strmangle v0.0.5
 	go.uber.org/zap v1.26.0
 	google.golang.org/api v0.155.0
-	google.golang.org/grpc v1.60.1
 	googlemaps.github.io/maps v1.7.0
 )
 
@@ -29,6 +27,7 @@ require (
 	cloud.google.com/go v0.110.10 // indirect
 	cloud.google.com/go/compute v1.23.3 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/firestore v1.14.0 // indirect
 	cloud.google.com/go/functions v1.15.4 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/longrunning v0.5.4 // indirect
@@ -101,6 +100,7 @@ require (
 	google.golang.org/genproto v0.0.0-20231211222908-989df2bf70f3 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231211222908-989df2bf70f3 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 // indirect
+	google.golang.org/grpc v1.60.1 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

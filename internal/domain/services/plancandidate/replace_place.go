@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
 func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeIdToReplace string) (*models.Plan, error) {
@@ -15,7 +16,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 		zap.String("placeIdToBeReplaced", placeIdToBeReplaced),
 		zap.String("placeIdToReplace", placeIdToReplace),
 	)
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
 	}
@@ -85,7 +86,7 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 		zap.String("planCandidateId", planCandidateId),
 	)
 
-	planCandidateUpdated, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidateUpdated, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
 	}

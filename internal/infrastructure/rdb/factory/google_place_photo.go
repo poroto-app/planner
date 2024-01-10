@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"sort"
 )
@@ -50,13 +49,24 @@ func NewGooglePlacePhotoFromEntity(
 		return googlePlacePhotoAttributionEntity.HTMLAttribution, true
 	})
 
+	imgSmall := models.Image{
+		URL:    googlePlacePhotoEntitiesFiltered[0].URL,
+		Width:  uint(googlePlacePhotoEntitiesFiltered[0].Width),
+		Height: uint(googlePlacePhotoEntitiesFiltered[0].Height),
+	}
+	imgLarge := models.Image{
+		URL:    googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].URL,
+		Width:  uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Width),
+		Height: uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Height),
+	}
+
 	return &models.GooglePlacePhoto{
 		PhotoReference:   googlePlacePhotoReferenceEntity.PhotoReference,
 		Width:            googlePlacePhotoReferenceEntity.Width,
 		Height:           googlePlacePhotoReferenceEntity.Height,
 		HTMLAttributions: googlePlacePhotoAttributions,
-		Small:            utils.StrOmitEmpty(googlePlacePhotoEntitiesFiltered[0].URL),
-		Large:            utils.StrOmitEmpty(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].URL),
+		Small:            &imgSmall,
+		Large:            &imgLarge,
 	}
 }
 
@@ -68,9 +78,9 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
-			Width:          googlePlacePhoto.Width,
-			Height:         googlePlacePhoto.Height,
-			URL:            *googlePlacePhoto.Small,
+			Width:          int(googlePlacePhoto.Small.Width),
+			Height:         int(googlePlacePhoto.Small.Height),
+			URL:            googlePlacePhoto.Small.URL,
 		})
 	}
 
@@ -79,9 +89,9 @@ func NewGooglePlacePhotoSliceFromDomainModel(googlePlacePhoto models.GooglePlace
 			ID:             uuid.New().String(),
 			PhotoReference: googlePlacePhoto.PhotoReference,
 			GooglePlaceID:  googlePlaceId,
-			Width:          googlePlacePhoto.Width,
-			Height:         googlePlacePhoto.Height,
-			URL:            *googlePlacePhoto.Large,
+			Width:          int(googlePlacePhoto.Large.Width),
+			Height:         int(googlePlacePhoto.Large.Height),
+			URL:            googlePlacePhoto.Large.URL,
 		})
 	}
 

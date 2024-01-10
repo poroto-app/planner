@@ -37,10 +37,13 @@ func (s Service) FetchGooglePlace(ctx context.Context, googlePlaceId string) (*m
 	googlePlace := factory.GooglePlaceFromPlaceEntity(*placeDetailEntity, nil)
 
 	// 保存する
-	place, err := s.placeRepository.SavePlacesFromGooglePlace(ctx, googlePlace)
+	places, err := s.placeRepository.SavePlacesFromGooglePlaces(ctx, googlePlace)
 	if err != nil {
 		return nil, fmt.Errorf("could not save google place detail: %v", err)
 	}
+	if len(*places) == 0 {
+		return nil, fmt.Errorf("could not save google place detail: %v", err)
+	}
 
-	return place, nil
+	return &(*places)[0], nil
 }

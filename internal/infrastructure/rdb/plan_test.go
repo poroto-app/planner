@@ -8,6 +8,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"testing"
 	"time"
@@ -341,7 +342,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 		savedPlanSlice      generated.PlanSlice
 		savedPlanPlaceSlice generated.PlanPlaceSlice
 		savedPlaces         []models.Place
-		queryCursor         *string
+		queryCursor         *repository.SortedByCreatedAtQueryCursor
 		limit               int
 		expected            []models.Plan
 	}{
@@ -466,7 +467,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 				t.Errorf("error saving plan place: %v", err)
 			}
 
-			plans, err := planRepository.SortedByCreatedAt(textContext, c.queryCursor, c.limit)
+			plans, _, err := planRepository.SortedByCreatedAt(textContext, c.queryCursor, c.limit)
 			if err != nil {
 				t.Errorf("error finding plans: %v", err)
 			}
