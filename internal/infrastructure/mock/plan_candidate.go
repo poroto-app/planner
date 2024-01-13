@@ -22,7 +22,7 @@ func (p PlanRepository) Create(ctx context.Context, planCandidateId string, expi
 	panic("implement me")
 }
 
-func (p PlanRepository) Find(ctx context.Context, planCandidateId string) (*models.PlanCandidate, error) {
+func (p PlanRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -63,7 +63,7 @@ func (p PlanRepository) RemovePlaceFromPlan(ctx context.Context, planCandidateId
 	panic("implement me")
 }
 
-func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) (*models.Plan, error) {
+func (p PlanRepository) UpdatePlacesOrder(ctx context.Context, planId string, planCandidate string, placeIdsOrdered []string) error {
 	//TODO implement me
 	panic("implement me")
 }

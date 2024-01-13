@@ -1,28 +1,18 @@
 package models
 
-import (
-	"fmt"
-	"poroto.app/poroto/planner/internal/domain/utils"
-)
-
 type Image struct {
+	Width  uint
+	Height uint
+	URL    string
+}
+
+type ImageSmallLarge struct {
 	Small *string
 	Large *string
 }
 
-func NewImage(small, large *string) (*Image, error) {
-	if small == nil && large == nil {
-		return nil, fmt.Errorf("small and large are both nil")
-	}
-
-	return &Image{
-		Small: utils.StrCopyPointerValue(small),
-		Large: utils.StrCopyPointerValue(large),
-	}, nil
-}
-
 // Default は，画像のデフォルトのURLを返す
-func (i Image) Default() string {
+func (i ImageSmallLarge) Default() string {
 	if i.Large != nil {
 		return *i.Large
 	}

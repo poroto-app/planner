@@ -1,0 +1,6 @@
+type PlanCandidate {
+    id: String!
+    plans: [Plan!]!
+    likedPlaceIds: [String!]!
+    createdBasedOnCurrentLocation: Boolean!
+}

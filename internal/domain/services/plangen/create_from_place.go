@@ -3,6 +3,7 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )
@@ -12,13 +13,13 @@ func (s Service) CreatePlanFromPlace(
 	createPlanSessionId string,
 	placeId string,
 ) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}
 
 	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
-	places, err := s.placeService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -35,16 +36,23 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
+	var categoryNamesRejected []string
+	if planCandidate.MetaData.CategoriesRejected != nil {
+		for _, category := range *planCandidate.MetaData.CategoriesRejected {
+			categoryNamesRejected = append(categoryNamesRejected, category.Name)
+		}
+	}
+
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			planCandidateId:              createPlanSessionId,
-			locationStart:                placeStart.Location,
-			placeStart:                   *placeStart,
-			places:                       places,
-			freeTime:                     nil, // TODO: freeTimeの項目を保存し、それを反映させる
-			createBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-			shouldOpenWhileTraveling:     false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+			PlanCandidateId:          createPlanSessionId,
+			LocationStart:            placeStart.Location,
+			PlaceStart:               *placeStart,
+			Places:                   places,
+			CategoryNamesDisliked:    &categoryNamesRejected,
+			FreeTime:                 planCandidate.MetaData.FreeTime,
+			ShouldOpenWhileTraveling: false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
 		},
 	)
 	if err != nil {

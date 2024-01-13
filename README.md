@@ -29,6 +29,12 @@ go version
 go mod tidy
 ```
 
+### MySQLの起動（Docker）
+```shell
+cd docker
+docker compose up -d
+```
+
 ### IntelliJ IDEAの設定
 1. `go env`を実行し、`GOROOT`を取得する
 2. `Languages & Frameworks` → `GO`→ `GOROOT` を開く
@@ -93,7 +99,59 @@ docker run --rm -v $(pwd):/app -w /app golangci/golangci-lint:v1.46.2 golangci-l
 go generate ./...
 ```
 
-## Test
+## テストの実行
 ```shell
 go test ./...
+```
+
+## Database
+### Gooseのインストール
+https://pressly.github.io/goose/installation/
+```shell
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+
+### マイグレーションの作成
+```shell
+goose -dir db/migrations create create_user_table sql go
+```
+
+### マイグレーションの実行
+```shell
+DB_USER=root \
+DB_PASSWORD=password \
+DB_HOST=localhost:3306 \
+DB_NAME=poroto \
+goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
+```
+
+### SQLBoilerをインストール
+[volatiletech/sqlboiler #Download](https://github.com/volatiletech/sqlboiler?tab=readme-ov-file#download)
+```shell
+go install github.com/volatiletech/sqlboiler/v4@latest
+go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@latest
+````
+
+### SQLBoiler Extentions(追加済み)
+デフォルトのSQLBoilerにはBulk操作を行うための関数が含まれていないため、拡張テンプレートを追加する必要があります。  
+[tiendc / sqlboiler-extensions](https://github.com/tiendc/sqlboiler-extensions)
+```shell
+git submodule add --name "db/extensions"  https://github.com/tiendc/sqlboiler-extensions.git "db/extensions"
+git submodule update --init
+```
+
+### SQLBoilerでモデルコードの生成
+```shell
+cp db/sqlboiler_template.toml sqlboiler.toml && sed -i -e "s|\${GOPATH}|$(go env GOPATH)|g" sqlboiler.toml && sed -i -e "s|<sqlboiler-version>|$(grep "github.com/volatiletech/sqlboiler/v4" go.mod | awk '{print $2}')|g" sqlboiler.toml
+sqlboiler mysql 
+```
+
+## Trouble Shooting
+### MySQLをアップグレード・ダウングレードしたら起動できなくなった
+※ 本番環境ではデータを移行することが必要です
+
+ローカルでデータを削除する場合は以下のコマンドを利用します
+```shell
+docker compose down
+docker volume rm planner_mysql-data
 ```

@@ -1,0 +1,156 @@
+extend type Mutation {
+    createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
+
+    createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
+
+    createPlanByGooglePlaceId(input: CreatePlanByGooglePlaceIdInput!): CreatePlanByGooglePlaceIdOutput!
+
+    changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
+
+    savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
+
+    # ===========================================================
+    # Edit
+    # ===========================================================
+
+    addPlaceToPlanCandidateAfterPlace(input: AddPlaceToPlanCandidateAfterPlaceInput): AddPlaceToPlanCandidateAfterPlaceOutput!
+
+    deletePlaceFromPlanCandidate(input: DeletePlaceFromPlanCandidateInput!): DeletePlaceFromPlanCandidateOutput!
+
+    replacePlaceOfPlanCandidate(input: ReplacePlaceOfPlanCandidateInput!): ReplacePlaceOfPlanCandidateOutput!
+
+    editPlanTitleOfPlanCandidate(input: EditPlanTitleOfPlanCandidateInput!): EditPlanTitleOfPlanCandidateOutput!
+
+    # プラン内の経路を自動で並び替える
+    autoReorderPlacesInPlanCandidate(input: AutoReorderPlacesInPlanCandidateInput!): AutoReorderPlacesInPlanCandidateOutput!
+
+    likeToPlaceInPlanCandidate(input: LikeToPlaceInPlanCandidateInput!): LikeToPlaceInPlanCandidateOutput!
+}
+
+input CreatePlanByLocationInput {
+    session: String
+    latitude: Float!
+    longitude: Float!
+    googlePlaceId: String
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
+    freeTime: Int
+    # 現在地から作成されたプランか
+    # TODO: 必須パラメータにする
+    createdBasedOnCurrentLocation: Boolean
+}
+
+type CreatePlanByLocationOutput {
+    session: String!
+    plans: [Plan!]!
+}
+
+input CreatePlanByPlaceInput {
+    session: String!
+    placeId: String!
+}
+
+type CreatePlanByPlaceOutput {
+    session: String!
+    plan: Plan!
+}
+
+input CreatePlanByGooglePlaceIdInput {
+    planCandidateId: String
+    googlePlaceId: String!
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
+    freeTime: Int
+}
+
+type CreatePlanByGooglePlaceIdOutput {
+    planCandidate: PlanCandidate!
+}
+
+input ChangePlacesOrderInPlanCandidateInput {
+    session: String!
+    planId: String!
+    placeIds: [String!]!
+    currentLatitude: Float
+    currentLongitude: Float
+}
+
+type ChangePlacesOrderInPlanCandidateOutput {
+    plan: Plan!
+}
+
+input SavePlanFromCandidateInput {
+    session: String!
+    planId: String!
+    authToken: String
+}
+
+type SavePlanFromCandidateOutput {
+    plan: Plan!
+}
+
+input AddPlaceToPlanCandidateAfterPlaceInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+    previousPlaceId: String!
+}
+
+type AddPlaceToPlanCandidateAfterPlaceOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input DeletePlaceFromPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeId: String!
+}
+
+type DeletePlaceFromPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input ReplacePlaceOfPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    placeIdToRemove: String!
+    placeIdToReplace: String!
+}
+
+type ReplacePlaceOfPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input EditPlanTitleOfPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+    title: String!
+}
+
+type EditPlanTitleOfPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input AutoReorderPlacesInPlanCandidateInput {
+    planCandidateId: String!
+    planId: String!
+}
+
+type AutoReorderPlacesInPlanCandidateOutput {
+    planCandidateId: String!
+    plan: Plan!
+}
+
+input LikeToPlaceInPlanCandidateInput {
+    planCandidateId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanCandidateOutput {
+    planCandidate: PlanCandidate!
+}

@@ -11,7 +11,6 @@ type GooglePlace struct {
 	Types            []string
 	Location         GeoLocation
 	PhotoReferences  []GooglePlacePhotoReference
-	OpenNow          bool
 	PriceLevel       int
 	Rating           float32
 	UserRatingsTotal int
@@ -19,23 +18,6 @@ type GooglePlace struct {
 	FormattedAddress *string
 	Photos           *[]GooglePlacePhoto
 	PlaceDetail      *GooglePlaceDetail
-}
-
-func (g GooglePlace) Images() []Image {
-	if g.Photos == nil {
-		return nil
-	}
-
-	var images []Image
-	for _, photo := range *g.Photos {
-		image, err := NewImage(photo.Small, photo.Large)
-		if err != nil {
-			continue
-		}
-		images = append(images, *image)
-	}
-
-	return images
 }
 
 // IndexOfCategory は Types 中の `category` に対応する Type のインデックスを返す
@@ -50,8 +32,14 @@ func (g GooglePlace) IndexOfCategory(category LocationCategory) int {
 }
 
 func (g GooglePlace) IsOpening(at time.Time) (bool, error) {
-	if g.PlaceDetail == nil || g.PlaceDetail.OpeningHours == nil {
-		return false, fmt.Errorf("opening hours is not set")
+	if g.PlaceDetail == nil {
+		return false, fmt.Errorf("place detail is not fetched")
+	}
+
+	// OpeningHoursがない場合は開いているとみなす
+	// (営業時間が不明な場所がスキップされてしまうとプランに含まれなくなるため)
+	if g.PlaceDetail.OpeningHours == nil {
+		return true, nil
 	}
 
 	for _, openingPeriod := range g.PlaceDetail.OpeningHours.Periods {

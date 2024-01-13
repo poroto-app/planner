@@ -81,12 +81,12 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 			place: Place{
 				Google: GooglePlace{
 					Types: []string{
-						CategoryBookStore.SubCategories[0],
+						CategoryRestaurant.SubCategories[0],
 						CategoryAmusements.SubCategories[1],
 					},
 				},
 			},
-			expected: CategoryBookStore.EstimatedStayDuration,
+			expected: CategoryRestaurant.EstimatedStayDuration,
 		},
 	}
 

@@ -2,34 +2,34 @@ package plan
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string, authToken *string) (*models.Plan, error) {
 	// プラン候補から対応するプランを取得
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, err
 	}
 
-	var planToSave *models.Plan
-	for _, plan := range planCandidate.Plans {
-		if plan.Id == planId {
-			planToSave = &plan
-			break
-		}
-	}
-	if planToSave == nil {
+	planToSave, ok := array.Find(planCandidate.Plans, func(plan models.Plan) bool {
+		return plan.Id == planId
+	})
+	if !ok {
 		return nil, fmt.Errorf("plan(%v) not found in plan candidate(%v)", planId, planCandidateId)
 	}
 
 	// 冪等性を保つために、既存のプランを取得してから保存する
 	planSaved, err := s.planRepository.Find(ctx, planId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		// ログに出力するが、エラーは返さない
 		s.logger.Warn(
 			"error while finding plan",
@@ -61,9 +61,9 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 	}
 
 	// プランを保存
-	if err := s.planRepository.Save(ctx, planToSave); err != nil {
+	if err := s.planRepository.Save(ctx, &planToSave); err != nil {
 		return nil, err
 	}
 
-	return planToSave, nil
+	return &planToSave, nil
 }

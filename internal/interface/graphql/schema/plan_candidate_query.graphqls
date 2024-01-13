@@ -1,0 +1,77 @@
+extend type Query {
+    # TODO: DELETE ME!
+    # キャッシュされたプラン一覧を取得する
+    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
+
+    planCandidate(input : PlanCandidateInput!): PlanCandidateOutput!
+
+    nearbyPlaceCategories(input: NearbyPlaceCategoriesInput!): NearbyPlaceCategoryOutput!
+
+    # プランを作成可能な他の場所を取得する
+    availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
+
+    # ===========================================================
+    # Edit
+    # ===========================================================
+    placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
+
+    placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
+}
+
+# TODO: DELETE ME!
+type CachedCreatedPlans {
+    plans: [Plan!]!
+    createdBasedOnCurrentLocation: Boolean!
+    likedPlaceIds: [ID!]!
+}
+
+# TODO: DELETE ME!
+input CachedCreatedPlansInput {
+    # CreatePlanByLocationOutputのsession
+    session: String!
+}
+
+input PlanCandidateInput {
+    planCandidateId: ID!
+}
+
+type PlanCandidateOutput {
+    planCandidate: PlanCandidate
+}
+
+input AvailablePlacesForPlanInput {
+    session: String!
+}
+
+type AvailablePlacesForPlan {
+    places: [Place!]!
+}
+
+input NearbyPlaceCategoriesInput {
+    latitude: Float!
+    longitude: Float!
+}
+
+type NearbyPlaceCategoryOutput {
+    planCandidateId: ID!
+    categories: [NearbyLocationCategory!]!
+}
+
+input PlacesToAddForPlanCandidateInput {
+    planCandidateId: ID!
+    planId: ID!
+}
+
+type PlacesToAddForPlanCandidateOutput {
+    places: [Place!]!
+}
+
+input PlacesToReplaceForPlanCandidateInput {
+    planCandidateId: ID!
+    planId: ID!
+    placeId: ID!
+}
+
+type PlacesToReplaceForPlanCandidateOutput {
+    places: [Place!]!
+}

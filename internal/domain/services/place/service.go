@@ -1,36 +1,30 @@
 package place
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"poroto.app/poroto/planner/internal/domain/utils"
-	"poroto.app/poroto/planner/internal/infrastructure/api/google/places"
-	"poroto.app/poroto/planner/internal/infrastructure/firestore"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 )
 
 type Service struct {
-	placesApi               places.PlacesApi
-	placeRepository         repository.PlaceRepository
+	placeSearchService      placesearch.Service
 	planCandidateRepository repository.PlanCandidateRepository
-	logger                  *zap.Logger
+	logger                  zap.Logger
 }
 
-func NewPlaceService(ctx context.Context) (*Service, error) {
-	placesApi, err := places.NewPlacesApi()
+func NewService(db *sql.DB) (*Service, error) {
+	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing places api: %v", err)
+		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
 	}
 
-	placeRepository, err := firestore.NewPlaceRepository(ctx)
+	placeSearchService, err := placesearch.NewPlaceSearchService(db)
 	if err != nil {
-		return nil, fmt.Errorf("error while initializing place repository: %v", err)
-	}
-
-	planCandidateRepository, err := firestore.NewPlanCandidateRepository(ctx)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while initializing place search service: %v", err)
 	}
 
 	logger, err := utils.NewLogger(utils.LoggerOption{
@@ -41,9 +35,8 @@ func NewPlaceService(ctx context.Context) (*Service, error) {
 	}
 
 	return &Service{
-		placesApi:               *placesApi,
-		placeRepository:         *placeRepository,
+		placeSearchService:      *placeSearchService,
 		planCandidateRepository: planCandidateRepository,
-		logger:                  logger,
+		logger:                  *logger,
 	}, nil
 }
