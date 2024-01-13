@@ -2,6 +2,8 @@ package plan
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -27,7 +29,7 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 
 	// 冪等性を保つために、既存のプランを取得してから保存する
 	planSaved, err := s.planRepository.Find(ctx, planId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		// ログに出力するが、エラーは返さない
 		s.logger.Warn(
 			"error while finding plan",

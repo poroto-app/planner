@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -51,6 +52,9 @@ func (u UserRepository) Create(ctx context.Context, user models.User) error {
 func (u UserRepository) Find(ctx context.Context, id string) (*models.User, error) {
 	userEntity, err := generated.FindUser(ctx, u.db, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("error while finding user: %v", err)
 	}
 
@@ -64,6 +68,9 @@ func (u UserRepository) Find(ctx context.Context, id string) (*models.User, erro
 func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error) {
 	userEntity, err := generated.Users(generated.UserWhere.FirebaseUID.EQ(firebaseUID)).One(ctx, u.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("error while finding user: %v", err)
 	}
 
