@@ -3,8 +3,6 @@ extend type Mutation {
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
 
-    createPlanByGooglePlaceId(input: CreatePlanByGooglePlaceIdInput!): CreatePlanByGooglePlaceIdOutput!
-
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
     savePlanFromCandidate(input: SavePlanFromCandidateInput!): SavePlanFromCandidateOutput!
