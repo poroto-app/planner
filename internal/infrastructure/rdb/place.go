@@ -599,7 +599,7 @@ func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeI
 		qm.From(generated.TableNames.PlanCandidateSetLikePlaces),
 		qm.WhereIn(
 			fmt.Sprintf("%s IN ?", generated.PlanCandidateSetLikePlaceColumns.PlaceID),
-			array.Map(placeIds, func(placeId string) interface{} { return placeId })...,
+			toInterfaceArray(placeIds)...,
 		),
 		qm.GroupBy(generated.PlanCandidateSetLikePlaceTableColumns.PlaceID),
 	).Bind(ctx, exec, &planCandidateSetPlaceLikeCounts); err != nil {
