@@ -51,6 +51,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	if params.CategoryNamesDisliked != nil {
 		categoriesDisliked := models.GetCategoriesFromSubCategories(*params.CategoryNamesDisliked)
 		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+		s.logger.Debug("places after filtering by disliked categories", zap.Int("places", len(placesFiltered)))
 	}
 
 	// 他のプランに含まれている場所を除外する
@@ -66,6 +67,7 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 		}
 		return true
 	})
+	s.logger.Debug("places after filtering by other plans", zap.Int("places", len(placesFiltered)))
 
 	// レビューの高い順でソート
 	placesSorted := models.SortPlacesByRating(placesFiltered)
