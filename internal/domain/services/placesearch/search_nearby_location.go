@@ -188,20 +188,20 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		{
 			placeType:        maps.PlaceTypeCafe,
 			searchRange:      3 * 1000,
-			filterRange:      1 * 1000,
-			ignorePlaceCount: 1,
+			filterRange:      3 * 1000,
+			ignorePlaceCount: 5,
 		},
 		{
 			placeType:        maps.PlaceTypeRestaurant,
 			searchRange:      3 * 1000,
-			filterRange:      1 * 1000,
-			ignorePlaceCount: 1,
+			filterRange:      3 * 1000,
+			ignorePlaceCount: 5,
 		},
 		{
 			placeType:        maps.PlaceTypeBakery,
 			searchRange:      3 * 1000,
-			filterRange:      1 * 1000,
-			ignorePlaceCount: 1,
+			filterRange:      5 * 1000,
+			ignorePlaceCount: 3,
 		},
 		{
 			placeType:        maps.PlaceTypeTouristAttraction,
