@@ -288,6 +288,86 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 	return places, nil
 }
 
+func (p PlaceRepository) FindByCategory(ctx context.Context, category models.LocationCategory, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error) {
+	googlePlaceEntities, err := generated.GooglePlaces(
+		qm.InnerJoin(fmt.Sprintf(
+			"%s on %s.%s = %s.%s",
+			generated.TableNames.GooglePlaceTypes,
+			generated.TableNames.GooglePlaceTypes,
+			generated.GooglePlaceTypeColumns.GooglePlaceID,
+			generated.TableNames.GooglePlaces,
+			generated.GooglePlaceColumns.GooglePlaceID,
+		)),
+		qm.WhereIn(
+			fmt.Sprintf("%s.%s in ?", generated.TableNames.GooglePlaceTypes, generated.GooglePlaceTypeColumns.Type),
+			toInterfaceArray(category.SubCategories)...,
+		),
+		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", baseLocation.Longitude, baseLocation.Latitude, radius),
+		qm.Load(generated.GooglePlaceRels.Place),
+		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
+		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),
+		qm.Load(generated.GooglePlaceRels.GooglePlacePhotos),
+		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoAttributions),
+		qm.Load(generated.GooglePlaceRels.GooglePlaceReviews),
+		qm.Load(generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
+	).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find google places: %w", err)
+	}
+
+	if len(googlePlaceEntities) == 0 {
+		return &[]models.Place{}, nil
+	}
+
+	// 一対多の関係になるため、重複を排除する
+	googlePlaceEntities = array.DistinctBy(googlePlaceEntities, func(googlePlaceEntity *generated.GooglePlace) string {
+		if googlePlaceEntity == nil {
+			return ""
+		}
+		return googlePlaceEntity.PlaceID
+	})
+
+	planCandidateSetLikePlaceCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(googlePlaceEntities, func(googlePlaceEntity *generated.GooglePlace) (string, bool) {
+		if googlePlaceEntity == nil {
+			return "", false
+		}
+		return googlePlaceEntity.PlaceID, true
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	var places []models.Place
+	for _, googlePlaceEntity := range googlePlaceEntities {
+		if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*googlePlaceEntity.R.Place,
+			*googlePlaceEntity,
+			googlePlaceEntity.R.GooglePlaceTypes,
+			googlePlaceEntity.R.GooglePlacePhotoReferences,
+			googlePlaceEntity.R.GooglePlacePhotoAttributions,
+			googlePlaceEntity.R.GooglePlacePhotos,
+			googlePlaceEntity.R.GooglePlaceReviews,
+			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
+		}
+		if place == nil {
+			continue
+		}
+
+		places = append(places, *place)
+	}
+
+	return &places, nil
+}
+
 func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error) {
 	return p.findByGooglePlaceId(ctx, p.db, googlePlaceID)
 }

@@ -603,6 +603,137 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 	}
 }
 
+func TestPlaceRepository_FindByCategory(t *testing.T) {
+	cases := []struct {
+		name           string
+		savedPlaces    []models.Place
+		category       models.LocationCategory
+		baseLocation   models.GeoLocation
+		radius         float64
+		expectedPlaces []models.Place
+	}{
+		{
+			name: "valid",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: models.CategoryShopping.SubCategories,
+					},
+				},
+			},
+			category: models.CategoryShopping,
+			radius:   5000,
+			baseLocation: models.GeoLocation{
+				// 新宿駅
+				Latitude:  35.6896,
+				Longitude: 139.7005,
+			},
+			expectedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Location: models.GeoLocation{
+						Latitude:  35.692247367825,
+						Longitude: 139.703036771,
+					},
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: models.CategoryShopping.SubCategories,
+					},
+				},
+			},
+		},
+		{
+			name: "filter by category",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: models.CategoryShopping.SubCategories,
+					},
+				},
+			},
+			category: models.CategoryCafe,
+			radius:   5000,
+			baseLocation: models.GeoLocation{
+				// 新宿駅
+				Latitude:  35.6896,
+				Longitude: 139.7005,
+			},
+			expectedPlaces: []models.Place{},
+		},
+		{
+			name: "filter by distance",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: models.CategoryShopping.SubCategories,
+					},
+				},
+			},
+			category: models.CategoryShopping,
+			radius:   1000,
+			baseLocation: models.GeoLocation{
+				// 代々木上原駅
+				Latitude:  35.669017114155,
+				Longitude: 139.67981467654,
+			},
+			expectedPlaces: []models.Place{},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			actualPlaces, err := placeRepository.FindByCategory(testContext, c.category, c.baseLocation, c.radius)
+			if err != nil {
+				t.Fatalf("error while finding places: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlaces, *actualPlaces); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestPlaceRepository_FindByGooglePlaceID(t *testing.T) {
 	cases := []struct {
 		name          string
