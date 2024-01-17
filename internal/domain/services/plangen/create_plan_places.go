@@ -41,17 +41,11 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 	placesFiltered := params.Places
 	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
-		StartLocation: params.LocationStart,
+		Places:              placesFiltered,
+		StartLocation:       params.LocationStart,
+		IgnoreDistanceRange: placeDistanceRangeInPlan,
 	})
-
-	// 開始地点となる場所から1500m圏内の場所に絞る
-	placesFiltered = placefilter.FilterWithinDistanceRange(
-		placesFiltered,
-		params.PlaceStart.Location,
-		0,
-		placeDistanceRangeInPlan,
-	)
+	s.logger.Debug("places after filtering by distance", zap.Int("places", len(placesFiltered)))
 
 	// ユーザーが拒否した場所は取り除く
 	if params.CategoryNamesDisliked != nil {
