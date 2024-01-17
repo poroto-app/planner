@@ -27,7 +27,7 @@ type SearchNearbyPlacesInput struct {
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
 // searchRange Nearby Search時の検索範囲（水族館等の施設の数が少ない場所を探すときは広い範囲を探す）
-// filterRange 周囲に周囲にあるかどうかを確認するときの検索範囲 指定されていない場合は searchRange の値でフィルタリングされる
+// filterRange 周囲ににあるかどうかを確認するときの検索範囲 (カフェ等の施設の数が多い場所を探すときは狭い範囲を探す)
 // ignorePlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
 type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
@@ -52,11 +52,27 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	}
 
 	// キャッシュされた検索結果を取得
-	// TODO: カテゴリごとに検索範囲を指定して取得できるようにする
 	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, input.FilterSearchResultRadius)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
+
+	// カテゴリごとにキャッシュされた検索結果を取得
+	for _, placeTypeWithCondition := range s.placeTypesToSearch() {
+		placesSavedWithType, err := s.placeRepository.FindByGooglePlaceType(
+			ctx,
+			string(placeTypeWithCondition.placeType),
+			input.Location,
+			float64(placeTypeWithCondition.searchRange),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error while fetching places from google place type: %w", err)
+		}
+		placesSaved = append(placesSaved, *placesSavedWithType...)
+	}
+
+	// 重複した場所を削除
+	placesSaved = array.DistinctBy(placesSaved, func(place models.Place) string { return place.Id })
 
 	// 検索する必要のあるカテゴリを取得
 	placeTypeToPlaces := groupByPlaceType(placesSaved, s.placeTypesToSearch())
@@ -65,17 +81,13 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		savedPlacesOfPlaceType := placeTypeToPlaces[placeTypeToSearch.placeType]
 
 		// 保存された場所の中から特定の範囲内にある場所を取得
-		filterRange := placeTypeToSearch.filterRange
-		if filterRange == 0 {
-			filterRange = placeTypeToSearch.searchRange
-		}
-		placesInSearchRange := placefilter.FilterWithinDistanceRange(savedPlacesOfPlaceType, input.Location, 0, float64(filterRange))
+		placesInSearchRange := placefilter.FilterWithinDistanceRange(savedPlacesOfPlaceType, input.Location, 0, float64(placeTypeToSearch.filterRange))
 
 		s.logger.Info(
 			"saved places of place type",
 			zap.String("placeType", string(placeTypeToSearch.placeType)),
-			zap.Int("savedPlacesOfPlaceType", len(savedPlacesOfPlaceType)),
 			zap.Int("placesInSearchRange", len(placesInSearchRange)),
+			zap.Uint("ignorePlaceCount", placeTypeToSearch.ignorePlaceCount),
 		)
 
 		// 必要な分だけ場所の検索結果が取得できた場合は、そのカテゴリの検索は行わない
@@ -175,56 +187,63 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 	// そのカテゴリの場所が filterRange で指定している範囲の中に
 	// このくらいはありそうという値を ignorePlaceCount に指定している
+	// また、検索できる最大サイズは50kmまで
 	return []placeTypeWithCondition{
-		{
-			placeType:        maps.PlaceTypeAquarium,
-			searchRange:      30 * 1000,
-			filterRange:      10 * 1000,
-			ignorePlaceCount: 1,
-		},
-		{
-			placeType:        maps.PlaceTypeAmusementPark,
-			searchRange:      30 * 1000,
-			filterRange:      10 * 1000,
-			ignorePlaceCount: 1,
-		},
+		// 付近になければ、一度も検索していないことを怪しむレベル
 		{
 			placeType:        maps.PlaceTypeCafe,
-			searchRange:      2 * 1000,
-			ignorePlaceCount: 5,
-		},
-		{
-			placeType:        maps.PlaceTypeMuseum,
-			searchRange:      30 * 1000,
-			filterRange:      10 * 1000,
+			searchRange:      10 * 1000,
+			filterRange:      3 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeRestaurant,
-			searchRange:      2 * 1000,
-			ignorePlaceCount: 5,
+			searchRange:      10 * 1000,
+			filterRange:      3 * 1000,
+			ignorePlaceCount: 1,
 		},
+		// 近くにあってもおかしくないレベル
 		{
 			placeType:        maps.PlaceTypeShoppingMall,
-			searchRange:      2 * 1000,
-			ignorePlaceCount: 3,
+			searchRange:      20 * 1000,
+			filterRange:      5 * 1000,
+			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeSpa,
-			searchRange:      30 * 1000,
-			filterRange:      3 * 1000,
+			searchRange:      50 * 1000,
+			filterRange:      10 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeTouristAttraction,
 			searchRange:      30 * 1000,
-			filterRange:      5 * 1000,
+			filterRange:      10 * 1000,
+			ignorePlaceCount: 1,
+		},
+		// 近くに無いことがあたりまえなレベル
+		{
+			placeType:        maps.PlaceTypeAquarium,
+			searchRange:      50 * 1000,
+			filterRange:      30 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
+			placeType:        maps.PlaceTypeAmusementPark,
+			searchRange:      50 * 1000,
+			filterRange:      30 * 1000,
+			ignorePlaceCount: 1,
+		},
+		{
+			placeType:        maps.PlaceTypeMuseum,
+			searchRange:      50 * 1000,
+			filterRange:      30 * 1000,
 			ignorePlaceCount: 1,
 		},
 		{
 			placeType:        maps.PlaceTypeZoo,
-			searchRange:      30 * 1000,
-			filterRange:      10 * 1000,
+			searchRange:      50 * 1000,
+			filterRange:      30 * 1000,
 			ignorePlaceCount: 1,
 		},
 	}
