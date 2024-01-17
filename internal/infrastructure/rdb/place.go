@@ -16,10 +16,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-const (
-	defaultMaxDistance = 1000 * 5
-)
-
 type PlaceRepository struct {
 	db     *sql.DB
 	logger zap.Logger
@@ -232,9 +228,9 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 	return &places, nil
 }
 
-func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error) {
+func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error) {
 	googlePlaceEntities, err := generated.GooglePlaces(
-		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, defaultMaxDistance),
+		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, radius),
 		qm.Load(generated.GooglePlaceRels.Place),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),

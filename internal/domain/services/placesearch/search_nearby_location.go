@@ -53,7 +53,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 
 	// キャッシュされた検索結果を取得
 	// TODO: カテゴリごとに検索範囲を指定して取得できるようにする
-	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location)
+	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, input.FilterSearchResultRadius)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}

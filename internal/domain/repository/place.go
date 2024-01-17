@@ -10,7 +10,7 @@ type PlaceRepository interface {
 	// すでに models.GooglePlace が保存されている場合は、それに紐づく models.Place を取得する
 	SavePlacesFromGooglePlaces(ctx context.Context, googlePlaces ...models.GooglePlace) (*[]models.Place, error)
 
-	FindByLocation(ctx context.Context, location models.GeoLocation) ([]models.Place, error)
+	FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error)
 
 	// FindByCategory は指定されたカテゴリの場所を取得する
 	FindByCategory(ctx context.Context, category models.LocationCategory, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error)
