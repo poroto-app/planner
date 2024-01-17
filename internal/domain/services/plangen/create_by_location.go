@@ -91,18 +91,12 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		}
 	}
 
-	// 場所を指定してプランを作成する場合は、指定した場所も含めて３つの場所を基準にプランを作成する
-	maxBasePlaceCount := 3
-	if input.GooglePlaceId != nil {
-		maxBasePlaceCount = 2
-	}
-
 	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
 		BaseLocation:           input.LocationStart,
 		Places:                 places,
 		CategoryNamesPreferred: input.CategoryNamesPreferred,
 		CategoryNamesDisliked:  input.CategoryNamesDisliked,
-		MaxBasePlaceCount:      maxBasePlaceCount,
+		MaxBasePlaceCount:      10, // 選択した場所からプランが作成できないこともあるため、多めに取得する
 	})...)
 	for _, place := range placesRecommend {
 		s.logger.Debug(
@@ -118,16 +112,9 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		if createPlanParam != nil {
 			createPlanParams = append(createPlanParams, *createPlanParam)
 		}
-	}
 
-	// 開店時刻を考慮して、プランが作成できなかった場合は、開店時刻を無視してプランを作成する
-	if len(createPlanParams) == 0 && input.ShouldOpenWhileTraveling {
-		s.logger.Warn("no plan created", zap.String("PlanCandidateId", input.PlanCandidateId))
-		for _, placeRecommend := range placesRecommend {
-			createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, false)
-			if createPlanParam != nil {
-				createPlanParams = append(createPlanParams, *createPlanParam)
-			}
+		if len(createPlanParams) >= 3 {
+			break
 		}
 	}
 
