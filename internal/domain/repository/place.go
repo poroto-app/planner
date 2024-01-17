@@ -12,8 +12,8 @@ type PlaceRepository interface {
 
 	FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error)
 
-	// FindByCategory は指定されたカテゴリの場所を取得する
-	FindByCategory(ctx context.Context, category models.LocationCategory, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error)
+	// FindByGooglePlaceType は GooglePlaceType に紐づく Place を取得する
+	FindByGooglePlaceType(ctx context.Context, googlePlaceType string, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error)
 
 	FindByGooglePlaceID(ctx context.Context, googlePlaceID string) (*models.Place, error)
 

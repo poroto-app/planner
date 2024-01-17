@@ -605,12 +605,12 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 
 func TestPlaceRepository_FindByCategory(t *testing.T) {
 	cases := []struct {
-		name           string
-		savedPlaces    []models.Place
-		category       models.LocationCategory
-		baseLocation   models.GeoLocation
-		radius         float64
-		expectedPlaces []models.Place
+		name            string
+		savedPlaces     []models.Place
+		googlePlaceType string
+		baseLocation    models.GeoLocation
+		radius          float64
+		expectedPlaces  []models.Place
 	}{
 		{
 			name: "valid",
@@ -623,12 +623,12 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 							Latitude:  35.692247367825,
 							Longitude: 139.703036771,
 						},
-						Types: models.CategoryShopping.SubCategories,
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
 					},
 				},
 			},
-			category: models.CategoryShopping,
-			radius:   5000,
+			googlePlaceType: "book_store",
+			radius:          5000,
 			baseLocation: models.GeoLocation{
 				// 新宿駅
 				Latitude:  35.6896,
@@ -647,13 +647,13 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 							Latitude:  35.692247367825,
 							Longitude: 139.703036771,
 						},
-						Types: models.CategoryShopping.SubCategories,
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
 					},
 				},
 			},
 		},
 		{
-			name: "filter by category",
+			name: "filter by googlePlaceType",
 			savedPlaces: []models.Place{
 				{
 					Id: "kinokuniya-shoten",
@@ -663,12 +663,12 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 							Latitude:  35.692247367825,
 							Longitude: 139.703036771,
 						},
-						Types: models.CategoryShopping.SubCategories,
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
 					},
 				},
 			},
-			category: models.CategoryCafe,
-			radius:   5000,
+			googlePlaceType: "cafe",
+			radius:          5000,
 			baseLocation: models.GeoLocation{
 				// 新宿駅
 				Latitude:  35.6896,
@@ -687,12 +687,12 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 							Latitude:  35.692247367825,
 							Longitude: 139.703036771,
 						},
-						Types: models.CategoryShopping.SubCategories,
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
 					},
 				},
 			},
-			category: models.CategoryShopping,
-			radius:   1000,
+			googlePlaceType: "book_store",
+			radius:          1000,
 			baseLocation: models.GeoLocation{
 				// 代々木上原駅
 				Latitude:  35.669017114155,
@@ -722,7 +722,7 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 				t.Fatalf("error while saving places: %v", err)
 			}
 
-			actualPlaces, err := placeRepository.FindByCategory(testContext, c.category, c.baseLocation, c.radius)
+			actualPlaces, err := placeRepository.FindByGooglePlaceType(testContext, c.googlePlaceType, c.baseLocation, c.radius)
 			if err != nil {
 				t.Fatalf("error while finding places: %v", err)
 			}

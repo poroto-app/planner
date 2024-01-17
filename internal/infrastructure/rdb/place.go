@@ -284,7 +284,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 	return places, nil
 }
 
-func (p PlaceRepository) FindByCategory(ctx context.Context, category models.LocationCategory, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error) {
+func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceType string, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error) {
 	googlePlaceEntities, err := generated.GooglePlaces(
 		qm.InnerJoin(fmt.Sprintf(
 			"%s on %s.%s = %s.%s",
@@ -294,10 +294,7 @@ func (p PlaceRepository) FindByCategory(ctx context.Context, category models.Loc
 			generated.TableNames.GooglePlaces,
 			generated.GooglePlaceColumns.GooglePlaceID,
 		)),
-		qm.WhereIn(
-			fmt.Sprintf("%s.%s in ?", generated.TableNames.GooglePlaceTypes, generated.GooglePlaceTypeColumns.Type),
-			toInterfaceArray(category.SubCategories)...,
-		),
+		qm.Where(fmt.Sprintf("%s.%s = ?", generated.TableNames.GooglePlaceTypes, generated.GooglePlaceTypeColumns.Type), googlePlaceType),
 		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", baseLocation.Longitude, baseLocation.Latitude, radius),
 		qm.Load(generated.GooglePlaceRels.Place),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
