@@ -20,6 +20,7 @@ type CreatePlanByLocationInput struct {
 	CategoryNamesDisliked        *[]string
 	FreeTime                     *int
 	CreateBasedOnCurrentLocation bool
+	ShouldOpenWhileTraveling     bool
 }
 
 func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLocationInput) (*[]models.Plan, error) {
@@ -112,16 +113,15 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
 	var createPlanParams []CreatePlanParams
-	shouldOpenWhileTraveling := input.CreateBasedOnCurrentLocation
 	for _, placeRecommend := range placesRecommend {
-		createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, shouldOpenWhileTraveling)
+		createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, input.ShouldOpenWhileTraveling)
 		if createPlanParam != nil {
 			createPlanParams = append(createPlanParams, *createPlanParam)
 		}
 	}
 
 	// 開店時刻を考慮して、プランが作成できなかった場合は、開店時刻を無視してプランを作成する
-	if len(createPlanParams) == 0 && shouldOpenWhileTraveling {
+	if len(createPlanParams) == 0 && input.ShouldOpenWhileTraveling {
 		s.logger.Warn("no plan created", zap.String("PlanCandidateId", input.PlanCandidateId))
 		for _, placeRecommend := range placesRecommend {
 			createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, false)
