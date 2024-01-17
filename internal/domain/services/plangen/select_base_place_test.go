@@ -21,6 +21,7 @@ func TestService_SelectBasePlace(t *testing.T) {
 					Latitude:  35.690817373071,
 					Longitude: 139.7065625287,
 				},
+				MaxBasePlaceCount: 1,
 				Places: []models.Place{
 					{
 						Id:       "takashimaya",
