@@ -144,7 +144,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		}(ctx, ch, placeType)
 	}
 
-	// TODO：検索した場所の重複を削除する
 	var placesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
@@ -160,20 +159,9 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 	}
 
 	// 重複した場所を削除
-	var placesSearchedFiltered []models.GooglePlace
-	for _, place := range placesSearched {
-		isAlreadyAdded := false
-		for _, placeFiltered := range placesSearchedFiltered {
-			if place.PlaceId == placeFiltered.PlaceId {
-				isAlreadyAdded = true
-				break
-			}
-		}
-
-		if !isAlreadyAdded {
-			placesSearchedFiltered = append(placesSearchedFiltered, place)
-		}
-	}
+	placesSearchedFiltered := array.DistinctBy(placesSearched, func(place models.GooglePlace) string {
+		return place.PlaceId
+	})
 
 	return placesSearchedFiltered, nil
 }
