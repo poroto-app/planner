@@ -63,6 +63,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		plangen.CreatePlanByLocationInput{
 			PlanCandidateId:              planCandidateId,
 			LocationStart:                locationStart,
+			GooglePlaceId:                input.GooglePlaceID,
 			CategoryNamesPreferred:       &input.CategoriesPreferred,
 			CategoryNamesDisliked:        &input.CategoriesDisliked,
 			FreeTime:                     input.FreeTime,
