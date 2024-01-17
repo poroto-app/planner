@@ -67,6 +67,7 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 
 	// 重複した場所を削除
 	placesSaved = array.DistinctBy(placesSaved, func(place models.Place) string { return place.Id })
+	s.logger.Info("successfully fetched saved places", zap.Int("places", len(placesSaved)))
 
 	// 検索する必要のあるカテゴリを取得
 	placeTypeToPlaces := groupByPlaceType(placesSaved, s.placeTypesToSearch())
@@ -175,14 +176,14 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 		{
 			placeType:        maps.PlaceTypeCafe,
 			searchRange:      10 * 1000,
-			filterRange:      3 * 1000,
-			ignorePlaceCount: 1,
+			filterRange:      5 * 1000,
+			ignorePlaceCount: 3,
 		},
 		{
 			placeType:        maps.PlaceTypeRestaurant,
 			searchRange:      10 * 1000,
-			filterRange:      3 * 1000,
-			ignorePlaceCount: 1,
+			filterRange:      5 * 1000,
+			ignorePlaceCount: 5,
 		},
 		// 近くにあってもおかしくないレベル
 		{
