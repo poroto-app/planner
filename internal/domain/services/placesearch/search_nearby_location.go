@@ -15,14 +15,12 @@ import (
 // NearbySearchRadius NearbySearch で検索する際の半径
 // FilterSearchResultRadius 検索結果をフィルタリングするときの半径
 const (
-	NearbySearchRadius       = 2000
-	FilterSearchResultRadius = 1000
+	NearbySearchRadius = 5 * 1000
 )
 
 type SearchNearbyPlacesInput struct {
-	Location                 models.GeoLocation
-	Radius                   uint
-	FilterSearchResultRadius float64
+	Location models.GeoLocation
+	Radius   uint
 }
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
@@ -47,12 +45,8 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		input.Radius = NearbySearchRadius
 	}
 
-	if input.FilterSearchResultRadius == 0 {
-		input.FilterSearchResultRadius = FilterSearchResultRadius
-	}
-
 	// キャッシュされた検索結果を取得
-	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, input.FilterSearchResultRadius)
+	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, float64(input.Radius))
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
