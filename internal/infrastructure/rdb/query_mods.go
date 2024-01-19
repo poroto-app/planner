@@ -7,6 +7,14 @@ import (
 	"strings"
 )
 
+func toInterfaceArray[T any](arr []T) []interface{} {
+	var result []interface{}
+	for _, a := range arr {
+		result = append(result, a)
+	}
+	return result
+}
+
 func concatQueryMod(qms ...[]qm.QueryMod) []qm.QueryMod {
 	return array.Flatten(qms)
 }
