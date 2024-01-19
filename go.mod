@@ -16,8 +16,8 @@ require (
 	github.com/mmcloughlin/geohash v0.10.0
 	github.com/vektah/gqlparser/v2 v2.5.10
 	github.com/volatiletech/null/v8 v8.1.2
-	github.com/volatiletech/sqlboiler/v4 v4.15.0
-	github.com/volatiletech/strmangle v0.0.5
+	github.com/volatiletech/sqlboiler/v4 v4.16.0
+	github.com/volatiletech/strmangle v0.0.6
 	go.uber.org/zap v1.26.0
 	google.golang.org/api v0.156.0
 	googlemaps.github.io/maps v1.7.0
