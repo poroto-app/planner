@@ -19,33 +19,6 @@ import (
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
-// CachedCreatedPlans is the resolver for the CachedCreatedPlans field.
-func (r *queryResolver) CachedCreatedPlans(ctx context.Context, input model.CachedCreatedPlansInput) (*model.CachedCreatedPlans, error) {
-	planService, err := plancandidate.NewService(r.DB)
-	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	planCandidate, err := planService.FindPlanCandidate(ctx, input.Session)
-	if err != nil {
-		log.Println("error while finding plan candidate: ", err)
-		return nil, err
-	}
-
-	if planCandidate == nil {
-		return &model.CachedCreatedPlans{
-			Plans: nil,
-		}, nil
-	}
-
-	return &model.CachedCreatedPlans{
-		Plans:                         factory.PlansFromDomainModel(&planCandidate.Plans, planCandidate.MetaData.LocationStart),
-		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
-		LikedPlaceIds:                 planCandidate.LikedPlaceIds,
-	}, nil
-}
-
 // PlanCandidate is the resolver for the planCandidate field.
 func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})

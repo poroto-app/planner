@@ -1,8 +1,4 @@
 extend type Query {
-    # TODO: DELETE ME!
-    # キャッシュされたプラン一覧を取得する
-    cachedCreatedPlans(input: CachedCreatedPlansInput!): CachedCreatedPlans!
-
     planCandidate(input : PlanCandidateInput!): PlanCandidateOutput!
 
     nearbyPlaceCategories(input: NearbyPlaceCategoriesInput!): NearbyPlaceCategoryOutput!
@@ -16,19 +12,6 @@ extend type Query {
     placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
 
     placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
-}
-
-# TODO: DELETE ME!
-type CachedCreatedPlans {
-    plans: [Plan!]!
-    createdBasedOnCurrentLocation: Boolean!
-    likedPlaceIds: [ID!]!
-}
-
-# TODO: DELETE ME!
-input CachedCreatedPlansInput {
-    # CreatePlanByLocationOutputのsession
-    session: String!
 }
 
 input PlanCandidateInput {
