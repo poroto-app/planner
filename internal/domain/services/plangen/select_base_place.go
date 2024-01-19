@@ -1,6 +1,7 @@
 package plangen
 
 import (
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	"sort"
@@ -36,22 +37,31 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 
 	places := input.Places
 
-	places = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        places,
-		StartLocation: input.BaseLocation,
-	})
-
 	// レビューが低い、またはレビュー数が少ない場所を除外する
 	places = placefilter.FilterByRating(places, 3.0, 10)
-
-	// スタート地点から800m圏外の場所を除外する
-	places = placefilter.FilterWithinDistanceRange(places, input.BaseLocation, 0, float64(input.Radius))
+	s.logger.Debug("places after filtering by rating", zap.Int("places", len(places)))
 
 	// ユーザーが拒否した場所は取り除く
 	if input.CategoryNamesDisliked != nil {
 		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
 		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
+		s.logger.Debug("places after filtering by disliked categories", zap.Int("places", len(places)))
 	}
+
+	for filterDistance := 800; filterDistance < 2000; filterDistance += 200 {
+		// 距離によって1件も場所が取得できない場合は、距離を広げて再度取得する
+		placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+			Places:              places,
+			StartLocation:       input.BaseLocation,
+			IgnoreDistanceRange: float64(filterDistance),
+		})
+
+		if len(placesFiltered) >= 10 {
+			places = placesFiltered
+			break
+		}
+	}
+	s.logger.Debug("places after filtering default ignore", zap.Int("places", len(places)))
 
 	// カテゴリごとにレビューの高い場所から選択する
 	placesSelected := selectByReview(places)

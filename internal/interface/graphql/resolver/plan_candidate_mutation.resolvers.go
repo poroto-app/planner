@@ -68,6 +68,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 			CategoryNamesDisliked:        &input.CategoriesDisliked,
 			FreeTime:                     input.FreeTime,
 			CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+			ShouldOpenWhileTraveling:     false,
 		},
 	)
 	if err != nil {

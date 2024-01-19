@@ -40,6 +40,7 @@ func NewLogger(option LoggerOption) (*zap.Logger, error) {
 		dc.Encoding = "console"
 		dc.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		dc.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		dc.DisableStacktrace = true
 		dc.Level = zap.NewAtomicLevelAt(*option.LogLevel)
 
 		l, err := dc.Build()
