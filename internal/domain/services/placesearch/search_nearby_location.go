@@ -12,15 +12,13 @@ import (
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
 )
 
-// NearbySearchRadius NearbySearch で検索する際の半径
-// FilterSearchResultRadius 検索結果をフィルタリングするときの半径
+// nearbySearchRadius すでに保存された場所から近くにある場所を検索するときの検索範囲
 const (
-	NearbySearchRadius = 5 * 1000
+	nearbySearchRadius = 5 * 1000
 )
 
 type SearchNearbyPlacesInput struct {
 	Location models.GeoLocation
-	Radius   uint
 }
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
@@ -41,12 +39,8 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		panic("location is not specified")
 	}
 
-	if input.Radius == 0 {
-		input.Radius = NearbySearchRadius
-	}
-
 	// キャッシュされた検索結果を取得
-	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, float64(input.Radius))
+	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, float64(nearbySearchRadius))
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
 	}
