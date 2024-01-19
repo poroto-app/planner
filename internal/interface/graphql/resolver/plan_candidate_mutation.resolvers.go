@@ -63,6 +63,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		plangen.CreatePlanByLocationInput{
 			PlanCandidateId:              planCandidateId,
 			LocationStart:                locationStart,
+			GooglePlaceId:                input.GooglePlaceID,
 			CategoryNamesPreferred:       &input.CategoriesPreferred,
 			CategoryNamesDisliked:        &input.CategoriesDisliked,
 			FreeTime:                     input.FreeTime,
@@ -119,80 +120,6 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 	return &model.CreatePlanByPlaceOutput{
 		Plan: graphqlPlan,
-	}, nil
-}
-
-// CreatePlanByGooglePlaceID is the resolver for the createPlanByGooglePlaceId field.
-func (r *mutationResolver) CreatePlanByGooglePlaceID(ctx context.Context, input model.CreatePlanByGooglePlaceIDInput) (*model.CreatePlanByGooglePlaceIDOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
-	if err != nil {
-		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	planGenService, err := plangen.NewService(r.DB)
-	if err != nil {
-		logger.Error("error while initializing plan generator service", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	planCandidateService, err := plancandidate.NewService(r.DB)
-	if err != nil {
-		logger.Error("error while initializing plan candidate service", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	logger.Info(
-		"CreatePlanByGooglePlaceID",
-		zap.String("googlePlaceId", input.GooglePlaceID),
-	)
-
-	// プラン候補の作成
-	var planCandidateId string
-	if input.PlanCandidateID != nil {
-		planCandidateId = *input.PlanCandidateID
-	} else {
-		planCandidateId = uuid.New().String()
-		if err := planCandidateService.CreatePlanCandidate(ctx, planCandidateId); err != nil {
-			logger.Error("error while creating plan candidate", zap.Error(err))
-			return nil, fmt.Errorf("internal server error")
-		}
-	}
-
-	// プランの作成
-	createPlanByGooglePlaceidResult, err := planGenService.CreatePlanByGooglePlaceId(ctx, plangen.CreatePlanByGooglePlaceIdInput{
-		PlanCandidateId:        planCandidateId,
-		GooglePlaceId:          input.GooglePlaceID,
-		CategoryNamesPreferred: &input.CategoriesPreferred,
-		CategoryNamesDisliked:  &input.CategoriesDisliked,
-		FreeTime:               input.FreeTime,
-	})
-	if err != nil {
-		logger.Error("error while creating plan by google place id", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	// 作成されたプランの保存
-	if err := planCandidateService.SavePlans(ctx, plancandidate.SavePlansInput{
-		PlanCandidateId:              planCandidateId,
-		Plans:                        createPlanByGooglePlaceidResult.Plans,
-		CategoryNamesPreferred:       &input.CategoriesPreferred,
-		CategoryNamesRejected:        &input.CategoriesDisliked,
-		FreeTime:                     input.FreeTime,
-		CreateBasedOnCurrentLocation: false,
-	}); err != nil {
-		logger.Error("error while saving plans of plan candidate", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	graphqlPlans := factory.PlansFromDomainModel(&createPlanByGooglePlaceidResult.Plans, &createPlanByGooglePlaceidResult.StartPlace.Location)
-	return &model.CreatePlanByGooglePlaceIDOutput{
-		PlanCandidate: &model.PlanCandidate{
-			ID:                            planCandidateId,
-			Plans:                         graphqlPlans,
-			LikedPlaceIds:                 nil,
-			CreatedBasedOnCurrentLocation: false,
-		},
 	}, nil
 }
 
