@@ -22,9 +22,15 @@ type SearchNearbyPlacesInput struct {
 }
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
+//
 // searchRange Nearby Search時の検索範囲（水族館等の施設の数が少ない場所を探すときは広い範囲を探す）
+// この距離を指定すればぴったり20件取得できるという値を指定している(検索できる最大サイズは50kmまで)
+//
 // filterRange 周囲にあるかどうかを確認するときの検索範囲 (カフェ等の施設の数が多い場所を探すときは狭い範囲を探す)
+// 最低限この範囲にはあるはずという値を指定している
+//
 // ignorePlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
+// このくらいはありそうという値を指定している
 type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
 	searchRange      uint
@@ -166,11 +172,6 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 }
 
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {
-	// そのカテゴリの場所が filterRange で指定している範囲の中に
-	// searchRange には、この距離を指定すればぴったり20件取得できるという値を指定している
-	// filterRange には最低限この範囲にはあるはずという値を指定している
-	// このくらいはありそうという値を ignorePlaceCount に指定している
-	// また、検索できる最大サイズは50kmまで
 	return []placeTypeWithCondition{
 		// 付近になければ、一度も検索していないことを怪しむレベル
 		{
