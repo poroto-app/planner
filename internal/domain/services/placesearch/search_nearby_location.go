@@ -25,7 +25,7 @@ type SearchNearbyPlacesInput struct {
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
 // searchRange Nearby Search時の検索範囲（水族館等の施設の数が少ない場所を探すときは広い範囲を探す）
-// filterRange 周囲ににあるかどうかを確認するときの検索範囲 (カフェ等の施設の数が多い場所を探すときは狭い範囲を探す)
+// filterRange 周囲にあるかどうかを確認するときの検索範囲 (カフェ等の施設の数が多い場所を探すときは狭い範囲を探す)
 // ignorePlaceCount あるカテゴリの場所がこの数以上ある場合は、そのカテゴリの検索は行わない
 type placeTypeWithCondition struct {
 	placeType        maps.PlaceType
