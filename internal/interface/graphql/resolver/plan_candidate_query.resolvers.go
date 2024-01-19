@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
@@ -26,7 +27,7 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planService, err := plancandidate.NewService(ctx)
+	planService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan candidate service", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
@@ -59,7 +60,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	service, err := plancandidate.NewService(ctx)
+	service, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -111,13 +112,13 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	availablePlaces, err := s.FetchCandidatePlaces(ctx, plancandidate.FetchCandidatePlacesInput{
+	availablePlaces, err := s.FetchCandidatePlaces(ctx, place.FetchCandidatePlacesInput{
 		PlanCandidateId: input.Session,
 	})
 	if err != nil {
@@ -137,9 +138,9 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -180,9 +181,9 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 		zap.String("placeId", input.PlaceID),
 	)
 
-	s, err := plancandidate.NewService(ctx)
+	s, err := place.NewService(r.DB)
 	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
+		log.Println("error while initializing place service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 

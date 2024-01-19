@@ -50,6 +50,18 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 	Plan *Plan `json:"plan"`
 }
 
+type CreatePlanByGooglePlaceIDInput struct {
+	PlanCandidateID     *string  `json:"planCandidateId,omitempty"`
+	GooglePlaceID       string   `json:"googlePlaceId"`
+	CategoriesPreferred []string `json:"categoriesPreferred,omitempty"`
+	CategoriesDisliked  []string `json:"categoriesDisliked,omitempty"`
+	FreeTime            *int     `json:"freeTime,omitempty"`
+}
+
+type CreatePlanByGooglePlaceIDOutput struct {
+	PlanCandidate *PlanCandidate `json:"planCandidate"`
+}
+
 type CreatePlanByLocationInput struct {
 	Session                       *string  `json:"session,omitempty"`
 	Latitude                      float64  `json:"latitude"`
@@ -240,6 +252,16 @@ type PlansByUserInput struct {
 type PlansByUserOutput struct {
 	Plans  []*Plan `json:"plans"`
 	Author *User   `json:"author"`
+}
+
+type PlansInput struct {
+	PageToken *string `json:"pageToken,omitempty"`
+	Limit     *int    `json:"limit,omitempty"`
+}
+
+type PlansOutput struct {
+	Plans         []*Plan `json:"plans"`
+	NextPageToken *string `json:"nextPageToken,omitempty"`
 }
 
 type PriceRange struct {

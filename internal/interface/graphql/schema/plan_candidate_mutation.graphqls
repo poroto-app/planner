@@ -53,6 +53,18 @@ type CreatePlanByPlaceOutput {
     plan: Plan!
 }
 
+input CreatePlanByGooglePlaceIdInput {
+    planCandidateId: String
+    googlePlaceId: String!
+    categoriesPreferred: [String!]
+    categoriesDisliked: [String!]
+    freeTime: Int
+}
+
+type CreatePlanByGooglePlaceIdOutput {
+    planCandidate: PlanCandidate!
+}
+
 input ChangePlacesOrderInPlanCandidateInput {
     session: String!
     planId: String!

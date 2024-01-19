@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"time"
 )
 
 // AddPlaceAfterPlace プランに指定された場所を追加する
 // すでに指定された場所が登録されている場合は、なにもしない
 func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, placeId string) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}
@@ -24,7 +25,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching searched places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	places, err := s.placeService.FetchSearchedPlaces(ctx, planCandidateId)
+	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching photos and reviews for places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	placesWithPhoto := s.placeService.FetchPlacesPhotosAndSave(ctx, *placeToAdd)
+	placesWithPhoto := s.placeSearchService.FetchPlacesPhotosAndSave(ctx, *placeToAdd)
 	placeToAdd = &placesWithPhoto[0]
 	s.logger.Info(
 		"Successfully fetched photos and reviews for places for plan candidate",
@@ -87,7 +88,7 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId)
+	planCandidate, err = s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}

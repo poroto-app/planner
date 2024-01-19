@@ -10,23 +10,25 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // CreatePlanByLocation is the resolver for the createPlanByLocation field.
 func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model.CreatePlanByLocationInput) (*model.CreatePlanByLocationOutput, error) {
-	planGenService, err := plangen.NewService(ctx)
+	planGenService, err := plangen.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan generator service: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -58,13 +60,15 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 	// プランの作成
 	plans, err := planGenService.CreatePlanByLocation(
 		ctx,
-		planCandidateId,
-		locationStart,
-		input.GooglePlaceID,
-		&input.CategoriesPreferred,
-		&input.CategoriesDisliked,
-		input.FreeTime,
-		createBasedOnCurrentLocation,
+		plangen.CreatePlanByLocationInput{
+			PlanCandidateId:              planCandidateId,
+			LocationStart:                locationStart,
+			GooglePlaceId:                input.GooglePlaceID,
+			CategoryNamesPreferred:       &input.CategoriesPreferred,
+			CategoryNamesDisliked:        &input.CategoriesDisliked,
+			FreeTime:                     input.FreeTime,
+			CreateBasedOnCurrentLocation: createBasedOnCurrentLocation,
+		},
 	)
 	if err != nil {
 		log.Printf("error while creating plan by location: %v", err)
@@ -92,7 +96,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 
 // CreatePlanByPlace is the resolver for the createPlanByPlace field.
 func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.CreatePlanByPlaceInput) (*model.CreatePlanByPlaceOutput, error) {
-	planGenService, err := plangen.NewService(ctx)
+	planGenService, err := plangen.NewService(r.DB)
 	if err != nil {
 		log.Println("error while initializing plan generator service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -121,7 +125,7 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	service, err := plancandidate.NewService(ctx)
+	service, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -159,21 +163,33 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 
 // SavePlanFromCandidate is the resolver for the savePlanFromCandidate field.
 func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input model.SavePlanFromCandidateInput) (*model.SavePlanFromCandidateOutput, error) {
-	service, err := plan.NewService(ctx)
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		log.Println("error while initializing logger: ", err)
 		return nil, fmt.Errorf("internal server error")
 	}
 
+	service, err := plan.NewService(ctx, r.DB)
+	if err != nil {
+		logger.Error("error while initializing PlanService", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	logger.Info(
+		"SavePlanFromCandidate",
+		zap.String("planCandidateId", input.Session),
+		zap.String("planId", input.PlanID),
+	)
+
 	planSaved, err := service.SavePlanFromPlanCandidate(ctx, input.Session, input.PlanID, input.AuthToken)
 	if err != nil {
-		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
+		logger.Error("error while saving plan from plan candidate", zap.Error(err))
 		return nil, fmt.Errorf("could not save plan")
 	}
 
 	graphqlPlan, err := factory.PlanFromDomainModel(*planSaved, nil)
 	if err != nil {
-		log.Println(err)
+		logger.Error("error while converting plan to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -184,7 +200,7 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // AddPlaceToPlanCandidateAfterPlace is the resolver for the addPlaceToPlanCandidateAfterPlace field.
 func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -215,7 +231,7 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -247,7 +263,7 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 
 // ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
 func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(ctx)
+	s, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -284,7 +300,7 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 
 // AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
 func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -313,7 +329,7 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(ctx)
+	planCandidateService, err := plancandidate.NewService(r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")

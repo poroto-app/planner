@@ -8,3 +8,10 @@ type PlanCandidateMetaData struct {
 	LocationStart                 *GeoLocation
 	FreeTime                      *int
 }
+
+func (p PlanCandidateMetaData) IsZero() bool {
+	return p.CategoriesPreferred == nil &&
+		p.CategoriesRejected == nil &&
+		p.LocationStart == nil &&
+		p.FreeTime == nil
+}

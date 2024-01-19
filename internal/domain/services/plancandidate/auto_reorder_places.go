@@ -30,7 +30,7 @@ func (s *Service) AutoReorderPlaces(ctx context.Context, input AutoReorderPlaces
 		placeIdsOrdered = append(placeIdsOrdered, place.Id)
 	}
 
-	if _, err := s.planCandidateRepository.UpdatePlacesOrder(ctx, input.PlanId, input.PlanCandidateId, placeIdsOrdered); err != nil {
+	if err := s.planCandidateRepository.UpdatePlacesOrder(ctx, input.PlanId, input.PlanCandidateId, placeIdsOrdered); err != nil {
 		return nil, fmt.Errorf("failed to update places order: %v", err)
 	}
 

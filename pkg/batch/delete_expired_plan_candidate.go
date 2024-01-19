@@ -1,6 +1,7 @@
 package batch
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -12,10 +13,10 @@ import (
 	"context"
 )
 
-func DeleteExpiredPlanCandidate(ctx context.Context) error {
+func DeleteExpiredPlanCandidate(ctx context.Context, db *sql.DB) error {
 	log.Printf("=================== Start deleting expired plan candidates ===================\n")
 
-	service, err := plancandidate.NewService(ctx)
+	service, err := plancandidate.NewService(db)
 	if err != nil {
 		return fmt.Errorf("error while initializing plan candidate service: %v", err)
 	}

@@ -17,7 +17,7 @@ type ImageSize struct {
 
 type PlacePhotoWithSize struct {
 	photoReference models.GooglePlacePhotoReference
-	imageUrl       string
+	image          models.Image
 }
 
 const (
@@ -83,7 +83,12 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoRefe
 		return nil, fmt.Errorf("error while fetching public image url: %w", err)
 	}
 
-	googlePhoto := photoReference.ToGooglePlacePhoto(publicImageUrl, publicImageUrl)
+	image := models.Image{
+		Width:  imgMaxWidth,
+		Height: imgMaxHeight,
+		URL:    *publicImageUrl,
+	}
+	googlePhoto := photoReference.ToGooglePlacePhoto(&image, &image)
 	return &googlePhoto, nil
 }
 
@@ -101,6 +106,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 				return
 			}
 
+			// 画像サイズを指定（上限を超えている場合は、上限に合わせる）
 			var imageSize ImageSize
 			if photoReference.Width > imgMaxWidth || photoReference.Height > imgMaxHeight {
 				imageSize = ImageSize{
@@ -144,7 +150,11 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 
 			ch <- &PlacePhotoWithSize{
 				photoReference: photoReference,
-				imageUrl:       *publicImageUrl,
+				image: models.Image{
+					Width:  imageSize.Width,
+					Height: imageSize.Height,
+					URL:    *publicImageUrl,
+				},
 			}
 		}(ctx, iPhoto, photoReference, ch)
 	}
@@ -155,7 +165,7 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 		if placePhotoWithSize == nil {
 			continue
 		}
-		placePhotos = append(placePhotos, placePhotoWithSize.photoReference.ToGooglePlacePhoto(nil, &placePhotoWithSize.imageUrl))
+		placePhotos = append(placePhotos, placePhotoWithSize.photoReference.ToGooglePlacePhoto(nil, &placePhotoWithSize.image))
 	}
 
 	// すべての写真の取得に失敗した場合は、エラーを返す

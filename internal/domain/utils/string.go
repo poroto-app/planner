@@ -1,5 +1,6 @@
 package utils
 
+// TODO: ToPointer 関数に置き換える
 func StrPointer(s string) *string {
 	return &s
 }

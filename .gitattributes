@@ -1,0 +1,2 @@
+# SQLBoiler generated files
+internal/infrastructure/rdb/entities/*.go linguist-generated
