@@ -62,7 +62,7 @@ func (u UserRepository) Find(ctx context.Context, id string) (*models.User, erro
 		return nil, nil
 	}
 
-	return factory.NewUserFromUserEntity(userEntity), nil
+	return factory.NewUserFromUserEntity(*userEntity), nil
 }
 
 func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error) {
@@ -78,5 +78,5 @@ func (u UserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID strin
 		return nil, nil
 	}
 
-	return factory.NewUserFromUserEntity(userEntity), nil
+	return factory.NewUserFromUserEntity(*userEntity), nil
 }
