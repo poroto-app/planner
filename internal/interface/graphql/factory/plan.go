@@ -53,8 +53,11 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 	}
 
 	var author *graphql.User
-	if plan.Author != nil {
-		author = UserFromDomainModel(plan.Author)
+	if plan.AuthorId != nil {
+		// TODO: すべてのユーザーデータを取得する
+		author = &graphql.User{
+			ID: *plan.AuthorId,
+		}
 	}
 
 	return &graphql.Plan{

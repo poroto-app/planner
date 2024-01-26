@@ -94,9 +94,9 @@ func NewPlanCandidateFromEntity(
 	}
 
 	return &models.Plan{
-		Id:     planCandidateEntity.ID,
-		Name:   planCandidateEntity.Name,
-		Places: *placesOrdered,
-		// TODO: ユーザー情報を取得する
+		Id:       planCandidateEntity.ID,
+		Name:     planCandidateEntity.Name,
+		Places:   *placesOrdered,
+		AuthorId: nil, // TODO: implement me
 	}, nil
 }

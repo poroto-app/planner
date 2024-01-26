@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -56,7 +57,7 @@ func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId 
 			return nil, fmt.Errorf("user not found")
 		}
 
-		planToSave.Author = user
+		planToSave.AuthorId = utils.StrPointer(user.Id)
 	}
 
 	// プランを保存
