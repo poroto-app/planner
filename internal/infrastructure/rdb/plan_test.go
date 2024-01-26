@@ -2,6 +2,8 @@ package rdb
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -18,11 +20,18 @@ import (
 func TestPlanRepository_Save(t *testing.T) {
 	cases := []struct {
 		name        string
+		savedUsers  generated.UserSlice
 		savedPlaces []models.Place
-		plan        models.Plan
+		expected    models.Plan
 	}{
 		{
 			name: "should save plan",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+			},
 			savedPlaces: []models.Place{
 				{
 					Id: "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -31,7 +40,7 @@ func TestPlanRepository_Save(t *testing.T) {
 					Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
 				},
 			},
-			plan: models.Plan{
+			expected: models.Plan{
 				Id:   uuid.New().String(),
 				Name: "plan title",
 				Places: []models.Place{
@@ -41,6 +50,10 @@ func TestPlanRepository_Save(t *testing.T) {
 					{
 						Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
 					},
+				},
+				Author: &models.User{
+					Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
 				},
 			},
 		},
@@ -61,36 +74,45 @@ func TestPlanRepository_Save(t *testing.T) {
 				}
 			})
 
+			// 事前に User を保存
+			if _, err := c.savedUsers.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
 			// 事前に Place を保存
 			if err := savePlaces(testContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
 			}
 
-			if err := planRepository.Save(testContext, &c.plan); err != nil {
+			if err := planRepository.Save(testContext, &c.expected); err != nil {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			isPlanExists, err := generated.Plans(generated.PlanWhere.ID.EQ(c.plan.Id)).Exists(testContext, planRepository.GetDB())
+			planEntity, err := generated.Plans(generated.PlanWhere.ID.EQ(c.expected.Id)).One(testContext, planRepository.GetDB())
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					t.Errorf("plan should be saved")
+				}
 				t.Errorf("error checking if plan exists: %v", err)
 			}
-			if !isPlanExists {
-				t.Errorf("plan should be saved")
+
+			if diff := cmp.Diff(c.expected.Author.Id, planEntity.UserID.String); diff != "" {
+				t.Errorf("plan author id mismatch (-want +got):\n%s", diff)
 			}
 
 			planPlaceEntities, err := generated.PlanPlaces(
-				generated.PlanPlaceWhere.PlanID.EQ(c.plan.Id),
+				generated.PlanPlaceWhere.PlanID.EQ(c.expected.Id),
 				qm.OrderBy(generated.PlanPlaceColumns.SortOrder),
 			).All(testContext, planRepository.GetDB())
 			if err != nil {
 				t.Errorf("error fetching plan places: %v", err)
 			}
 
-			if len(planPlaceEntities) != len(c.plan.Places) {
-				t.Errorf("wrong plan place slice length, want: %d, got: %d", len(c.plan.Places), len(planPlaceEntities))
+			if len(planPlaceEntities) != len(c.expected.Places) {
+				t.Errorf("wrong plan place slice length, want: %d, got: %d", len(c.expected.Places), len(planPlaceEntities))
 			}
 
-			for i, expected := range c.plan.Places {
+			for i, expected := range c.expected.Places {
 				if planPlaceEntities[i].PlaceID != expected.Id {
 					t.Errorf("wrong place id, want: %s, got: %s", expected.Id, planPlaceEntities[i].PlaceID)
 				}
