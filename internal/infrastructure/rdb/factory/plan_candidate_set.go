@@ -16,7 +16,6 @@ func NewPlanCandidateSetFromEntity(
 	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	planCandidateSetLikePlaceSlice generated.PlanCandidateSetLikePlaceSlice,
 	places []models.Place,
-	author *models.User,
 ) (*models.PlanCandidate, error) {
 	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetEntity.ID)
 	if err != nil {
@@ -36,7 +35,6 @@ func NewPlanCandidateSetFromEntity(
 		planCandidatePlaces,
 		planCandidateSetEntity.ID,
 		places,
-		author,
 	)
 	if err != nil {
 		return nil, err

@@ -23,7 +23,6 @@ func NewPlanCandidatesFromEntities(
 	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	planCandidateSetId string,
 	places []models.Place,
-	author *models.User,
 ) (*[]models.Plan, error) {
 	planCandidateEntities := array.MapAndFilter(planCandidateSlice, func(planCandidate *generated.PlanCandidate) (generated.PlanCandidate, bool) {
 		if planCandidate == nil {
@@ -43,7 +42,7 @@ func NewPlanCandidatesFromEntities(
 	})
 
 	plans, err := array.MapWithErr(planCandidateEntitiesOrdered, func(planCandidateEntity generated.PlanCandidate) (*models.Plan, error) {
-		plan, err := NewPlanCandidateFromEntity(planCandidateEntity, planCandidatePlaces, places, author)
+		plan, err := NewPlanCandidateFromEntity(planCandidateEntity, planCandidatePlaces, places)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +61,6 @@ func NewPlanCandidateFromEntity(
 	planCandidateEntity generated.PlanCandidate,
 	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	places []models.Place,
-	author *models.User,
 ) (*models.Plan, error) {
 	planCandidateEntities := array.MapAndFilter(planCandidatePlaces, func(planCandidatePlace *generated.PlanCandidatePlace) (generated.PlanCandidatePlace, bool) {
 		if planCandidatePlace == nil {
@@ -99,6 +97,6 @@ func NewPlanCandidateFromEntity(
 		Id:     planCandidateEntity.ID,
 		Name:   planCandidateEntity.Name,
 		Places: *placesOrdered,
-		Author: author,
+		// TODO: ユーザー情報を取得する
 	}, nil
 }

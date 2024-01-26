@@ -17,7 +17,7 @@ func NewUserEntityFromUser(user models.User) generated.User {
 	}
 }
 
-func NewUserFromUserEntity(userEntity generated.User) *models.User {
+func NewUserFromUserEntity(userEntity *generated.User) *models.User {
 	return &models.User{
 		Id:          userEntity.ID,
 		FirebaseUID: userEntity.FirebaseUID,

@@ -127,7 +127,6 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 		planCandidateSetEntity.R.PlanCandidatePlaces,
 		planCandidateSetEntity.R.PlanCandidateSetLikePlaces,
 		places,
-		nil, // TODO: ユーザー情報を取得できるようにする
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plan candidate: %w", err)
@@ -197,8 +196,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 		places = append(places, *place)
 	}
 
-	// TODO: ユーザー情報を取得できるようにする
-	plan, err := factory.NewPlanCandidateFromEntity(*planCandidate, planCandidate.R.PlanCandidatePlaces, places, nil)
+	plan, err := factory.NewPlanCandidateFromEntity(*planCandidate, planCandidate.R.PlanCandidatePlaces, places)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create plan candidate: %w", err)
 	}

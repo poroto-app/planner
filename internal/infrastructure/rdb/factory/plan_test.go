@@ -4,6 +4,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"testing"
 )
@@ -17,16 +18,13 @@ func TestNewPlanEntityFromDomainModel(t *testing.T) {
 		{
 			name: "should return a valid entity",
 			plan: models.Plan{
-				Id: "ec7c607d-454a-4644-929a-c3b1e078842d",
-				Author: &models.User{
-					Id:          "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
-					FirebaseUID: "firebase-test-user",
-				},
-				Name: "plan title",
+				Id:       "ec7c607d-454a-4644-929a-c3b1e078842d",
+				AuthorId: utils.ToPointer("339809cf-d515-4a64-bbcd-c6a899051273"),
+				Name:     "plan title",
 			},
 			expected: generated.Plan{
 				ID:     "ec7c607d-454a-4644-929a-c3b1e078842d",
-				UserID: null.StringFrom("28a52fdd-c252-4e32-a918-fcab5ed88ad8"),
+				UserID: null.StringFrom("339809cf-d515-4a64-bbcd-c6a899051273"),
 				Name:   "plan title",
 			},
 		},
@@ -51,12 +49,9 @@ func TestNewPlanEntityFromDomainModel_EmptyID(t *testing.T) {
 		{
 			name: "should generate valid id if id is empty",
 			plan: models.Plan{
-				Id: "",
-				Author: &models.User{
-					Id:          "339809cf-d515-4a64-bbcd-c6a899051273",
-					FirebaseUID: "firebase-test-user",
-				},
-				Name: "plan title",
+				Id:       "",
+				AuthorId: utils.ToPointer("339809cf-d515-4a64-bbcd-c6a899051273"),
+				Name:     "plan title",
 			},
 		},
 	}
@@ -79,7 +74,6 @@ func TestNewPlanFromEntity(t *testing.T) {
 		planEntity     generated.Plan
 		planPlaceSlice generated.PlanPlaceSlice
 		places         []models.Place
-		author         *models.User
 		expected       *models.Plan
 	}{
 		{
@@ -105,17 +99,10 @@ func TestNewPlanFromEntity(t *testing.T) {
 				{Id: "ec7c607d-454a-4644-929a-c3b1e078842d"},
 				{Id: "339809cf-d515-4a64-bbcd-c6a899051273"},
 			},
-			author: &models.User{
-				Id:          "339809cf-d515-4a64-bbcd-c6a899051273",
-				FirebaseUID: "firebase-test-user",
-			},
 			expected: &models.Plan{
-				Id:   "ec7c607d-454a-4644-929a-c3b1e078842d",
-				Name: "plan title",
-				Author: &models.User{
-					Id:          "339809cf-d515-4a64-bbcd-c6a899051273",
-					FirebaseUID: "firebase-test-user",
-				},
+				Id:       "ec7c607d-454a-4644-929a-c3b1e078842d",
+				Name:     "plan title",
+				AuthorId: utils.ToPointer("339809cf-d515-4a64-bbcd-c6a899051273"),
 				Places: []models.Place{
 					{Id: "339809cf-d515-4a64-bbcd-c6a899051273"},
 					{Id: "ec7c607d-454a-4644-929a-c3b1e078842d"},
@@ -128,7 +115,7 @@ func TestNewPlanFromEntity(t *testing.T) {
 		c := c
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
-			actual, err := NewPlanFromEntity(c.planEntity, c.planPlaceSlice, c.places, c.author)
+			actual, err := NewPlanFromEntity(c.planEntity, c.planPlaceSlice, c.places)
 			if err != nil {
 				t.Errorf("error should be nil, got: %v", err)
 			}

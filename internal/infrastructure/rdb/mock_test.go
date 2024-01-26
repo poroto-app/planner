@@ -97,6 +97,18 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 	return nil
 }
 
+func saveUsers(ctx context.Context, db *sql.DB, users []models.User) error {
+	for _, user := range users {
+		userEntity := generated.User{
+			ID: user.Id,
+		}
+		if err := userEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert user: %v", err)
+		}
+	}
+	return nil
+}
+
 func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 	for _, plan := range plans {
 		planEntity := factory.NewPlanEntityFromDomainModel(plan)

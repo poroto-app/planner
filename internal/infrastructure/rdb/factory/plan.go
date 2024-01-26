@@ -28,7 +28,6 @@ func NewPlanFromEntity(
 	planEntity generated.Plan,
 	planPlaceSlice generated.PlanPlaceSlice,
 	places []models.Place,
-	author *models.User,
 ) (*models.Plan, error) {
 	planPlaces, err := NewPlanPlacesFromEntities(planPlaceSlice, places, planEntity.ID)
 	if err != nil {
@@ -36,9 +35,9 @@ func NewPlanFromEntity(
 	}
 
 	return &models.Plan{
-		Id:     planEntity.ID,
-		Name:   planEntity.Name,
+		Id:   planEntity.ID,
+		Name: planEntity.Name,
+		// TODO: ユーザー情報を取得する
 		Places: *planPlaces,
-		Author: author,
 	}, nil
 }
