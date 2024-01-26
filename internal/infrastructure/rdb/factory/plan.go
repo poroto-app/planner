@@ -11,9 +11,15 @@ func NewPlanEntityFromDomainModel(plan models.Plan) generated.Plan {
 	if plan.Id == "" {
 		plan.Id = uuid.New().String()
 	}
+
+	var userId *string
+	if plan.Author != nil {
+		userId = &plan.Author.Id
+	}
+
 	return generated.Plan{
 		ID:     plan.Id,
-		UserID: null.StringFromPtr(plan.AuthorId),
+		UserID: null.StringFromPtr(userId),
 		Name:   plan.Name,
 	}
 }
@@ -29,9 +35,9 @@ func NewPlanFromEntity(
 	}
 
 	return &models.Plan{
-		Id:       planEntity.ID,
-		Name:     planEntity.Name,
-		AuthorId: planEntity.UserID.Ptr(),
-		Places:   *planPlaces,
+		Id:   planEntity.ID,
+		Name: planEntity.Name,
+		// TODO: ユーザー情報を取得する
+		Places: *planPlaces,
 	}, nil
 }
