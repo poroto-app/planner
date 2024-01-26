@@ -215,7 +215,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
-	AuthorID      *string       `json:"authorId,omitempty"`
+	Author        *User         `json:"author,omitempty"`
 }
 
 type PlanCandidate struct {
@@ -231,6 +231,14 @@ type PlanCandidateInput struct {
 
 type PlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
+}
+
+type PlanInput struct {
+	PlanID string `json:"planID"`
+}
+
+type PlanOutput struct {
+	Plan *Plan `json:"plan,omitempty"`
 }
 
 type PlansByLocationInput struct {

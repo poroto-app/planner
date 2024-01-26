@@ -1,11 +1,19 @@
 extend type Query {
-    plan(id: String!): Plan
+    plan(input: PlanInput!): PlanOutput!
 
     plans(input: PlansInput): PlansOutput!
 
     plansByLocation(input: PlansByLocationInput!): PlansByLocationOutput!
 
     plansByUser(input: PlansByUserInput!): PlansByUserOutput!
+}
+
+input PlanInput {
+    planID: ID!
+}
+
+type PlanOutput {
+    plan: Plan
 }
 
 input PlansInput {

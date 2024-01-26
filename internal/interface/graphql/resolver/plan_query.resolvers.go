@@ -19,13 +19,13 @@ import (
 )
 
 // Plan is the resolver for the plan field.
-func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error) {
+func (r *queryResolver) Plan(ctx context.Context, input model.PlanInput) (*model.PlanOutput, error) {
 	planService, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		return nil, fmt.Errorf("error while initizalizing places api: %v", err)
 	}
 
-	p, err := planService.FetchPlan(ctx, id)
+	p, err := planService.FetchPlan(ctx, input.PlanID)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan: %v", err)
 	}
@@ -40,7 +40,9 @@ func (r *queryResolver) Plan(ctx context.Context, id string) (*model.Plan, error
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	return graphqlPlan, nil
+	return &model.PlanOutput{
+		Plan: graphqlPlan,
+	}, nil
 }
 
 // Plans is the resolver for the plans field.
