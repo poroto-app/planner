@@ -100,6 +100,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 		qm.Load(generated.PlanRels.PlanPlaces),
 		qm.OrderBy(fmt.Sprintf("%s %s, %s %s", generated.PlanColumns.CreatedAt, "desc", generated.PlanColumns.ID, "desc")),
 		qm.Limit(limit),
+		qm.Load(generated.PlanRels.User),
 	}
 
 	if queryCursor != nil {
@@ -171,10 +172,16 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 	}
 
 	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
+		var author *models.User
+		if planEntity.R.User != nil {
+			author = factory.NewUserFromUserEntity(*planEntity.R.User)
+		}
+
 		return factory.NewPlanFromEntity(
 			*planEntity,
 			planEntity.R.PlanPlaces,
 			array.Flatten(*places),
+			author,
 		)
 	})
 	if err != nil {
@@ -195,6 +202,7 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		[]qm.QueryMod{
 			generated.PlanWhere.ID.EQ(planId),
 			qm.Load(generated.PlanRels.PlanPlaces),
+			qm.Load(generated.PlanRels.User),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).One(ctx, p.db)
@@ -243,10 +251,16 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		return nil, fmt.Errorf("failed to map plan places: %w", err)
 	}
 
+	var author *models.User
+	if planEntity.R.User != nil {
+		author = factory.NewUserFromUserEntity(*planEntity.R.User)
+	}
+
 	plan, err := factory.NewPlanFromEntity(
 		*planEntity,
 		planEntity.R.PlanPlaces,
 		*places,
+		author,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map plan: %w", err)
@@ -261,6 +275,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 			generated.PlanWhere.UserID.EQ(null.StringFrom(authorId)),
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
+			qm.Load(generated.PlanRels.User),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).All(ctx, p.db)
@@ -320,10 +335,16 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 	}
 
 	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
+		var author *models.User
+		if planEntity.R.User != nil {
+			author = factory.NewUserFromUserEntity(*planEntity.R.User)
+		}
+
 		return factory.NewPlanFromEntity(
 			*planEntity,
 			planEntity.R.PlanPlaces,
 			array.Flatten(*places),
+			author,
 		)
 	})
 	if err != nil {
@@ -349,6 +370,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
 			qm.Limit(limit),
 			qm.Load(generated.PlanRels.PlanPlaces),
+			qm.Load(generated.PlanRels.User),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).All(ctx, p.db)
@@ -408,10 +430,16 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 	}
 
 	plans, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*models.Plan, error) {
+		var author *models.User
+		if planEntity.R.User != nil {
+			author = factory.NewUserFromUserEntity(*planEntity.R.User)
+		}
+
 		return factory.NewPlanFromEntity(
 			*planEntity,
 			planEntity.R.PlanPlaces,
 			array.Flatten(*places),
+			author,
 		)
 	})
 	if err != nil {
