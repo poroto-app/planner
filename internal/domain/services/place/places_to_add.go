@@ -72,6 +72,12 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	}
 
 	categoriesToSearch := make([]models.LocationCategory, 0)
+
+	// ユーザーが選択したカテゴリを優先的に調べる
+	if planCandidate.MetaData.CategoriesPreferred != nil {
+		categoriesToSearch = append(categoriesToSearch, *planCandidate.MetaData.CategoriesPreferred...)
+	}
+
 	for _, locationCategory := range []models.LocationCategory{
 		models.CategoryRestaurant,
 		models.CategoryCafe,
