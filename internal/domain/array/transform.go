@@ -50,3 +50,10 @@ func Flatten[T any](slice [][]T) []T {
 	}
 	return flattened
 }
+
+func Take[T any](slice []T, n int) []T {
+	if n > len(slice) {
+		n = len(slice)
+	}
+	return slice[:n]
+}

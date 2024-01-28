@@ -257,3 +257,48 @@ func TestFlatten(t *testing.T) {
 		})
 	}
 }
+
+func TestTake(t *testing.T) {
+	cases := []struct {
+		name     string
+		slice    []int
+		n        int
+		expected []int
+	}{
+		{
+			name:     "if n is 0, return empty slice",
+			slice:    []int{},
+			n:        1,
+			expected: []int{},
+		},
+		{
+			name:     "if n is greater than length of slice, return all elements",
+			slice:    []int{1, 2, 3},
+			n:        4,
+			expected: []int{1, 2, 3},
+		},
+		{
+			name:     "if n is less than length of slice, return n elements",
+			slice:    []int{1, 2, 3},
+			n:        2,
+			expected: []int{1, 2},
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := Take(c.slice, c.n)
+			if len(actual) != len(c.expected) {
+				t.Errorf("expected: %v, actual: %v", c.expected, actual)
+			}
+			for i, v := range actual {
+				if v != c.expected[i] {
+					t.Errorf("expected: %v, actual: %v", c.expected, actual)
+				}
+			}
+		})
+	}
+}
