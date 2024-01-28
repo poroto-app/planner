@@ -81,11 +81,11 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	for _, locationCategory := range []models.LocationCategory{
 		models.CategoryRestaurant,
 		models.CategoryCafe,
-		models.CategoryBakery,
 		models.CategoryShopping,
 		models.CategoryAmusements,
 		models.CategoryNatural,
 		models.CategoryCulture,
+		models.CategoryBakery,
 		models.CategoryPark,
 		models.CategorySpa,
 	} {
