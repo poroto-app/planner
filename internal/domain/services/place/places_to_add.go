@@ -213,6 +213,18 @@ func selectRecommendedPlaces(
 		StartLocation: startLocation,
 	})
 
+	// プランに含まれている場所から800m圏内の場所を選択する
+	if len(plan.Places) > 1 {
+		placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
+			for _, placeInPlan := range plan.Places {
+				if place.Location.DistanceInMeter(placeInPlan.Location) < 800 {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
 	// すでにプランに含まれている場所を除外する
 	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
 		_, isAlreadyInPlan := array.Find(plan.Places, func(placeInPlan models.Place) bool {
