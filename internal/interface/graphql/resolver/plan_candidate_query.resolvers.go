@@ -145,7 +145,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	}
 
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
-	placesToAdd, err := s.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
+	result, err := s.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
 		PlanCandidateId: input.PlanCandidateID,
 		PlanId:          input.PlanID,
 		NLimit:          4,
@@ -156,15 +156,34 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	}
 
 	var places []*model.Place
-	for _, place := range placesToAdd {
+	for _, place := range result.PlacesRecommended {
 		p := factory.PlaceFromDomainModel(&place)
 		if p != nil {
 			places = append(places, p)
 		}
 	}
 
+	var placesGroupedByCategory []*model.CategoryGroupedPlaces
+	for _, categoryGroupedPlaces := range result.PlacesGrouped {
+		var places []*model.Place
+		for _, place := range categoryGroupedPlaces.Places {
+			p := factory.PlaceFromDomainModel(&place)
+			if p != nil {
+				places = append(places, p)
+			}
+		}
+		placesGroupedByCategory = append(placesGroupedByCategory, &model.CategoryGroupedPlaces{
+			Category: &model.PlaceCategory{
+				ID:   categoryGroupedPlaces.Category.Name,
+				Name: categoryGroupedPlaces.Category.DisplayName,
+			},
+			Places: places,
+		})
+	}
+
 	return &model.PlacesToAddForPlanCandidateOutput{
-		Places: places,
+		Places:                  places,
+		PlacesGroupedByCategory: placesGroupedByCategory,
 	}, nil
 }
 
