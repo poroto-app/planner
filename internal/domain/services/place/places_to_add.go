@@ -8,17 +8,37 @@ import (
 	"time"
 )
 
+const defaultMaxPlacesToAdd = 4
+
+type FetchPlacesToAddInput struct {
+	PlanCandidateId string
+	PlanId          string
+	NLimit          uint
+}
+
 // FetchPlacesToAdd はプランに追加する候補となる場所一覧を取得する
 // nLimit によって取得する場所の数を制限することができる
-func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, planId string, nLimit uint) ([]models.Place, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInput) ([]models.Place, error) {
+	if input.NLimit == 0 {
+		input.NLimit = defaultMaxPlacesToAdd
+	}
+
+	if input.PlanCandidateId == "" {
+		return nil, fmt.Errorf("plan candidate id is empty")
+	}
+
+	if input.PlanId == "" {
+		return nil, fmt.Errorf("plan id is empty")
+	}
+
+	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
 	}
 
 	var plan *models.Plan
 	for _, p := range planCandidate.Plans {
-		if p.Id == planId {
+		if p.Id == input.PlanId {
 			plan = &p
 			break
 		}
@@ -33,7 +53,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 
 	startPlace := plan.Places[0]
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
+	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places searched: %v", err)
 	}
@@ -60,7 +80,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, planCandidateId string, p
 	// TODO: すべてのカテゴリの場所が表示されるようにする
 	var placesToAdd []models.Place
 	for _, place := range placesFiltered {
-		if len(placesToAdd) >= int(nLimit) {
+		if len(placesToAdd) >= int(input.NLimit) {
 			break
 		}
 

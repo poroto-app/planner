@@ -145,7 +145,11 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	}
 
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
-	placesToAdd, err := s.FetchPlacesToAdd(ctx, input.PlanCandidateID, input.PlanID, 4)
+	placesToAdd, err := s.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
+		PlanCandidateId: input.PlanCandidateID,
+		PlanId:          input.PlanID,
+		NLimit:          4,
+	})
 	if err != nil {
 		log.Println("error while fetching places to add: ", err)
 		return nil, fmt.Errorf("internal server error")
