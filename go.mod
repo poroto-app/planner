@@ -19,7 +19,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.16.0
 	github.com/volatiletech/strmangle v0.0.6
 	go.uber.org/zap v1.26.0
-	google.golang.org/api v0.158.0
+	google.golang.org/api v0.161.0
 	googlemaps.github.io/maps v1.7.0
 )
 
