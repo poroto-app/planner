@@ -37,3 +37,8 @@ type PlaceCategory {
     id: String!
     name: String!
 }
+
+type CategoryGroupedPlaces {
+    category: PlaceCategory!
+    places: [Place!]!
+}
