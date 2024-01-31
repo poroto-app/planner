@@ -11,9 +11,15 @@ func NewPlanEntityFromDomainModel(plan models.Plan) generated.Plan {
 	if plan.Id == "" {
 		plan.Id = uuid.New().String()
 	}
+
+	var userId *string
+	if plan.Author != nil {
+		userId = &plan.Author.Id
+	}
+
 	return generated.Plan{
 		ID:     plan.Id,
-		UserID: null.StringFromPtr(plan.AuthorId),
+		UserID: null.StringFromPtr(userId),
 		Name:   plan.Name,
 	}
 }
@@ -22,6 +28,7 @@ func NewPlanFromEntity(
 	planEntity generated.Plan,
 	planPlaceSlice generated.PlanPlaceSlice,
 	places []models.Place,
+	author *models.User,
 ) (*models.Plan, error) {
 	planPlaces, err := NewPlanPlacesFromEntities(planPlaceSlice, places, planEntity.ID)
 	if err != nil {
@@ -29,9 +36,9 @@ func NewPlanFromEntity(
 	}
 
 	return &models.Plan{
-		Id:       planEntity.ID,
-		Name:     planEntity.Name,
-		AuthorId: planEntity.UserID.Ptr(),
-		Places:   *planPlaces,
+		Id:     planEntity.ID,
+		Name:   planEntity.Name,
+		Places: *planPlaces,
+		Author: author,
 	}, nil
 }
