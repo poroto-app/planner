@@ -5,7 +5,7 @@ type Plan {
     timeInMinutes: Int!
     description: String
     transitions: [Transition!]!
-    authorId: String
+    author: User
 }
 
 type Transition {

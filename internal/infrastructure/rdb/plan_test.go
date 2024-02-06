@@ -2,9 +2,12 @@ package rdb
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -17,11 +20,18 @@ import (
 func TestPlanRepository_Save(t *testing.T) {
 	cases := []struct {
 		name        string
+		savedUsers  generated.UserSlice
 		savedPlaces []models.Place
-		plan        models.Plan
+		expected    models.Plan
 	}{
 		{
 			name: "should save plan",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+			},
 			savedPlaces: []models.Place{
 				{
 					Id: "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -30,10 +40,9 @@ func TestPlanRepository_Save(t *testing.T) {
 					Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
 				},
 			},
-			plan: models.Plan{
-				Id:       uuid.New().String(),
-				Name:     "plan title",
-				AuthorId: nil,
+			expected: models.Plan{
+				Id:   uuid.New().String(),
+				Name: "plan title",
 				Places: []models.Place{
 					{
 						Id: "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -41,6 +50,10 @@ func TestPlanRepository_Save(t *testing.T) {
 					{
 						Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
 					},
+				},
+				Author: &models.User{
+					Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
 				},
 			},
 		},
@@ -61,36 +74,45 @@ func TestPlanRepository_Save(t *testing.T) {
 				}
 			})
 
+			// 事前に User を保存
+			if _, err := c.savedUsers.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
 			// 事前に Place を保存
 			if err := savePlaces(testContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
 			}
 
-			if err := planRepository.Save(testContext, &c.plan); err != nil {
+			if err := planRepository.Save(testContext, &c.expected); err != nil {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			isPlanExists, err := generated.Plans(generated.PlanWhere.ID.EQ(c.plan.Id)).Exists(testContext, planRepository.GetDB())
+			planEntity, err := generated.Plans(generated.PlanWhere.ID.EQ(c.expected.Id)).One(testContext, planRepository.GetDB())
 			if err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					t.Errorf("plan should be saved")
+				}
 				t.Errorf("error checking if plan exists: %v", err)
 			}
-			if !isPlanExists {
-				t.Errorf("plan should be saved")
+
+			if diff := cmp.Diff(c.expected.Author.Id, planEntity.UserID.String); diff != "" {
+				t.Errorf("plan author id mismatch (-want +got):\n%s", diff)
 			}
 
 			planPlaceEntities, err := generated.PlanPlaces(
-				generated.PlanPlaceWhere.PlanID.EQ(c.plan.Id),
+				generated.PlanPlaceWhere.PlanID.EQ(c.expected.Id),
 				qm.OrderBy(generated.PlanPlaceColumns.SortOrder),
 			).All(testContext, planRepository.GetDB())
 			if err != nil {
 				t.Errorf("error fetching plan places: %v", err)
 			}
 
-			if len(planPlaceEntities) != len(c.plan.Places) {
-				t.Errorf("wrong plan place slice length, want: %d, got: %d", len(c.plan.Places), len(planPlaceEntities))
+			if len(planPlaceEntities) != len(c.expected.Places) {
+				t.Errorf("wrong plan place slice length, want: %d, got: %d", len(c.expected.Places), len(planPlaceEntities))
 			}
 
-			for i, expected := range c.plan.Places {
+			for i, expected := range c.expected.Places {
 				if planPlaceEntities[i].PlaceID != expected.Id {
 					t.Errorf("wrong place id, want: %s, got: %s", expected.Id, planPlaceEntities[i].PlaceID)
 				}
@@ -105,12 +127,19 @@ func TestPlanRepository_Save(t *testing.T) {
 func TestPlanRepository_Find(t *testing.T) {
 	cases := []struct {
 		name        string
+		savedUsers  generated.UserSlice
 		savedPlaces []models.Place
 		savedPlan   models.Plan
 		expected    models.Plan
 	}{
 		{
 			name: "should find plan",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+			},
 			savedPlaces: []models.Place{
 				{
 					Id: "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -132,6 +161,10 @@ func TestPlanRepository_Find(t *testing.T) {
 					{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
 					{Id: "c61a8b42-2c07-4957-913d-6930f0d881ec"},
 				},
+				Author: &models.User{
+					Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
 			},
 			expected: models.Plan{
 				Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -149,6 +182,10 @@ func TestPlanRepository_Find(t *testing.T) {
 							PlaceId: "CwVXAAAAQwXg3w8QKxQZ6Q0X3Z4",
 						},
 					},
+				},
+				Author: &models.User{
+					Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
 				},
 			},
 		},
@@ -182,6 +219,11 @@ func TestPlanRepository_Find(t *testing.T) {
 				}
 			})
 
+			// 事前に User を保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
 			// 事前に Place を保存
 			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
@@ -207,15 +249,20 @@ func TestPlanRepository_Find(t *testing.T) {
 func TestPlanRepository_FindByAuthorId(t *testing.T) {
 	cases := []struct {
 		name        string
-		savedUser   models.User
+		savedUsers  generated.UserSlice
 		savedPlaces []models.Place
 		savedPlans  []models.Plan
 		authorId    string
 		expected    []models.Plan
 	}{
 		{
-			name:      "should find plans by author id",
-			savedUser: models.User{Id: "c61a8b42-2c07-4957-913d-6930f0d881ec"},
+			name: "should find plans by author id",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+			},
 			savedPlaces: []models.Place{
 				{
 					Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -236,30 +283,35 @@ func TestPlanRepository_FindByAuthorId(t *testing.T) {
 			},
 			savedPlans: []models.Plan{
 				{
-					Id:       "f2c98d68-3904-455b-8832-a0f723a96735",
-					AuthorId: toPointer("c61a8b42-2c07-4957-913d-6930f0d881ec"),
-					Name:     "plan title 1",
+					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
+					Name: "plan title 1",
 					Places: []models.Place{
 						{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
 						{Id: "c61a8b42-2c07-4957-913d-6930f0d881ec"},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 				{
-					Id:       "c61a8b42-2c07-4957-913d-6930f0d881ec",
-					AuthorId: toPointer("c61a8b42-2c07-4957-913d-6930f0d881ec"),
-					Name:     "plan title 2",
+					Id:   "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					Name: "plan title 2",
 					Places: []models.Place{
 						{Id: "82cc1884-ac59-11ee-a506-0242ac120002"},
 						{Id: "c72a3614-ac59-11ee-a506-0242ac120002"},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 			},
-			authorId: "c61a8b42-2c07-4957-913d-6930f0d881ec",
+			authorId: "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
 			expected: []models.Plan{
 				{
-					Id:       "f2c98d68-3904-455b-8832-a0f723a96735",
-					AuthorId: toPointer("c61a8b42-2c07-4957-913d-6930f0d881ec"),
-					Name:     "plan title 1",
+					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
+					Name: "plan title 1",
 					Places: []models.Place{
 						{
 							Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -270,11 +322,14 @@ func TestPlanRepository_FindByAuthorId(t *testing.T) {
 							Google: models.GooglePlace{PlaceId: "CwVXAAAAQwXg3w8QKxQZ6Q0X3Z4"},
 						},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 				{
-					Id:       "c61a8b42-2c07-4957-913d-6930f0d881ec",
-					AuthorId: toPointer("c61a8b42-2c07-4957-913d-6930f0d881ec"),
-					Name:     "plan title 2",
+					Id:   "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					Name: "plan title 2",
 					Places: []models.Place{
 						{
 							Id:     "82cc1884-ac59-11ee-a506-0242ac120002",
@@ -285,8 +340,38 @@ func TestPlanRepository_FindByAuthorId(t *testing.T) {
 							Google: models.GooglePlace{PlaceId: "ChQFzO1BvHaLJXCyWVZ8Uie3smn2wQ"},
 						},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 			},
+		},
+		{
+			name: "should not find plans by author id",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+			},
+			savedPlaces: []models.Place{
+				{
+					Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
+					Google: models.GooglePlace{PlaceId: "ChIJN1t_tDeuEmsRUsoyG83frY4"},
+				},
+			},
+			savedPlans: []models.Plan{
+				{
+					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
+					Name: "plan title 1",
+					Places: []models.Place{
+						{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
+					},
+				},
+			},
+			authorId: "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
+			expected: []models.Plan{},
 		},
 	}
 
@@ -311,7 +396,7 @@ func TestPlanRepository_FindByAuthorId(t *testing.T) {
 			}
 
 			// 事前に User を保存
-			if err := saveUsers(textContext, planRepository.GetDB(), []models.User{c.savedUser}); err != nil {
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
 				t.Errorf("error saving user: %v", err)
 			}
 
@@ -342,6 +427,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 		savedPlanSlice      generated.PlanSlice
 		savedPlanPlaceSlice generated.PlanPlaceSlice
 		savedPlaces         []models.Place
+		savedUsers          generated.UserSlice
 		queryCursor         *repository.SortedByCreatedAtQueryCursor
 		limit               int
 		expected            []models.Plan
@@ -362,12 +448,24 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 				{
 					ID:        "f2c98d68-3904-455b-8832-a0f723a96735",
 					Name:      "plan title 1",
+					UserID:    null.StringFrom("8fde8eff-4b18-4276-b71f-2fec30ea65c8"),
 					CreatedAt: time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 				},
 				{
 					ID:        "c61a8b42-2c07-4957-913d-6930f0d881ec",
 					Name:      "plan title 2",
+					UserID:    null.StringFrom("28a52fdd-c252-4e32-a918-fcab5ed88ad8"),
 					CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
+				},
+			},
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+				{
+					ID:          "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
+					FirebaseUID: "firebase_uid_2",
 				},
 			},
 			savedPlanPlaceSlice: generated.PlanPlaceSlice{
@@ -396,6 +494,10 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 							Google: models.GooglePlace{PlaceId: "CwVXAAAAQwXg3w8QKxQZ6Q0X3Z4"},
 						},
 					},
+					Author: &models.User{
+						Id:          "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
+						FirebaseUID: "firebase_uid_2",
+					},
 				},
 				{
 					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -405,6 +507,10 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 							Id:     "f2c98d68-3904-455b-8832-a0f723a96735",
 							Google: models.GooglePlace{PlaceId: "ChIJN1t_tDeuEmsRUsoyG83frY4"},
 						},
+					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
 					},
 				},
 			},
@@ -452,6 +558,11 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 				}
 			})
 
+			// 事前に User を保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
 			// 事前に Place を保存
 			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
@@ -486,6 +597,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 func TestPlanRepository_SortedByLocation(t *testing.T) {
 	cases := []struct {
 		name        string
+		savedUsers  generated.UserSlice
 		savedPlaces []models.Place
 		savedPlans  []models.Plan
 		location    models.GeoLocation
@@ -494,6 +606,16 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 	}{
 		{
 			name: "should find plans sorted by location",
+			savedUsers: generated.UserSlice{
+				{
+					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					FirebaseUID: "firebase_uid_1",
+				},
+				{
+					ID:          "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
+					FirebaseUID: "firebase_uid_2",
+				},
+			},
 			savedPlaces: []models.Place{
 				{
 					Id:   "f2c98d68-3904-455b-8832-a0f723a96735",
@@ -523,6 +645,10 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 							Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
 						},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 				{
 					Id:   "9c93c944-ac8e-11ee-a506-0242ac120003",
@@ -533,6 +659,10 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 							Name:     "札幌市時計台",
 							Location: models.GeoLocation{Latitude: 43.062558697622, Longitude: 141.35355044447},
 						},
+					},
+					Author: &models.User{
+						Id:          "28a52fdd-c252-4e32-a918-fcab5ed88ad8",
+						FirebaseUID: "firebase_uid_2",
 					},
 				},
 			},
@@ -553,6 +683,10 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 							},
 						},
 					},
+					Author: &models.User{
+						Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+						FirebaseUID: "firebase_uid_1",
+					},
 				},
 			},
 		},
@@ -571,6 +705,11 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 					t.Errorf("error cleaning up: %v", err)
 				}
 			})
+
+			// 事前に User を保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
 
 			// 事前に Place を保存
 			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {

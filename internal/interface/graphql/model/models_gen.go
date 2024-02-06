@@ -38,6 +38,11 @@ type AvailablePlacesForPlanInput struct {
 	Session string `json:"session"`
 }
 
+type CategoryGroupedPlaces struct {
+	Category *PlaceCategory `json:"category"`
+	Places   []*Place       `json:"places"`
+}
+
 type ChangePlacesOrderInPlanCandidateInput struct {
 	Session          string   `json:"session"`
 	PlanID           string   `json:"planId"`
@@ -195,7 +200,8 @@ type PlacesToAddForPlanCandidateInput struct {
 }
 
 type PlacesToAddForPlanCandidateOutput struct {
-	Places []*Place `json:"places"`
+	Places                  []*Place                 `json:"places"`
+	PlacesGroupedByCategory []*CategoryGroupedPlaces `json:"placesGroupedByCategory"`
 }
 
 type PlacesToReplaceForPlanCandidateInput struct {
@@ -215,7 +221,7 @@ type Plan struct {
 	TimeInMinutes int           `json:"timeInMinutes"`
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
-	AuthorID      *string       `json:"authorId,omitempty"`
+	Author        *User         `json:"author,omitempty"`
 }
 
 type PlanCandidate struct {
@@ -231,6 +237,14 @@ type PlanCandidateInput struct {
 
 type PlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
+}
+
+type PlanInput struct {
+	PlanID string `json:"planID"`
+}
+
+type PlanOutput struct {
+	Plan *Plan `json:"plan,omitempty"`
 }
 
 type PlansByLocationInput struct {

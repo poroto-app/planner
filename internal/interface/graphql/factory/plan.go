@@ -52,12 +52,17 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		}
 	}
 
+	var author *graphql.User
+	if plan.Author != nil {
+		author = UserFromDomainModel(plan.Author)
+	}
+
 	return &graphql.Plan{
 		ID:            plan.Id,
 		Name:          plan.Name,
 		Places:        places,
 		TimeInMinutes: int(plan.TimeInMinutes(startLocation)),
 		Transitions:   graphqlTransitionEntities,
-		AuthorID:      plan.AuthorId,
+		Author:        author,
 	}, nil
 }

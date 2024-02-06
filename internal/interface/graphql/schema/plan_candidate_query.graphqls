@@ -47,6 +47,7 @@ input PlacesToAddForPlanCandidateInput {
 
 type PlacesToAddForPlanCandidateOutput {
     places: [Place!]!
+    placesGroupedByCategory: [CategoryGroupedPlaces!]!
 }
 
 input PlacesToReplaceForPlanCandidateInput {
