@@ -7,7 +7,7 @@ input uploadPlacePhotoInPlanInput {
     userId: String!
     planId: String!
     placeId: String!
-    urlOfPhoto: String!
+    photoUrl: String!
 }
 
 type uploadPlacePhotoInPlanOutput {

@@ -319,10 +319,10 @@ type User struct {
 }
 
 type UploadPlacePhotoInPlanInput struct {
-	UserID     string `json:"userId"`
-	PlanID     string `json:"planId"`
-	PlaceID    string `json:"placeId"`
-	URLOfPhoto string `json:"urlOfPhoto"`
+	UserID   string `json:"userId"`
+	PlanID   string `json:"planId"`
+	PlaceID  string `json:"placeId"`
+	PhotoURL string `json:"photoUrl"`
 }
 
 type UploadPlacePhotoInPlanOutput struct {

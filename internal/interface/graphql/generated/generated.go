@@ -1606,7 +1606,7 @@ input uploadPlacePhotoInPlanInput {
     userId: String!
     planId: String!
     placeId: String!
-    urlOfPhoto: String!
+    photoUrl: String!
 }
 
 type uploadPlacePhotoInPlanOutput {
@@ -10710,7 +10710,7 @@ func (ec *executionContext) unmarshalInputuploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "planId", "placeId", "urlOfPhoto"}
+	fieldsInOrder := [...]string{"userId", "planId", "placeId", "photoUrl"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10744,15 +10744,15 @@ func (ec *executionContext) unmarshalInputuploadPlacePhotoInPlanInput(ctx contex
 				return it, err
 			}
 			it.PlaceID = data
-		case "urlOfPhoto":
+		case "photoUrl":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("urlOfPhoto"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("photoUrl"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.URLOfPhoto = data
+			it.PhotoURL = data
 		}
 	}
 
