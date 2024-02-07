@@ -313,10 +313,10 @@ type Transition struct {
 }
 
 type UploadPhotoToPlaceInPlanInput struct {
-	UserID         string `json:"userId"`
-	PlanID         string `json:"planId"`
-	PlaceID        string `json:"placeId"`
-	PhotoReference string `json:"photoReference"`
+	UserID     string `json:"userId"`
+	PlanID     string `json:"planId"`
+	PlaceID    string `json:"placeId"`
+	URLOfPhoto string `json:"urlOfPhoto"`
 }
 
 type UploadPhotoToPlaceInPlanOutput struct {

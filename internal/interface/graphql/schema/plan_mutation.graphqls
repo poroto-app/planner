@@ -1,12 +1,12 @@
 extend type Mutation {
-    uploadPhotoToPlaceInPlan(input: UploadPhotoToPlaceInPlanInput!): UploadPhotoToPlaceInPlanOutput!
+    uploadPhotoToPlaceInPlan(inputs: [UploadPhotoToPlaceInPlanInput!]!): UploadPhotoToPlaceInPlanOutput!
 }
 
 input UploadPhotoToPlaceInPlanInput {
     userId: String!
     planId: String!
     placeId: String!
-    photoReference: String!
+    urlOfPhoto: String!
 }
 
 type UploadPhotoToPlaceInPlanOutput {

@@ -12,6 +12,6 @@ import (
 )
 
 // UploadPhotoToPlaceInPlan is the resolver for the uploadPhotoToPlaceInPlan field.
-func (r *mutationResolver) UploadPhotoToPlaceInPlan(ctx context.Context, input model.UploadPhotoToPlaceInPlanInput) (*model.UploadPhotoToPlaceInPlanOutput, error) {
+func (r *mutationResolver) UploadPhotoToPlaceInPlan(ctx context.Context, inputs []*model.UploadPhotoToPlaceInPlanInput) (*model.UploadPhotoToPlaceInPlanOutput, error) {
 	panic(fmt.Errorf("not implemented: UploadPhotoToPlaceInPlan - uploadPhotoToPlaceInPlan"))
 }
