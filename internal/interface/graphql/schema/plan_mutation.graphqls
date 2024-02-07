@@ -3,6 +3,7 @@ extend type Mutation {
 }
 
 input UploadPhotoToPlaceInPlanInput {
+    # 画像投稿にはログインが必須
     userId: String!
     planId: String!
     placeId: String!
