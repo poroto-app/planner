@@ -312,6 +312,17 @@ type Transition struct {
 	Duration int    `json:"duration"`
 }
 
+type UploadPhotoToPlaceInPlanInput struct {
+	UserID         string `json:"userId"`
+	PlanID         string `json:"planId"`
+	PlaceID        string `json:"placeId"`
+	PhotoReference string `json:"photoReference"`
+}
+
+type UploadPhotoToPlaceInPlanOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type User struct {
 	ID       string  `json:"id"`
 	Name     string  `json:"name"`

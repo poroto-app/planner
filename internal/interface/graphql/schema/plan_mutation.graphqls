@@ -1,0 +1,14 @@
+extend type Mutation {
+    uploadPhotoToPlaceInPlan(input: UploadPhotoToPlaceInPlanInput!): UploadPhotoToPlaceInPlanOutput!
+}
+
+input UploadPhotoToPlaceInPlanInput {
+    userId: String!
+    planId: String!
+    placeId: String!
+    photoReference: String!
+}
+
+type UploadPhotoToPlaceInPlanOutput {
+    plan: Plan!
+}
