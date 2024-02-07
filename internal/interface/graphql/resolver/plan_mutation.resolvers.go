@@ -11,7 +11,7 @@ import (
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
-// UploadPhotoToPlaceInPlan is the resolver for the uploadPhotoToPlaceInPlan field.
-func (r *mutationResolver) UploadPhotoToPlaceInPlan(ctx context.Context, inputs []*model.UploadPhotoToPlaceInPlanInput) (*model.UploadPhotoToPlaceInPlanOutput, error) {
-	panic(fmt.Errorf("not implemented: UploadPhotoToPlaceInPlan - uploadPhotoToPlaceInPlan"))
+// UploadPlacePhotoInPlan is the resolver for the uploadPlacePhotoInPlan field.
+func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: UploadPlacePhotoInPlan - uploadPlacePhotoInPlan"))
 }
