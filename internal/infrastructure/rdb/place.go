@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/friendsofgo/errors"
+	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -569,6 +572,32 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 		return fmt.Errorf("failed to run transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		if ok, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx); ok && err == nil {
+			// すでに保存済みの場合はスキップ
+			return nil
+		}
+		placePhoto := generated.PlacePhoto{
+			ID:        uuid.New().String(),
+			PlaceID:   placeId,
+			UserID:    userId,
+			PhotoURL:  photoUrl,
+			Width:     2000,
+			Height:    2000,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := placePhoto.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place photo: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
 	return nil
 }
 
