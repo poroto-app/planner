@@ -21,137 +21,172 @@ import (
 	"github.com/volatiletech/strmangle"
 )
 
-// PlanPlace is an object representing the database table.
-type PlanPlace struct {
+// PlacePhoto is an object representing the database table.
+type PlacePhoto struct {
 	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlanID    string    `boil:"plan_id" json:"plan_id" toml:"plan_id" yaml:"plan_id"`
 	PlaceID   string    `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
-	SortOrder int       `boil:"sort_order" json:"sort_order" toml:"sort_order" yaml:"sort_order"`
+	UserID    string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	PhotoURL  string    `boil:"photo_url" json:"photo_url" toml:"photo_url" yaml:"photo_url"`
+	Width     int       `boil:"width" json:"width" toml:"width" yaml:"width"`
+	Height    int       `boil:"height" json:"height" toml:"height" yaml:"height"`
 	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
-	R *planPlaceR `boil:"-" json:"-" toml:"-" yaml:"-"`
-	L planPlaceL  `boil:"-" json:"-" toml:"-" yaml:"-"`
+	R *placePhotoR `boil:"-" json:"-" toml:"-" yaml:"-"`
+	L placePhotoL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
-var PlanPlaceColumns = struct {
+var PlacePhotoColumns = struct {
 	ID        string
-	PlanID    string
 	PlaceID   string
-	SortOrder string
+	UserID    string
+	PhotoURL  string
+	Width     string
+	Height    string
 	CreatedAt string
 	UpdatedAt string
 }{
 	ID:        "id",
-	PlanID:    "plan_id",
 	PlaceID:   "place_id",
-	SortOrder: "sort_order",
+	UserID:    "user_id",
+	PhotoURL:  "photo_url",
+	Width:     "width",
+	Height:    "height",
 	CreatedAt: "created_at",
 	UpdatedAt: "updated_at",
 }
 
-var PlanPlaceTableColumns = struct {
+var PlacePhotoTableColumns = struct {
 	ID        string
-	PlanID    string
 	PlaceID   string
-	SortOrder string
+	UserID    string
+	PhotoURL  string
+	Width     string
+	Height    string
 	CreatedAt string
 	UpdatedAt string
 }{
-	ID:        "plan_places.id",
-	PlanID:    "plan_places.plan_id",
-	PlaceID:   "plan_places.place_id",
-	SortOrder: "plan_places.sort_order",
-	CreatedAt: "plan_places.created_at",
-	UpdatedAt: "plan_places.updated_at",
+	ID:        "place_photos.id",
+	PlaceID:   "place_photos.place_id",
+	UserID:    "place_photos.user_id",
+	PhotoURL:  "place_photos.photo_url",
+	Width:     "place_photos.width",
+	Height:    "place_photos.height",
+	CreatedAt: "place_photos.created_at",
+	UpdatedAt: "place_photos.updated_at",
 }
 
 // Generated where
 
-var PlanPlaceWhere = struct {
+type whereHelpertime_Time struct{ field string }
+
+func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
+var PlacePhotoWhere = struct {
 	ID        whereHelperstring
-	PlanID    whereHelperstring
 	PlaceID   whereHelperstring
-	SortOrder whereHelperint
+	UserID    whereHelperstring
+	PhotoURL  whereHelperstring
+	Width     whereHelperint
+	Height    whereHelperint
 	CreatedAt whereHelpertime_Time
 	UpdatedAt whereHelpertime_Time
 }{
-	ID:        whereHelperstring{field: "`plan_places`.`id`"},
-	PlanID:    whereHelperstring{field: "`plan_places`.`plan_id`"},
-	PlaceID:   whereHelperstring{field: "`plan_places`.`place_id`"},
-	SortOrder: whereHelperint{field: "`plan_places`.`sort_order`"},
-	CreatedAt: whereHelpertime_Time{field: "`plan_places`.`created_at`"},
-	UpdatedAt: whereHelpertime_Time{field: "`plan_places`.`updated_at`"},
+	ID:        whereHelperstring{field: "`place_photos`.`id`"},
+	PlaceID:   whereHelperstring{field: "`place_photos`.`place_id`"},
+	UserID:    whereHelperstring{field: "`place_photos`.`user_id`"},
+	PhotoURL:  whereHelperstring{field: "`place_photos`.`photo_url`"},
+	Width:     whereHelperint{field: "`place_photos`.`width`"},
+	Height:    whereHelperint{field: "`place_photos`.`height`"},
+	CreatedAt: whereHelpertime_Time{field: "`place_photos`.`created_at`"},
+	UpdatedAt: whereHelpertime_Time{field: "`place_photos`.`updated_at`"},
 }
 
-// PlanPlaceRels is where relationship names are stored.
-var PlanPlaceRels = struct {
-	Plan  string
+// PlacePhotoRels is where relationship names are stored.
+var PlacePhotoRels = struct {
+	User  string
 	Place string
 }{
-	Plan:  "Plan",
+	User:  "User",
 	Place: "Place",
 }
 
-// planPlaceR is where relationships are stored.
-type planPlaceR struct {
-	Plan  *Plan  `boil:"Plan" json:"Plan" toml:"Plan" yaml:"Plan"`
+// placePhotoR is where relationships are stored.
+type placePhotoR struct {
+	User  *User  `boil:"User" json:"User" toml:"User" yaml:"User"`
 	Place *Place `boil:"Place" json:"Place" toml:"Place" yaml:"Place"`
 }
 
 // NewStruct creates a new relationship struct
-func (*planPlaceR) NewStruct() *planPlaceR {
-	return &planPlaceR{}
+func (*placePhotoR) NewStruct() *placePhotoR {
+	return &placePhotoR{}
 }
 
-func (r *planPlaceR) GetPlan() *Plan {
+func (r *placePhotoR) GetUser() *User {
 	if r == nil {
 		return nil
 	}
-	return r.Plan
+	return r.User
 }
 
-func (r *planPlaceR) GetPlace() *Place {
+func (r *placePhotoR) GetPlace() *Place {
 	if r == nil {
 		return nil
 	}
 	return r.Place
 }
 
-// planPlaceL is where Load methods for each relationship are stored.
-type planPlaceL struct{}
+// placePhotoL is where Load methods for each relationship are stored.
+type placePhotoL struct{}
 
 var (
-	planPlaceAllColumns            = []string{"id", "plan_id", "place_id", "sort_order", "created_at", "updated_at"}
-	planPlaceColumnsWithoutDefault = []string{"id", "plan_id", "place_id", "sort_order"}
-	planPlaceColumnsWithDefault    = []string{"created_at", "updated_at"}
-	planPlacePrimaryKeyColumns     = []string{"id"}
-	planPlaceGeneratedColumns      = []string{}
+	placePhotoAllColumns            = []string{"id", "place_id", "user_id", "photo_url", "width", "height", "created_at", "updated_at"}
+	placePhotoColumnsWithoutDefault = []string{"id", "place_id", "user_id", "photo_url", "width", "height"}
+	placePhotoColumnsWithDefault    = []string{"created_at", "updated_at"}
+	placePhotoPrimaryKeyColumns     = []string{"id"}
+	placePhotoGeneratedColumns      = []string{}
 )
 
 type (
-	// PlanPlaceSlice is an alias for a slice of pointers to PlanPlace.
-	// This should almost always be used instead of []PlanPlace.
-	PlanPlaceSlice []*PlanPlace
-	// PlanPlaceHook is the signature for custom PlanPlace hook methods
-	PlanPlaceHook func(context.Context, boil.ContextExecutor, *PlanPlace) error
+	// PlacePhotoSlice is an alias for a slice of pointers to PlacePhoto.
+	// This should almost always be used instead of []PlacePhoto.
+	PlacePhotoSlice []*PlacePhoto
+	// PlacePhotoHook is the signature for custom PlacePhoto hook methods
+	PlacePhotoHook func(context.Context, boil.ContextExecutor, *PlacePhoto) error
 
-	planPlaceQuery struct {
+	placePhotoQuery struct {
 		*queries.Query
 	}
 )
 
 // Cache for insert, update and upsert
 var (
-	planPlaceType                 = reflect.TypeOf(&PlanPlace{})
-	planPlaceMapping              = queries.MakeStructMapping(planPlaceType)
-	planPlacePrimaryKeyMapping, _ = queries.BindMapping(planPlaceType, planPlaceMapping, planPlacePrimaryKeyColumns)
-	planPlaceInsertCacheMut       sync.RWMutex
-	planPlaceInsertCache          = make(map[string]insertCache)
-	planPlaceUpdateCacheMut       sync.RWMutex
-	planPlaceUpdateCache          = make(map[string]updateCache)
-	planPlaceUpsertCacheMut       sync.RWMutex
-	planPlaceUpsertCache          = make(map[string]insertCache)
+	placePhotoType                 = reflect.TypeOf(&PlacePhoto{})
+	placePhotoMapping              = queries.MakeStructMapping(placePhotoType)
+	placePhotoPrimaryKeyMapping, _ = queries.BindMapping(placePhotoType, placePhotoMapping, placePhotoPrimaryKeyColumns)
+	placePhotoInsertCacheMut       sync.RWMutex
+	placePhotoInsertCache          = make(map[string]insertCache)
+	placePhotoUpdateCacheMut       sync.RWMutex
+	placePhotoUpdateCache          = make(map[string]updateCache)
+	placePhotoUpsertCacheMut       sync.RWMutex
+	placePhotoUpsertCache          = make(map[string]insertCache)
 )
 
 var (
@@ -162,36 +197,36 @@ var (
 	_ = qmhelper.Where
 )
 
-var planPlaceAfterSelectMu sync.Mutex
-var planPlaceAfterSelectHooks []PlanPlaceHook
+var placePhotoAfterSelectMu sync.Mutex
+var placePhotoAfterSelectHooks []PlacePhotoHook
 
-var planPlaceBeforeInsertMu sync.Mutex
-var planPlaceBeforeInsertHooks []PlanPlaceHook
-var planPlaceAfterInsertMu sync.Mutex
-var planPlaceAfterInsertHooks []PlanPlaceHook
+var placePhotoBeforeInsertMu sync.Mutex
+var placePhotoBeforeInsertHooks []PlacePhotoHook
+var placePhotoAfterInsertMu sync.Mutex
+var placePhotoAfterInsertHooks []PlacePhotoHook
 
-var planPlaceBeforeUpdateMu sync.Mutex
-var planPlaceBeforeUpdateHooks []PlanPlaceHook
-var planPlaceAfterUpdateMu sync.Mutex
-var planPlaceAfterUpdateHooks []PlanPlaceHook
+var placePhotoBeforeUpdateMu sync.Mutex
+var placePhotoBeforeUpdateHooks []PlacePhotoHook
+var placePhotoAfterUpdateMu sync.Mutex
+var placePhotoAfterUpdateHooks []PlacePhotoHook
 
-var planPlaceBeforeDeleteMu sync.Mutex
-var planPlaceBeforeDeleteHooks []PlanPlaceHook
-var planPlaceAfterDeleteMu sync.Mutex
-var planPlaceAfterDeleteHooks []PlanPlaceHook
+var placePhotoBeforeDeleteMu sync.Mutex
+var placePhotoBeforeDeleteHooks []PlacePhotoHook
+var placePhotoAfterDeleteMu sync.Mutex
+var placePhotoAfterDeleteHooks []PlacePhotoHook
 
-var planPlaceBeforeUpsertMu sync.Mutex
-var planPlaceBeforeUpsertHooks []PlanPlaceHook
-var planPlaceAfterUpsertMu sync.Mutex
-var planPlaceAfterUpsertHooks []PlanPlaceHook
+var placePhotoBeforeUpsertMu sync.Mutex
+var placePhotoBeforeUpsertHooks []PlacePhotoHook
+var placePhotoAfterUpsertMu sync.Mutex
+var placePhotoAfterUpsertHooks []PlacePhotoHook
 
 // doAfterSelectHooks executes all "after Select" hooks.
-func (o *PlanPlace) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doAfterSelectHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceAfterSelectHooks {
+	for _, hook := range placePhotoAfterSelectHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -201,12 +236,12 @@ func (o *PlanPlace) doAfterSelectHooks(ctx context.Context, exec boil.ContextExe
 }
 
 // doBeforeInsertHooks executes all "before insert" hooks.
-func (o *PlanPlace) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doBeforeInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceBeforeInsertHooks {
+	for _, hook := range placePhotoBeforeInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -216,12 +251,12 @@ func (o *PlanPlace) doBeforeInsertHooks(ctx context.Context, exec boil.ContextEx
 }
 
 // doAfterInsertHooks executes all "after Insert" hooks.
-func (o *PlanPlace) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doAfterInsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceAfterInsertHooks {
+	for _, hook := range placePhotoAfterInsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -231,12 +266,12 @@ func (o *PlanPlace) doAfterInsertHooks(ctx context.Context, exec boil.ContextExe
 }
 
 // doBeforeUpdateHooks executes all "before Update" hooks.
-func (o *PlanPlace) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceBeforeUpdateHooks {
+	for _, hook := range placePhotoBeforeUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -246,12 +281,12 @@ func (o *PlanPlace) doBeforeUpdateHooks(ctx context.Context, exec boil.ContextEx
 }
 
 // doAfterUpdateHooks executes all "after Update" hooks.
-func (o *PlanPlace) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceAfterUpdateHooks {
+	for _, hook := range placePhotoAfterUpdateHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -261,12 +296,12 @@ func (o *PlanPlace) doAfterUpdateHooks(ctx context.Context, exec boil.ContextExe
 }
 
 // doBeforeDeleteHooks executes all "before Delete" hooks.
-func (o *PlanPlace) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceBeforeDeleteHooks {
+	for _, hook := range placePhotoBeforeDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -276,12 +311,12 @@ func (o *PlanPlace) doBeforeDeleteHooks(ctx context.Context, exec boil.ContextEx
 }
 
 // doAfterDeleteHooks executes all "after Delete" hooks.
-func (o *PlanPlace) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceAfterDeleteHooks {
+	for _, hook := range placePhotoAfterDeleteHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -291,12 +326,12 @@ func (o *PlanPlace) doAfterDeleteHooks(ctx context.Context, exec boil.ContextExe
 }
 
 // doBeforeUpsertHooks executes all "before Upsert" hooks.
-func (o *PlanPlace) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceBeforeUpsertHooks {
+	for _, hook := range placePhotoBeforeUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -306,12 +341,12 @@ func (o *PlanPlace) doBeforeUpsertHooks(ctx context.Context, exec boil.ContextEx
 }
 
 // doAfterUpsertHooks executes all "after Upsert" hooks.
-func (o *PlanPlace) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
+func (o *PlacePhoto) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExecutor) (err error) {
 	if boil.HooksAreSkipped(ctx) {
 		return nil
 	}
 
-	for _, hook := range planPlaceAfterUpsertHooks {
+	for _, hook := range placePhotoAfterUpsertHooks {
 		if err := hook(ctx, exec, o); err != nil {
 			return err
 		}
@@ -320,51 +355,51 @@ func (o *PlanPlace) doAfterUpsertHooks(ctx context.Context, exec boil.ContextExe
 	return nil
 }
 
-// AddPlanPlaceHook registers your hook function for all future operations.
-func AddPlanPlaceHook(hookPoint boil.HookPoint, planPlaceHook PlanPlaceHook) {
+// AddPlacePhotoHook registers your hook function for all future operations.
+func AddPlacePhotoHook(hookPoint boil.HookPoint, placePhotoHook PlacePhotoHook) {
 	switch hookPoint {
 	case boil.AfterSelectHook:
-		planPlaceAfterSelectMu.Lock()
-		planPlaceAfterSelectHooks = append(planPlaceAfterSelectHooks, planPlaceHook)
-		planPlaceAfterSelectMu.Unlock()
+		placePhotoAfterSelectMu.Lock()
+		placePhotoAfterSelectHooks = append(placePhotoAfterSelectHooks, placePhotoHook)
+		placePhotoAfterSelectMu.Unlock()
 	case boil.BeforeInsertHook:
-		planPlaceBeforeInsertMu.Lock()
-		planPlaceBeforeInsertHooks = append(planPlaceBeforeInsertHooks, planPlaceHook)
-		planPlaceBeforeInsertMu.Unlock()
+		placePhotoBeforeInsertMu.Lock()
+		placePhotoBeforeInsertHooks = append(placePhotoBeforeInsertHooks, placePhotoHook)
+		placePhotoBeforeInsertMu.Unlock()
 	case boil.AfterInsertHook:
-		planPlaceAfterInsertMu.Lock()
-		planPlaceAfterInsertHooks = append(planPlaceAfterInsertHooks, planPlaceHook)
-		planPlaceAfterInsertMu.Unlock()
+		placePhotoAfterInsertMu.Lock()
+		placePhotoAfterInsertHooks = append(placePhotoAfterInsertHooks, placePhotoHook)
+		placePhotoAfterInsertMu.Unlock()
 	case boil.BeforeUpdateHook:
-		planPlaceBeforeUpdateMu.Lock()
-		planPlaceBeforeUpdateHooks = append(planPlaceBeforeUpdateHooks, planPlaceHook)
-		planPlaceBeforeUpdateMu.Unlock()
+		placePhotoBeforeUpdateMu.Lock()
+		placePhotoBeforeUpdateHooks = append(placePhotoBeforeUpdateHooks, placePhotoHook)
+		placePhotoBeforeUpdateMu.Unlock()
 	case boil.AfterUpdateHook:
-		planPlaceAfterUpdateMu.Lock()
-		planPlaceAfterUpdateHooks = append(planPlaceAfterUpdateHooks, planPlaceHook)
-		planPlaceAfterUpdateMu.Unlock()
+		placePhotoAfterUpdateMu.Lock()
+		placePhotoAfterUpdateHooks = append(placePhotoAfterUpdateHooks, placePhotoHook)
+		placePhotoAfterUpdateMu.Unlock()
 	case boil.BeforeDeleteHook:
-		planPlaceBeforeDeleteMu.Lock()
-		planPlaceBeforeDeleteHooks = append(planPlaceBeforeDeleteHooks, planPlaceHook)
-		planPlaceBeforeDeleteMu.Unlock()
+		placePhotoBeforeDeleteMu.Lock()
+		placePhotoBeforeDeleteHooks = append(placePhotoBeforeDeleteHooks, placePhotoHook)
+		placePhotoBeforeDeleteMu.Unlock()
 	case boil.AfterDeleteHook:
-		planPlaceAfterDeleteMu.Lock()
-		planPlaceAfterDeleteHooks = append(planPlaceAfterDeleteHooks, planPlaceHook)
-		planPlaceAfterDeleteMu.Unlock()
+		placePhotoAfterDeleteMu.Lock()
+		placePhotoAfterDeleteHooks = append(placePhotoAfterDeleteHooks, placePhotoHook)
+		placePhotoAfterDeleteMu.Unlock()
 	case boil.BeforeUpsertHook:
-		planPlaceBeforeUpsertMu.Lock()
-		planPlaceBeforeUpsertHooks = append(planPlaceBeforeUpsertHooks, planPlaceHook)
-		planPlaceBeforeUpsertMu.Unlock()
+		placePhotoBeforeUpsertMu.Lock()
+		placePhotoBeforeUpsertHooks = append(placePhotoBeforeUpsertHooks, placePhotoHook)
+		placePhotoBeforeUpsertMu.Unlock()
 	case boil.AfterUpsertHook:
-		planPlaceAfterUpsertMu.Lock()
-		planPlaceAfterUpsertHooks = append(planPlaceAfterUpsertHooks, planPlaceHook)
-		planPlaceAfterUpsertMu.Unlock()
+		placePhotoAfterUpsertMu.Lock()
+		placePhotoAfterUpsertHooks = append(placePhotoAfterUpsertHooks, placePhotoHook)
+		placePhotoAfterUpsertMu.Unlock()
 	}
 }
 
-// One returns a single planPlace record from the query.
-func (q planPlaceQuery) One(ctx context.Context, exec boil.ContextExecutor) (*PlanPlace, error) {
-	o := &PlanPlace{}
+// One returns a single placePhoto record from the query.
+func (q placePhotoQuery) One(ctx context.Context, exec boil.ContextExecutor) (*PlacePhoto, error) {
+	o := &PlacePhoto{}
 
 	queries.SetLimit(q.Query, 1)
 
@@ -373,7 +408,7 @@ func (q planPlaceQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Pl
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "generated: failed to execute a one query for plan_places")
+		return nil, errors.Wrap(err, "generated: failed to execute a one query for place_photos")
 	}
 
 	if err := o.doAfterSelectHooks(ctx, exec); err != nil {
@@ -383,16 +418,16 @@ func (q planPlaceQuery) One(ctx context.Context, exec boil.ContextExecutor) (*Pl
 	return o, nil
 }
 
-// All returns all PlanPlace records from the query.
-func (q planPlaceQuery) All(ctx context.Context, exec boil.ContextExecutor) (PlanPlaceSlice, error) {
-	var o []*PlanPlace
+// All returns all PlacePhoto records from the query.
+func (q placePhotoQuery) All(ctx context.Context, exec boil.ContextExecutor) (PlacePhotoSlice, error) {
+	var o []*PlacePhoto
 
 	err := q.Bind(ctx, exec, &o)
 	if err != nil {
-		return nil, errors.Wrap(err, "generated: failed to assign all query results to PlanPlace slice")
+		return nil, errors.Wrap(err, "generated: failed to assign all query results to PlacePhoto slice")
 	}
 
-	if len(planPlaceAfterSelectHooks) != 0 {
+	if len(placePhotoAfterSelectHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterSelectHooks(ctx, exec); err != nil {
 				return o, err
@@ -403,8 +438,8 @@ func (q planPlaceQuery) All(ctx context.Context, exec boil.ContextExecutor) (Pla
 	return o, nil
 }
 
-// Count returns the count of all PlanPlace records in the query.
-func (q planPlaceQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+// Count returns the count of all PlacePhoto records in the query.
+func (q placePhotoQuery) Count(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -412,14 +447,14 @@ func (q planPlaceQuery) Count(ctx context.Context, exec boil.ContextExecutor) (i
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to count plan_places rows")
+		return 0, errors.Wrap(err, "generated: failed to count place_photos rows")
 	}
 
 	return count, nil
 }
 
 // Exists checks if the row exists in the table.
-func (q planPlaceQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+func (q placePhotoQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
 	var count int64
 
 	queries.SetSelect(q.Query, nil)
@@ -428,25 +463,25 @@ func (q planPlaceQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (
 
 	err := q.Query.QueryRowContext(ctx, exec).Scan(&count)
 	if err != nil {
-		return false, errors.Wrap(err, "generated: failed to check if plan_places exists")
+		return false, errors.Wrap(err, "generated: failed to check if place_photos exists")
 	}
 
 	return count > 0, nil
 }
 
-// Plan pointed to by the foreign key.
-func (o *PlanPlace) Plan(mods ...qm.QueryMod) planQuery {
+// User pointed to by the foreign key.
+func (o *PlacePhoto) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.PlanID),
+		qm.Where("`id` = ?", o.UserID),
 	}
 
 	queryMods = append(queryMods, mods...)
 
-	return Plans(queryMods...)
+	return Users(queryMods...)
 }
 
 // Place pointed to by the foreign key.
-func (o *PlanPlace) Place(mods ...qm.QueryMod) placeQuery {
+func (o *PlacePhoto) Place(mods ...qm.QueryMod) placeQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("`id` = ?", o.PlaceID),
 	}
@@ -456,30 +491,30 @@ func (o *PlanPlace) Place(mods ...qm.QueryMod) placeQuery {
 	return Places(queryMods...)
 }
 
-// LoadPlan allows an eager lookup of values, cached into the
+// LoadUser allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanPlace interface{}, mods queries.Applicator) error {
-	var slice []*PlanPlace
-	var object *PlanPlace
+func (placePhotoL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlacePhoto interface{}, mods queries.Applicator) error {
+	var slice []*PlacePhoto
+	var object *PlacePhoto
 
 	if singular {
 		var ok bool
-		object, ok = maybePlanPlace.(*PlanPlace)
+		object, ok = maybePlacePhoto.(*PlacePhoto)
 		if !ok {
-			object = new(PlanPlace)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanPlace)
+			object = new(PlacePhoto)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlacePhoto)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanPlace))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlacePhoto))
 			}
 		}
 	} else {
-		s, ok := maybePlanPlace.(*[]*PlanPlace)
+		s, ok := maybePlacePhoto.(*[]*PlacePhoto)
 		if ok {
 			slice = *s
 		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanPlace)
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlacePhoto)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanPlace))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlacePhoto))
 			}
 		}
 	}
@@ -487,17 +522,17 @@ func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular
 	args := make(map[interface{}]struct{})
 	if singular {
 		if object.R == nil {
-			object.R = &planPlaceR{}
+			object.R = &placePhotoR{}
 		}
-		args[object.PlanID] = struct{}{}
+		args[object.UserID] = struct{}{}
 
 	} else {
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &planPlaceR{}
+				obj.R = &placePhotoR{}
 			}
 
-			args[obj.PlanID] = struct{}{}
+			args[obj.UserID] = struct{}{}
 
 		}
 	}
@@ -514,8 +549,8 @@ func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular
 	}
 
 	query := NewQuery(
-		qm.From(`plans`),
-		qm.WhereIn(`plans.id in ?`, argsSlice...),
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, argsSlice...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -523,22 +558,22 @@ func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load Plan")
+		return errors.Wrap(err, "failed to eager load User")
 	}
 
-	var resultSlice []*Plan
+	var resultSlice []*User
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Plan")
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for plans")
+		return errors.Wrap(err, "failed to close results of eager load for users")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plans")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
 	}
 
-	if len(planAfterSelectHooks) != 0 {
+	if len(userAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -552,22 +587,22 @@ func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular
 
 	if singular {
 		foreign := resultSlice[0]
-		object.R.Plan = foreign
+		object.R.User = foreign
 		if foreign.R == nil {
-			foreign.R = &planR{}
+			foreign.R = &userR{}
 		}
-		foreign.R.PlanPlaces = append(foreign.R.PlanPlaces, object)
+		foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, object)
 		return nil
 	}
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.PlanID == foreign.ID {
-				local.R.Plan = foreign
+			if local.UserID == foreign.ID {
+				local.R.User = foreign
 				if foreign.R == nil {
-					foreign.R = &planR{}
+					foreign.R = &userR{}
 				}
-				foreign.R.PlanPlaces = append(foreign.R.PlanPlaces, local)
+				foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, local)
 				break
 			}
 		}
@@ -578,28 +613,28 @@ func (planPlaceL) LoadPlan(ctx context.Context, e boil.ContextExecutor, singular
 
 // LoadPlace allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (planPlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanPlace interface{}, mods queries.Applicator) error {
-	var slice []*PlanPlace
-	var object *PlanPlace
+func (placePhotoL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlacePhoto interface{}, mods queries.Applicator) error {
+	var slice []*PlacePhoto
+	var object *PlacePhoto
 
 	if singular {
 		var ok bool
-		object, ok = maybePlanPlace.(*PlanPlace)
+		object, ok = maybePlacePhoto.(*PlacePhoto)
 		if !ok {
-			object = new(PlanPlace)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanPlace)
+			object = new(PlacePhoto)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlacePhoto)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanPlace))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlacePhoto))
 			}
 		}
 	} else {
-		s, ok := maybePlanPlace.(*[]*PlanPlace)
+		s, ok := maybePlacePhoto.(*[]*PlacePhoto)
 		if ok {
 			slice = *s
 		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanPlace)
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlacePhoto)
 			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanPlace))
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlacePhoto))
 			}
 		}
 	}
@@ -607,14 +642,14 @@ func (planPlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singula
 	args := make(map[interface{}]struct{})
 	if singular {
 		if object.R == nil {
-			object.R = &planPlaceR{}
+			object.R = &placePhotoR{}
 		}
 		args[object.PlaceID] = struct{}{}
 
 	} else {
 		for _, obj := range slice {
 			if obj.R == nil {
-				obj.R = &planPlaceR{}
+				obj.R = &placePhotoR{}
 			}
 
 			args[obj.PlaceID] = struct{}{}
@@ -676,7 +711,7 @@ func (planPlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singula
 		if foreign.R == nil {
 			foreign.R = &placeR{}
 		}
-		foreign.R.PlanPlaces = append(foreign.R.PlanPlaces, object)
+		foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, object)
 		return nil
 	}
 
@@ -687,7 +722,7 @@ func (planPlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singula
 				if foreign.R == nil {
 					foreign.R = &placeR{}
 				}
-				foreign.R.PlanPlaces = append(foreign.R.PlanPlaces, local)
+				foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, local)
 				break
 			}
 		}
@@ -696,10 +731,10 @@ func (planPlaceL) LoadPlace(ctx context.Context, e boil.ContextExecutor, singula
 	return nil
 }
 
-// SetPlan of the planPlace to the related item.
-// Sets o.R.Plan to related.
-// Adds o to related.R.PlanPlaces.
-func (o *PlanPlace) SetPlan(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Plan) error {
+// SetUser of the placePhoto to the related item.
+// Sets o.R.User to related.
+// Adds o to related.R.PlacePhotos.
+func (o *PlacePhoto) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -708,9 +743,9 @@ func (o *PlanPlace) SetPlan(ctx context.Context, exec boil.ContextExecutor, inse
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `plan_places` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"plan_id"}),
-		strmangle.WhereClause("`", "`", 0, planPlacePrimaryKeyColumns),
+		"UPDATE `place_photos` SET %s WHERE %s",
+		strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+		strmangle.WhereClause("`", "`", 0, placePhotoPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -723,30 +758,30 @@ func (o *PlanPlace) SetPlan(ctx context.Context, exec boil.ContextExecutor, inse
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.PlanID = related.ID
+	o.UserID = related.ID
 	if o.R == nil {
-		o.R = &planPlaceR{
-			Plan: related,
+		o.R = &placePhotoR{
+			User: related,
 		}
 	} else {
-		o.R.Plan = related
+		o.R.User = related
 	}
 
 	if related.R == nil {
-		related.R = &planR{
-			PlanPlaces: PlanPlaceSlice{o},
+		related.R = &userR{
+			PlacePhotos: PlacePhotoSlice{o},
 		}
 	} else {
-		related.R.PlanPlaces = append(related.R.PlanPlaces, o)
+		related.R.PlacePhotos = append(related.R.PlacePhotos, o)
 	}
 
 	return nil
 }
 
-// SetPlace of the planPlace to the related item.
+// SetPlace of the placePhoto to the related item.
 // Sets o.R.Place to related.
-// Adds o to related.R.PlanPlaces.
-func (o *PlanPlace) SetPlace(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Place) error {
+// Adds o to related.R.PlacePhotos.
+func (o *PlacePhoto) SetPlace(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Place) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -755,9 +790,9 @@ func (o *PlanPlace) SetPlace(ctx context.Context, exec boil.ContextExecutor, ins
 	}
 
 	updateQuery := fmt.Sprintf(
-		"UPDATE `plan_places` SET %s WHERE %s",
+		"UPDATE `place_photos` SET %s WHERE %s",
 		strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
-		strmangle.WhereClause("`", "`", 0, planPlacePrimaryKeyColumns),
+		strmangle.WhereClause("`", "`", 0, placePhotoPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
 
@@ -772,7 +807,7 @@ func (o *PlanPlace) SetPlace(ctx context.Context, exec boil.ContextExecutor, ins
 
 	o.PlaceID = related.ID
 	if o.R == nil {
-		o.R = &planPlaceR{
+		o.R = &placePhotoR{
 			Place: related,
 		}
 	} else {
@@ -781,61 +816,61 @@ func (o *PlanPlace) SetPlace(ctx context.Context, exec boil.ContextExecutor, ins
 
 	if related.R == nil {
 		related.R = &placeR{
-			PlanPlaces: PlanPlaceSlice{o},
+			PlacePhotos: PlacePhotoSlice{o},
 		}
 	} else {
-		related.R.PlanPlaces = append(related.R.PlanPlaces, o)
+		related.R.PlacePhotos = append(related.R.PlacePhotos, o)
 	}
 
 	return nil
 }
 
-// PlanPlaces retrieves all the records using an executor.
-func PlanPlaces(mods ...qm.QueryMod) planPlaceQuery {
-	mods = append(mods, qm.From("`plan_places`"))
+// PlacePhotos retrieves all the records using an executor.
+func PlacePhotos(mods ...qm.QueryMod) placePhotoQuery {
+	mods = append(mods, qm.From("`place_photos`"))
 	q := NewQuery(mods...)
 	if len(queries.GetSelect(q)) == 0 {
-		queries.SetSelect(q, []string{"`plan_places`.*"})
+		queries.SetSelect(q, []string{"`place_photos`.*"})
 	}
 
-	return planPlaceQuery{q}
+	return placePhotoQuery{q}
 }
 
-// FindPlanPlace retrieves a single record by ID with an executor.
+// FindPlacePhoto retrieves a single record by ID with an executor.
 // If selectCols is empty Find will return all columns.
-func FindPlanPlace(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*PlanPlace, error) {
-	planPlaceObj := &PlanPlace{}
+func FindPlacePhoto(ctx context.Context, exec boil.ContextExecutor, iD string, selectCols ...string) (*PlacePhoto, error) {
+	placePhotoObj := &PlacePhoto{}
 
 	sel := "*"
 	if len(selectCols) > 0 {
 		sel = strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, selectCols), ",")
 	}
 	query := fmt.Sprintf(
-		"select %s from `plan_places` where `id`=?", sel,
+		"select %s from `place_photos` where `id`=?", sel,
 	)
 
 	q := queries.Raw(query, iD)
 
-	err := q.Bind(ctx, exec, planPlaceObj)
+	err := q.Bind(ctx, exec, placePhotoObj)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, sql.ErrNoRows
 		}
-		return nil, errors.Wrap(err, "generated: unable to select from plan_places")
+		return nil, errors.Wrap(err, "generated: unable to select from place_photos")
 	}
 
-	if err = planPlaceObj.doAfterSelectHooks(ctx, exec); err != nil {
-		return planPlaceObj, err
+	if err = placePhotoObj.doAfterSelectHooks(ctx, exec); err != nil {
+		return placePhotoObj, err
 	}
 
-	return planPlaceObj, nil
+	return placePhotoObj, nil
 }
 
 // Insert a single record using an executor.
 // See boil.Columns.InsertColumnSet documentation to understand column list inference for inserts.
-func (o *PlanPlace) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
+func (o *PlacePhoto) Insert(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) error {
 	if o == nil {
-		return errors.New("generated: no plan_places provided for insertion")
+		return errors.New("generated: no place_photos provided for insertion")
 	}
 
 	var err error
@@ -854,39 +889,39 @@ func (o *PlanPlace) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(planPlaceColumnsWithDefault, o)
+	nzDefaults := queries.NonZeroDefaultSet(placePhotoColumnsWithDefault, o)
 
 	key := makeCacheKey(columns, nzDefaults)
-	planPlaceInsertCacheMut.RLock()
-	cache, cached := planPlaceInsertCache[key]
-	planPlaceInsertCacheMut.RUnlock()
+	placePhotoInsertCacheMut.RLock()
+	cache, cached := placePhotoInsertCache[key]
+	placePhotoInsertCacheMut.RUnlock()
 
 	if !cached {
 		wl, returnColumns := columns.InsertColumnSet(
-			planPlaceAllColumns,
-			planPlaceColumnsWithDefault,
-			planPlaceColumnsWithoutDefault,
+			placePhotoAllColumns,
+			placePhotoColumnsWithDefault,
+			placePhotoColumnsWithoutDefault,
 			nzDefaults,
 		)
 
-		cache.valueMapping, err = queries.BindMapping(planPlaceType, planPlaceMapping, wl)
+		cache.valueMapping, err = queries.BindMapping(placePhotoType, placePhotoMapping, wl)
 		if err != nil {
 			return err
 		}
-		cache.retMapping, err = queries.BindMapping(planPlaceType, planPlaceMapping, returnColumns)
+		cache.retMapping, err = queries.BindMapping(placePhotoType, placePhotoMapping, returnColumns)
 		if err != nil {
 			return err
 		}
 		if len(wl) != 0 {
-			cache.query = fmt.Sprintf("INSERT INTO `plan_places` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
+			cache.query = fmt.Sprintf("INSERT INTO `place_photos` (`%s`) %%sVALUES (%s)%%s", strings.Join(wl, "`,`"), strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), 1, 1))
 		} else {
-			cache.query = "INSERT INTO `plan_places` () VALUES ()%s%s"
+			cache.query = "INSERT INTO `place_photos` () VALUES ()%s%s"
 		}
 
 		var queryOutput, queryReturning string
 
 		if len(cache.retMapping) != 0 {
-			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `plan_places` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, planPlacePrimaryKeyColumns))
+			cache.retQuery = fmt.Sprintf("SELECT `%s` FROM `place_photos` WHERE %s", strings.Join(returnColumns, "`,`"), strmangle.WhereClause("`", "`", 0, placePhotoPrimaryKeyColumns))
 		}
 
 		cache.query = fmt.Sprintf(cache.query, queryOutput, queryReturning)
@@ -903,7 +938,7 @@ func (o *PlanPlace) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to insert into plan_places")
+		return errors.Wrap(err, "generated: unable to insert into place_photos")
 	}
 
 	var identifierCols []interface{}
@@ -923,23 +958,23 @@ func (o *PlanPlace) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, identifierCols...).Scan(queries.PtrsFromMapping(value, cache.retMapping)...)
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to populate default values for plan_places")
+		return errors.Wrap(err, "generated: unable to populate default values for place_photos")
 	}
 
 CacheNoHooks:
 	if !cached {
-		planPlaceInsertCacheMut.Lock()
-		planPlaceInsertCache[key] = cache
-		planPlaceInsertCacheMut.Unlock()
+		placePhotoInsertCacheMut.Lock()
+		placePhotoInsertCache[key] = cache
+		placePhotoInsertCacheMut.Unlock()
 	}
 
 	return o.doAfterInsertHooks(ctx, exec)
 }
 
-// Update uses an executor to update the PlanPlace.
+// Update uses an executor to update the PlacePhoto.
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
-func (o *PlanPlace) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o *PlacePhoto) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
 
@@ -951,28 +986,28 @@ func (o *PlanPlace) Update(ctx context.Context, exec boil.ContextExecutor, colum
 		return 0, err
 	}
 	key := makeCacheKey(columns, nil)
-	planPlaceUpdateCacheMut.RLock()
-	cache, cached := planPlaceUpdateCache[key]
-	planPlaceUpdateCacheMut.RUnlock()
+	placePhotoUpdateCacheMut.RLock()
+	cache, cached := placePhotoUpdateCache[key]
+	placePhotoUpdateCacheMut.RUnlock()
 
 	if !cached {
 		wl := columns.UpdateColumnSet(
-			planPlaceAllColumns,
-			planPlacePrimaryKeyColumns,
+			placePhotoAllColumns,
+			placePhotoPrimaryKeyColumns,
 		)
 
 		if !columns.IsWhitelist() {
 			wl = strmangle.SetComplement(wl, []string{"created_at"})
 		}
 		if len(wl) == 0 {
-			return 0, errors.New("generated: unable to update plan_places, could not build whitelist")
+			return 0, errors.New("generated: unable to update place_photos, could not build whitelist")
 		}
 
-		cache.query = fmt.Sprintf("UPDATE `plan_places` SET %s WHERE %s",
+		cache.query = fmt.Sprintf("UPDATE `place_photos` SET %s WHERE %s",
 			strmangle.SetParamNames("`", "`", 0, wl),
-			strmangle.WhereClause("`", "`", 0, planPlacePrimaryKeyColumns),
+			strmangle.WhereClause("`", "`", 0, placePhotoPrimaryKeyColumns),
 		)
-		cache.valueMapping, err = queries.BindMapping(planPlaceType, planPlaceMapping, append(wl, planPlacePrimaryKeyColumns...))
+		cache.valueMapping, err = queries.BindMapping(placePhotoType, placePhotoMapping, append(wl, placePhotoPrimaryKeyColumns...))
 		if err != nil {
 			return 0, err
 		}
@@ -988,42 +1023,42 @@ func (o *PlanPlace) Update(ctx context.Context, exec boil.ContextExecutor, colum
 	var result sql.Result
 	result, err = exec.ExecContext(ctx, cache.query, values...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to update plan_places row")
+		return 0, errors.Wrap(err, "generated: unable to update place_photos row")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by update for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by update for place_photos")
 	}
 
 	if !cached {
-		planPlaceUpdateCacheMut.Lock()
-		planPlaceUpdateCache[key] = cache
-		planPlaceUpdateCacheMut.Unlock()
+		placePhotoUpdateCacheMut.Lock()
+		placePhotoUpdateCache[key] = cache
+		placePhotoUpdateCacheMut.Unlock()
 	}
 
 	return rowsAff, o.doAfterUpdateHooks(ctx, exec)
 }
 
 // UpdateAll updates all rows with the specified column values.
-func (q planPlaceQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (q placePhotoQuery) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	queries.SetUpdate(q.Query, cols)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to update all for plan_places")
+		return 0, errors.Wrap(err, "generated: unable to update all for place_photos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to retrieve rows affected for plan_places")
+		return 0, errors.Wrap(err, "generated: unable to retrieve rows affected for place_photos")
 	}
 
 	return rowsAff, nil
 }
 
 // UpdateAll updates all rows with the specified column values, using an executor.
-func (o PlanPlaceSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
+func (o PlacePhotoSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor, cols M) (int64, error) {
 	ln := int64(len(o))
 	if ln == 0 {
 		return 0, nil
@@ -1045,13 +1080,13 @@ func (o PlanPlaceSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor
 
 	// Append all of the primary key values for each column
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), planPlacePrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), placePhotoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := fmt.Sprintf("UPDATE `plan_places` SET %s WHERE %s",
+	sql := fmt.Sprintf("UPDATE `place_photos` SET %s WHERE %s",
 		strmangle.SetParamNames("`", "`", 0, colNames),
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, planPlacePrimaryKeyColumns, len(o)))
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, placePhotoPrimaryKeyColumns, len(o)))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1060,25 +1095,25 @@ func (o PlanPlaceSlice) UpdateAll(ctx context.Context, exec boil.ContextExecutor
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to update all in planPlace slice")
+		return 0, errors.Wrap(err, "generated: unable to update all in placePhoto slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to retrieve rows affected all in update all planPlace")
+		return 0, errors.Wrap(err, "generated: unable to retrieve rows affected all in update all placePhoto")
 	}
 	return rowsAff, nil
 }
 
-var mySQLPlanPlaceUniqueColumns = []string{
+var mySQLPlacePhotoUniqueColumns = []string{
 	"id",
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.
 // See boil.Columns documentation for how to properly use updateColumns and insertColumns.
-func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
+func (o *PlacePhoto) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
-		return errors.New("generated: no plan_places provided for upsert")
+		return errors.New("generated: no place_photos provided for upsert")
 	}
 	if !boil.TimestampsAreSkipped(ctx) {
 		currTime := time.Now().In(boil.GetLocation())
@@ -1093,8 +1128,8 @@ func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updat
 		return err
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(planPlaceColumnsWithDefault, o)
-	nzUniques := queries.NonZeroDefaultSet(mySQLPlanPlaceUniqueColumns, o)
+	nzDefaults := queries.NonZeroDefaultSet(placePhotoColumnsWithDefault, o)
+	nzUniques := queries.NonZeroDefaultSet(mySQLPlacePhotoUniqueColumns, o)
 
 	if len(nzUniques) == 0 {
 		return errors.New("cannot upsert with a table that cannot conflict on a unique column")
@@ -1122,44 +1157,44 @@ func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updat
 	key := buf.String()
 	strmangle.PutBuffer(buf)
 
-	planPlaceUpsertCacheMut.RLock()
-	cache, cached := planPlaceUpsertCache[key]
-	planPlaceUpsertCacheMut.RUnlock()
+	placePhotoUpsertCacheMut.RLock()
+	cache, cached := placePhotoUpsertCache[key]
+	placePhotoUpsertCacheMut.RUnlock()
 
 	var err error
 
 	if !cached {
 		insert, _ := insertColumns.InsertColumnSet(
-			planPlaceAllColumns,
-			planPlaceColumnsWithDefault,
-			planPlaceColumnsWithoutDefault,
+			placePhotoAllColumns,
+			placePhotoColumnsWithDefault,
+			placePhotoColumnsWithoutDefault,
 			nzDefaults,
 		)
 
 		update := updateColumns.UpdateColumnSet(
-			planPlaceAllColumns,
-			planPlacePrimaryKeyColumns,
+			placePhotoAllColumns,
+			placePhotoPrimaryKeyColumns,
 		)
 
 		if !updateColumns.IsNone() && len(update) == 0 {
-			return errors.New("generated: unable to upsert plan_places, could not build update column list")
+			return errors.New("generated: unable to upsert place_photos, could not build update column list")
 		}
 
-		ret := strmangle.SetComplement(planPlaceAllColumns, strmangle.SetIntersect(insert, update))
+		ret := strmangle.SetComplement(placePhotoAllColumns, strmangle.SetIntersect(insert, update))
 
-		cache.query = buildUpsertQueryMySQL(dialect, "`plan_places`", update, insert)
+		cache.query = buildUpsertQueryMySQL(dialect, "`place_photos`", update, insert)
 		cache.retQuery = fmt.Sprintf(
-			"SELECT %s FROM `plan_places` WHERE %s",
+			"SELECT %s FROM `place_photos` WHERE %s",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, ret), ","),
 			strmangle.WhereClause("`", "`", 0, nzUniques),
 		)
 
-		cache.valueMapping, err = queries.BindMapping(planPlaceType, planPlaceMapping, insert)
+		cache.valueMapping, err = queries.BindMapping(placePhotoType, placePhotoMapping, insert)
 		if err != nil {
 			return err
 		}
 		if len(ret) != 0 {
-			cache.retMapping, err = queries.BindMapping(planPlaceType, planPlaceMapping, ret)
+			cache.retMapping, err = queries.BindMapping(placePhotoType, placePhotoMapping, ret)
 			if err != nil {
 				return err
 			}
@@ -1181,7 +1216,7 @@ func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updat
 	_, err = exec.ExecContext(ctx, cache.query, vals...)
 
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to upsert for plan_places")
+		return errors.Wrap(err, "generated: unable to upsert for place_photos")
 	}
 
 	var uniqueMap []uint64
@@ -1191,9 +1226,9 @@ func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updat
 		goto CacheNoHooks
 	}
 
-	uniqueMap, err = queries.BindMapping(planPlaceType, planPlaceMapping, nzUniques)
+	uniqueMap, err = queries.BindMapping(placePhotoType, placePhotoMapping, nzUniques)
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to retrieve unique values for plan_places")
+		return errors.Wrap(err, "generated: unable to retrieve unique values for place_photos")
 	}
 	nzUniqueCols = queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), uniqueMap)
 
@@ -1204,32 +1239,32 @@ func (o *PlanPlace) Upsert(ctx context.Context, exec boil.ContextExecutor, updat
 	}
 	err = exec.QueryRowContext(ctx, cache.retQuery, nzUniqueCols...).Scan(returns...)
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to populate default values for plan_places")
+		return errors.Wrap(err, "generated: unable to populate default values for place_photos")
 	}
 
 CacheNoHooks:
 	if !cached {
-		planPlaceUpsertCacheMut.Lock()
-		planPlaceUpsertCache[key] = cache
-		planPlaceUpsertCacheMut.Unlock()
+		placePhotoUpsertCacheMut.Lock()
+		placePhotoUpsertCache[key] = cache
+		placePhotoUpsertCacheMut.Unlock()
 	}
 
 	return o.doAfterUpsertHooks(ctx, exec)
 }
 
-// Delete deletes a single PlanPlace record with an executor.
+// Delete deletes a single PlacePhoto record with an executor.
 // Delete will match against the primary key column to find the record to delete.
-func (o *PlanPlace) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o *PlacePhoto) Delete(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if o == nil {
-		return 0, errors.New("generated: no PlanPlace provided for delete")
+		return 0, errors.New("generated: no PlacePhoto provided for delete")
 	}
 
 	if err := o.doBeforeDeleteHooks(ctx, exec); err != nil {
 		return 0, err
 	}
 
-	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), planPlacePrimaryKeyMapping)
-	sql := "DELETE FROM `plan_places` WHERE `id`=?"
+	args := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(o)), placePhotoPrimaryKeyMapping)
+	sql := "DELETE FROM `place_photos` WHERE `id`=?"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1238,12 +1273,12 @@ func (o *PlanPlace) Delete(ctx context.Context, exec boil.ContextExecutor) (int6
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to delete from plan_places")
+		return 0, errors.Wrap(err, "generated: unable to delete from place_photos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by delete for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by delete for place_photos")
 	}
 
 	if err := o.doAfterDeleteHooks(ctx, exec); err != nil {
@@ -1254,33 +1289,33 @@ func (o *PlanPlace) Delete(ctx context.Context, exec boil.ContextExecutor) (int6
 }
 
 // DeleteAll deletes all matching rows.
-func (q planPlaceQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (q placePhotoQuery) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if q.Query == nil {
-		return 0, errors.New("generated: no planPlaceQuery provided for delete all")
+		return 0, errors.New("generated: no placePhotoQuery provided for delete all")
 	}
 
 	queries.SetDelete(q.Query)
 
 	result, err := q.Query.ExecContext(ctx, exec)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to delete all from plan_places")
+		return 0, errors.Wrap(err, "generated: unable to delete all from place_photos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by deleteall for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by deleteall for place_photos")
 	}
 
 	return rowsAff, nil
 }
 
 // DeleteAll deletes all rows in the slice, using an executor.
-func (o PlanPlaceSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
+func (o PlacePhotoSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	if len(planPlaceBeforeDeleteHooks) != 0 {
+	if len(placePhotoBeforeDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doBeforeDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1290,12 +1325,12 @@ func (o PlanPlaceSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor
 
 	var args []interface{}
 	for _, obj := range o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), planPlacePrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), placePhotoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "DELETE FROM `plan_places` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, planPlacePrimaryKeyColumns, len(o))
+	sql := "DELETE FROM `place_photos` WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, placePhotoPrimaryKeyColumns, len(o))
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1304,15 +1339,15 @@ func (o PlanPlaceSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor
 	}
 	result, err := exec.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to delete all from planPlace slice")
+		return 0, errors.Wrap(err, "generated: unable to delete all from placePhoto slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by deleteall for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by deleteall for place_photos")
 	}
 
-	if len(planPlaceAfterDeleteHooks) != 0 {
+	if len(placePhotoAfterDeleteHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterDeleteHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1325,8 +1360,8 @@ func (o PlanPlaceSlice) DeleteAll(ctx context.Context, exec boil.ContextExecutor
 
 // Reload refetches the object from the database
 // using the primary keys with an executor.
-func (o *PlanPlace) Reload(ctx context.Context, exec boil.ContextExecutor) error {
-	ret, err := FindPlanPlace(ctx, exec, o.ID)
+func (o *PlacePhoto) Reload(ctx context.Context, exec boil.ContextExecutor) error {
+	ret, err := FindPlacePhoto(ctx, exec, o.ID)
 	if err != nil {
 		return err
 	}
@@ -1337,26 +1372,26 @@ func (o *PlanPlace) Reload(ctx context.Context, exec boil.ContextExecutor) error
 
 // ReloadAll refetches every row with matching primary key column values
 // and overwrites the original object slice with the newly updated slice.
-func (o *PlanPlaceSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
+func (o *PlacePhotoSlice) ReloadAll(ctx context.Context, exec boil.ContextExecutor) error {
 	if o == nil || len(*o) == 0 {
 		return nil
 	}
 
-	slice := PlanPlaceSlice{}
+	slice := PlacePhotoSlice{}
 	var args []interface{}
 	for _, obj := range *o {
-		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), planPlacePrimaryKeyMapping)
+		pkeyArgs := queries.ValuesFromMapping(reflect.Indirect(reflect.ValueOf(obj)), placePhotoPrimaryKeyMapping)
 		args = append(args, pkeyArgs...)
 	}
 
-	sql := "SELECT `plan_places`.* FROM `plan_places` WHERE " +
-		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, planPlacePrimaryKeyColumns, len(*o))
+	sql := "SELECT `place_photos`.* FROM `place_photos` WHERE " +
+		strmangle.WhereClauseRepeated(string(dialect.LQ), string(dialect.RQ), 0, placePhotoPrimaryKeyColumns, len(*o))
 
 	q := queries.Raw(sql, args...)
 
 	err := q.Bind(ctx, exec, &slice)
 	if err != nil {
-		return errors.Wrap(err, "generated: unable to reload all in PlanPlaceSlice")
+		return errors.Wrap(err, "generated: unable to reload all in PlacePhotoSlice")
 	}
 
 	*o = slice
@@ -1364,10 +1399,10 @@ func (o *PlanPlaceSlice) ReloadAll(ctx context.Context, exec boil.ContextExecuto
 	return nil
 }
 
-// PlanPlaceExists checks if the PlanPlace row exists.
-func PlanPlaceExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
+// PlacePhotoExists checks if the PlacePhoto row exists.
+func PlacePhotoExists(ctx context.Context, exec boil.ContextExecutor, iD string) (bool, error) {
 	var exists bool
-	sql := "select exists(select 1 from `plan_places` where `id`=? limit 1)"
+	sql := "select exists(select 1 from `place_photos` where `id`=? limit 1)"
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1378,34 +1413,34 @@ func PlanPlaceExists(ctx context.Context, exec boil.ContextExecutor, iD string) 
 
 	err := row.Scan(&exists)
 	if err != nil {
-		return false, errors.Wrap(err, "generated: unable to check if plan_places exists")
+		return false, errors.Wrap(err, "generated: unable to check if place_photos exists")
 	}
 
 	return exists, nil
 }
 
-// Exists checks if the PlanPlace row exists.
-func (o *PlanPlace) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
-	return PlanPlaceExists(ctx, exec, o.ID)
+// Exists checks if the PlacePhoto row exists.
+func (o *PlacePhoto) Exists(ctx context.Context, exec boil.ContextExecutor) (bool, error) {
+	return PlacePhotoExists(ctx, exec, o.ID)
 }
 
 // /////////////////////////////// BEGIN EXTENSIONS /////////////////////////////////
 // Expose table columns
 var (
-	PlanPlaceAllColumns            = planPlaceAllColumns
-	PlanPlaceColumnsWithoutDefault = planPlaceColumnsWithoutDefault
-	PlanPlaceColumnsWithDefault    = planPlaceColumnsWithDefault
-	PlanPlacePrimaryKeyColumns     = planPlacePrimaryKeyColumns
-	PlanPlaceGeneratedColumns      = planPlaceGeneratedColumns
+	PlacePhotoAllColumns            = placePhotoAllColumns
+	PlacePhotoColumnsWithoutDefault = placePhotoColumnsWithoutDefault
+	PlacePhotoColumnsWithDefault    = placePhotoColumnsWithDefault
+	PlacePhotoPrimaryKeyColumns     = placePhotoPrimaryKeyColumns
+	PlacePhotoGeneratedColumns      = placePhotoGeneratedColumns
 )
 
 // GetID get ID from model object
-func (o *PlanPlace) GetID() string {
+func (o *PlacePhoto) GetID() string {
 	return o.ID
 }
 
 // GetIDs extract IDs from model objects
-func (s PlanPlaceSlice) GetIDs() []string {
+func (s PlacePhotoSlice) GetIDs() []string {
 	result := make([]string, len(s))
 	for i := range s {
 		result[i] = s[i].ID
@@ -1414,7 +1449,7 @@ func (s PlanPlaceSlice) GetIDs() []string {
 }
 
 // GetIntfIDs extract IDs from model objects as interface slice
-func (s PlanPlaceSlice) GetIntfIDs() []interface{} {
+func (s PlacePhotoSlice) GetIntfIDs() []interface{} {
 	result := make([]interface{}, len(s))
 	for i := range s {
 		result[i] = s[i].ID
@@ -1423,8 +1458,8 @@ func (s PlanPlaceSlice) GetIntfIDs() []interface{} {
 }
 
 // ToIDMap convert a slice of model objects to a map with ID as key
-func (s PlanPlaceSlice) ToIDMap() map[string]*PlanPlace {
-	result := make(map[string]*PlanPlace, len(s))
+func (s PlacePhotoSlice) ToIDMap() map[string]*PlacePhoto {
+	result := make(map[string]*PlacePhoto, len(s))
 	for _, o := range s {
 		result[o.ID] = o
 	}
@@ -1432,8 +1467,8 @@ func (s PlanPlaceSlice) ToIDMap() map[string]*PlanPlace {
 }
 
 // ToUniqueItems construct a slice of unique items from the given slice
-func (s PlanPlaceSlice) ToUniqueItems() PlanPlaceSlice {
-	result := make(PlanPlaceSlice, 0, len(s))
+func (s PlacePhotoSlice) ToUniqueItems() PlacePhotoSlice {
+	result := make(PlacePhotoSlice, 0, len(s))
 	mapChk := make(map[string]struct{}, len(s))
 	for i := len(s) - 1; i >= 0; i-- {
 		o := s[i]
@@ -1446,7 +1481,7 @@ func (s PlanPlaceSlice) ToUniqueItems() PlanPlaceSlice {
 }
 
 // FindItemByID find item by ID in the slice
-func (s PlanPlaceSlice) FindItemByID(id string) *PlanPlace {
+func (s PlacePhotoSlice) FindItemByID(id string) *PlacePhoto {
 	for _, o := range s {
 		if o.ID == id {
 			return o
@@ -1457,7 +1492,7 @@ func (s PlanPlaceSlice) FindItemByID(id string) *PlanPlace {
 
 // FindMissingItemIDs find all item IDs that are not in the list
 // NOTE: the input ID slice should contain unique values
-func (s PlanPlaceSlice) FindMissingItemIDs(expectedIDs []string) []string {
+func (s PlacePhotoSlice) FindMissingItemIDs(expectedIDs []string) []string {
 	if len(s) == 0 {
 		return expectedIDs
 	}
@@ -1472,7 +1507,7 @@ func (s PlanPlaceSlice) FindMissingItemIDs(expectedIDs []string) []string {
 }
 
 // InsertAll inserts all rows with the specified column values, using an executor.
-func (o PlanPlaceSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
+func (o PlacePhotoSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
@@ -1495,19 +1530,19 @@ func (o PlanPlaceSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor
 		}
 
 		wl, _ := columns.InsertColumnSet(
-			planPlaceAllColumns,
-			planPlaceColumnsWithDefault,
-			planPlaceColumnsWithoutDefault,
-			queries.NonZeroDefaultSet(planPlaceColumnsWithDefault, row),
+			placePhotoAllColumns,
+			placePhotoColumnsWithDefault,
+			placePhotoColumnsWithoutDefault,
+			queries.NonZeroDefaultSet(placePhotoColumnsWithDefault, row),
 		)
 		if i == 0 {
-			sql = "INSERT INTO `plan_places` " + "(`" + strings.Join(wl, "`,`") + "`)" + " VALUES "
+			sql = "INSERT INTO `place_photos` " + "(`" + strings.Join(wl, "`,`") + "`)" + " VALUES "
 		}
 		sql += strmangle.Placeholders(dialect.UseIndexPlaceholders, len(wl), len(vals)+1, len(wl))
 		if i != len(o)-1 {
 			sql += ","
 		}
-		valMapping, err := queries.BindMapping(planPlaceType, planPlaceMapping, wl)
+		valMapping, err := queries.BindMapping(placePhotoType, placePhotoMapping, wl)
 		if err != nil {
 			return 0, err
 		}
@@ -1524,15 +1559,15 @@ func (o PlanPlaceSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor
 
 	result, err := exec.ExecContext(ctx, sql, vals...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to insert all from planPlace slice")
+		return 0, errors.Wrap(err, "generated: unable to insert all from placePhoto slice")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by insertall for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by insertall for place_photos")
 	}
 
-	if len(planPlaceAfterInsertHooks) != 0 {
+	if len(placePhotoAfterInsertHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterInsertHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1545,29 +1580,29 @@ func (o PlanPlaceSlice) InsertAll(ctx context.Context, exec boil.ContextExecutor
 
 // UpsertAll inserts or updates all rows
 // Currently it doesn't support "NoContext" and "NoRowsAffected"
-func (o PlanPlaceSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) (int64, error) {
+func (o PlacePhotoSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) (int64, error) {
 	if len(o) == 0 {
 		return 0, nil
 	}
 
-	nzDefaults := queries.NonZeroDefaultSet(planPlaceColumnsWithDefault, o[0])
-	nzUniques := queries.NonZeroDefaultSet(mySQLPlanPlaceUniqueColumns, o[0])
+	nzDefaults := queries.NonZeroDefaultSet(placePhotoColumnsWithDefault, o[0])
+	nzUniques := queries.NonZeroDefaultSet(mySQLPlacePhotoUniqueColumns, o[0])
 	if len(nzUniques) == 0 {
 		return 0, errors.New("cannot upsert with a table that cannot conflict on a unique column")
 	}
 
 	insert, _ := insertColumns.InsertColumnSet(
-		planPlaceAllColumns,
-		planPlaceColumnsWithDefault,
-		planPlaceColumnsWithoutDefault,
+		placePhotoAllColumns,
+		placePhotoColumnsWithDefault,
+		placePhotoColumnsWithoutDefault,
 		nzDefaults,
 	)
 	update := updateColumns.UpdateColumnSet(
-		planPlaceAllColumns,
-		planPlacePrimaryKeyColumns,
+		placePhotoAllColumns,
+		placePhotoPrimaryKeyColumns,
 	)
 	if !updateColumns.IsNone() && len(update) == 0 {
-		return 0, errors.New("generated: unable to upsert plan_places, could not build update column list")
+		return 0, errors.New("generated: unable to upsert place_photos, could not build update column list")
 	}
 
 	buf := strmangle.GetBuffer()
@@ -1576,14 +1611,14 @@ func (o PlanPlaceSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor
 	if len(update) == 0 {
 		fmt.Fprintf(
 			buf,
-			"INSERT IGNORE INTO `plan_places`(%s) VALUES %s",
+			"INSERT IGNORE INTO `place_photos`(%s) VALUES %s",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
 			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
 		)
 	} else {
 		fmt.Fprintf(
 			buf,
-			"INSERT INTO `plan_places`(%s) VALUES %s ON DUPLICATE KEY UPDATE ",
+			"INSERT INTO `place_photos`(%s) VALUES %s ON DUPLICATE KEY UPDATE ",
 			strings.Join(strmangle.IdentQuoteSlice(dialect.LQ, dialect.RQ, insert), ","),
 			strmangle.Placeholders(false, len(insert)*len(o), 1, len(insert)),
 		)
@@ -1601,7 +1636,7 @@ func (o PlanPlaceSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor
 	}
 
 	query := buf.String()
-	valueMapping, err := queries.BindMapping(planPlaceType, planPlaceMapping, insert)
+	valueMapping, err := queries.BindMapping(placePhotoType, placePhotoMapping, insert)
 	if err != nil {
 		return 0, err
 	}
@@ -1633,15 +1668,15 @@ func (o PlanPlaceSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor
 
 	result, err := exec.ExecContext(ctx, query, vals...)
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: unable to upsert for plan_places")
+		return 0, errors.Wrap(err, "generated: unable to upsert for place_photos")
 	}
 
 	rowsAff, err := result.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrap(err, "generated: failed to get rows affected by upsert for plan_places")
+		return 0, errors.Wrap(err, "generated: failed to get rows affected by upsert for place_photos")
 	}
 
-	if len(planPlaceAfterUpsertHooks) != 0 {
+	if len(placePhotoAfterUpsertHooks) != 0 {
 		for _, obj := range o {
 			if err := obj.doAfterUpsertHooks(ctx, exec); err != nil {
 				return 0, err
@@ -1652,10 +1687,10 @@ func (o PlanPlaceSlice) UpsertAll(ctx context.Context, exec boil.ContextExecutor
 	return rowsAff, nil
 }
 
-// DeleteAllByPage delete all PlanPlace records from the slice.
+// DeleteAllByPage delete all PlacePhoto records from the slice.
 // This function deletes data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s PlanPlaceSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecutor, limits ...int) (int64, error) {
+func (s PlacePhotoSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextExecutor, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
@@ -1691,10 +1726,10 @@ func (s PlanPlaceSlice) DeleteAllByPage(ctx context.Context, exec boil.ContextEx
 	return rowsAffected, nil
 }
 
-// UpdateAllByPage update all PlanPlace records from the slice.
+// UpdateAllByPage update all PlacePhoto records from the slice.
 // This function updates data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s PlanPlaceSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecutor, cols M, limits ...int) (int64, error) {
+func (s PlacePhotoSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextExecutor, cols M, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
@@ -1731,17 +1766,17 @@ func (s PlanPlaceSlice) UpdateAllByPage(ctx context.Context, exec boil.ContextEx
 	return rowsAffected, nil
 }
 
-// InsertAllByPage insert all PlanPlace records from the slice.
+// InsertAllByPage insert all PlacePhoto records from the slice.
 // This function inserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s PlanPlaceSlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
+func (s PlacePhotoSlice) InsertAllByPage(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
 	}
 
 	// MySQL max placeholders = 65535
-	chunkSize := MaxPageSize / reflect.ValueOf(&PlanPlaceColumns).Elem().NumField()
+	chunkSize := MaxPageSize / reflect.ValueOf(&PlacePhotoColumns).Elem().NumField()
 	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
 		chunkSize = limits[0]
 	}
@@ -1770,17 +1805,17 @@ func (s PlanPlaceSlice) InsertAllByPage(ctx context.Context, exec boil.ContextEx
 	return rowsAffected, nil
 }
 
-// UpsertAllByPage upsert all PlanPlace records from the slice.
+// UpsertAllByPage upsert all PlacePhoto records from the slice.
 // This function upserts data by pages to avoid exceeding Mysql limitation (max placeholders: 65535)
 // Mysql Error 1390: Prepared statement contains too many placeholders.
-func (s PlanPlaceSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns, limits ...int) (int64, error) {
+func (s PlacePhotoSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns, limits ...int) (int64, error) {
 	length := len(s)
 	if length == 0 {
 		return 0, nil
 	}
 
 	// MySQL max placeholders = 65535
-	chunkSize := MaxPageSize / reflect.ValueOf(&PlanPlaceColumns).Elem().NumField()
+	chunkSize := MaxPageSize / reflect.ValueOf(&PlacePhotoColumns).Elem().NumField()
 	if len(limits) > 0 && limits[0] > 0 && limits[0] < chunkSize {
 		chunkSize = limits[0]
 	}
@@ -1809,47 +1844,47 @@ func (s PlanPlaceSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextEx
 	return rowsAffected, nil
 }
 
-// LoadPlansByPage performs eager loading of values by page. This is for a N-1 relationship.
-func (s PlanPlaceSlice) LoadPlansByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
-	return s.LoadPlansByPageEx(ctx, e, DefaultPageSize, mods...)
+// LoadUsersByPage performs eager loading of values by page. This is for a N-1 relationship.
+func (s PlacePhotoSlice) LoadUsersByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadUsersByPageEx(ctx, e, DefaultPageSize, mods...)
 }
-func (s PlanPlaceSlice) LoadPlansByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+func (s PlacePhotoSlice) LoadUsersByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
 	if len(s) == 0 {
 		return nil
 	}
-	for _, chunk := range chunkSlice[*PlanPlace](s, pageSize) {
-		if err := chunk[0].L.LoadPlan(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+	for _, chunk := range chunkSlice[*PlacePhoto](s, pageSize) {
+		if err := chunk[0].L.LoadUser(ctx, e, false, &chunk, queryMods(mods)); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s PlanPlaceSlice) GetLoadedPlans() PlanSlice {
-	result := make(PlanSlice, 0, len(s))
-	mapCheckDup := make(map[*Plan]struct{})
+func (s PlacePhotoSlice) GetLoadedUsers() UserSlice {
+	result := make(UserSlice, 0, len(s))
+	mapCheckDup := make(map[*User]struct{})
 	for _, item := range s {
-		if item.R == nil || item.R.Plan == nil {
+		if item.R == nil || item.R.User == nil {
 			continue
 		}
-		if _, ok := mapCheckDup[item.R.Plan]; ok {
+		if _, ok := mapCheckDup[item.R.User]; ok {
 			continue
 		}
-		result = append(result, item.R.Plan)
-		mapCheckDup[item.R.Plan] = struct{}{}
+		result = append(result, item.R.User)
+		mapCheckDup[item.R.User] = struct{}{}
 	}
 	return result
 }
 
 // LoadPlacesByPage performs eager loading of values by page. This is for a N-1 relationship.
-func (s PlanPlaceSlice) LoadPlacesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+func (s PlacePhotoSlice) LoadPlacesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
 	return s.LoadPlacesByPageEx(ctx, e, DefaultPageSize, mods...)
 }
-func (s PlanPlaceSlice) LoadPlacesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+func (s PlacePhotoSlice) LoadPlacesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
 	if len(s) == 0 {
 		return nil
 	}
-	for _, chunk := range chunkSlice[*PlanPlace](s, pageSize) {
+	for _, chunk := range chunkSlice[*PlacePhoto](s, pageSize) {
 		if err := chunk[0].L.LoadPlace(ctx, e, false, &chunk, queryMods(mods)); err != nil {
 			return err
 		}
@@ -1857,7 +1892,7 @@ func (s PlanPlaceSlice) LoadPlacesByPageEx(ctx context.Context, e boil.ContextEx
 	return nil
 }
 
-func (s PlanPlaceSlice) GetLoadedPlaces() PlaceSlice {
+func (s PlacePhotoSlice) GetLoadedPlaces() PlaceSlice {
 	result := make(PlaceSlice, 0, len(s))
 	mapCheckDup := make(map[*Place]struct{})
 	for _, item := range s {

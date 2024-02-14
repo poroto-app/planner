@@ -113,7 +113,7 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 
 ### マイグレーションの作成
 ```shell
-goose -dir db/migrations create create_user_table sql go
+goose -dir db/migrations create <your migration name> sql
 ```
 
 ### マイグレーションの実行
