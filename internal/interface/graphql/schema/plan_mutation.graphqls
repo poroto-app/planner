@@ -1,8 +1,8 @@
 extend type Mutation {
-    uploadPlacePhotoInPlan(inputs: [uploadPlacePhotoInPlanInput!]!): uploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
 }
 
-input uploadPlacePhotoInPlanInput {
+input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
     planId: String!
@@ -10,6 +10,6 @@ input uploadPlacePhotoInPlanInput {
     photoUrl: String!
 }
 
-type uploadPlacePhotoInPlanOutput {
+type UploadPlacePhotoInPlanOutput {
     plan: Plan!
 }

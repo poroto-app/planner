@@ -253,14 +253,14 @@ type ComplexityRoot struct {
 		To       func(childComplexity int) int
 	}
 
+	UploadPlacePhotoInPlanOutput struct {
+		Plan func(childComplexity int) int
+	}
+
 	User struct {
 		ID       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		PhotoURL func(childComplexity int) int
-	}
-
-	UploadPlacePhotoInPlanOutput struct {
-		Plan func(childComplexity int) int
 	}
 }
 
@@ -1166,6 +1166,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Transition.To(childComplexity), true
 
+	case "UploadPlacePhotoInPlanOutput.plan":
+		if e.complexity.UploadPlacePhotoInPlanOutput.Plan == nil {
+			break
+		}
+
+		return e.complexity.UploadPlacePhotoInPlanOutput.Plan(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -1186,13 +1193,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.PhotoURL(childComplexity), true
-
-	case "uploadPlacePhotoInPlanOutput.plan":
-		if e.complexity.UploadPlacePhotoInPlanOutput.Plan == nil {
-			break
-		}
-
-		return e.complexity.UploadPlacePhotoInPlanOutput.Plan(childComplexity), true
 
 	}
 	return 0, false
@@ -1223,7 +1223,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPlansInput,
 		ec.unmarshalInputReplacePlaceOfPlanCandidateInput,
 		ec.unmarshalInputSavePlanFromCandidateInput,
-		ec.unmarshalInputuploadPlacePhotoInPlanInput,
+		ec.unmarshalInputUploadPlacePhotoInPlanInput,
 	)
 	first := true
 
@@ -1598,10 +1598,10 @@ type PlacesToReplaceForPlanCandidateOutput {
     createdBasedOnCurrentLocation: Boolean!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_mutation.graphqls", Input: `extend type Mutation {
-    uploadPlacePhotoInPlan(inputs: [uploadPlacePhotoInPlanInput!]!): uploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
 }
 
-input uploadPlacePhotoInPlanInput {
+input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
     planId: String!
@@ -1609,7 +1609,7 @@ input uploadPlacePhotoInPlanInput {
     photoUrl: String!
 }
 
-type uploadPlacePhotoInPlanOutput {
+type UploadPlacePhotoInPlanOutput {
     plan: Plan!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
@@ -1895,7 +1895,7 @@ func (ec *executionContext) field_Mutation_uploadPlacePhotoInPlan_args(ctx conte
 	var arg0 []*model.UploadPlacePhotoInPlanInput
 	if tmp, ok := rawArgs["inputs"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
-		arg0, err = ec.unmarshalNuploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+		arg0, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4492,7 +4492,7 @@ func (ec *executionContext) _Mutation_uploadPlacePhotoInPlan(ctx context.Context
 	}
 	res := resTmp.(*model.UploadPlacePhotoInPlanOutput)
 	fc.Result = res
-	return ec.marshalNuploadPlacePhotoInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx, field.Selections, res)
+	return ec.marshalNUploadPlacePhotoInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_uploadPlacePhotoInPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4504,9 +4504,9 @@ func (ec *executionContext) fieldContext_Mutation_uploadPlacePhotoInPlan(ctx con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "plan":
-				return ec.fieldContext_uploadPlacePhotoInPlanOutput_plan(ctx, field)
+				return ec.fieldContext_UploadPlacePhotoInPlanOutput_plan(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type uploadPlacePhotoInPlanOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UploadPlacePhotoInPlanOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -7772,6 +7772,66 @@ func (ec *executionContext) fieldContext_Transition_duration(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _UploadPlacePhotoInPlanOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.UploadPlacePhotoInPlanOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UploadPlacePhotoInPlanOutput_plan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plan, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UploadPlacePhotoInPlanOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UploadPlacePhotoInPlanOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "author":
+				return ec.fieldContext_Plan_author(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_id(ctx, field)
 	if err != nil {
@@ -9670,66 +9730,6 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _uploadPlacePhotoInPlanOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.UploadPlacePhotoInPlanOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_uploadPlacePhotoInPlanOutput_plan(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Plan, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.Plan)
-	fc.Result = res
-	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_uploadPlacePhotoInPlanOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "uploadPlacePhotoInPlanOutput",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Plan_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Plan_name(ctx, field)
-			case "places":
-				return ec.fieldContext_Plan_places(ctx, field)
-			case "timeInMinutes":
-				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
-			case "description":
-				return ec.fieldContext_Plan_description(ctx, field)
-			case "transitions":
-				return ec.fieldContext_Plan_transitions(ctx, field)
-			case "author":
-				return ec.fieldContext_Plan_author(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 // endregion **************************** field.gotpl *****************************
 
 // region    **************************** input.gotpl *****************************
@@ -10703,7 +10703,7 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputuploadPlacePhotoInPlanInput(ctx context.Context, obj interface{}) (model.UploadPlacePhotoInPlanInput, error) {
+func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx context.Context, obj interface{}) (model.UploadPlacePhotoInPlanInput, error) {
 	var it model.UploadPlacePhotoInPlanInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
@@ -12645,6 +12645,45 @@ func (ec *executionContext) _Transition(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var uploadPlacePhotoInPlanOutputImplementors = []string{"UploadPlacePhotoInPlanOutput"}
+
+func (ec *executionContext) _UploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, obj *model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, uploadPlacePhotoInPlanOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UploadPlacePhotoInPlanOutput")
+		case "plan":
+			out.Values[i] = ec._UploadPlacePhotoInPlanOutput_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
@@ -12990,45 +13029,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 			out.Values[i] = ec.___Type_ofType(ctx, field, obj)
 		case "specifiedByURL":
 			out.Values[i] = ec.___Type_specifiedByURL(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var uploadPlacePhotoInPlanOutputImplementors = []string{"uploadPlacePhotoInPlanOutput"}
-
-func (ec *executionContext) _uploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, obj *model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, uploadPlacePhotoInPlanOutputImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("uploadPlacePhotoInPlanOutput")
-		case "plan":
-			out.Values[i] = ec._uploadPlacePhotoInPlanOutput_plan(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13966,6 +13966,42 @@ func (ec *executionContext) marshalNTransition2ᚖporotoᚗappᚋporotoᚋplanne
 	return ec._Transition(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx context.Context, v interface{}) ([]*model.UploadPlacePhotoInPlanInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UploadPlacePhotoInPlanInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNUploadPlacePhotoInPlanInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInput(ctx context.Context, v interface{}) (*model.UploadPlacePhotoInPlanInput, error) {
+	res, err := ec.unmarshalInputUploadPlacePhotoInPlanInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUploadPlacePhotoInPlanOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, v model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
+	return ec._UploadPlacePhotoInPlanOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUploadPlacePhotoInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, v *model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UploadPlacePhotoInPlanOutput(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNUser2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
 	return ec._User(ctx, sel, &v)
 }
@@ -14231,42 +14267,6 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNuploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx context.Context, v interface{}) ([]*model.UploadPlacePhotoInPlanInput, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*model.UploadPlacePhotoInPlanInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNuploadPlacePhotoInPlanInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) unmarshalNuploadPlacePhotoInPlanInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInput(ctx context.Context, v interface{}) (*model.UploadPlacePhotoInPlanInput, error) {
-	res, err := ec.unmarshalInputuploadPlacePhotoInPlanInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNuploadPlacePhotoInPlanOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, v model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
-	return ec._uploadPlacePhotoInPlanOutput(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNuploadPlacePhotoInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanOutput(ctx context.Context, sel ast.SelectionSet, v *model.UploadPlacePhotoInPlanOutput) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._uploadPlacePhotoInPlanOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOAddPlaceToPlanCandidateAfterPlaceInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAddPlaceToPlanCandidateAfterPlaceInput(ctx context.Context, v interface{}) (*model.AddPlaceToPlanCandidateAfterPlaceInput, error) {
