@@ -317,6 +317,8 @@ type UploadPlacePhotoInPlanInput struct {
 	PlanID   string `json:"planId"`
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
 }
 
 type UploadPlacePhotoInPlanOutput struct {

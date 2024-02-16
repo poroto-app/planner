@@ -8,6 +8,8 @@ input UploadPlacePhotoInPlanInput {
     planId: String!
     placeId: String!
     photoUrl: String!
+    width: Int!
+    height: Int!
 }
 
 type UploadPlacePhotoInPlanOutput {
