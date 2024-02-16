@@ -103,6 +103,26 @@ erDiagram
 - types
     - 並び替えが発生しないため、単純な`order`カラムで順番を管理
 
+### Place Photos
+
+```mermaid
+---
+title: place photos
+---
+erDiagram
+	place_photos {
+		string id PK
+		char(36) place_id FK
+		string user_id FK
+		string url
+		int width
+		int height
+	}
+
+	place ||..o{ place_photos: "1:N"
+	user ||..o{ place_photos: "1:N"
+```
+
 ### Plan Candidate
 
 ```mermaid
