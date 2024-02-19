@@ -1607,6 +1607,8 @@ input UploadPlacePhotoInPlanInput {
     planId: String!
     placeId: String!
     photoUrl: String!
+    width: Int!
+    height: Int!
 }
 
 type UploadPlacePhotoInPlanOutput {
@@ -10710,7 +10712,7 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "planId", "placeId", "photoUrl"}
+	fieldsInOrder := [...]string{"userId", "planId", "placeId", "photoUrl", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10753,6 +10755,24 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 				return it, err
 			}
 			it.PhotoURL = data
+		case "width":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("width"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Width = data
+		case "height":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("height"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Height = data
 		}
 	}
 
