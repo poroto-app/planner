@@ -577,7 +577,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		if ok, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx); ok && err == nil {
-			// すでに保存済みの場合はスキップ
+			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
 			return nil
 		}
 		if ok, err := generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx); !ok && err == nil {
