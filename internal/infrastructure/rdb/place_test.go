@@ -3,14 +3,15 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"testing"
+	"time"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"testing"
-	"time"
 )
 
 func TestPlaceRepository_SavePlacesFromGooglePlace(t *testing.T) {
@@ -1406,6 +1407,107 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 				if !isPhotoLargeSaved {
 					t.Fatalf("photo large is not saved")
 				}
+			}
+		})
+	}
+}
+
+func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
+	cases := []struct {
+		name            string
+		userId          string
+		placeId         string
+		photoUrl        string
+		width           int
+		height          int
+		savedPlacePhoto *generated.PlacePhoto
+		isSaved         bool
+	}{
+		{
+			name:     "save place photo",
+			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			photoUrl: "https://example.com/photo.jpg",
+			width:    1920,
+			height:   1080,
+			isSaved:  true,
+		},
+		{
+			name:     "already saved place photo",
+			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			photoUrl: "https://example.com/photo.jpg",
+			width:    1920,
+			height:   1080,
+			isSaved:  true,
+		},
+		{
+			name:     "not exists user",
+			userId:   "user-not-exists",
+			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			photoUrl: "https://example.com/photo.jpg",
+			width:    1920,
+			height:   1080,
+			isSaved:  false,
+		},
+		{
+			name:     "not exists place",
+			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			placeId:  "place-not-exists",
+			photoUrl: "https://example.com/photo.jpg",
+			width:    1920,
+			height:   1080,
+			isSaved:  false,
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+	testContext := context.Background()
+
+	// テスト用User・Place
+	testPlace := generated.Place{
+		ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+	}
+	testUser := generated.User{
+		ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にUserとPlaceを保存しておく
+			if err := testPlace.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert place: %v", err)
+			}
+			if err := testUser.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert user: %v", err)
+			}
+
+			err := placeRepository.SavePlacePhotos(testContext, c.userId, c.placeId, c.photoUrl, c.width, c.height)
+			if err != nil {
+				t.Fatalf("error while saving place photo: %v", err)
+			}
+
+			isPlacePhotoSaved, err := generated.
+				PlacePhotos(
+					generated.PlacePhotoWhere.UserID.EQ(c.userId),
+					generated.PlacePhotoWhere.PlaceID.EQ(c.placeId),
+				).Exists(testContext, testDB)
+
+			if err != nil {
+				t.Fatalf("error while checking photo existence: %v", err)
+			}
+			if c.isSaved != isPlacePhotoSaved {
+				t.Fatalf("place photo is not saved")
 			}
 		})
 	}
