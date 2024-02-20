@@ -1414,14 +1414,13 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 
 func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 	cases := []struct {
-		name            string
-		userId          string
-		placeId         string
-		photoUrl        string
-		width           int
-		height          int
-		savedPlacePhoto *generated.PlacePhoto
-		isSaved         bool
+		name     string
+		userId   string
+		placeId  string
+		photoUrl string
+		width    int
+		height   int
+		isSaved  bool
 	}{
 		{
 			name:     "save place photo",
@@ -1497,7 +1496,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				t.Fatalf("error while saving place photo: %v", err)
 			}
 
-			isPlacePhotoSaved, err := generated.
+			isSaved, err := generated.
 				PlacePhotos(
 					generated.PlacePhotoWhere.UserID.EQ(c.userId),
 					generated.PlacePhotoWhere.PlaceID.EQ(c.placeId),
@@ -1506,7 +1505,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error while checking photo existence: %v", err)
 			}
-			if c.isSaved != isPlacePhotoSaved {
+			if c.isSaved != isSaved {
 				t.Fatalf("place photo is not saved")
 			}
 		})
