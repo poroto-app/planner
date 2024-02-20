@@ -580,6 +580,14 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 			// すでに保存済みの場合はスキップ
 			return nil
 		}
+		if ok, err := generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx); !ok && err == nil {
+			// userが存在しない場合はスキップ
+			return nil
+		}
+		if ok, err := generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx); !ok && err == nil {
+			// placeが存在しない場合はスキップ
+			return nil
+		}
 		placePhoto := generated.PlacePhoto{
 			ID:       uuid.New().String(),
 			PlaceID:  placeId,
