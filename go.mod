@@ -18,7 +18,7 @@ require (
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/sqlboiler/v4 v4.16.0
 	github.com/volatiletech/strmangle v0.0.6
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 	google.golang.org/api v0.164.0
 	googlemaps.github.io/maps v1.7.0
 )
@@ -82,7 +82,6 @@ require (
 	go.opentelemetry.io/otel v1.23.0 // indirect
 	go.opentelemetry.io/otel/metric v1.23.0 // indirect
 	go.opentelemetry.io/otel/trace v1.23.0 // indirect
-	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
