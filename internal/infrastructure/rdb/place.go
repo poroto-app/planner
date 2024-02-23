@@ -576,18 +576,35 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		if ok, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx); ok && err == nil {
+		var ok bool
+		var err error
+		ok, err = generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("error while checking place photo exists: %w", err)
+		}
+		if ok {
 			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
 			return nil
 		}
-		if ok, err := generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx); !ok && err == nil {
+
+		ok, err = generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("error while checking user exists: %w", err)
+		}
+		if ok {
 			// userが存在しない場合はスキップ
-			return nil
+			return fmt.Errorf("user not found: %s", userId)
 		}
-		if ok, err := generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx); !ok && err == nil {
+
+		ok, err = generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("error while checking place exists: %w", err)
+		}
+		if ok {
 			// placeが存在しない場合はスキップ
-			return nil
+			return fmt.Errorf("place not found: %s", placeId)
 		}
+
 		placePhoto := generated.PlacePhoto{
 			ID:       uuid.New().String(),
 			PlaceID:  placeId,
