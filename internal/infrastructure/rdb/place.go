@@ -54,13 +54,13 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 		}
 
 		googlePlacesNotSaved := array.Filter(googlePlace, func(googlePlace models.GooglePlace) bool {
-			_, ok := array.Find(googlePlaceSliceSaved, func(savedGooglePlace *generated.GooglePlace) bool {
+			_, found := array.Find(googlePlaceSliceSaved, func(savedGooglePlace *generated.GooglePlace) bool {
 				if savedGooglePlace == nil {
 					return false
 				}
 				return savedGooglePlace.GooglePlaceID == googlePlace.PlaceId
 			})
-			return !ok
+			return !found
 		})
 
 		if len(googlePlacesNotSaved) == 0 {
@@ -451,13 +451,13 @@ func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceI
 
 		googlePlacePhotoSlicesNotSaved := array.MapAndFilter(photos, func(googlePlacePhoto models.GooglePlacePhoto) (*generated.GooglePlacePhotoSlice, bool) {
 			// すでに保存されている場合はスキップ
-			if _, ok := array.Find(googlePlaceEntity.R.GooglePlacePhotos, func(savedGooglePlacePhotoEntity *generated.GooglePlacePhoto) bool {
+			if _, found := array.Find(googlePlaceEntity.R.GooglePlacePhotos, func(savedGooglePlacePhotoEntity *generated.GooglePlacePhoto) bool {
 				if savedGooglePlacePhotoEntity == nil {
 					return false
 				}
 				alreadySaved := savedGooglePlacePhotoEntity.Width == googlePlacePhoto.Width && savedGooglePlacePhotoEntity.Height == googlePlacePhoto.Height
 				return alreadySaved
-			}); ok {
+			}); found {
 				p.logger.Debug(
 					"skip google place photo because already exists",
 					zap.String("photo_reference", googlePlacePhoto.PhotoReference),
@@ -529,7 +529,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 				return false
 			}
 
-			_, ok := array.Find(googlePlaceEntity.R.GooglePlacePhotoReferences, func(savedGooglePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
+			_, found := array.Find(googlePlaceEntity.R.GooglePlacePhotoReferences, func(savedGooglePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
 				if savedGooglePlacePhotoReferenceEntity == nil {
 					return false
 				}
@@ -537,7 +537,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 			})
 
 			// すでに保存済みのものはスキップ
-			return !ok
+			return !found
 		})
 		if err := googlePlaceEntity.AddGooglePlacePhotoReferences(ctx, tx, true, googlePlacePhotoReferenceSlice...); err != nil {
 			return fmt.Errorf("failed to insert google place photo reference: %w", err)
@@ -545,13 +545,13 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 		// HTMLAttributionを保存
 		for _, googlePlacePhotoReference := range googlePlaceDetail.PhotoReferences {
-			googlePlacePhotoReferenceEntity, ok := array.Find(googlePlaceEntity.R.GooglePlacePhotoReferences, func(savedGooglePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
+			googlePlacePhotoReferenceEntity, found := array.Find(googlePlaceEntity.R.GooglePlacePhotoReferences, func(savedGooglePlacePhotoReferenceEntity *generated.GooglePlacePhotoReference) bool {
 				if savedGooglePlacePhotoReferenceEntity == nil {
 					return false
 				}
 				return savedGooglePlacePhotoReferenceEntity.PhotoReference == googlePlacePhotoReference.PhotoReference
 			})
-			if !ok || googlePlacePhotoReferenceEntity == nil {
+			if !found || googlePlacePhotoReferenceEntity == nil {
 				return fmt.Errorf("failed to find google place photo reference entity")
 			}
 
@@ -576,31 +576,29 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		var ok bool
-		var err error
-		ok, err = generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
+		found, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("error while checking place photo exists: %w", err)
 		}
-		if ok {
+		if found {
 			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
 			return nil
 		}
 
-		ok, err = generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx)
+		found, err = generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("error while checking user exists: %w", err)
 		}
-		if !ok {
+		if !found {
 			// userが存在しない場合はエラー
 			return fmt.Errorf("user not found: %s", userId)
 		}
 
-		ok, err = generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx)
+		found, err = generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("error while checking place exists: %w", err)
 		}
-		if !ok {
+		if !found {
 			// placeが存在しない場合はエラー
 			return fmt.Errorf("place not found: %s", placeId)
 		}
