@@ -585,24 +585,6 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 			return nil
 		}
 
-		found, err = generated.Users(generated.UserWhere.ID.EQ(userId)).Exists(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("error while checking user exists: %w", err)
-		}
-		if !found {
-			// userが存在しない場合はエラー
-			return fmt.Errorf("user not found: %s", userId)
-		}
-
-		found, err = generated.Places(generated.PlaceWhere.ID.EQ(placeId)).Exists(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("error while checking place exists: %w", err)
-		}
-		if !found {
-			// placeが存在しない場合はエラー
-			return fmt.Errorf("place not found: %s", placeId)
-		}
-
 		placePhoto := generated.PlacePhoto{
 			ID:       uuid.New().String(),
 			PlaceID:  placeId,

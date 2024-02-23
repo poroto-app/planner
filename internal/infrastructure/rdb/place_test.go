@@ -1486,7 +1486,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				PhotoURL: "another-photo.jpg",
 			},
 			isSaved:       false,
-			expectedError: errors.New("failed to save place photos: failed to run transaction: user not found: user-not-exists"),
+			expectedError: errors.New("failed to save place photos: failed to run transaction: failed to insert place photo: generated: unable to insert into place_photos: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`poroto`.`place_photos`, CONSTRAINT `place_photos_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))"),
 		},
 		{
 			name:     "not exists place",
@@ -1507,7 +1507,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				PhotoURL: "another-photo.jpg",
 			},
 			isSaved:       false,
-			expectedError: errors.New("failed to save place photos: failed to run transaction: place not found: place-not-exists"),
+			expectedError: errors.New("failed to save place photos: failed to run transaction: failed to insert place photo: generated: unable to insert into place_photos: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`poroto`.`place_photos`, CONSTRAINT `place_photos_ibfk_2` FOREIGN KEY (`place_id`) REFERENCES `places` (`id`))"),
 		},
 	}
 
