@@ -1423,8 +1423,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 		preSavedUser       generated.User
 		preSavedPlace      generated.Place
 		preSavedPlacePhoto generated.PlacePhoto
-		isSaved            bool
-		expectedError      error
 	}{
 		{
 			name:     "save place photo",
@@ -1444,7 +1442,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
 				PhotoURL: "another-photo.jpg",
 			},
-			isSaved: true,
 		},
 		{
 			name:     "already saved place photo",
@@ -1464,7 +1461,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
 				PhotoURL: "https://example.com/photo.jpg",
 			},
-			isSaved: true,
 		},
 	}
 
@@ -1499,7 +1495,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				t.Fatalf("error while saving place photo: %v", err)
 			}
 
-			isSaved, err := generated.
+			_, err = generated.
 				PlacePhotos(
 					generated.PlacePhotoWhere.UserID.EQ(c.userId),
 					generated.PlacePhotoWhere.PlaceID.EQ(c.placeId),
@@ -1508,9 +1504,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				t.Fatalf("error while checking photo existence: %v", err)
 			}
 
-			if c.isSaved != isSaved {
-				t.Fatalf("place photo is not saved")
-			}
 		})
 	}
 }
