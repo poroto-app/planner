@@ -1443,7 +1443,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "https://example.com/other-photo.jpg",
+				PhotoURL: "another-photo.jpg",
 			},
 			isSaved: true,
 		},
@@ -1483,7 +1483,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "https://example.com/other-photo.jpg",
+				PhotoURL: "another-photo.jpg",
 			},
 			isSaved:       false,
 			expectedError: errors.New("failed to save place photos: failed to run transaction: user not found: user-not-exists"),
@@ -1504,7 +1504,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "https://example.com/other-photo.jpg",
+				PhotoURL: "another-photo.jpg",
 			},
 			isSaved:       false,
 			expectedError: errors.New("failed to save place photos: failed to run transaction: place not found: place-not-exists"),
