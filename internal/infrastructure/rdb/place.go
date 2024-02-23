@@ -591,8 +591,8 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 		if err != nil {
 			return fmt.Errorf("error while checking user exists: %w", err)
 		}
-		if ok {
-			// userが存在しない場合はスキップ
+		if !ok {
+			// userが存在しない場合はエラー
 			return fmt.Errorf("user not found: %s", userId)
 		}
 
@@ -600,8 +600,8 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 		if err != nil {
 			return fmt.Errorf("error while checking place exists: %w", err)
 		}
-		if ok {
-			// placeが存在しない場合はスキップ
+		if !ok {
+			// placeが存在しない場合はエラー
 			return fmt.Errorf("place not found: %s", placeId)
 		}
 
@@ -618,7 +618,7 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 		}
 		return nil
 	}); err != nil {
-		return fmt.Errorf("failed to run transaction: %w", err)
+		return fmt.Errorf("failed to save place photos: %w", err)
 	}
 	return nil
 }
