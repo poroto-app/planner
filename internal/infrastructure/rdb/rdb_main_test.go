@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"strings"
+	"testing"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"log"
-	"os"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"strings"
-	"testing"
 )
 
 var (
@@ -89,6 +90,7 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.GooglePlaceTypes(),
 		generated.GooglePlaces(),
 		// Place
+		generated.PlacePhotos(),
 		generated.Places(),
 		// User
 		generated.Users(),
