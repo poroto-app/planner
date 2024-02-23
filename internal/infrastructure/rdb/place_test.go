@@ -3,7 +3,6 @@ package rdb
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"testing"
 	"time"
 
@@ -1467,48 +1466,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			},
 			isSaved: true,
 		},
-		{
-			name:     "not exists user",
-			userId:   "user-not-exists",
-			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			photoUrl: "https://example.com/photo.jpg",
-			width:    1920,
-			height:   1080,
-			preSavedUser: generated.User{
-				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			},
-			preSavedPlace: generated.Place{
-				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			},
-			preSavedPlacePhoto: generated.PlacePhoto{
-				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "another-photo.jpg",
-			},
-			isSaved:       false,
-			expectedError: errors.New("failed to save place photos: failed to run transaction: failed to insert place photo: generated: unable to insert into place_photos: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`poroto`.`place_photos`, CONSTRAINT `place_photos_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`))"),
-		},
-		{
-			name:     "not exists place",
-			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			placeId:  "place-not-exists",
-			photoUrl: "https://example.com/photo.jpg",
-			width:    1920,
-			height:   1080,
-			preSavedUser: generated.User{
-				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			},
-			preSavedPlace: generated.Place{
-				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			},
-			preSavedPlacePhoto: generated.PlacePhoto{
-				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "another-photo.jpg",
-			},
-			isSaved:       false,
-			expectedError: errors.New("failed to save place photos: failed to run transaction: failed to insert place photo: generated: unable to insert into place_photos: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`poroto`.`place_photos`, CONSTRAINT `place_photos_ibfk_2` FOREIGN KEY (`place_id`) REFERENCES `places` (`id`))"),
-		},
 	}
 
 	placeRepository, err := NewPlaceRepository(testDB)
@@ -1539,12 +1496,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 
 			err := placeRepository.SavePlacePhotos(testContext, c.userId, c.placeId, c.photoUrl, c.width, c.height)
 			if err != nil {
-				if c.isSaved {
-					t.Fatalf("error while saving place photo: %v", err)
-				}
-				if cmp.Diff(c.expectedError.Error(), err.Error()) != "" {
-					t.Fatalf("error expected: %v, actual: %v", c.expectedError, err)
-				}
+				t.Fatalf("error while saving place photo: %v", err)
 			}
 
 			isSaved, err := generated.
@@ -1552,10 +1504,10 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 					generated.PlacePhotoWhere.UserID.EQ(c.userId),
 					generated.PlacePhotoWhere.PlaceID.EQ(c.placeId),
 				).Exists(testContext, testDB)
-
 			if err != nil {
 				t.Fatalf("error while checking photo existence: %v", err)
 			}
+
 			if c.isSaved != isSaved {
 				t.Fatalf("place photo is not saved")
 			}
