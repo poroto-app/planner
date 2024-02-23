@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -1414,13 +1415,17 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 
 func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 	cases := []struct {
-		name     string
-		userId   string
-		placeId  string
-		photoUrl string
-		width    int
-		height   int
-		isSaved  bool
+		name               string
+		userId             string
+		placeId            string
+		photoUrl           string
+		width              int
+		height             int
+		preSavedUser       generated.User
+		preSavedPlace      generated.Place
+		preSavedPlacePhoto generated.PlacePhoto
+		isSaved            bool
+		expectedError      error
 	}{
 		{
 			name:     "save place photo",
@@ -1429,7 +1434,18 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			photoUrl: "https://example.com/photo.jpg",
 			width:    1920,
 			height:   1080,
-			isSaved:  true,
+			preSavedUser: generated.User{
+				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			},
+			preSavedPlace: generated.Place{
+				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			},
+			preSavedPlacePhoto: generated.PlacePhoto{
+				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				PhotoURL: "https://example.com/other-photo.jpg",
+			},
+			isSaved: true,
 		},
 		{
 			name:     "already saved place photo",
@@ -1438,7 +1454,18 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			photoUrl: "https://example.com/photo.jpg",
 			width:    1920,
 			height:   1080,
-			isSaved:  true,
+			preSavedUser: generated.User{
+				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			},
+			preSavedPlace: generated.Place{
+				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			},
+			preSavedPlacePhoto: generated.PlacePhoto{
+				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				PhotoURL: "https://example.com/photo.jpg",
+			},
+			isSaved: true,
 		},
 		{
 			name:     "not exists user",
@@ -1447,7 +1474,19 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			photoUrl: "https://example.com/photo.jpg",
 			width:    1920,
 			height:   1080,
-			isSaved:  false,
+			preSavedUser: generated.User{
+				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			},
+			preSavedPlace: generated.Place{
+				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			},
+			preSavedPlacePhoto: generated.PlacePhoto{
+				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				PhotoURL: "https://example.com/other-photo.jpg",
+			},
+			isSaved:       false,
+			expectedError: errors.New("failed to save place photos: failed to run transaction: user not found: user-not-exists"),
 		},
 		{
 			name:     "not exists place",
@@ -1456,7 +1495,19 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			photoUrl: "https://example.com/photo.jpg",
 			width:    1920,
 			height:   1080,
-			isSaved:  false,
+			preSavedUser: generated.User{
+				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			},
+			preSavedPlace: generated.Place{
+				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			},
+			preSavedPlacePhoto: generated.PlacePhoto{
+				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				PhotoURL: "https://example.com/other-photo.jpg",
+			},
+			isSaved:       false,
+			expectedError: errors.New("failed to save place photos: failed to run transaction: place not found: place-not-exists"),
 		},
 	}
 
@@ -1465,14 +1516,6 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 		t.Fatalf("error while initializing place repository: %v", err)
 	}
 	testContext := context.Background()
-
-	// テスト用User・Place
-	testPlace := generated.Place{
-		ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-	}
-	testUser := generated.User{
-		ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -1483,17 +1526,25 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				}
 			}(testContext, testDB)
 
-			// 事前にUserとPlaceを保存しておく
-			if err := testPlace.Insert(testContext, testDB, boil.Infer()); err != nil {
+			// 事前にPlacePhoto・User・Placeを保存しておく
+			if err := c.preSavedUser.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert user: %v", err)
+			}
+			if err := c.preSavedPlace.Insert(testContext, testDB, boil.Infer()); err != nil {
 				t.Fatalf("failed to insert place: %v", err)
 			}
-			if err := testUser.Insert(testContext, testDB, boil.Infer()); err != nil {
-				t.Fatalf("failed to insert user: %v", err)
+			if err := c.preSavedPlacePhoto.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert place photo: %v", err)
 			}
 
 			err := placeRepository.SavePlacePhotos(testContext, c.userId, c.placeId, c.photoUrl, c.width, c.height)
 			if err != nil {
-				t.Fatalf("error while saving place photo: %v", err)
+				if c.isSaved {
+					t.Fatalf("error while saving place photo: %v", err)
+				}
+				if cmp.Diff(c.expectedError.Error(), err.Error()) != "" {
+					t.Fatalf("error expected: %v, actual: %v", c.expectedError, err)
+				}
 			}
 
 			isSaved, err := generated.
