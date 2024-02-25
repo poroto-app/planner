@@ -603,6 +603,10 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 	return nil
 }
 
+func (p PlaceRepository) UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error {
+	panic("implement me")
+}
+
 func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.ContextExecutor, googlePlaceId string) (*models.Place, error) {
 	googlePlaceEntity, err := generated.GooglePlaces(
 		generated.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceId),
