@@ -27,7 +27,7 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planService, err := plancandidate.NewService(r.DB)
+	planService, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan candidate service", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
@@ -60,7 +60,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	service, err := plancandidate.NewService(r.DB)
+	service, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
