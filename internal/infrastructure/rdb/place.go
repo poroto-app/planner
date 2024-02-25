@@ -604,7 +604,32 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, pla
 }
 
 func (p PlaceRepository) UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error {
-	panic("implement me")
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		if !like {
+			// いいねを取り消す
+			if _, err := generated.UserLikePlaces(
+				generated.UserLikePlaceWhere.UserID.EQ(userId),
+				generated.UserLikePlaceWhere.PlaceID.EQ(placeId),
+			).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to delete place like: %w", err)
+			}
+			return nil
+		}
+
+		userLikePlaceEntity := generated.UserLikePlace{
+			ID:      uuid.New().String(),
+			UserID:  userId,
+			PlaceID: placeId,
+		}
+		if err := userLikePlaceEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place like: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+	return nil
 }
 
 func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.ContextExecutor, googlePlaceId string) (*models.Place, error) {
