@@ -1525,14 +1525,10 @@ func TestPlaceRepository_UpdateLikeByUserId(t *testing.T) {
 			placeId: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
 			liked:   true,
 			savedUsers: []generated.User{
-				{
-					ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-				},
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
 			},
 			savedPlaces: []generated.Place{
-				{
-					ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				},
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
 			},
 			savedUserLikePlaces: []generated.UserLikePlace{},
 			expectedExists:      true,
@@ -1543,18 +1539,13 @@ func TestPlaceRepository_UpdateLikeByUserId(t *testing.T) {
 			placeId: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
 			liked:   false,
 			savedUsers: []generated.User{
-				{
-					ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-				},
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
 			},
 			savedPlaces: []generated.Place{
-				{
-					ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				},
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
 			},
 			savedUserLikePlaces: []generated.UserLikePlace{
 				{
-
 					UserID:  "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 					PlaceID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
 				},
