@@ -330,22 +330,42 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(r.DB)
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
+	if err != nil {
+		log.Println("error while initializing logger: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCandidateService, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateUpdated, err := planCandidateService.LikeToPlaceInPlanCandidate(ctx, input.PlanCandidateID, input.PlaceID, input.Like)
+	logger.Info(
+		"LikeToPlaceInPlanCandidate",
+		zap.String("planCandidateId", input.PlanCandidateID),
+		zap.String("placeId", input.PlaceID),
+		zap.Bool("like", input.Like),
+		zap.String("userId", utils.FromPointerOrZero(input.UserID)),
+	)
+
+	planCandidateUpdated, err := planCandidateService.LikeToPlaceInPlanCandidate(ctx, plancandidate.LikeToPlaceInPlanCandidateInput{
+		PlanCandidateId:   input.PlanCandidateID,
+		PlaceId:           input.PlaceID,
+		Like:              input.Like,
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
 	if err != nil {
-		log.Println(fmt.Errorf("error while liking to place in plan candidate: %v", err))
+		logger.Error("error while liking to place in plan candidate", zap.Error(err))
 		return nil, fmt.Errorf("could not like to place in plan candidate")
 	}
 
 	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidateUpdated)
 
 	if err != nil {
-		log.Printf("error while converting plan candidate to graphql model: %v", err)
+		logger.Error("error while converting plan candidate to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
