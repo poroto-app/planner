@@ -1522,6 +1522,8 @@ type AutoReorderPlacesInPlanCandidateOutput {
 }
 
 input LikeToPlaceInPlanCandidateInput {
+    userId: String
+    firebaseAuthToken: String
     planCandidateId: String!
     placeId: String!
     like: Boolean!
@@ -10258,13 +10260,31 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId", "placeId", "like"}
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planCandidateId", "placeId", "like"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
 		case "planCandidateId":
 			var err error
 
