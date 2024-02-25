@@ -15,3 +15,8 @@ import (
 func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
 	panic(fmt.Errorf("not implemented: UploadPlacePhotoInPlan - uploadPlacePhotoInPlan"))
 }
+
+// LikeToPlaceInPlan is the resolver for the likeToPlaceInPlan field.
+func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: LikeToPlaceInPlan - likeToPlaceInPlan"))
+}

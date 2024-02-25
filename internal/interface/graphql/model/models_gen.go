@@ -154,6 +154,17 @@ type LikeToPlaceInPlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate"`
 }
 
+type LikeToPlaceInPlanInput struct {
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+	PlanID            string `json:"planId"`
+	PlaceID           string `json:"placeId"`
+}
+
+type LikeToPlaceInPlanOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type LocationCategory struct {
 	Name            string  `json:"name"`
 	DisplayName     string  `json:"displayName"`
