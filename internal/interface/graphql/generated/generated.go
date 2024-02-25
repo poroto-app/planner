@@ -1650,6 +1650,7 @@ input LikeToPlaceInPlanInput {
     firebaseAuthToken: String!
     planId: String!
     placeId: String!
+    like: Boolean!
 }
 
 type LikeToPlaceInPlanOutput {
@@ -10498,7 +10499,7 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planId", "placeId"}
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planId", "placeId", "like"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10541,6 +10542,15 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanInput(ctx context.Con
 				return it, err
 			}
 			it.PlaceID = data
+		case "like":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("like"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Like = data
 		}
 	}
 

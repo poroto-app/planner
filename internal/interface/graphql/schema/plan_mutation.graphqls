@@ -23,6 +23,7 @@ input LikeToPlaceInPlanInput {
     firebaseAuthToken: String!
     planId: String!
     placeId: String!
+    like: Boolean!
 }
 
 type LikeToPlaceInPlanOutput {

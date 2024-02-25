@@ -159,6 +159,7 @@ type LikeToPlaceInPlanInput struct {
 	FirebaseAuthToken string `json:"firebaseAuthToken"`
 	PlanID            string `json:"planId"`
 	PlaceID           string `json:"placeId"`
+	Like              bool   `json:"like"`
 }
 
 type LikeToPlaceInPlanOutput struct {
