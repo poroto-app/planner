@@ -90,6 +90,7 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.GooglePlaceTypes(),
 		generated.GooglePlaces(),
 		// Place
+		generated.UserLikePlaces(),
 		generated.PlacePhotos(),
 		generated.Places(),
 		// User
