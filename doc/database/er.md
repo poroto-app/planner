@@ -222,8 +222,8 @@ erDiagram
     
     user_like_places {
         char(36) id PK
-        char(36) user_id FK
-        char(36) place_id FK
+        char(36) user_id FK "UNIQUE(user_id, place_id)"
+        char(36) place_id FK "UNIQUE(user_id, place_id)"
     }
 
     plan_candidate_set_like_places }o..|| places: "N:1"
