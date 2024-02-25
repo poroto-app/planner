@@ -166,6 +166,14 @@ type LikeToPlaceInPlanOutput struct {
 	Plan *Plan `json:"plan"`
 }
 
+type LikedPlacesByUserInput struct {
+	UserID string `json:"userId"`
+}
+
+type LikedPlacesByUserOutput struct {
+	LikedPlaceIds []string `json:"likedPlaceIds"`
+}
+
 type LocationCategory struct {
 	Name            string  `json:"name"`
 	DisplayName     string  `json:"displayName"`

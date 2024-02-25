@@ -121,6 +121,10 @@ type ComplexityRoot struct {
 		Plan func(childComplexity int) int
 	}
 
+	LikedPlacesByUserOutput struct {
+		LikedPlaceIds func(childComplexity int) int
+	}
+
 	LocationCategory struct {
 		DefaultPhotoURL func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
@@ -232,6 +236,7 @@ type ComplexityRoot struct {
 	Query struct {
 		AvailablePlacesForPlan          func(childComplexity int, input model.AvailablePlacesForPlanInput) int
 		FirebaseUser                    func(childComplexity int, input *model.FirebaseUserInput) int
+		LikedPlacesByUser               func(childComplexity int, input model.LikedPlacesByUserInput) int
 		NearbyPlaceCategories           func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
 		PlacesToAddForPlanCandidate     func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
 		PlacesToReplaceForPlanCandidate func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
@@ -286,6 +291,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
+	LikedPlacesByUser(ctx context.Context, input model.LikedPlacesByUserInput) (*model.LikedPlacesByUserOutput, error)
 	PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error)
 	NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
@@ -536,6 +542,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LikeToPlaceInPlanOutput.Plan(childComplexity), true
+
+	case "LikedPlacesByUserOutput.likedPlaceIds":
+		if e.complexity.LikedPlacesByUserOutput.LikedPlaceIds == nil {
+			break
+		}
+
+		return e.complexity.LikedPlacesByUserOutput.LikedPlaceIds(childComplexity), true
 
 	case "LocationCategory.defaultPhotoUrl":
 		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
@@ -1046,6 +1059,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FirebaseUser(childComplexity, args["input"].(*model.FirebaseUserInput)), true
 
+	case "Query.likedPlacesByUser":
+		if e.complexity.Query.LikedPlacesByUser == nil {
+			break
+		}
+
+		args, err := ec.field_Query_likedPlacesByUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LikedPlacesByUser(childComplexity, args["input"].(model.LikedPlacesByUserInput)), true
+
 	case "Query.nearbyPlaceCategories":
 		if e.complexity.Query.NearbyPlaceCategories == nil {
 			break
@@ -1239,6 +1264,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputFirebaseUserInput,
 		ec.unmarshalInputLikeToPlaceInPlanCandidateInput,
 		ec.unmarshalInputLikeToPlaceInPlanInput,
+		ec.unmarshalInputLikedPlacesByUserInput,
 		ec.unmarshalInputNearbyPlaceCategoriesInput,
 		ec.unmarshalInputPlacesToAddForPlanCandidateInput,
 		ec.unmarshalInputPlacesToReplaceForPlanCandidateInput,
@@ -1356,6 +1382,18 @@ type Image {
     default: String!
     small: String
     large: String
+}
+`, BuiltIn: false},
+	{Name: "../schema/place_query.graphqls", Input: `extend type Query {
+    likedPlacesByUser(input: LikedPlacesByUserInput!): LikedPlacesByUserOutput!
+}
+
+input LikedPlacesByUserInput {
+    userId: String!
+}
+
+type LikedPlacesByUserOutput {
+    likedPlaceIds: [String!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/place_type.graphqls", Input: `type Place {
@@ -2000,6 +2038,21 @@ func (ec *executionContext) field_Query_firebaseUser_args(ctx context.Context, r
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalOFirebaseUserInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐFirebaseUserInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_likedPlacesByUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LikedPlacesByUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNLikedPlacesByUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikedPlacesByUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3746,6 +3799,50 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_plan(ctx contex
 				return ec.fieldContext_Plan_author(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LikedPlacesByUserOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.LikedPlacesByUserOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikedPlacesByUserOutput_likedPlaceIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikedPlaceIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LikedPlacesByUserOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LikedPlacesByUserOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6876,6 +6973,65 @@ func (ec *executionContext) fieldContext_Query_version(ctx context.Context, fiel
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_likedPlacesByUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_likedPlacesByUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LikedPlacesByUser(rctx, fc.Args["input"].(model.LikedPlacesByUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LikedPlacesByUserOutput)
+	fc.Result = res
+	return ec.marshalNLikedPlacesByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikedPlacesByUserOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_likedPlacesByUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "likedPlaceIds":
+				return ec.fieldContext_LikedPlacesByUserOutput_likedPlaceIds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LikedPlacesByUserOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_likedPlacesByUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -10557,6 +10713,35 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanInput(ctx context.Con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLikedPlacesByUserInput(ctx context.Context, obj interface{}) (model.LikedPlacesByUserInput, error) {
+	var it model.LikedPlacesByUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNearbyPlaceCategoriesInput(ctx context.Context, obj interface{}) (model.NearbyPlaceCategoriesInput, error) {
 	var it model.NearbyPlaceCategoriesInput
 	asMap := map[string]interface{}{}
@@ -11695,6 +11880,45 @@ func (ec *executionContext) _LikeToPlaceInPlanOutput(ctx context.Context, sel as
 	return out
 }
 
+var likedPlacesByUserOutputImplementors = []string{"LikedPlacesByUserOutput"}
+
+func (ec *executionContext) _LikedPlacesByUserOutput(ctx context.Context, sel ast.SelectionSet, obj *model.LikedPlacesByUserOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, likedPlacesByUserOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LikedPlacesByUserOutput")
+		case "likedPlaceIds":
+			out.Values[i] = ec._LikedPlacesByUserOutput_likedPlaceIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var locationCategoryImplementors = []string{"LocationCategory"}
 
 func (ec *executionContext) _LocationCategory(ctx context.Context, sel ast.SelectionSet, obj *model.LocationCategory) graphql.Marshaler {
@@ -12578,6 +12802,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_version(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "likedPlacesByUser":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_likedPlacesByUser(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -13796,6 +14042,25 @@ func (ec *executionContext) marshalNLikeToPlaceInPlanOutput2ᚖporotoᚗappᚋpo
 		return graphql.Null
 	}
 	return ec._LikeToPlaceInPlanOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNLikedPlacesByUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikedPlacesByUserInput(ctx context.Context, v interface{}) (model.LikedPlacesByUserInput, error) {
+	res, err := ec.unmarshalInputLikedPlacesByUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLikedPlacesByUserOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikedPlacesByUserOutput(ctx context.Context, sel ast.SelectionSet, v model.LikedPlacesByUserOutput) graphql.Marshaler {
+	return ec._LikedPlacesByUserOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLikedPlacesByUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikedPlacesByUserOutput(ctx context.Context, sel ast.SelectionSet, v *model.LikedPlacesByUserOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LikedPlacesByUserOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {

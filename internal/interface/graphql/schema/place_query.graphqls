@@ -1,0 +1,11 @@
+extend type Query {
+    likedPlacesByUser(input: LikedPlacesByUserInput!): LikedPlacesByUserOutput!
+}
+
+input LikedPlacesByUserInput {
+    userId: String!
+}
+
+type LikedPlacesByUserOutput {
+    likedPlaceIds: [String!]!
+}
