@@ -8,10 +8,10 @@ type PlanCandidateSetPlaceLikeCount struct {
 }
 
 var PlanCandidateSetPlaceLikeCountColumns = struct {
-	Name      string
+	PlaceId   string
 	LikeCount string
 }{
-	Name:      "place_id",
+	PlaceId:   "place_id",
 	LikeCount: "like_count",
 }
 

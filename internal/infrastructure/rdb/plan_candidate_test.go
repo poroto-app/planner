@@ -313,8 +313,10 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 		name                                   string
 		now                                    time.Time
 		savedPlaces                            []models.Place
+		savedUsers                             generated.UserSlice
 		savedPlanCandidateSets                 []models.PlanCandidate
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
+		savedUserLikePlaceEntities             generated.UserLikePlaceSlice
 		planCandidateId                        string
 		expected                               models.PlanCandidate
 	}{
@@ -324,6 +326,10 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 			savedPlaces: []models.Place{
 				{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}},
 				{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "test-user-1", FirebaseUID: uuid.New().String()},
+				{ID: "test-user-2", FirebaseUID: uuid.New().String()},
 			},
 			savedPlanCandidateSets: []models.PlanCandidate{
 				{
@@ -349,6 +355,10 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-2", PlaceID: "test-place-1"},
 				{ID: uuid.New().String(), PlanCandidateSetID: "plan-candidate-set-2", PlaceID: "test-place-2"},
 			},
+			savedUserLikePlaceEntities: generated.UserLikePlaceSlice{
+				{ID: uuid.New().String(), UserID: "test-user-1", PlaceID: "test-place-1"},
+				{ID: uuid.New().String(), UserID: "test-user-2", PlaceID: "test-place-2"},
+			},
 			planCandidateId: "plan-candidate-set-1",
 			expected: models.PlanCandidate{
 				Id:        "plan-candidate-set-1",
@@ -357,8 +367,8 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 					{
 						Id: "plan-candidate-1",
 						Places: []models.Place{
-							{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}, LikeCount: 2},
-							{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}, LikeCount: 1},
+							{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}, LikeCount: 3},
+							{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}, LikeCount: 2},
 						},
 					},
 				},
@@ -382,23 +392,29 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				}
 			})
 
-			// 事前にPlaceを作成しておく
+			// 事前にPlace・User・PlanCandidateSetLikePlace・UserLikePlaceを作成しておく
 			if err := savePlaces(textContext, testDB, c.savedPlaces); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlanCandidateSetを作成しておく
+			if _, err := c.savedUsers.InsertAll(textContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save users: %v", err)
+			}
+
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
 				if err := savePlanCandidate(textContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
 
-			// 事前にPlanCandidateSetLikePlaceを作成しておく
 			for _, planCandidateSetLikePlaceEntity := range c.savedPlanCandidateSetLikePlaceEntities {
 				if err := planCandidateSetLikePlaceEntity.Insert(textContext, testDB, boil.Infer()); err != nil {
 					t.Fatalf("failed to save plan candidate set like place: %v", err)
 				}
+			}
+
+			if _, err := c.savedUserLikePlaceEntities.InsertAll(textContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save user like place: %v", err)
 			}
 
 			actual, err := planCandidateRepository.Find(textContext, c.planCandidateId, c.now)
