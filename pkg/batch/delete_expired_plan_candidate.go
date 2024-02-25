@@ -16,7 +16,7 @@ import (
 func DeleteExpiredPlanCandidate(ctx context.Context, db *sql.DB) error {
 	log.Printf("=================== Start deleting expired plan candidates ===================\n")
 
-	service, err := plancandidate.NewService(db)
+	service, err := plancandidate.NewService(ctx, db)
 	if err != nil {
 		return fmt.Errorf("error while initializing plan candidate service: %v", err)
 	}

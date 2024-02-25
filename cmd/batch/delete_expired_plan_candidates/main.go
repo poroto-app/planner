@@ -23,12 +23,13 @@ func main() {
 		log.Fatalf("error while initializing db: %v", err)
 	}
 
-	service, err := plancandidate.NewService(db)
+	ctx := context.Background()
+
+	service, err := plancandidate.NewService(ctx, db)
 	if err != nil {
 		log.Fatalf("error while initializing plan candidate service: %v", err)
 	}
 
-	ctx := context.Background()
 	if err := service.DeleteExpiredPlanCandidates(ctx, time.Now()); err != nil {
 		log.Fatalf("error while deleting expired plan candidates: %v", err)
 	}
