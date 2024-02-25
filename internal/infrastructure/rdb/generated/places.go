@@ -79,6 +79,7 @@ var PlaceRels = struct {
 	PlanCandidateSetLikePlaces     string
 	PlanCandidateSetSearchedPlaces string
 	PlanPlaces                     string
+	UserLikePlaces                 string
 }{
 	GooglePlaces:                   "GooglePlaces",
 	PlacePhotos:                    "PlacePhotos",
@@ -86,6 +87,7 @@ var PlaceRels = struct {
 	PlanCandidateSetLikePlaces:     "PlanCandidateSetLikePlaces",
 	PlanCandidateSetSearchedPlaces: "PlanCandidateSetSearchedPlaces",
 	PlanPlaces:                     "PlanPlaces",
+	UserLikePlaces:                 "UserLikePlaces",
 }
 
 // placeR is where relationships are stored.
@@ -96,6 +98,7 @@ type placeR struct {
 	PlanCandidateSetLikePlaces     PlanCandidateSetLikePlaceSlice     `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
 	PlanCandidateSetSearchedPlaces PlanCandidateSetSearchedPlaceSlice `boil:"PlanCandidateSetSearchedPlaces" json:"PlanCandidateSetSearchedPlaces" toml:"PlanCandidateSetSearchedPlaces" yaml:"PlanCandidateSetSearchedPlaces"`
 	PlanPlaces                     PlanPlaceSlice                     `boil:"PlanPlaces" json:"PlanPlaces" toml:"PlanPlaces" yaml:"PlanPlaces"`
+	UserLikePlaces                 UserLikePlaceSlice                 `boil:"UserLikePlaces" json:"UserLikePlaces" toml:"UserLikePlaces" yaml:"UserLikePlaces"`
 }
 
 // NewStruct creates a new relationship struct
@@ -143,6 +146,13 @@ func (r *placeR) GetPlanPlaces() PlanPlaceSlice {
 		return nil
 	}
 	return r.PlanPlaces
+}
+
+func (r *placeR) GetUserLikePlaces() UserLikePlaceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserLikePlaces
 }
 
 // placeL is where Load methods for each relationship are stored.
@@ -543,6 +553,20 @@ func (o *Place) PlanPlaces(mods ...qm.QueryMod) planPlaceQuery {
 	)
 
 	return PlanPlaces(queryMods...)
+}
+
+// UserLikePlaces retrieves all the user_like_place's UserLikePlaces with an executor.
+func (o *Place) UserLikePlaces(mods ...qm.QueryMod) userLikePlaceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`user_like_places`.`place_id`=?", o.ID),
+	)
+
+	return UserLikePlaces(queryMods...)
 }
 
 // LoadGooglePlaces allows an eager lookup of values, cached into the
@@ -1223,6 +1247,119 @@ func (placeL) LoadPlanPlaces(ctx context.Context, e boil.ContextExecutor, singul
 	return nil
 }
 
+// LoadUserLikePlaces allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (placeL) LoadUserLikePlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`user_like_places`),
+		qm.WhereIn(`user_like_places.place_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_like_places")
+	}
+
+	var resultSlice []*UserLikePlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_like_places")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_like_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_like_places")
+	}
+
+	if len(userLikePlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserLikePlaces = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userLikePlaceR{}
+			}
+			foreign.R.Place = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlaceID {
+				local.R.UserLikePlaces = append(local.R.UserLikePlaces, foreign)
+				if foreign.R == nil {
+					foreign.R = &userLikePlaceR{}
+				}
+				foreign.R.Place = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // AddGooglePlaces adds the given related objects to the existing relationships
 // of the place, optionally inserting them as new records.
 // Appends related to o.R.GooglePlaces.
@@ -1532,6 +1669,59 @@ func (o *Place) AddPlanPlaces(ctx context.Context, exec boil.ContextExecutor, in
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &planPlaceR{
+				Place: o,
+			}
+		} else {
+			rel.R.Place = o
+		}
+	}
+	return nil
+}
+
+// AddUserLikePlaces adds the given related objects to the existing relationships
+// of the place, optionally inserting them as new records.
+// Appends related to o.R.UserLikePlaces.
+// Sets related.R.Place appropriately.
+func (o *Place) AddUserLikePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserLikePlace) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlaceID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `user_like_places` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
+				strmangle.WhereClause("`", "`", 0, userLikePlacePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlaceID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &placeR{
+			UserLikePlaces: related,
+		}
+	} else {
+		o.R.UserLikePlaces = append(o.R.UserLikePlaces, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userLikePlaceR{
 				Place: o,
 			}
 		} else {
@@ -2718,6 +2908,33 @@ func (s PlaceSlice) GetLoadedPlanPlaces() PlanPlaceSlice {
 			continue
 		}
 		result = append(result, item.R.PlanPlaces...)
+	}
+	return result
+}
+
+// LoadUserLikePlacesByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s PlaceSlice) LoadUserLikePlacesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadUserLikePlacesByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlaceSlice) LoadUserLikePlacesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*Place](s, pageSize) {
+		if err := chunk[0].L.LoadUserLikePlaces(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlaceSlice) GetLoadedUserLikePlaces() UserLikePlaceSlice {
+	result := make(UserLikePlaceSlice, 0, len(s)*2)
+	for _, item := range s {
+		if item.R == nil || item.R.UserLikePlaces == nil {
+			continue
+		}
+		result = append(result, item.R.UserLikePlaces...)
 	}
 	return result
 }
