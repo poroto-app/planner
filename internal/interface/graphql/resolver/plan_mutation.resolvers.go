@@ -36,7 +36,7 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, inputs []
 
 	for _, input := range inputs {
 		if planId != input.PlanID {
-			logger.Fatal("planID is not the same", zap.String("planID", planId), zap.String("input.PlanID", input.PlanID))
+			logger.Error("planID is not the same", zap.String("planID", planId), zap.String("input.PlanID", input.PlanID))
 			continue
 		}
 
