@@ -22,13 +22,13 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
 		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal server error")
+		return nil, fmt.Errorf("internal resolver error")
 	}
 
 	placeService, err := place.NewService(r.DB)
 	if err != nil {
 		logger.Error("error while initializing place service", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
+		return nil, fmt.Errorf("internal resolver error")
 
 	}
 
@@ -43,27 +43,27 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 			Height:   input.Height,
 		})
 		if err != nil {
-			logger.Error("error while saving place photos", zap.Error(err))
-			return nil, fmt.Errorf("internal server error")
+			logger.Error("error while uploading place photos", zap.Error(err))
+			return nil, fmt.Errorf("internal resolver error")
 		}
 	}
 
 	planService, err := plan.NewService(ctx, r.DB)
 	if err != nil {
 		logger.Error("error while initializing plan service", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
+		return nil, fmt.Errorf("internal resolver error")
 	}
 
 	planDoaminModel, err := planService.FetchPlan(ctx, planId)
 	if err != nil {
 		logger.Error("error while fetching plan", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
+		return nil, fmt.Errorf("internal resolver error")
 	}
 
 	planGraphQLModel, err := factory.PlanFromDomainModel(*planDoaminModel, nil)
 	if err != nil {
 		log.Printf("error while converting plan to graphql model: %v", err)
-		return nil, fmt.Errorf("internal server error")
+		return nil, fmt.Errorf("internal resolver error")
 	}
 	return &model.UploadPlacePhotoInPlanOutput{
 		Plan: planGraphQLModel,
