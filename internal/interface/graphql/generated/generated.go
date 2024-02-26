@@ -136,7 +136,7 @@ type ComplexityRoot struct {
 		Ping                              func(childComplexity int, message string) int
 		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
-		UploadPlacePhotoInPlan            func(childComplexity int, inputs []*model.UploadPlacePhotoInPlanInput) int
+		UploadPlacePhotoInPlan            func(childComplexity int, planID string, inputs []*model.UploadPlacePhotoInPlanInput) int
 	}
 
 	NearbyLocationCategory struct {
@@ -276,7 +276,7 @@ type MutationResolver interface {
 	EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error)
 	AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error)
 	LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error)
-	UploadPlacePhotoInPlan(ctx context.Context, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
+	UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
@@ -694,7 +694,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
+		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["planId"].(string), args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
 
 	case "NearbyLocationCategory.defaultPhotoUrl":
 		if e.complexity.NearbyLocationCategory.DefaultPhotoURL == nil {
@@ -1598,13 +1598,12 @@ type PlacesToReplaceForPlanCandidateOutput {
     createdBasedOnCurrentLocation: Boolean!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_mutation.graphqls", Input: `extend type Mutation {
-    uploadPlacePhotoInPlan(inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(planId: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
-    planId: String!
     placeId: String!
     photoUrl: String!
     width: Int!
@@ -1894,15 +1893,24 @@ func (ec *executionContext) field_Mutation_savePlanFromCandidate_args(ctx contex
 func (ec *executionContext) field_Mutation_uploadPlacePhotoInPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []*model.UploadPlacePhotoInPlanInput
-	if tmp, ok := rawArgs["inputs"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
-		arg0, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["planId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["inputs"] = arg0
+	args["planId"] = arg0
+	var arg1 []*model.UploadPlacePhotoInPlanInput
+	if tmp, ok := rawArgs["inputs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
+		arg1, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["inputs"] = arg1
 	return args, nil
 }
 
@@ -4480,7 +4488,7 @@ func (ec *executionContext) _Mutation_uploadPlacePhotoInPlan(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
+		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["planId"].(string), fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10712,7 +10720,7 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "planId", "placeId", "photoUrl", "width", "height"}
+	fieldsInOrder := [...]string{"userId", "placeId", "photoUrl", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10728,15 +10736,6 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 				return it, err
 			}
 			it.UserID = data
-		case "planId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PlanID = data
 		case "placeId":
 			var err error
 

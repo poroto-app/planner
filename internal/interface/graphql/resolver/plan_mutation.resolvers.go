@@ -18,7 +18,7 @@ import (
 )
 
 // UploadPlacePhotoInPlan is the resolver for the uploadPlacePhotoInPlan field.
-func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
+func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
 	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
 	if err != nil {
 		log.Println("error while initializing logger: ", err)
@@ -32,14 +32,9 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, inputs []
 
 	}
 
-	planId := inputs[0].PlanID
+	planId := planID
 
 	for _, input := range inputs {
-		if planId != input.PlanID {
-			logger.Error("planID is not the same", zap.String("planID", planId), zap.String("input.PlanID", input.PlanID))
-			continue
-		}
-
 		err = placeService.UploadPlacePhotoInPlan(ctx, place.UploadPlacePhotoInPlanInput{
 			UserId:   input.UserID,
 			PlaceId:  input.PlaceID,
