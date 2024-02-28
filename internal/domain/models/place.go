@@ -8,11 +8,12 @@ import (
 
 // Place 場所の情報
 type Place struct {
-	Id        string      `json:"id"`
-	Google    GooglePlace `json:"google"`
-	Name      string      `json:"name"`
-	Location  GeoLocation `json:"location"`
-	LikeCount int         `json:"like_count"`
+	Id          string       `json:"id"`
+	Google      GooglePlace  `json:"google"`
+	Name        string       `json:"name"`
+	Location    GeoLocation  `json:"location"`
+	LikeCount   int          `json:"like_count"`
+	PlacePhotos []PlacePhoto `json:"place_photo"`
 }
 
 func (p Place) Categories() []LocationCategory {
