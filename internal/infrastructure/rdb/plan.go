@@ -4,12 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
+	"strconv"
+	"time"
+
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
-	"math"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
@@ -17,8 +20,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"strconv"
-	"time"
 )
 
 const (
@@ -154,6 +155,11 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
+			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
+			if err != nil {
+				return nil, fmt.Errorf("failed to find place photos: %w", err)
+			}
+
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -164,6 +170,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+				placePhotoSlice,
 			)
 		})
 	})
@@ -235,6 +242,11 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 		}
 
+		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find place photos: %w", err)
+		}
+
 		return factory.NewPlaceFromEntity(
 			*planPlace.R.Place,
 			*planPlace.R.Place.R.GooglePlaces[0],
@@ -245,6 +257,7 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+			placePhotoSlice,
 		)
 	})
 	if err != nil {
@@ -317,6 +330,11 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
+			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
+			if err != nil {
+				return nil, fmt.Errorf("failed to find place photos: %w", err)
+			}
+
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -327,6 +345,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+				placePhotoSlice,
 			)
 		})
 	})
@@ -412,6 +431,11 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
+			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
+			if err != nil {
+				return nil, fmt.Errorf("failed to find place photos: %w", err)
+			}
+
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -422,6 +446,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
+				placePhotoSlice,
 			)
 		})
 	})

@@ -262,6 +262,10 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
 			continue
 		}
+		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(googlePlaceEntity.PlaceID)).All(ctx, p.db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find place photos: %w", err)
+		}
 
 		place, err := factory.NewPlaceFromEntity(
 			*googlePlaceEntity.R.Place,
@@ -273,6 +277,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
+			placePhotoSlice,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -340,6 +345,11 @@ func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceT
 			continue
 		}
 
+		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(googlePlaceEntity.PlaceID)).All(ctx, p.db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find place photos: %w", err)
+		}
+
 		place, err := factory.NewPlaceFromEntity(
 			*googlePlaceEntity.R.Place,
 			*googlePlaceEntity,
@@ -350,6 +360,7 @@ func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceT
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
+			placePhotoSlice,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -412,6 +423,11 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 			continue
 		}
 
+		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planCandidateSetSearchedPlace.PlaceID)).All(ctx, p.db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find place photos: %w", err)
+		}
+
 		place, err := factory.NewPlaceFromEntity(
 			*planCandidateSetSearchedPlace.R.Place,
 			*planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0],
@@ -422,6 +438,7 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidateSetSearchedPlace.PlaceID),
+			placePhotoSlice,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -631,6 +648,11 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(googlePlaceEntity.PlaceID)).All(ctx, exec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find place photos: %w", err)
+	}
+
 	place, err := factory.NewPlaceFromEntity(
 		*googlePlaceEntity.R.Place,
 		*googlePlaceEntity,
@@ -641,6 +663,7 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 		googlePlaceEntity.R.GooglePlaceReviews,
 		googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 		entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, googlePlaceEntity.PlaceID),
+		placePhotoSlice,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
@@ -675,6 +698,10 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 		if googlePlaceEntity == nil || googlePlaceEntity.R.Place == nil {
 			continue
 		}
+		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(googlePlaceEntity.PlaceID)).All(ctx, exec)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find place photos: %w", err)
+		}
 
 		place, err := factory.NewPlaceFromEntity(
 			*googlePlaceEntity.R.Place,
@@ -686,6 +713,7 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, googlePlaceEntity.PlaceID),
+			placePhotoSlice,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place entity to place: %w", err)
