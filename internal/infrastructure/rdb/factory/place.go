@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+
 	"github.com/google/uuid"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
@@ -17,6 +18,7 @@ func NewPlaceFromEntity(
 	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
 	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
 	likeCount int,
+	placePhotoSlice generated.PlacePhotoSlice,
 ) (*models.Place, error) {
 	googlePlace, err := NewGooglePlaceFromEntity(
 		googlePlaceEntity,
@@ -35,12 +37,27 @@ func NewPlaceFromEntity(
 		return nil, err
 	}
 
+	var placePhotos []models.PlacePhoto
+	if len(placePhotoSlice) != 0 {
+		for _, placePhoto := range placePhotoSlice {
+			placePhotos = append(placePhotos, models.PlacePhoto{
+				Id:       placePhoto.ID,
+				UserId:   placePhoto.UserID,
+				PlaceId:  placePhoto.PlaceID,
+				PhotoUrl: placePhoto.PhotoURL,
+				Width:    placePhoto.Width,
+				Height:   placePhoto.Height,
+			})
+		}
+	}
+
 	return &models.Place{
-		Id:        placeEntity.ID,
-		Name:      placeEntity.Name,
-		Location:  googlePlace.Location,
-		Google:    *googlePlace,
-		LikeCount: likeCount,
+		Id:          placeEntity.ID,
+		Name:        placeEntity.Name,
+		Location:    googlePlace.Location,
+		Google:      *googlePlace,
+		LikeCount:   likeCount,
+		PlacePhotos: placePhotos,
 	}, nil
 }
 
