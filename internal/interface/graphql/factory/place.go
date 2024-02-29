@@ -20,7 +20,18 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 				Large:   image.Large,
 			})
 		}
-	} else {
+	}
+	if place.PlacePhotos != nil {
+		for _, photo := range place.PlacePhotos {
+			image := photo.ToImage()
+			images = append(images, &graphql.Image{
+				Default: image.Default(),
+				Small:   image.Small,
+				Large:   image.Large,
+			})
+		}
+	}
+	if len(images) == 0 {
 		// not nil な値にする
 		images = make([]*graphql.Image, 0)
 	}
