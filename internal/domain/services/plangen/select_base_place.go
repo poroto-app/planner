@@ -88,7 +88,10 @@ func selectByReview(places []models.Place) []models.Place {
 	var placesSelected []models.Place
 	for _, place := range places {
 		// 既に選択済みの場所は除外
-		if isAlreadyAdded(place, placesSelected) {
+		_, isAlreadyAdded := array.Find(placesSelected, func(p models.Place) bool {
+			return p.Google.PlaceId == place.Google.PlaceId
+		})
+		if isAlreadyAdded {
 			continue
 		}
 
@@ -140,7 +143,10 @@ func selectByDistanceFromPlaces(
 
 	for _, place := range places {
 		// 既に選択済みの場所は除外
-		if isAlreadyAdded(place, placesSelected) {
+		_, isAlreadyAdded := array.Find(placesSelected, func(p models.Place) bool {
+			return p.Google.PlaceId == place.Google.PlaceId
+		})
+		if isAlreadyAdded {
 			continue
 		}
 
@@ -148,15 +154,6 @@ func selectByDistanceFromPlaces(
 	}
 
 	return placesSelected
-}
-
-func isAlreadyAdded(place models.Place, places []models.Place) bool {
-	for _, p := range places {
-		if p.Id == place.Id {
-			return true
-		}
-	}
-	return false
 }
 
 // isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
