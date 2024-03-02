@@ -22,6 +22,7 @@ var TableNames = struct {
 	PlanCandidates                     string
 	PlanPlaces                         string
 	Plans                              string
+	UserLikePlaces                     string
 	Users                              string
 }{
 	GooglePlaceOpeningPeriods:          "google_place_opening_periods",
@@ -42,5 +43,6 @@ var TableNames = struct {
 	PlanCandidates:                     "plan_candidates",
 	PlanPlaces:                         "plan_places",
 	Plans:                              "plans",
+	UserLikePlaces:                     "user_like_places",
 	Users:                              "users",
 }
