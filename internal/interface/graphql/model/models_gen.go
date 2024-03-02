@@ -143,9 +143,8 @@ type Image struct {
 }
 
 type LikePlacesInput struct {
-	UserID            string  `json:"userId"`
-	FirebaseAuthToken string  `json:"firebaseAuthToken"`
-	PlanID            *string `json:"planId,omitempty"`
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
 }
 
 type LikeToPlaceInPlanCandidateInput struct {

@@ -12,5 +12,4 @@ input FirebaseUserInput {
 input LikePlacesInput {
     userId: ID!
     firebaseAuthToken: String!
-    planId: String
 }
