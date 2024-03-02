@@ -12,10 +12,7 @@ type FindLikedPlacesInput struct {
 }
 
 func (s Service) FindLikePlaces(ctx context.Context, input FindLikedPlacesInput) (*[]models.Place, error) {
-	checkAuthStateResult, err := s.CheckUserAuthState(ctx, CheckUserAuthStateInput{
-		UserId:            input.UserId,
-		FirebaseAuthToken: input.FirebaseAuthToken,
-	})
+	checkAuthStateResult, err := s.CheckUserAuthState(ctx, CheckUserAuthStateInput(input))
 	if err != nil {
 		return nil, err
 	}
