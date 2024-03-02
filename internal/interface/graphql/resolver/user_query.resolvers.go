@@ -30,3 +30,8 @@ func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseU
 
 	return factory.UserFromDomainModel(u), nil
 }
+
+// LikePlaces is the resolver for the likePlaces field.
+func (r *queryResolver) LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error) {
+	panic(fmt.Errorf("not implemented: LikePlaces - likePlaces"))
+}
