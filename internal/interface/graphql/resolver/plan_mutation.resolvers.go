@@ -34,18 +34,20 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 
 	planId := planID
 
+	var uploadPlacePhotoInPlanInput []place.UploadPlacePhotoInPlanInput
 	for _, input := range inputs {
-		err = placeService.UploadPlacePhotoInPlan(ctx, place.UploadPlacePhotoInPlanInput{
-			UserId:   input.UserID,
+		uploadPlacePhotoInPlanInput = append(uploadPlacePhotoInPlanInput, place.UploadPlacePhotoInPlanInput{
 			PlaceId:  input.PlaceID,
+			UserId:   input.UserID,
 			PhotoUrl: input.PhotoURL,
 			Width:    input.Width,
 			Height:   input.Height,
 		})
-		if err != nil {
-			logger.Error("error while uploading place photos", zap.Error(err))
-			return nil, fmt.Errorf("internal resolver error")
-		}
+	}
+	err = placeService.UploadPlacePhotoInPlan(ctx, uploadPlacePhotoInPlanInput)
+	if err != nil {
+		logger.Error("error while uploading place photos", zap.Error(err))
+		return nil, fmt.Errorf("internal resolver error")
 	}
 
 	planService, err := plan.NewService(ctx, r.DB)

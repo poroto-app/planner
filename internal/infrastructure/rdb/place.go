@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/friendsofgo/errors"
-	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -574,27 +573,57 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	return nil
 }
 
-func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
+func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		found, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
-		if err != nil {
-			return fmt.Errorf("error while checking place photo exists: %w", err)
-		}
-		if found {
-			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
-			return nil
+		var placeIdsToVerify []string
+		var placeSlice []*generated.Place
+		for _, photo := range photos {
+			if array.IsContain(placeIdsToVerify, photo.PlaceId) {
+				continue
+			}
+			placeIdsToVerify = append(placeIdsToVerify, photo.PlaceId)
+			placeToVerify, err := generated.Places(
+				generated.PlaceWhere.ID.EQ(photo.PlaceId),
+				qm.Load(generated.PlaceRels.PlacePhotos),
+			).One(ctx, tx)
+			if err != nil {
+				return fmt.Errorf("failed to find place: %wplace id: %s", err, photo.PlaceId)
+			}
+			placeSlice = append(placeSlice, placeToVerify)
 		}
 
-		placePhoto := generated.PlacePhoto{
-			ID:       uuid.New().String(),
-			PlaceID:  placeId,
-			UserID:   userId,
-			PhotoURL: photoUrl,
-			Width:    width,
-			Height:   height,
+		var placePhotoDomainModelToSave []*models.PlacePhoto
+		for _, placeEntity := range placeSlice {
+			placePhotoDomainModelNotSaved := array.MapAndFilter(photos, func(photo models.PlacePhoto) (*models.PlacePhoto, bool) {
+				if _, found := array.Find(placeEntity.R.PlacePhotos, func(savedPlacePhotoEntity *generated.PlacePhoto) bool {
+					if savedPlacePhotoEntity == nil {
+						return false
+					}
+					// 異なるPlaceに対しては無条件にスキップ
+					if savedPlacePhotoEntity.PlaceID != photo.PlaceId {
+						return true
+					}
+
+					return savedPlacePhotoEntity.PhotoURL == photo.PhotoUrl
+				}); found {
+					p.logger.Debug(
+						"skip place photo because already exists",
+						zap.String("place_id", photo.PlaceId),
+						zap.String("photo_url", photo.PhotoUrl),
+					)
+					return nil, false
+				}
+				return &photo, true
+			})
+			placePhotoDomainModelToSave = append(placePhotoDomainModelToSave, placePhotoDomainModelNotSaved...)
 		}
-		if err := placePhoto.Insert(ctx, tx, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert place photo: %w", err)
+
+		if placePhotoDomainModelToSave == nil {
+			return nil
+		}
+		placePhotoSlice := factory.NewPlacePhotoSliceFromDomainModel(placePhotoDomainModelToSave)
+		if _, err := placePhotoSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place photo slice: %w", err)
 		}
 		return nil
 	}); err != nil {
