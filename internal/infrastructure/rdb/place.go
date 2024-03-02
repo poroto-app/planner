@@ -575,6 +575,7 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		// 画像の対象となる PlaceEntity を取得
 		var placeIdsToVerify []string
 		var placeSlice []*generated.Place
 		for _, photo := range photos {
@@ -599,11 +600,11 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.Pl
 					if savedPlacePhotoEntity == nil {
 						return false
 					}
-					// 異なるPlaceに対しては無条件にスキップ
+					// 検証対象の Place が異なる場合はスキップ
 					if savedPlacePhotoEntity.PlaceID != photo.PlaceId {
 						return true
 					}
-
+					// すでに保存済みのものはスキップ
 					return savedPlacePhotoEntity.PhotoURL == photo.PhotoUrl
 				}); found {
 					p.logger.Debug(
