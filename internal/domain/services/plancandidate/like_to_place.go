@@ -50,10 +50,10 @@ func (s Service) LikeToPlaceInPlanCandidate(
 		}
 	}
 
-	placeCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateId)
+	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate after updating: %v", err)
 	}
 
-	return placeCandidate, nil
+	return planCandidate, nil
 }
