@@ -179,14 +179,13 @@ func (s Service) createPlan(ctx context.Context, input CreatePlanByLocationInput
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			PlanCandidateId:          input.PlanCandidateId,
-			LocationStart:            input.LocationStart,
-			PlaceStart:               placeRecommend,
-			Places:                   places,
-			PlacesOtherPlansContain:  placesInPlan,
-			FreeTime:                 input.FreeTime,
-			CategoryNamesDisliked:    input.CategoryNamesDisliked,
-			ShouldOpenWhileTraveling: shouldOpenWhileTraveling,
+			PlanCandidateId:         input.PlanCandidateId,
+			LocationStart:           input.LocationStart,
+			PlaceStart:              placeRecommend,
+			Places:                  places,
+			PlacesOtherPlansContain: placesInPlan,
+			FreeTime:                input.FreeTime,
+			CategoryNamesDisliked:   input.CategoryNamesDisliked,
 		},
 	)
 	if err != nil {
