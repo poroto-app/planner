@@ -118,7 +118,8 @@ type ComplexityRoot struct {
 	}
 
 	LikeToPlaceInPlanOutput struct {
-		Plan func(childComplexity int) int
+		LikedPlaceIds func(childComplexity int) int
+		Plan          func(childComplexity int) int
 	}
 
 	LocationCategory struct {
@@ -529,6 +530,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LikeToPlaceInPlanCandidateOutput.PlanCandidate(childComplexity), true
+
+	case "LikeToPlaceInPlanOutput.likedPlaceIds":
+		if e.complexity.LikeToPlaceInPlanOutput.LikedPlaceIds == nil {
+			break
+		}
+
+		return e.complexity.LikeToPlaceInPlanOutput.LikedPlaceIds(childComplexity), true
 
 	case "LikeToPlaceInPlanOutput.plan":
 		if e.complexity.LikeToPlaceInPlanOutput.Plan == nil {
@@ -1655,6 +1663,7 @@ input LikeToPlaceInPlanInput {
 
 type LikeToPlaceInPlanOutput {
     plan: Plan!
+    likedPlaceIds: [String!]!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
     plan(input: PlanInput!): PlanOutput!
@@ -3751,6 +3760,50 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_plan(ctx contex
 	return fc, nil
 }
 
+func (ec *executionContext) _LikeToPlaceInPlanOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikedPlaceIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LikeToPlaceInPlanOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LocationCategory_name(ctx context.Context, field graphql.CollectedField, obj *model.LocationCategory) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LocationCategory_name(ctx, field)
 	if err != nil {
@@ -4683,6 +4736,8 @@ func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlan(ctx context.
 			switch field.Name {
 			case "plan":
 				return ec.fieldContext_LikeToPlaceInPlanOutput_plan(ctx, field)
+			case "likedPlaceIds":
+				return ec.fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LikeToPlaceInPlanOutput", field.Name)
 		},
@@ -11669,6 +11724,11 @@ func (ec *executionContext) _LikeToPlaceInPlanOutput(ctx context.Context, sel as
 			out.Values[i] = graphql.MarshalString("LikeToPlaceInPlanOutput")
 		case "plan":
 			out.Values[i] = ec._LikeToPlaceInPlanOutput_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likedPlaceIds":
+			out.Values[i] = ec._LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

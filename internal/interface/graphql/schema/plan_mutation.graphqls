@@ -28,4 +28,5 @@ input LikeToPlaceInPlanInput {
 
 type LikeToPlaceInPlanOutput {
     plan: Plan!
+    likedPlaceIds: [String!]!
 }
