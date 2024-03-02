@@ -448,6 +448,10 @@ func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId stri
 		}
 		return userLikePlace.PlaceID, true
 	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
 
 	places := make([]models.Place, 0, len(userLikePlaces))
 	for _, userLikePlace := range userLikePlaces {
