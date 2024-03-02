@@ -14,6 +14,7 @@ import (
 type Service struct {
 	planRepository          repository.PlanRepository
 	planCandidateRepository repository.PlanCandidateRepository
+	placeRepository         repository.PlaceRepository
 	userService             *user.Service
 	logger                  *zap.Logger
 }
@@ -25,6 +26,11 @@ func NewService(ctx context.Context, db *sql.DB) (*Service, error) {
 	}
 
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
+	if err != nil {
+		return nil, err
+	}
+
+	placeRepository, err := rdb.NewPlaceRepository(db)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +47,7 @@ func NewService(ctx context.Context, db *sql.DB) (*Service, error) {
 	return &Service{
 		planRepository:          planRepository,
 		planCandidateRepository: planCandidateRepository,
+		placeRepository:         placeRepository,
 		userService:             userService,
 		logger:                  logger,
 	}, err

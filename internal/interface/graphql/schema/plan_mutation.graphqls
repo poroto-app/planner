@@ -1,5 +1,6 @@
 extend type Mutation {
     uploadPlacePhotoInPlan(planId: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
@@ -12,5 +13,17 @@ input UploadPlacePhotoInPlanInput {
 }
 
 type UploadPlacePhotoInPlanOutput {
+    plan: Plan!
+}
+
+input LikeToPlaceInPlanInput {
+    userId: String!
+    firebaseAuthToken: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanOutput {
     plan: Plan!
 }

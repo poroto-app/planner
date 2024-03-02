@@ -144,6 +144,8 @@ type AutoReorderPlacesInPlanCandidateOutput {
 }
 
 input LikeToPlaceInPlanCandidateInput {
+    userId: String
+    firebaseAuthToken: String
     planCandidateId: String!
     placeId: String!
     like: Boolean!

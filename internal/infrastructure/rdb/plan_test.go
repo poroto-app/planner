@@ -246,6 +246,124 @@ func TestPlanRepository_Find(t *testing.T) {
 	}
 }
 
+func TestPlanRepository_Find_WithPlaceLikeCount(t *testing.T) {
+	cases := []struct {
+		name                                   string
+		savedPlaces                            []models.Place
+		savedUsers                             generated.UserSlice
+		savedPlans                             []models.Plan
+		savedPlanCandidateSets                 generated.PlanCandidateSetSlice
+		savedPlanCandidateSetLikePlaceEntities generated.PlanCandidateSetLikePlaceSlice
+		savedUserLikePlaceEntities             generated.UserLikePlaceSlice
+		planId                                 string
+		expected                               models.Plan
+	}{
+		{
+			name: "should find plan with place like count",
+			savedPlaces: []models.Place{
+				{Id: "test-place-1", Google: models.GooglePlace{PlaceId: "test-google-place-1"}},
+				{Id: "test-place-2", Google: models.GooglePlace{PlaceId: "test-google-place-2"}},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "test-user-1", FirebaseUID: uuid.New().String()},
+				{ID: "test-user-2", FirebaseUID: uuid.New().String()},
+			},
+			savedPlans: []models.Plan{
+				{
+					Id:   "test-plan-1",
+					Name: "plan title",
+					Places: []models.Place{
+						{Id: "test-place-1"},
+						{Id: "test-place-2"},
+					},
+				},
+			},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "test-plan-candidate-set-1", ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local)},
+				{ID: "test-plan-candidate-set-2", ExpiresAt: time.Date(2020, 12, 2, 0, 0, 0, 0, time.Local)},
+			},
+			savedPlanCandidateSetLikePlaceEntities: generated.PlanCandidateSetLikePlaceSlice{
+				{ID: uuid.New().String(), PlanCandidateSetID: "test-plan-candidate-set-1", PlaceID: "test-place-1"},
+				{ID: uuid.New().String(), PlanCandidateSetID: "test-plan-candidate-set-1", PlaceID: "test-place-2"},
+				{ID: uuid.New().String(), PlanCandidateSetID: "test-plan-candidate-set-2", PlaceID: "test-place-1"},
+			},
+			savedUserLikePlaceEntities: generated.UserLikePlaceSlice{
+				{ID: uuid.New().String(), UserID: "test-user-1", PlaceID: "test-place-1"},
+				{ID: uuid.New().String(), UserID: "test-user-1", PlaceID: "test-place-2"},
+				{ID: uuid.New().String(), UserID: "test-user-2", PlaceID: "test-place-1"},
+			},
+			planId: "test-plan-1",
+			expected: models.Plan{
+				Id:   "test-plan-1",
+				Name: "plan title",
+				Places: []models.Place{
+					{
+						Id:        "test-place-1",
+						Google:    models.GooglePlace{PlaceId: "test-google-place-1"},
+						LikeCount: 4,
+					},
+					{
+						Id:        "test-place-2",
+						Google:    models.GooglePlace{PlaceId: "test-google-place-2"},
+						LikeCount: 2,
+					},
+				},
+			},
+		},
+	}
+
+	planRepository, err := NewPlanRepository(testDB)
+	if err != nil {
+		t.Errorf("error initializing plan repository: %v", err)
+	}
+
+	for _, c := range cases {
+		c := c
+		textContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				if err := cleanup(textContext, planRepository.GetDB()); err != nil {
+					t.Errorf("error cleaning up: %v", err)
+				}
+			})
+
+			// 事前に User・Place・Plan・PlanCandidateSet・PlanCandidateSetLikePlace・UserLikePlace を保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
+			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {
+				t.Errorf("error saving places: %v", err)
+			}
+
+			if err := savePlans(textContext, planRepository.GetDB(), c.savedPlans); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSets.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate set: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSetLikePlaceEntities.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate set like place: %v", err)
+			}
+
+			if _, err := c.savedUserLikePlaceEntities.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user like place: %v", err)
+			}
+
+			plan, err := planRepository.Find(textContext, c.planId)
+			if err != nil {
+				t.Errorf("error finding plan: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expected, *plan); diff != "" {
+				t.Errorf("plan mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestPlanRepository_FindByAuthorId(t *testing.T) {
 	cases := []struct {
 		name        string
