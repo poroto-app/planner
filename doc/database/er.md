@@ -226,8 +226,8 @@ erDiagram
         char(36) place_id FK "UNIQUE(user_id, place_id)"
     }
 
-    plan_candidate_set_like_places }o..|| places: "N:1"
     plan_candidate_set_like_places }o..|| plan_candidate_sets: "N:1"
+    plan_candidate_set_like_places }o..|| places: "N:1"
     user_like_places o|..|| places: "N:1"
     user_like_places o|..|| users: "N:1"
 ```
