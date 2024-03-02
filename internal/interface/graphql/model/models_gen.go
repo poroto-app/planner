@@ -252,7 +252,9 @@ type PlanCandidate struct {
 }
 
 type PlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
+	PlanCandidateID   string  `json:"planCandidateId"`
+	UserID            *string `json:"userId,omitempty"`
+	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
 }
 
 type PlanCandidateOutput struct {

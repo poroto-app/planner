@@ -1599,6 +1599,8 @@ type LikeToPlaceInPlanCandidateOutput {
 
 input PlanCandidateInput {
     planCandidateId: ID!
+    userId: String
+    firebaseAuthToken: String
 }
 
 type PlanCandidateOutput {
@@ -10894,7 +10896,7 @@ func (ec *executionContext) unmarshalInputPlanCandidateInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId"}
+	fieldsInOrder := [...]string{"planCandidateId", "userId", "firebaseAuthToken"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10910,6 +10912,24 @@ func (ec *executionContext) unmarshalInputPlanCandidateInput(ctx context.Context
 				return it, err
 			}
 			it.PlanCandidateID = data
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
 		}
 	}
 
