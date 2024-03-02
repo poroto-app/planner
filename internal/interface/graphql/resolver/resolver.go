@@ -5,6 +5,7 @@ package resolver
 import (
 	"database/sql"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 )
 
@@ -16,4 +17,5 @@ type Resolver struct {
 	Logger      *zap.Logger
 	DB          *sql.DB
 	UserService *user.Service
+	PlanService *plan.Service
 }
