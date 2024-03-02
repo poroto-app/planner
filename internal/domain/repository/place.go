@@ -23,4 +23,6 @@ type PlaceRepository interface {
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error
+
+	UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error
 }

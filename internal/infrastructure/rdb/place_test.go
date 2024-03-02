@@ -1507,3 +1507,96 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaceRepository_UpdateLikeByUserId(t *testing.T) {
+	cases := []struct {
+		name                string
+		userId              string
+		placeId             string
+		liked               bool
+		savedUsers          []generated.User
+		savedPlaces         []generated.Place
+		savedUserLikePlaces []generated.UserLikePlace
+		expectedExists      bool
+	}{
+		{
+			name:    "like place by user",
+			userId:  "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			placeId: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			liked:   true,
+			savedUsers: []generated.User{
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
+			},
+			savedPlaces: []generated.Place{
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
+			},
+			savedUserLikePlaces: []generated.UserLikePlace{},
+			expectedExists:      true,
+		},
+		{
+			name:    "unlike place by user",
+			userId:  "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			placeId: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			liked:   false,
+			savedUsers: []generated.User{
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
+			},
+			savedPlaces: []generated.Place{
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
+			},
+			savedUserLikePlaces: []generated.UserLikePlace{
+				{
+					UserID:  "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				},
+			},
+			expectedExists: false,
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	testContext := context.Background()
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にUser・Placeを保存しておく
+			for _, user := range c.savedUsers {
+				if err := user.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("failed to insert user: %v", err)
+				}
+			}
+			for _, place := range c.savedPlaces {
+				if err := place.Insert(testContext, testDB, boil.Infer()); err != nil {
+					t.Fatalf("failed to insert place: %v", err)
+				}
+			}
+
+			if err := placeRepository.UpdateLikeByUserId(testContext, c.userId, c.placeId, c.liked); err != nil {
+				t.Fatalf("error while updating like by user id: %v", err)
+			}
+
+			isUserLikePlaceExists, err := generated.UserLikePlaces(
+				generated.UserLikePlaceWhere.UserID.EQ(c.userId),
+				generated.UserLikePlaceWhere.PlaceID.EQ(c.placeId),
+			).Exists(testContext, testDB)
+			if err != nil {
+				t.Fatalf("error while checking user like place existence: %v", err)
+			}
+
+			if isUserLikePlaceExists != c.expectedExists {
+				t.Fatalf("expected: %v, actual: %v", c.expectedExists, isUserLikePlaceExists)
+			}
+		})
+	}
+}
