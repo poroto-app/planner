@@ -8,6 +8,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placesearch"
+	"sort"
 )
 
 // CreatePlanByLocationInput
@@ -67,13 +68,11 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		zap.Int("Places", len(places)),
 	)
 
-	// プラン作成の基準となる場所を選択
-	var placesRecommend []models.Place
+	var createPlanParams []CreatePlanParams
 
-	// 指定された場所の情報を取得する
+	// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 	if input.GooglePlaceId != nil {
-		// TODO: 他のplacesRecommendが指定された場所と近くならないようにする
-		place, found, err := s.findOrFetchPlaceById(ctx, input.PlanCandidateId, places, *input.GooglePlaceId)
+		place, _, err := s.findOrFetchPlaceById(ctx, input.PlanCandidateId, places, *input.GooglePlaceId)
 		if err != nil {
 			s.logger.Warn(
 				"error while fetching place",
@@ -82,40 +81,52 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 			)
 		}
 
-		// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 		if place != nil && array.IsContain(place.Google.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
-			placesRecommend = append(placesRecommend, *place)
-			if !found {
-				places = append(places, *place)
+			createPlanParam := s.CreatePlan(input, places, *place, createPlanParams)
+			if createPlanParam != nil {
+				createPlanParams = append(createPlanParams, *createPlanParam)
 			}
 		}
 	}
 
-	placesRecommend = append(placesRecommend, s.SelectBasePlace(SelectBasePlaceInput{
-		BaseLocation:           input.LocationStart,
-		Places:                 places,
-		CategoryNamesPreferred: input.CategoryNamesPreferred,
-		CategoryNamesDisliked:  input.CategoryNamesDisliked,
-		MaxBasePlaceCount:      10, // 選択した場所からプランが作成できないこともあるため、多めに取得する
-	})...)
-	for _, place := range placesRecommend {
-		s.logger.Debug(
-			"place recommended",
-			zap.String("place", place.Google.Name),
-		)
-	}
-
-	// 最もおすすめ度が高い３つの場所を基準にプランを作成する
-	var createPlanParams []CreatePlanParams
-	for _, placeRecommend := range placesRecommend {
-		createPlanParam := s.createPlan(ctx, input, places, placeRecommend, createPlanParams, input.ShouldOpenWhileTraveling)
-		if createPlanParam != nil {
-			createPlanParams = append(createPlanParams, *createPlanParam)
-		}
-
+	for filterDistance := 500; filterDistance <= 1500; filterDistance += 400 {
 		if len(createPlanParams) >= 3 {
 			break
 		}
+
+		placesAlreadyAdded := array.FlatMap(createPlanParams, func(param CreatePlanParams) []models.Place {
+			return param.Places
+		})
+
+		placesForPlanStart := s.SelectBasePlace(SelectBasePlaceInput{
+			BaseLocation:      input.LocationStart,
+			Places:            places,
+			IgnorePlaces:      placesAlreadyAdded,
+			MaxBasePlaceCount: 10,
+			Radius:            filterDistance,
+		})
+
+		var createPlanParamsInRange []CreatePlanParams
+		for _, basePlace := range placesForPlanStart {
+			createPlanParam := s.CreatePlan(input, places, basePlace, createPlanParams)
+			if createPlanParam != nil {
+				createPlanParamsInRange = append(createPlanParamsInRange, *createPlanParam)
+			}
+		}
+
+		if len(createPlanParamsInRange) == 0 {
+			s.logger.Debug(
+				"no plan created",
+				zap.Int("filterDistance", filterDistance),
+			)
+			continue
+		}
+
+		// もっとも場所の数が多いプランを追加する
+		sort.SliceStable(createPlanParamsInRange, func(i, j int) bool {
+			return len(createPlanParamsInRange[i].Places) > len(createPlanParamsInRange[j].Places)
+		})
+		createPlanParams = append(createPlanParams, createPlanParamsInRange[0])
 	}
 
 	plans := s.createPlanData(ctx, input.PlanCandidateId, createPlanParams...)
@@ -170,24 +181,21 @@ func (s Service) findOrFetchPlaceById(
 	return place, false, nil
 }
 
-func (s Service) createPlan(ctx context.Context, input CreatePlanByLocationInput, places []models.Place, placeRecommend models.Place, createdPlanParams []CreatePlanParams, shouldOpenWhileTraveling bool) *CreatePlanParams {
+func (s Service) CreatePlan(input CreatePlanByLocationInput, places []models.Place, placeRecommend models.Place, createdPlanParams []CreatePlanParams) *CreatePlanParams {
 	var placesInPlan []models.Place
 	for _, createPlanParam := range createdPlanParams {
-		placesInPlan = append(placesInPlan, createPlanParam.places...)
+		placesInPlan = append(placesInPlan, createPlanParam.Places...)
 	}
 
-	planPlaces, err := s.createPlanPlaces(
-		ctx,
-		CreatePlanPlacesParams{
-			PlanCandidateId:         input.PlanCandidateId,
-			LocationStart:           input.LocationStart,
-			PlaceStart:              placeRecommend,
-			Places:                  places,
-			PlacesOtherPlansContain: placesInPlan,
-			FreeTime:                input.FreeTime,
-			CategoryNamesDisliked:   input.CategoryNamesDisliked,
-		},
-	)
+	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
+		PlanCandidateId:         input.PlanCandidateId,
+		LocationStart:           placeRecommend.Location,
+		PlaceStart:              placeRecommend,
+		Places:                  places,
+		PlacesOtherPlansContain: placesInPlan,
+		FreeTime:                input.FreeTime,
+		CategoryNamesDisliked:   input.CategoryNamesDisliked,
+	})
 	if err != nil {
 		s.logger.Warn(
 			"error while creating plan",
@@ -198,8 +206,8 @@ func (s Service) createPlan(ctx context.Context, input CreatePlanByLocationInput
 	}
 
 	return &CreatePlanParams{
-		locationStart: input.LocationStart,
-		placeStart:    placeRecommend,
-		places:        planPlaces,
+		LocationStart: input.LocationStart,
+		PlaceStart:    placeRecommend,
+		Places:        planPlaces,
 	}
 }

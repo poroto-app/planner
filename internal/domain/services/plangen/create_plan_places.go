@@ -1,9 +1,9 @@
 package plangen
 
 import (
-	"context"
 	"fmt"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
@@ -15,7 +15,7 @@ const (
 	placeDistanceRangeInPlan = 500 // 徒歩5分以内
 )
 
-type CreatePlanPlacesParams struct {
+type CreatePlanPlacesInput struct {
 	PlanCandidateId         string
 	LocationStart           models.GeoLocation
 	PlaceStart              models.Place
@@ -26,108 +26,31 @@ type CreatePlanPlacesParams struct {
 	MaxPlace                int
 }
 
-// createPlanPlaces プランの候補地となる場所を作成する
-func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesParams) ([]models.Place, error) {
-	if params.PlanCandidateId == "" {
+// CreatePlanPlaces プランの候補地となる場所を作成する
+func (s Service) CreatePlanPlaces(input CreatePlanPlacesInput) ([]models.Place, error) {
+	if input.PlanCandidateId == "" {
 		panic("PlanCandidateId is required")
 	}
 
-	if params.MaxPlace == 0 {
-		params.MaxPlace = defaultMaxPlaceInPlan
+	if input.MaxPlace == 0 {
+		input.MaxPlace = defaultMaxPlaceInPlan
 	}
 
-	placesFiltered := params.Places
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:              placesFiltered,
-		StartLocation:       params.LocationStart,
-		IgnoreDistanceRange: placeDistanceRangeInPlan,
-	})
-	s.logger.Debug("places after filtering by distance", zap.Int("places", len(placesFiltered)))
-
-	// ユーザーが拒否した場所は取り除く
-	if params.CategoryNamesDisliked != nil {
-		categoriesDisliked := models.GetCategoriesFromSubCategories(*params.CategoryNamesDisliked)
-		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
-		s.logger.Debug("places after filtering by disliked categories", zap.Int("places", len(placesFiltered)))
-	}
-
-	// 他のプランに含まれている場所を除外する
-	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
-		if params.PlacesOtherPlansContain == nil {
-			return true
-		}
-
-		for _, placeOtherPlanContain := range params.PlacesOtherPlansContain {
-			if place.Id == placeOtherPlanContain.Id {
-				return false
-			}
-		}
-		return true
-	})
-	s.logger.Debug("places after filtering by other plans", zap.Int("places", len(placesFiltered)))
-
-	// レビューの高い順でソート
-	placesSorted := models.SortPlacesByRating(placesFiltered)
-
+	/**
+	* プラン作成の方針
+	* 1. スタート地点から近い場所の中で、レビューの高い場所を選択
+	* 2. その場所から近い場所の中で、レビューの高い場所を選択
+	* 3. 1, 2を繰り返し、プランに含まれる場所がMaxPlaceに達するまで続ける
+	 */
 	placesInPlan := make([]models.Place, 0)
-
-	// 指定された場所を基準としてプランを作成するときは必ず含める
-	if params.LocationStart.Equal(params.PlaceStart.Location) {
-		placesInPlan = append(placesInPlan, params.PlaceStart)
-	}
-
-	for _, place := range placesSorted {
-		// プランに含まれる場所の数が上限に達したら終了
-		if len(placesInPlan) >= params.MaxPlace {
-			s.logger.Debug(
-				"skip place because the number of Places in plan is over",
-				zap.String("place", place.Google.Name),
-				zap.Int("MaxPlace", params.MaxPlace),
-				zap.Int("placesInPlan", len(placesInPlan)),
-			)
+	placesInPlan = append(placesInPlan, input.PlaceStart)
+	for len(placesInPlan) < input.MaxPlace {
+		prevPlace := placesInPlan[len(placesInPlan)-1]
+		nextPlace := s.getNextPlaceForPlan(prevPlace, placesInPlan, input, placeDistanceRangeInPlan)
+		if nextPlace == nil {
 			break
 		}
-
-		if place.Id == params.PlaceStart.Id {
-			continue
-		}
-
-		// 飲食店を複数回含めない
-		if isAlreadyHavePlaceCategoryOf(placesInPlan, models.FoodCategories()) && isCategoryOf(place.Google.Types, models.FoodCategories()) {
-			s.logger.Debug(
-				"skip place because the cafe or restaurant is already in plan",
-				zap.String("place", place.Google.Name),
-			)
-			continue
-		}
-
-		// 最適経路で巡ったときの所要時間を計算
-		sortedByDistance := sortPlacesByDistanceFrom(params.LocationStart, append(placesInPlan, place))
-		timeInPlan := planTimeFromPlaces(params.LocationStart, sortedByDistance)
-
-		// 予定の時間内に収まらない場合はスキップ
-		if params.FreeTime != nil && timeInPlan > uint(*params.FreeTime) {
-			s.logger.Debug(
-				"skip place because it will be over time",
-				zap.String("place", place.Google.Name),
-				zap.Uint("timeInPlan", timeInPlan),
-				zap.Int("FreeTime", *params.FreeTime),
-			)
-			continue
-		}
-
-		// 予定の時間を指定しない場合、3時間を超える場合はスキップ
-		if params.FreeTime == nil && timeInPlan > defaultMaxPlanDuration {
-			s.logger.Debug(
-				"skip place because it will be over time",
-				zap.String("place", place.Google.Name),
-				zap.Uint("timeInPlan", timeInPlan),
-				zap.Int("defaultMaxPlanDuration", defaultMaxPlanDuration),
-			)
-			continue
-		}
-
-		placesInPlan = append(placesInPlan, place)
+		placesInPlan = append(placesInPlan, *nextPlace)
 	}
 
 	if len(placesInPlan) == 0 {
@@ -136,6 +59,114 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 
 	return placesInPlan, nil
 }
+
+func (s Service) getNextPlaceForPlan(prevPlace models.Place, placesInPlan []models.Place, input CreatePlanPlacesInput, placeDistanceRangeInPlan float64) *models.Place {
+	// 最後に追加した場所から近い場所を選択
+	placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:              input.Places,
+		StartLocation:       prevPlace.Location,
+		IgnoreDistanceRange: placeDistanceRangeInPlan,
+	})
+	s.logger.Debug("Places after filtering by default ignore", zap.Int("Places", len(placesFiltered)))
+
+	// ユーザーが拒否した場所は取り除く
+	if input.CategoryNamesDisliked != nil {
+		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+		s.logger.Debug("Places after filtering by disliked categories", zap.Int("Places", len(placesFiltered)))
+	}
+
+	// 他のプランに含まれている場所を除外する
+	placesFiltered = placefilter.FilterPlaces(placesFiltered, func(place models.Place) bool {
+		if input.PlacesOtherPlansContain == nil {
+			return true
+		}
+
+		for _, placeOtherPlanContain := range input.PlacesOtherPlansContain {
+			if place.Id == placeOtherPlanContain.Id {
+				return false
+			}
+		}
+		return true
+	})
+	s.logger.Debug("places after filtering by other plans", zap.Int("places", len(placesFiltered)))
+
+	if len(placesFiltered) == 0 {
+		return nil
+	}
+
+	// レビューの高い場所からプランに含められる場所を選択
+	for _, place := range models.SortPlacesByRating(placesFiltered) {
+		if s.checkForIncludeForPlan(place, placesInPlan, input) {
+			return &place
+		}
+	}
+
+	return nil
+}
+
+func (s Service) checkForIncludeForPlan(
+	place models.Place,
+	placesInPlan []models.Place,
+	input CreatePlanPlacesInput,
+) bool {
+	// すでにプランに含まれている場所はスキップ
+	if _, isAlreadyInPlan := array.Find(placesInPlan, func(p models.Place) bool {
+		return p.Id == place.Id
+	}); isAlreadyInPlan {
+		return false
+	}
+
+	// メインカテゴリが飲食店の場所が、一定数以上含まれないようにする
+	for _, condition := range []struct {
+		category            models.LocationCategory
+		numPlacesCanContain int
+	}{
+		{models.CategoryRestaurant, 1},
+		{models.CategoryCafe, 2},
+		{models.CategoryBakery, 2},
+	} {
+		if place.MainCategory() == nil || !place.MainCategory().IsCategoryOf(condition.category) {
+			continue
+		}
+
+		placesInPlanWithCategory := array.Filter(placesInPlan, func(placeInPlan models.Place) bool {
+			if placeInPlan.MainCategory() == nil {
+				return false
+			}
+			return placeInPlan.MainCategory().IsCategoryOf(condition.category)
+		})
+		if len(placesInPlanWithCategory) >= condition.numPlacesCanContain {
+			s.logger.Debug(
+				fmt.Sprintf("skip place because the %d %s places are already in plan", condition.numPlacesCanContain, condition.category.Name),
+				zap.String("place", place.Google.Name),
+			)
+			return false
+		}
+	}
+
+	// 最適経路で巡ったときの所要時間が予定の時間を超える場合はスキップ
+	sortedByDistance := sortPlacesByDistanceFrom(input.LocationStart, append(placesInPlan, place))
+	timeInPlan := planTimeFromPlaces(input.LocationStart, sortedByDistance)
+	if input.FreeTime != nil && timeInPlan > uint(*input.FreeTime) {
+		s.logger.Debug(
+			"skip place because it will be over time",
+			zap.String("place", place.Google.Name),
+			zap.Uint("timeInPlan", timeInPlan),
+			zap.Int("FreeTime", *input.FreeTime),
+		)
+
+		return false
+	}
+
+	// 予定の時間を指定しない場合、3時間を超える場合はスキップ
+	if input.FreeTime == nil && timeInPlan > defaultMaxPlanDuration {
+		s.logger.Debug(
+			"skip place because it will be over time",
+			zap.String("place", place.Google.Name),
+			zap.Uint("timeInPlan", timeInPlan),
+			zap.Int("defaultMaxPlanDuration", defaultMaxPlanDuration),
+		)
 
 		return false
 	}
