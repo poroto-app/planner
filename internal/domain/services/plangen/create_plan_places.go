@@ -12,7 +12,7 @@ const (
 	defaultMaxPlanDuration = 180
 	defaultMaxPlaceInPlan  = 4
 
-	placeDistanceRangeInPlan = 1500
+	placeDistanceRangeInPlan = 500 // 徒歩5分以内
 )
 
 type CreatePlanPlacesParams struct {
