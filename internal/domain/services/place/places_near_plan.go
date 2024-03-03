@@ -3,6 +3,7 @@ package place
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
@@ -46,6 +47,14 @@ func (s Service) FetchPlacesNearPlan(ctx context.Context, input PlacesNearPlanIn
 		Places:              places,
 		StartLocation:       planLocation,
 		IgnoreDistanceRange: input.Radius,
+	})
+
+	// プランに含まれている場所を除外する
+	placesFiltered = array.Filter(placesFiltered, func(place models.Place) bool {
+		_, isPlaceInPlan := array.Find(plan.Places, func(placeInPlan models.Place) bool {
+			return placeInPlan.Id == place.Id
+		})
+		return !isPlaceInPlan
 	})
 
 	// レビューの高い順に並び替える
