@@ -13,6 +13,8 @@ import (
 type Service struct {
 	placeSearchService      placesearch.Service
 	planCandidateRepository repository.PlanCandidateRepository
+	planRepository          repository.PlanRepository
+	placeRepository         repository.PlaceRepository
 	logger                  zap.Logger
 }
 
@@ -20,6 +22,16 @@ func NewService(db *sql.DB) (*Service, error) {
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
+	}
+
+	planRepository, err := rdb.NewPlanRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing plan repository: %v", err)
+	}
+
+	placeRepository, err := rdb.NewPlaceRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
 	placeSearchService, err := placesearch.NewPlaceSearchService(db)
@@ -37,6 +49,8 @@ func NewService(db *sql.DB) (*Service, error) {
 	return &Service{
 		placeSearchService:      *placeSearchService,
 		planCandidateRepository: planCandidateRepository,
+		placeRepository:         placeRepository,
+		planRepository:          planRepository,
 		logger:                  *logger,
 	}, nil
 }
