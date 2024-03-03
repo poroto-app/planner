@@ -6,6 +6,45 @@ import (
 	"testing"
 )
 
+func TestLocationCategory_IsCategoryOf(t *testing.T) {
+	cases := []struct {
+		name       string
+		category   LocationCategory
+		categories []LocationCategory
+		expected   bool
+	}{
+		{
+			name:       "CategoryRestaurant is CategoryRestaurant",
+			category:   CategoryRestaurant,
+			categories: []LocationCategory{CategoryRestaurant},
+			expected:   true,
+		},
+		{
+			name:       "CategoryRestaurant is not CategoryCafe",
+			category:   CategoryRestaurant,
+			categories: []LocationCategory{CategoryCafe},
+			expected:   false,
+		},
+		{
+			name:       "CategoryRestaurant is CategoryRestaurant and CategoryCafe",
+			category:   CategoryRestaurant,
+			categories: []LocationCategory{CategoryRestaurant, CategoryCafe},
+			expected:   true,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := c.category.IsCategoryOf(c.categories...)
+			if result != c.expected {
+				t.Errorf("expected: %v\nactual: %v", result, c.expected)
+			}
+		})
+	}
+}
+
 func TestGetCategoryOfName(t *testing.T) {
 	cases := []struct {
 		name         string
