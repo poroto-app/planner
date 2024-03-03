@@ -68,12 +68,37 @@ func ShufflePlaces(places []Place) []Place {
 	return placesCopy
 }
 
+// WilsonScoreLowerBound Wilson score confidence interval for a Bernoulli parameter
+func WilsonScoreLowerBound(averageRating float64, totalReviews int, confidence float64, maxRating float64) float64 {
+	if totalReviews == 0 {
+		return 0
+	}
+
+	// Proportion of positive reviews, estimated from the average rating
+	// Assuming that the maximum rating is 5
+	p := averageRating / maxRating
+
+	// Z-score for the desired confidence level (e.g., 1.96 for 95% confidence)
+	z := confidence
+
+	// Calculate the lower bound
+	denominator := 1 + z*z/float64(totalReviews)
+	center := p + z*z/(2*float64(totalReviews))
+	margin := z * math.Sqrt(p*(1-p)/float64(totalReviews)+z*z/(4*float64(totalReviews)*float64(totalReviews)))
+	lowerBound := (center - margin) / denominator
+
+	return lowerBound
+}
+
+// SortPlacesByRating 場所を評価の高い順に並び替える
 func SortPlacesByRating(places []Place) []Place {
 	placesCopy := make([]Place, len(places))
 	copy(placesCopy, places)
 
 	sort.SliceStable(placesCopy, func(i, j int) bool {
-		return placesCopy[i].Google.Rating > placesCopy[j].Google.Rating
+		wilsonScorePlaceI := WilsonScoreLowerBound(float64(placesCopy[i].Google.Rating), placesCopy[i].Google.UserRatingsTotal, 0.95, 5)
+		wilsonScorePlaceJ := WilsonScoreLowerBound(float64(placesCopy[j].Google.Rating), placesCopy[j].Google.UserRatingsTotal, 0.95, 5)
+		return wilsonScorePlaceI > wilsonScorePlaceJ
 	})
 
 	return placesCopy
