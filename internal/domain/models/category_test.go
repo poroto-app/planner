@@ -34,9 +34,9 @@ func TestLocationCategory_IsCategoryOf(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
-
 			result := c.category.IsCategoryOf(c.categories...)
 			if result != c.expected {
 				t.Errorf("expected: %v\nactual: %v", result, c.expected)
