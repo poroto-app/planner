@@ -585,6 +585,7 @@ func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.Pl
 			).Exists(ctx, tx); err != nil {
 				return fmt.Errorf("failed to check place photo exists: %w", err)
 			} else if alreadySaved {
+				// すでに保存済みの場合はスキップ
 				continue
 			}
 
