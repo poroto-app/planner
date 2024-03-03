@@ -8,6 +8,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+// CreatePlanFromPlace 指定した場所を起点としてプランを作成する
 func (s Service) CreatePlanFromPlace(
 	ctx context.Context,
 	createPlanSessionId string,

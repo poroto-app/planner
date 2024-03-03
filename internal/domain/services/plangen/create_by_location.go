@@ -11,8 +11,13 @@ import (
 	"sort"
 )
 
+const (
+	defaultMaxDistanceFromStart = 1500
+)
+
 // CreatePlanByLocationInput
 // GooglePlaceId が指定された場合は、その場所を起点としてプランを作成する
+// MaxDistanceFromStart は、プランの起点となる場所を選択するときの LocationStart からの最大距離
 type CreatePlanByLocationInput struct {
 	PlanCandidateId              string
 	LocationStart                models.GeoLocation
@@ -22,9 +27,15 @@ type CreatePlanByLocationInput struct {
 	FreeTime                     *int
 	CreateBasedOnCurrentLocation bool
 	ShouldOpenWhileTraveling     bool
+	MaxDistanceFromStart         int
 }
 
+// CreatePlanByLocation は指定した位置から近い場所を起点として複数のプランを作成する
 func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLocationInput) (*[]models.Plan, error) {
+	if input.MaxDistanceFromStart == 0 {
+		input.MaxDistanceFromStart = defaultMaxDistanceFromStart
+	}
+
 	// 付近の場所を検索
 	var places []models.Place
 
@@ -89,7 +100,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		}
 	}
 
-	for filterDistance := 500; filterDistance <= 1500; filterDistance += 400 {
+	for filterDistance := 500; filterDistance <= input.MaxDistanceFromStart; filterDistance += 400 {
 		if len(createPlanParams) >= 3 {
 			break
 		}
