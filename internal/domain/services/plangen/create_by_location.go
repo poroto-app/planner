@@ -118,8 +118,8 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		})
 
 		var createPlanParamsInRange []CreatePlanParams
-		for _, basePlace := range placesForPlanStart {
-			createPlanParam := s.CreatePlan(input, places, basePlace, createPlanParams)
+		for _, placeForPlanStart := range placesForPlanStart {
+			createPlanParam := s.CreatePlan(input, places, placeForPlanStart, createPlanParams)
 			if createPlanParam != nil {
 				createPlanParamsInRange = append(createPlanParamsInRange, *createPlanParam)
 			}
