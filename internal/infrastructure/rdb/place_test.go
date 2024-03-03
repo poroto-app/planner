@@ -1484,12 +1484,14 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			}
 
 			for _, photo := range c.placePhotos {
-				if saved, err := generated.PlacePhotos(
+				saved, err := generated.PlacePhotos(
 					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
 					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
-				).Exists(testContext, testDB); err != nil {
+				).Exists(testContext, testDB)
+				if err != nil {
 					t.Fatalf("error while checking photo existence: %v", err)
-				} else if !saved {
+				}
+				if !saved {
 					// 写真が保存されていない場合はテスト失敗
 					t.Fatalf("photo is not saved")
 				}
@@ -1569,12 +1571,14 @@ func TestPlaceRepository_SavePlacePhotos_AlreadySaved(t *testing.T) {
 			}
 
 			for _, photo := range c.placePhotos {
-				if saved, err := generated.PlacePhotos(
+				saved, err := generated.PlacePhotos(
 					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
 					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
-				).Exists(testContext, testDB); err != nil {
+				).Exists(testContext, testDB)
+				if err != nil {
 					t.Fatalf("error while checking photo existence: %v", err)
-				} else if !saved {
+				}
+				if !saved {
 					// 写真が保存されていない場合はテスト失敗
 					t.Fatalf("photo is not saved")
 				}
