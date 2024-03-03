@@ -1486,6 +1486,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			for _, photo := range c.placePhotos {
 				saved, err := generated.PlacePhotos(
 					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+					generated.PlacePhotoWhere.PlaceID.EQ(photo.PlaceId),
 					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
 				).Exists(testContext, testDB)
 				if err != nil {
@@ -1573,6 +1574,7 @@ func TestPlaceRepository_SavePlacePhotos_AlreadySaved(t *testing.T) {
 			for _, photo := range c.placePhotos {
 				saved, err := generated.PlacePhotos(
 					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+					generated.PlacePhotoWhere.PlaceID.EQ(photo.PlaceId),
 					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
 				).Exists(testContext, testDB)
 				if err != nil {
