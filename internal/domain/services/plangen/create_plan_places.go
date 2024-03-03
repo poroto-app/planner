@@ -137,32 +137,10 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 	return placesInPlan, nil
 }
 
-func isAlreadyHavePlaceCategoryOf(placesInPlan []models.Place, categories []models.LocationCategory) bool {
-	var categoriesInPlan []models.LocationCategory
-	for _, place := range placesInPlan {
-		categoriesInPlan = append(categoriesInPlan, place.Categories()...)
+		return false
 	}
 
-	for _, category := range categories {
-		for _, categoryInPlan := range categoriesInPlan {
-			if categoryInPlan.Name == category.Name {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func isCategoryOf(placeTypes []string, categories []models.LocationCategory) bool {
-	categoriesOfPlace := models.GetCategoriesFromSubCategories(placeTypes)
-	for _, category := range categories {
-		for _, categoryOfPlace := range categoriesOfPlace {
-			if categoryOfPlace.Name == category.Name {
-				return true
-			}
-		}
-	}
-	return false
+	return true
 }
 
 // sortPlacesByDistanceFrom location からplacesを巡回する最短経路をgreedy法で求める
