@@ -135,6 +135,8 @@ var (
 		Name: "ignore",
 		SubCategories: []string{
 			"health",
+			"hair_care",
+
 			string(maps.PlaceTypeAccounting),
 
 			string(maps.PlaceTypeAtm),
