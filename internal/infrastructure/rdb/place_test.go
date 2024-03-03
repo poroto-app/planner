@@ -1447,30 +1447,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "another-photo.jpg",
-			},
-		},
-		{
-			name: "already saved place photo",
-			placePhotos: []models.PlacePhoto{
-				{
-					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-					PhotoUrl: "https://example.com/photo.jpg",
-					Width:    1920,
-					Height:   1080,
-				},
-			},
-			preSavedUser: generated.User{
-				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			},
-			preSavedPlace: generated.Place{
-				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			},
-			preSavedPlacePhoto: generated.PlacePhoto{
-				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "https://example.com/photo.jpg",
+				PhotoURL: "https://example.com/photo-A.jpg",
 			},
 		},
 	}
@@ -1506,16 +1483,102 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				t.Fatalf("error while saving place photo: %v", err)
 			}
 
-			saved, err := generated.
-				PlacePhotos(
-					generated.PlacePhotoWhere.PhotoURL.EQ(c.placePhotos[0].PhotoUrl),
-					generated.PlacePhotoWhere.UserID.EQ(c.placePhotos[0].UserId),
-					generated.PlacePhotoWhere.PlaceID.EQ(c.placePhotos[0].PlaceId),
-				).Exists(testContext, testDB)
-			if !saved || err != nil {
-				t.Fatalf("error while checking photo existence: %v", err)
+			for _, photo := range c.placePhotos {
+				if saved, err := generated.PlacePhotos(
+					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
+				).Exists(testContext, testDB); err != nil {
+					t.Fatalf("error while checking photo existence: %v", err)
+				} else if !saved {
+					// 写真が保存されていない場合はテスト失敗
+					t.Fatalf("photo is not saved")
+				}
+			}
+		})
+	}
+}
+
+func TestPlaceRepository_SavePlacePhotos_AlreadySaved(t *testing.T) {
+	cases := []struct {
+		name               string
+		placePhotos        []models.PlacePhoto
+		preSavedUser       generated.User
+		preSavedPlace      generated.Place
+		preSavedPlacePhoto generated.PlacePhoto
+	}{
+		{
+			name: "already saved a place photo",
+			placePhotos: []models.PlacePhoto{
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-1.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-2.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+			},
+			preSavedUser: generated.User{
+				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			},
+			preSavedPlace: generated.Place{
+				ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+			},
+			preSavedPlacePhoto: generated.PlacePhoto{
+				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+				PhotoURL: "https://example.com/photo-2.jpg",
+			},
+		},
+	}
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+	testContext := context.Background()
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にPlacePhoto・User・Placeを保存しておく
+			if err := c.preSavedUser.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert user: %v", err)
+			}
+			if err := c.preSavedPlace.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert place: %v", err)
+			}
+			if err := c.preSavedPlacePhoto.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert place photo: %v", err)
 			}
 
+			err := placeRepository.SavePlacePhotos(testContext, c.placePhotos)
+			if err != nil {
+				t.Fatalf("error while saving place photo: %v", err)
+			}
+
+			for _, photo := range c.placePhotos {
+				if saved, err := generated.PlacePhotos(
+					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
+				).Exists(testContext, testDB); err != nil {
+					t.Fatalf("error while checking photo existence: %v", err)
+				} else if !saved {
+					// 写真が保存されていない場合はテスト失敗
+					t.Fatalf("photo is not saved")
+				}
+			}
 		})
 	}
 }
