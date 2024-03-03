@@ -577,55 +577,32 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		// 画像の対象となる PlaceEntity を取得
-		var placeIdsToVerify []string
-		var placeSlice []*generated.Place
+		var placePhotoSliceToSave generated.PlacePhotoSlice
 		for _, photo := range photos {
-			if array.IsContain(placeIdsToVerify, photo.PlaceId) {
+			if alreadySaved, err := generated.PlacePhotos(
+				generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+				generated.PlacePhotoWhere.PlaceID.EQ(photo.PlaceId),
+			).Exists(ctx, tx); err != nil {
+				return fmt.Errorf("failed to check place photo exists: %w", err)
+			} else if alreadySaved {
 				continue
 			}
-			placeIdsToVerify = append(placeIdsToVerify, photo.PlaceId)
-			placeToVerify, err := generated.Places(
-				generated.PlaceWhere.ID.EQ(photo.PlaceId),
-				qm.Load(generated.PlaceRels.PlacePhotos),
-			).One(ctx, tx)
-			if err != nil {
-				return fmt.Errorf("failed to find place: %wplace id: %s", err, photo.PlaceId)
-			}
-			placeSlice = append(placeSlice, placeToVerify)
-		}
 
-		var placePhotoDomainModelToSave []*models.PlacePhoto
-		for _, placeEntity := range placeSlice {
-			placePhotoDomainModelNotSaved := array.MapAndFilter(photos, func(photo models.PlacePhoto) (*models.PlacePhoto, bool) {
-				if _, found := array.Find(placeEntity.R.PlacePhotos, func(savedPlacePhotoEntity *generated.PlacePhoto) bool {
-					if savedPlacePhotoEntity == nil {
-						return false
-					}
-					// 検証対象の Place が異なる場合はスキップ
-					if savedPlacePhotoEntity.PlaceID != photo.PlaceId {
-						return true
-					}
-					// すでに保存済みのものはスキップ
-					return savedPlacePhotoEntity.PhotoURL == photo.PhotoUrl
-				}); found {
-					p.logger.Debug(
-						"skip place photo because already exists",
-						zap.String("place_id", photo.PlaceId),
-						zap.String("photo_url", photo.PhotoUrl),
-					)
-					return nil, false
-				}
-				return &photo, true
+			placePhotoSliceToSave = append(placePhotoSliceToSave, &generated.PlacePhoto{
+				ID:       uuid.New().String(),
+				PlaceID:  photo.PlaceId,
+				UserID:   photo.UserId,
+				PhotoURL: photo.PhotoUrl,
+				Width:    photo.Width,
+				Height:   photo.Height,
 			})
-			placePhotoDomainModelToSave = append(placePhotoDomainModelToSave, placePhotoDomainModelNotSaved...)
 		}
-
-		if placePhotoDomainModelToSave == nil {
+		if placePhotoSliceToSave == nil {
+			p.logger.Debug("no place photo to save")
 			return nil
 		}
-		placePhotoSlice := factory.NewPlacePhotoSliceFromDomainModel(placePhotoDomainModelToSave)
-		if _, err := placePhotoSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
+
+		if _, err := placePhotoSliceToSave.InsertAll(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert place photo slice: %w", err)
 		}
 		return nil
