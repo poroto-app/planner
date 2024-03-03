@@ -112,6 +112,41 @@ func TestSortPlacesByRating(t *testing.T) {
 				NewMockPlaceShinjukuStation(),
 			},
 		},
+		{
+			name: "should return sorted places by rating and user ratings total",
+			places: []Place{
+				{
+					Id: "1",
+					Google: GooglePlace{
+						Rating:           5.0,
+						UserRatingsTotal: 1,
+					},
+				},
+				{
+					Id: "2",
+					Google: GooglePlace{
+						Rating:           4.0,
+						UserRatingsTotal: 100,
+					},
+				},
+			},
+			expected: []Place{
+				{
+					Id: "2",
+					Google: GooglePlace{
+						Rating:           4.0,
+						UserRatingsTotal: 100,
+					},
+				},
+				{
+					Id: "1",
+					Google: GooglePlace{
+						Rating:           5.0,
+						UserRatingsTotal: 1,
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
@@ -136,7 +171,8 @@ func NewMockPlaceShinjukuStation() Place {
 			Longitude: 139.7005071,
 		},
 		Google: GooglePlace{
-			Rating: 4.5,
+			Rating:           5.0,
+			UserRatingsTotal: 1,
 		},
 	}
 }
@@ -150,7 +186,8 @@ func NewMockPlaceIsetan() Place {
 			Longitude: 139.7046449,
 		},
 		Google: GooglePlace{
-			Rating: 4.6,
+			Rating:           4.5,
+			UserRatingsTotal: 100,
 		},
 	}
 }
@@ -164,7 +201,8 @@ func NewMockPlaceShinjukuGyoen() Place {
 			Longitude: 139.7123842,
 		},
 		Google: GooglePlace{
-			Rating: 4.7,
+			Rating:           4.8,
+			UserRatingsTotal: 100,
 		},
 	}
 }
@@ -178,7 +216,8 @@ func NewMockPlaceTakashimaya() Place {
 			Longitude: 139.7022521,
 		},
 		Google: GooglePlace{
-			Rating: 4.8,
+			Rating:           5.0,
+			UserRatingsTotal: 100,
 		},
 	}
 }
