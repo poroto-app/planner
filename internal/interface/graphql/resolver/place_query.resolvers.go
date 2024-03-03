@@ -7,11 +7,49 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // PlacesNearPlan is the resolver for the placesNearPlan field.
 func (r *queryResolver) PlacesNearPlan(ctx context.Context, input model.PlacesNearPlanInput) (*model.PlacesNearPlanOutput, error) {
-	panic(fmt.Errorf("not implemented: PlacesNearPlan - placesNearPlan"))
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
+	if err != nil {
+		return nil, fmt.Errorf("internal server err")
+	}
+
+	logger.Info(
+		"PlacesNearPlan",
+		zap.String("planId", input.PlanID),
+		zap.Int("limit", utils.FromPointerOrZero(input.Limit)),
+	)
+
+	s, err := place.NewService(r.DB)
+	if err != nil {
+		logger.Error("error while creating places service", zap.Error(err))
+		return nil, fmt.Errorf("internal server err")
+	}
+
+	places, err := s.FetchPlacesNearPlan(ctx, place.PlacesNearPlanInput{
+		PlanID: input.PlanID,
+		Limit:  utils.FromPointerOrZero(input.Limit),
+	})
+	if err != nil {
+		logger.Error("error while fetching places near plan", zap.Error(err))
+		return nil, fmt.Errorf("internal server err")
+	}
+
+	graphqlPlaces := array.Map(*places, func(place models.Place) *model.Place {
+		return factory.PlaceFromDomainModel(&place)
+	})
+
+	return &model.PlacesNearPlanOutput{
+		Places: graphqlPlaces,
+	}, nil
 }
