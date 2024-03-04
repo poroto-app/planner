@@ -6,7 +6,7 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-func NewPlacePhotoSliceFromDomainModel(placePhoto []*models.PlacePhoto) generated.PlacePhotoSlice {
+func NewPlacePhotoSliceFromDomainModel(placePhoto []models.PlacePhoto) generated.PlacePhotoSlice {
 	var placePhotoSlice generated.PlacePhotoSlice
 	for _, photo := range placePhoto {
 		placePhotoSlice = append(placePhotoSlice, &generated.PlacePhoto{

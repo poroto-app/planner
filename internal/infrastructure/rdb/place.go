@@ -577,28 +577,28 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		var placePhotoSliceToSave generated.PlacePhotoSlice
-		for _, photo := range photos {
-			if alreadySaved, err := generated.PlacePhotos(
-				generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
-				generated.PlacePhotoWhere.PlaceID.EQ(photo.PlaceId),
-			).Exists(ctx, tx); err != nil {
-				return fmt.Errorf("failed to check place photo exists: %w", err)
-			} else if alreadySaved {
-				// すでに保存済みの場合はスキップ
-				p.logger.Debug("skip because already saved", zap.String("photo_url", photo.PhotoUrl))
-				continue
-			}
+		placeIds := array.Map(photos, func(photo models.PlacePhoto) string {
+			return photo.PlaceId
+		})
 
-			placePhotoSliceToSave = append(placePhotoSliceToSave, &generated.PlacePhoto{
-				ID:       uuid.New().String(),
-				PlaceID:  photo.PlaceId,
-				UserID:   photo.UserId,
-				PhotoURL: photo.PhotoUrl,
-				Width:    photo.Width,
-				Height:   photo.Height,
-			})
+		placePhotosAlreadySaved, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.ID.IN(placeIds),
+		).All(ctx, tx)
+
+		if err != nil {
+			return fmt.Errorf("failed to find place photos: %w", err)
 		}
+		placeIdsAlreadySaved := placePhotosAlreadySaved.GetLoadedPlaces().GetIDs()
+
+		if len(placeIdsAlreadySaved) > 0 {
+			p.logger.Debug("skipped to save because place photos already saved", zap.Strings("place_ids", placeIdsAlreadySaved))
+		}
+
+		placePhotosToSave := array.Filter(photos, func(photo models.PlacePhoto) bool {
+			return !array.IsContain(placeIdsAlreadySaved, photo.PlaceId)
+		})
+
+		placePhotoSliceToSave := factory.NewPlacePhotoSliceFromDomainModel(placePhotosToSave)
 		if placePhotoSliceToSave == nil {
 			p.logger.Debug("no place photo to save")
 			return nil
