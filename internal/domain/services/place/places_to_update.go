@@ -3,11 +3,13 @@ package place
 import (
 	"context"
 	"fmt"
+
+	"poroto.app/poroto/planner/internal/domain/models"
 )
 
 type UploadPlacePhotoInPlanInput struct {
-	UserId   string
 	PlaceId  string
+	UserId   string
 	PhotoUrl string
 	Width    int
 	Height   int
@@ -15,9 +17,19 @@ type UploadPlacePhotoInPlanInput struct {
 
 func (s Service) UploadPlacePhotoInPlan(
 	ctx context.Context,
-	input UploadPlacePhotoInPlanInput,
+	inputs []UploadPlacePhotoInPlanInput,
 ) error {
-	err := s.placeRepository.SavePlacePhotos(ctx, input.UserId, input.PlaceId, input.PhotoUrl, input.Width, input.Height)
+	var placePhotos []models.PlacePhoto
+	for _, input := range inputs {
+		placePhotos = append(placePhotos, models.PlacePhoto{
+			PlaceId:  input.PlaceId,
+			UserId:   input.UserId,
+			PhotoUrl: input.PhotoUrl,
+			Width:    input.Width,
+			Height:   input.Height,
+		})
+	}
+	err := s.placeRepository.SavePlacePhotos(ctx, placePhotos)
 	if err != nil {
 		return fmt.Errorf("error while saving place photos: %v", err)
 	}

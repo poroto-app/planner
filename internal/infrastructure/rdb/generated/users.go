@@ -94,17 +94,20 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	PlacePhotos string
-	Plans       string
+	PlacePhotos    string
+	Plans          string
+	UserLikePlaces string
 }{
-	PlacePhotos: "PlacePhotos",
-	Plans:       "Plans",
+	PlacePhotos:    "PlacePhotos",
+	Plans:          "Plans",
+	UserLikePlaces: "UserLikePlaces",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	PlacePhotos PlacePhotoSlice `boil:"PlacePhotos" json:"PlacePhotos" toml:"PlacePhotos" yaml:"PlacePhotos"`
-	Plans       PlanSlice       `boil:"Plans" json:"Plans" toml:"Plans" yaml:"Plans"`
+	PlacePhotos    PlacePhotoSlice    `boil:"PlacePhotos" json:"PlacePhotos" toml:"PlacePhotos" yaml:"PlacePhotos"`
+	Plans          PlanSlice          `boil:"Plans" json:"Plans" toml:"Plans" yaml:"Plans"`
+	UserLikePlaces UserLikePlaceSlice `boil:"UserLikePlaces" json:"UserLikePlaces" toml:"UserLikePlaces" yaml:"UserLikePlaces"`
 }
 
 // NewStruct creates a new relationship struct
@@ -124,6 +127,13 @@ func (r *userR) GetPlans() PlanSlice {
 		return nil
 	}
 	return r.Plans
+}
+
+func (r *userR) GetUserLikePlaces() UserLikePlaceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UserLikePlaces
 }
 
 // userL is where Load methods for each relationship are stored.
@@ -470,6 +480,20 @@ func (o *User) Plans(mods ...qm.QueryMod) planQuery {
 	return Plans(queryMods...)
 }
 
+// UserLikePlaces retrieves all the user_like_place's UserLikePlaces with an executor.
+func (o *User) UserLikePlaces(mods ...qm.QueryMod) userLikePlaceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`user_like_places`.`user_id`=?", o.ID),
+	)
+
+	return UserLikePlaces(queryMods...)
+}
+
 // LoadPlacePhotos allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (userL) LoadPlacePhotos(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
@@ -696,6 +720,119 @@ func (userL) LoadPlans(ctx context.Context, e boil.ContextExecutor, singular boo
 	return nil
 }
 
+// LoadUserLikePlaces allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadUserLikePlaces(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`user_like_places`),
+		qm.WhereIn(`user_like_places.user_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load user_like_places")
+	}
+
+	var resultSlice []*UserLikePlace
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice user_like_places")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on user_like_places")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for user_like_places")
+	}
+
+	if len(userLikePlaceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UserLikePlaces = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userLikePlaceR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.UserLikePlaces = append(local.R.UserLikePlaces, foreign)
+				if foreign.R == nil {
+					foreign.R = &userLikePlaceR{}
+				}
+				foreign.R.User = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // AddPlacePhotos adds the given related objects to the existing relationships
 // of the user, optionally inserting them as new records.
 // Appends related to o.R.PlacePhotos.
@@ -873,6 +1010,59 @@ func (o *User) RemovePlans(ctx context.Context, exec boil.ContextExecutor, relat
 		}
 	}
 
+	return nil
+}
+
+// AddUserLikePlaces adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UserLikePlaces.
+// Sets related.R.User appropriately.
+func (o *User) AddUserLikePlaces(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*UserLikePlace) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `user_like_places` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"user_id"}),
+				strmangle.WhereClause("`", "`", 0, userLikePlacePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			UserLikePlaces: related,
+		}
+	} else {
+		o.R.UserLikePlaces = append(o.R.UserLikePlaces, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userLikePlaceR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
 	return nil
 }
 
@@ -1946,6 +2136,33 @@ func (s UserSlice) GetLoadedPlans() PlanSlice {
 			continue
 		}
 		result = append(result, item.R.Plans...)
+	}
+	return result
+}
+
+// LoadUserLikePlacesByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s UserSlice) LoadUserLikePlacesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadUserLikePlacesByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s UserSlice) LoadUserLikePlacesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*User](s, pageSize) {
+		if err := chunk[0].L.LoadUserLikePlaces(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s UserSlice) GetLoadedUserLikePlaces() UserLikePlaceSlice {
+	result := make(UserLikePlaceSlice, 0, len(s)*2)
+	for _, item := range s {
+		if item.R == nil || item.R.UserLikePlaces == nil {
+			continue
+		}
+		result = append(result, item.R.UserLikePlaces...)
 	}
 	return result
 }

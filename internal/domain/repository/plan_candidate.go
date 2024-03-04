@@ -37,5 +37,6 @@ type PlanCandidateRepository interface {
 
 	DeleteAll(ctx context.Context, planCandidateIds []string) error
 
+	// TODO: PlaceRepository に移動する
 	UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error
 }

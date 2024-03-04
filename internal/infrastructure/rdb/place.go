@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/friendsofgo/errors"
 	"github.com/google/uuid"
@@ -591,31 +592,70 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	return nil
 }
 
-func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
+func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		found, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
+		placeIds := array.Map(photos, func(photo models.PlacePhoto) string {
+			return photo.PlaceId
+		})
+
+		placePhotosAlreadySaved, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.ID.IN(placeIds),
+		).All(ctx, tx)
+
 		if err != nil {
-			return fmt.Errorf("error while checking place photo exists: %w", err)
+			return fmt.Errorf("failed to find place photos: %w", err)
 		}
-		if found {
-			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
+		placeIdsAlreadySaved := placePhotosAlreadySaved.GetLoadedPlaces().GetIDs()
+
+		if len(placeIdsAlreadySaved) > 0 {
+			p.logger.Debug("skipped to save because place photos already saved", zap.Strings("place_ids", placeIdsAlreadySaved))
+		}
+
+		placePhotosToSave := array.Filter(photos, func(photo models.PlacePhoto) bool {
+			return !array.IsContain(placeIdsAlreadySaved, photo.PlaceId)
+		})
+
+		placePhotoSliceToSave := factory.NewPlacePhotoSliceFromDomainModel(placePhotosToSave)
+		if placePhotoSliceToSave == nil {
+			p.logger.Debug("no place photo to save")
 			return nil
 		}
 
-		placePhoto := generated.PlacePhoto{
-			ID:       uuid.New().String(),
-			PlaceID:  placeId,
-			UserID:   userId,
-			PhotoURL: photoUrl,
-			Width:    width,
-			Height:   height,
-		}
-		if err := placePhoto.Insert(ctx, tx, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert place photo: %w", err)
+		if _, err := placePhotoSliceToSave.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place photo slice: %w", err)
 		}
 		return nil
 	}); err != nil {
 		return fmt.Errorf("failed to save place photos: %w", err)
+	}
+	return nil
+}
+
+func (p PlaceRepository) UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		if !like {
+			// いいねを取り消す
+			if _, err := generated.UserLikePlaces(
+				generated.UserLikePlaceWhere.UserID.EQ(userId),
+				generated.UserLikePlaceWhere.PlaceID.EQ(placeId),
+			).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to delete place like: %w", err)
+			}
+			return nil
+		}
+
+		userLikePlaceEntity := generated.UserLikePlace{
+			ID:      uuid.New().String(),
+			UserID:  userId,
+			PlaceID: placeId,
+		}
+		if err := userLikePlaceEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place like: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
 	}
 	return nil
 }
@@ -725,20 +765,53 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 	return places, nil
 }
 
+// countPlaceLikeCounts は場所ごとのいいね数をカウントする
+// いいねはPlanCandidateSetとUserによって行われるが、その両方を考慮し、総数をカウントする
 func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeIds ...string) (*[]entities.PlanCandidateSetPlaceLikeCount, error) {
+	var placeIdPlaceHolder string
+	if len(placeIds) == 0 {
+		return nil, nil
+	} else if len(placeIds) == 1 {
+		placeIdPlaceHolder = "?"
+	} else {
+		placeIdPlaceHolder = strings.Repeat("?,", len(placeIds)-1) + "?"
+	}
+
+	query := fmt.Sprintf(
+		`SELECT place_likes.%s, COUNT(*) AS %s
+FROM (
+	SELECT %s, %s AS %s
+	FROM %s
+	UNION ALL
+	SELECT %s, %s AS %s
+	FROM %s
+) AS place_likes	
+WHERE %s IN (%s)
+GROUP BY place_likes.place_id`,
+		entities.PlanCandidateSetPlaceLikeCountColumns.PlaceId,
+		entities.PlanCandidateSetPlaceLikeCountColumns.LikeCount,
+
+		generated.PlanCandidateSetLikePlaceColumns.ID,
+		generated.PlanCandidateSetLikePlaceColumns.PlaceID,
+		entities.PlanCandidateSetPlaceLikeCountColumns.PlaceId,
+
+		generated.TableNames.PlanCandidateSetLikePlaces,
+
+		generated.UserLikePlaceColumns.ID,
+		generated.UserLikePlaceColumns.PlaceID,
+		entities.PlanCandidateSetPlaceLikeCountColumns.PlaceId,
+
+		generated.TableNames.UserLikePlaces,
+
+		entities.PlanCandidateSetPlaceLikeCountColumns.PlaceId,
+
+		placeIdPlaceHolder,
+	)
+
 	var planCandidateSetPlaceLikeCounts []entities.PlanCandidateSetPlaceLikeCount
-	if err := generated.NewQuery(
-		qm.Select(
-			entities.PlanCandidateSetPlaceLikeCountColumns.Name,
-			fmt.Sprintf("COUNT(*) as `%s`", entities.PlanCandidateSetPlaceLikeCountColumns.LikeCount),
-		),
-		qm.From(generated.TableNames.PlanCandidateSetLikePlaces),
-		qm.WhereIn(
-			fmt.Sprintf("%s IN ?", generated.PlanCandidateSetLikePlaceColumns.PlaceID),
-			toInterfaceArray(placeIds)...,
-		),
-		qm.GroupBy(generated.PlanCandidateSetLikePlaceTableColumns.PlaceID),
-	).Bind(ctx, exec, &planCandidateSetPlaceLikeCounts); err != nil {
+	if err := queries.
+		Raw(query, toInterfaceArray(placeIds)...).
+		Bind(ctx, exec, &planCandidateSetPlaceLikeCounts); err != nil {
 		return nil, fmt.Errorf("failed to count place like counts: %w", err)
 	}
 	return &planCandidateSetPlaceLikeCounts, nil
