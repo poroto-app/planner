@@ -616,25 +616,27 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 
 func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		placeIds := array.Map(photos, func(photo models.PlacePhoto) string {
-			return photo.PlaceId
+		placePhotoUrls := array.Map(photos, func(photo models.PlacePhoto) string {
+			return photo.PhotoUrl
 		})
 
-		placePhotosAlreadySaved, err := generated.PlacePhotos(
-			generated.PlacePhotoWhere.ID.IN(placeIds),
+		placePhotoSliceAlreadySaved, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.PhotoURL.IN(placePhotoUrls),
 		).All(ctx, tx)
-
 		if err != nil {
 			return fmt.Errorf("failed to find place photos: %w", err)
 		}
-		placeIdsAlreadySaved := placePhotosAlreadySaved.GetLoadedPlaces().GetIDs()
 
-		if len(placeIdsAlreadySaved) > 0 {
-			p.logger.Debug("skipped to save because place photos already saved", zap.Strings("place_ids", placeIdsAlreadySaved))
+		placePhotoUrlsAlreadySaved := array.Map(placePhotoSliceAlreadySaved, func(photoEntity *generated.PlacePhoto) string {
+			return photoEntity.PhotoURL
+		})
+
+		if len(placePhotoUrlsAlreadySaved) > 0 {
+			p.logger.Debug("skipped to save because place photo urls already saved", zap.Strings("place_photo_urls", placePhotoUrlsAlreadySaved))
 		}
 
 		placePhotosToSave := array.Filter(photos, func(photo models.PlacePhoto) bool {
-			return !array.IsContain(placeIdsAlreadySaved, photo.PlaceId)
+			return !array.IsContain(placePhotoUrlsAlreadySaved, photo.PhotoUrl)
 		})
 
 		placePhotoSliceToSave := factory.NewPlacePhotoSliceFromDomainModel(placePhotosToSave)
