@@ -102,6 +102,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 		qm.OrderBy(fmt.Sprintf("%s %s, %s %s", generated.PlanColumns.CreatedAt, "desc", generated.PlanColumns.ID, "desc")),
 		qm.Limit(limit),
 		qm.Load(generated.PlanRels.User),
+		qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.GooglePlaces),
 	}
 
 	if queryCursor != nil {
@@ -155,11 +156,6 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
-			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
-			if err != nil {
-				return nil, fmt.Errorf("failed to find place photos: %w", err)
-			}
-
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -170,7 +166,9 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				placePhotoSlice,
+				array.Filter(planPlace.R.Place.R.PlacePhotos, func(placePhoto *generated.PlacePhoto) bool {
+					return placePhoto.PlaceID == planPlace.PlaceID
+				}),
 			)
 		})
 	})
@@ -210,6 +208,7 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			generated.PlanWhere.ID.EQ(planId),
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.Load(generated.PlanRels.User),
+			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).One(ctx, p.db)
@@ -229,6 +228,8 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	placePhotoSlice := planEntity.R.PlanPlaces.GetLoadedPlaces().GetLoadedPlacePhotos()
+
 	places, err := array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
 		if planPlace.R == nil {
 			return nil, fmt.Errorf("planPlace.R is nil")
@@ -242,11 +243,6 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 		}
 
-		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to find place photos: %w", err)
-		}
-
 		return factory.NewPlaceFromEntity(
 			*planPlace.R.Place,
 			*planPlace.R.Place.R.GooglePlaces[0],
@@ -257,7 +253,9 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-			placePhotoSlice,
+			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
+				return placePhoto.PlaceID == planPlace.PlaceID
+			}),
 		)
 	})
 	if err != nil {
@@ -289,6 +287,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
 			qm.Load(generated.PlanRels.User),
+			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).All(ctx, p.db)
@@ -308,6 +307,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -330,11 +330,6 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
-			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
-			if err != nil {
-				return nil, fmt.Errorf("failed to find place photos: %w", err)
-			}
-
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -345,7 +340,9 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				placePhotoSlice,
+				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
+					return placePhoto.PlaceID == planPlace.PlaceID
+				}),
 			)
 		})
 	})
@@ -390,6 +387,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 			qm.Limit(limit),
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.Load(generated.PlanRels.User),
+			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
 	)...).All(ctx, p.db)
@@ -409,6 +407,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -431,11 +430,6 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				return nil, fmt.Errorf("planPlace.R.Place.R.GooglePlaces is nil")
 			}
 
-			placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planPlace.PlaceID)).All(ctx, p.db)
-			if err != nil {
-				return nil, fmt.Errorf("failed to find place photos: %w", err)
-			}
-
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
 				*planPlace.R.Place.R.GooglePlaces[0],
@@ -446,7 +440,9 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				placePhotoSlice,
+				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
+					return placePhoto.PlaceID == planPlace.PlaceID
+				}),
 			)
 		})
 	})
