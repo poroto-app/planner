@@ -41,7 +41,6 @@ func NewPlaceFromEntity(
 	if len(placePhotoSlice) != 0 {
 		for _, placePhoto := range placePhotoSlice {
 			placePhotos = append(placePhotos, models.PlacePhoto{
-				Id:       placePhoto.ID,
 				UserId:   placePhoto.UserID,
 				PlaceId:  placePhoto.PlaceID,
 				PhotoUrl: placePhoto.PhotoURL,
