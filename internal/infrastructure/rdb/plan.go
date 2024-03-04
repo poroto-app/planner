@@ -208,9 +208,9 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			generated.PlanWhere.ID.EQ(planId),
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.Load(generated.PlanRels.User),
-			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place, generated.PlaceRels.PlacePhotos),
 	)...).One(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find plan: %w", err)
@@ -287,9 +287,9 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
 			qm.Load(generated.PlanRels.User),
-			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place, generated.PlaceRels.PlacePhotos),
 	)...).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find plans: %w", err)
@@ -387,9 +387,9 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 			qm.Limit(limit),
 			qm.Load(generated.PlanRels.PlanPlaces),
 			qm.Load(generated.PlanRels.User),
-			qm.Load(generated.PlanRels.PlanPlaces + "." + generated.PlanPlaceRels.Place + "." + generated.PlaceRels.PlacePhotos),
 		},
 		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place),
+		placeQueryModes(generated.PlanRels.PlanPlaces, generated.PlanPlaceRels.Place, generated.PlaceRels.PlacePhotos),
 	)...).All(ctx, p.db)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to find plans: %w", err)
