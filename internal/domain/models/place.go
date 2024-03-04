@@ -13,7 +13,7 @@ type Place struct {
 	Name        string       `json:"name"`
 	Location    GeoLocation  `json:"location"`
 	LikeCount   int          `json:"like_count"`
-	PlacePhotos []PlacePhoto `json:"place_photo"`
+	PlacePhotos []PlacePhoto `json:"place_photos"`
 }
 
 func (p Place) Categories() []LocationCategory {
