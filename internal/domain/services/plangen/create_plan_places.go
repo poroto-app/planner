@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	"time"
-
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 )
@@ -18,15 +16,14 @@ const (
 )
 
 type CreatePlanPlacesParams struct {
-	PlanCandidateId          string
-	LocationStart            models.GeoLocation
-	PlaceStart               models.Place
-	Places                   []models.Place
-	PlacesOtherPlansContain  []models.Place
-	CategoryNamesDisliked    *[]string
-	FreeTime                 *int
-	ShouldOpenWhileTraveling bool
-	MaxPlace                 int
+	PlanCandidateId         string
+	LocationStart           models.GeoLocation
+	PlaceStart              models.Place
+	Places                  []models.Place
+	PlacesOtherPlansContain []models.Place
+	CategoryNamesDisliked   *[]string
+	FreeTime                *int
+	MaxPlace                int
 }
 
 // createPlanPlaces プランの候補地となる場所を作成する
@@ -128,41 +125,6 @@ func (s Service) createPlanPlaces(ctx context.Context, params CreatePlanPlacesPa
 				zap.Int("defaultMaxPlanDuration", defaultMaxPlanDuration),
 			)
 			continue
-		}
-
-		// この場所に行く時点で閉まってしまう場合はスキップ
-		if params.ShouldOpenWhileTraveling {
-			// 場所の詳細を取得(Place Detailリクエストが発生するため、ある程度フィルタリングしたあとに行う)
-			placeDetail, err := s.placeSearchService.FetchPlaceDetailAndSave(ctx, place.Google.PlaceId)
-			if err != nil {
-				s.logger.Warn(
-					"error while fetching place detail",
-					zap.String("place", place.Google.Name),
-					zap.Error(err),
-				)
-				continue
-			}
-
-			place.Google.PlaceDetail = placeDetail
-
-			// 予定の時間内に閉まってしまう場合はスキップ
-			isOpeningWhilePlan, err := s.isOpeningWithIn(place, time.Now(), time.Minute*time.Duration(timeInPlan))
-			if err != nil {
-				s.logger.Warn(
-					"error while checking opening hours",
-					zap.String("place", place.Google.Name),
-					zap.Error(err),
-				)
-				continue
-			}
-
-			if !isOpeningWhilePlan {
-				s.logger.Debug(
-					"skip place because it will be closed",
-					zap.String("place", place.Google.Name),
-				)
-				continue
-			}
 		}
 
 		placesInPlan = append(placesInPlan, place)

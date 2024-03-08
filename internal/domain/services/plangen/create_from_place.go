@@ -46,13 +46,12 @@ func (s Service) CreatePlanFromPlace(
 	planPlaces, err := s.createPlanPlaces(
 		ctx,
 		CreatePlanPlacesParams{
-			PlanCandidateId:          createPlanSessionId,
-			LocationStart:            placeStart.Location,
-			PlaceStart:               *placeStart,
-			Places:                   places,
-			CategoryNamesDisliked:    &categoryNamesRejected,
-			FreeTime:                 planCandidate.MetaData.FreeTime,
-			ShouldOpenWhileTraveling: false, // 場所を検索してプランを作成した場合、必ずしも今すぐ行くとは限らない
+			PlanCandidateId:       createPlanSessionId,
+			LocationStart:         placeStart.Location,
+			PlaceStart:            *placeStart,
+			Places:                places,
+			CategoryNamesDisliked: &categoryNamesRejected,
+			FreeTime:              planCandidate.MetaData.FreeTime,
 		},
 	)
 	if err != nil {
