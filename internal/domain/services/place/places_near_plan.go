@@ -20,11 +20,19 @@ type PlacesNearPlanInput struct {
 }
 
 func (s Service) FetchPlacesNearPlan(ctx context.Context, input PlacesNearPlanInput) (*[]models.Place, error) {
-	if input.Limit <= 0 {
+	if input.Limit < 0 {
+		panic("limit must be greater than 0")
+	}
+
+	if input.Radius < 0 {
+		panic("radius must be greater than 0")
+	}
+
+	if input.Limit == 0 {
 		input.Limit = defaultMaxPlacesNearPlan
 	}
 
-	if input.Radius <= 0 {
+	if input.Radius == 0 {
 		input.Radius = defaultRadiusToSearchPlacesNearPlan
 	}
 
