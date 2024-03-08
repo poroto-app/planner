@@ -102,11 +102,6 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			continue
 		}
 
-		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planCandidatePlace.PlaceID)).All(ctx, p.db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to find place photos: %w", err)
-		}
-
 		place, err := factory.NewPlaceFromEntity(
 			*planCandidatePlace.R.Place,
 			*planCandidatePlace.R.Place.R.GooglePlaces[0],
@@ -117,7 +112,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
-			placePhotoSlice,
+			planCandidatePlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
@@ -186,11 +181,6 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			continue
 		}
 
-		placePhotoSlice, err := generated.PlacePhotos(generated.PlacePhotoWhere.PlaceID.EQ(planCandidatePlace.PlaceID)).All(ctx, p.db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to find place photos: %w", err)
-		}
-
 		place, err := factory.NewPlaceFromEntity(
 			*planCandidatePlace.R.Place,
 			*planCandidatePlace.R.Place.R.GooglePlaces[0],
@@ -201,7 +191,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
-			placePhotoSlice,
+			planCandidatePlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
