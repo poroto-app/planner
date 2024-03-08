@@ -2,27 +2,38 @@ package plangen
 
 import (
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
-	"sort"
 )
 
 const (
 	defaultMaxBasePlaceCount = 3
-	defaultRadius            = 800
+	defaultRadius            = 2000
 )
 
+// SelectBasePlaceInput
+// Places 選択候補となる場所
+// IgnorePlaces は，選択されないようにする場所
 type SelectBasePlaceInput struct {
 	BaseLocation           models.GeoLocation
 	Places                 []models.Place
+	IgnorePlaces           []models.Place
 	CategoryNamesPreferred *[]string
 	CategoryNamesDisliked  *[]string
 	MaxBasePlaceCount      int
 	Radius                 int
 }
 
-// SelectBasePlace は，プランの起点となる場所を選択する
+// SelectBasePlace は，プランの起点となる場所の候補を選択する
 func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
+	s.logger.Debug(
+		"SelectBasePlace",
+		zap.Int("Places", len(input.Places)),
+		zap.Int("IgnorePlaces", len(input.IgnorePlaces)),
+		zap.Int("MaxBasePlaceCount", input.MaxBasePlaceCount),
+		zap.Int("Radius", input.Radius),
+	)
 	if input.MaxBasePlaceCount == 0 {
 		input.MaxBasePlaceCount = defaultMaxBasePlaceCount
 	}
@@ -35,143 +46,58 @@ func (s Service) SelectBasePlace(input SelectBasePlaceInput) []models.Place {
 		panic("base location is zero value")
 	}
 
-	places := input.Places
+	placesFiltered := input.Places
 
 	// レビューが低い、またはレビュー数が少ない場所を除外する
-	places = placefilter.FilterByRating(places, 3.0, 10)
-	s.logger.Debug("places after filtering by rating", zap.Int("places", len(places)))
+	placesFiltered = placefilter.FilterByRating(placesFiltered, 3.0, 10)
+	s.logger.Debug("Places after filtering by rating", zap.Int("Places", len(placesFiltered)))
 
 	// ユーザーが拒否した場所は取り除く
 	if input.CategoryNamesDisliked != nil {
 		categoriesDisliked := models.GetCategoriesFromSubCategories(*input.CategoryNamesDisliked)
-		places = placefilter.FilterByCategory(places, categoriesDisliked, false)
-		s.logger.Debug("places after filtering by disliked categories", zap.Int("places", len(places)))
+		placesFiltered = placefilter.FilterByCategory(placesFiltered, categoriesDisliked, false)
+		s.logger.Debug("Places after filtering by disliked categories", zap.Int("Places", len(placesFiltered)))
 	}
 
-	for filterDistance := 800; filterDistance < 2000; filterDistance += 200 {
-		// 距離によって1件も場所が取得できない場合は、距離を広げて再度取得する
-		placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-			Places:              places,
-			StartLocation:       input.BaseLocation,
-			IgnoreDistanceRange: float64(filterDistance),
+	// すでに選択された場所は除外
+	placesFiltered = array.Filter(placesFiltered, func(place models.Place) bool {
+		_, isIgnorePlace := array.Find(input.IgnorePlaces, func(p models.Place) bool {
+			return p.Google.PlaceId == place.Google.PlaceId
 		})
+		return !isIgnorePlace
+	})
+	s.logger.Debug("Places after filtering ignore places", zap.Int("places", len(placesFiltered)))
 
-		if len(placesFiltered) >= 10 {
-			places = placesFiltered
+	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:              placesFiltered,
+		StartLocation:       input.BaseLocation,
+		IgnoreDistanceRange: float64(input.Radius),
+	})
+	s.logger.Debug("Places after filtering default ignore", zap.Int("places", len(placesFiltered)))
+
+	placesSelected := make([]models.Place, 0, input.MaxBasePlaceCount)
+	for len(placesSelected) < input.MaxBasePlaceCount || len(placesFiltered) > 0 {
+		// プラン間で重複が発生しないように、すでに選択された場所から500m以内の場所は選択しない
+		placesFiltered = array.Filter(placesFiltered, func(place models.Place) bool {
+			_, isDistanceWithIn := array.Find(placesSelected, func(p models.Place) bool {
+				return p.Location.DistanceInMeter(place.Location) < 500
+			})
+			return !isDistanceWithIn
+		})
+		s.logger.Debug("Places after filtering by distance from selected places", zap.Int("Places", len(placesFiltered)))
+
+		// レビューの最も高い場所を選択する
+		placesSortedByRating := models.SortPlacesByRating(placesFiltered)
+		if len(placesSortedByRating) == 0 {
 			break
 		}
-	}
-	s.logger.Debug("places after filtering default ignore", zap.Int("places", len(places)))
 
-	// カテゴリごとにレビューの高い場所から選択する
-	placesSelected := selectByReview(places)
-	if len(placesSelected) == input.MaxBasePlaceCount {
-		return placesSelected
+		placesSelected = append(placesSelected, placesSortedByRating[0])
 	}
-
-	// 選択された場所から遠い場所を選択する
-	placesSelected = selectByDistanceFromPlaces(places, placesSelected)
 
 	if len(placesSelected) > input.MaxBasePlaceCount {
 		return placesSelected[:input.MaxBasePlaceCount]
 	}
 
 	return placesSelected
-}
-
-// selectByReview は，レビューの高い順に場所を選択する
-// categoriesPreferred が指定される場合は、同じカテゴリの場所が含まれないように選択する
-func selectByReview(places []models.Place) []models.Place {
-	// レビューの高い順にソート
-	places = models.SortPlacesByRating(places)
-
-	var placesSelected []models.Place
-	for _, place := range places {
-		// 既に選択済みの場所は除外
-		if isAlreadyAdded(place, placesSelected) {
-			continue
-		}
-
-		// 既に選択された場所と異なるカテゴリの場所が選択されるようにする
-		isAlreadyHaveSameCategory := false
-		for _, placeSelected := range placesSelected {
-			if place.IsSameCategoryPlace(placeSelected) {
-				isAlreadyHaveSameCategory = true
-				break
-			}
-		}
-		if isAlreadyHaveSameCategory {
-			continue
-		}
-
-		// 既に選択された場所から500m以内の場所は選択しない(プランの内容が重複する可能性が高いため)
-		if isNearFromPlaces(place, placesSelected, 500) {
-			continue
-		}
-
-		placesSelected = append(placesSelected, place)
-		if len(placesSelected) == defaultMaxBasePlaceCount {
-			break
-		}
-	}
-
-	return placesSelected
-}
-
-// selectByDistanceFromPlaces は，プラン間の内容が重複しないようにするため、既に選択された場所から遠い場所を選択する
-func selectByDistanceFromPlaces(
-	places []models.Place,
-	placesSelected []models.Place,
-) []models.Place {
-	// 既に選択された場所から遠い順にソート
-	sort.SliceStable(places, func(i, j int) bool {
-		sumDistanceI := 0.0
-		for _, placeSelected := range placesSelected {
-			sumDistanceI += placeSelected.Location.DistanceInMeter(places[i].Location)
-		}
-
-		sumDistanceJ := 0.0
-		for _, placeSelected := range placesSelected {
-			sumDistanceJ += placeSelected.Location.DistanceInMeter(places[j].Location)
-		}
-
-		return sumDistanceI > sumDistanceJ
-	})
-
-	for _, place := range places {
-		// 既に選択済みの場所は除外
-		if isAlreadyAdded(place, placesSelected) {
-			continue
-		}
-
-		placesSelected = append(placesSelected, place)
-	}
-
-	return placesSelected
-}
-
-func isAlreadyAdded(place models.Place, places []models.Place) bool {
-	for _, p := range places {
-		if p.Id == place.Id {
-			return true
-		}
-	}
-	return false
-}
-
-// isNearFromPlaces placeBase　が placesCompare　のいずれかの場所から distance メートル以内にあるかどうかを判定する
-func isNearFromPlaces(
-	placeBase models.Place,
-	placesCompare []models.Place,
-	distance int,
-) bool {
-	for _, placeCompare := range placesCompare {
-		locationOfPlaceBase := placeBase.Location
-		locationOfPlaceCompare := placeCompare.Location
-		distanceFromSelectedPlace := locationOfPlaceCompare.DistanceInMeter(locationOfPlaceBase)
-		if int(distanceFromSelectedPlace) < distance {
-			return true
-		}
-	}
-	return false
 }

@@ -8,6 +8,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+// CreatePlanFromPlace 指定した場所を起点としてプランを作成する
 func (s Service) CreatePlanFromPlace(
 	ctx context.Context,
 	createPlanSessionId string,
@@ -43,25 +44,22 @@ func (s Service) CreatePlanFromPlace(
 		}
 	}
 
-	planPlaces, err := s.createPlanPlaces(
-		ctx,
-		CreatePlanPlacesParams{
-			PlanCandidateId:       createPlanSessionId,
-			LocationStart:         placeStart.Location,
-			PlaceStart:            *placeStart,
-			Places:                places,
-			CategoryNamesDisliked: &categoryNamesRejected,
-			FreeTime:              planCandidate.MetaData.FreeTime,
-		},
-	)
+	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
+		PlanCandidateId:       createPlanSessionId,
+		LocationStart:         placeStart.Location,
+		PlaceStart:            *placeStart,
+		Places:                places,
+		CategoryNamesDisliked: &categoryNamesRejected,
+		FreeTime:              planCandidate.MetaData.FreeTime,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	plansCreated := s.createPlanData(ctx, createPlanSessionId, CreatePlanParams{
-		locationStart: placeStart.Location,
-		placeStart:    *placeStart,
-		places:        planPlaces,
+		LocationStart: placeStart.Location,
+		PlaceStart:    *placeStart,
+		Places:        planPlaces,
 	})
 	if len(plansCreated) == 0 {
 		return nil, fmt.Errorf("no plan created")
