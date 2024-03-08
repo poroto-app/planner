@@ -259,6 +259,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	// TODO: for 分の中で取得を行う
 	placePhotoSlice := googlePlaceEntities.GetLoadedPlaces().GetLoadedPlacePhotos()
 
 	var places []models.Place
@@ -277,6 +278,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
+			// TODO: ここでフィルタを行わない
 			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
 				return placePhoto.PlaceID == googlePlaceEntity.PlaceID
 			}),
