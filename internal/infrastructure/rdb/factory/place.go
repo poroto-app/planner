@@ -8,6 +8,8 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
+// TODO: 引数を placeEntity, placePhotoSliceの順番になるようにする
+// TODO: placePhotoSliceの中から、placeEntityに対応するものを抽出する
 func NewPlaceFromEntity(
 	placeEntity generated.Place,
 	googlePlaceEntity generated.GooglePlace,

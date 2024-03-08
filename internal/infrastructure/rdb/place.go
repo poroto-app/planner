@@ -259,6 +259,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
+	// TODO: for 分の中で取得を行う
 	placePhotoSlice := googlePlaceEntities.GetLoadedPlaces().GetLoadedPlacePhotos()
 
 	var places []models.Place
@@ -277,6 +278,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 			googlePlaceEntity.R.GooglePlaceReviews,
 			googlePlaceEntity.R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetLikePlaceCounts, googlePlaceEntity.PlaceID),
+			// TODO: ここでフィルタを行わない
 			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
 				return placePhoto.PlaceID == googlePlaceEntity.PlaceID
 			}),
@@ -400,8 +402,6 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planCandidateSetSearchedPlaceSlice.GetLoadedPlaces().GetLoadedPlacePhotos()
-
 	var places []models.Place
 	for _, planCandidateSetSearchedPlace := range planCandidateSetSearchedPlaceSlice {
 		if planCandidateSetSearchedPlace == nil {
@@ -436,9 +436,7 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidateSetSearchedPlace.PlaceID),
-			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-				return placePhoto.PlaceID == planCandidateSetSearchedPlace.PlaceID
-			}),
+			planCandidateSetSearchedPlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
@@ -504,6 +502,7 @@ func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId stri
 			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(placeLikeCounts, userLikePlace.PlaceID),
+			userLikePlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
