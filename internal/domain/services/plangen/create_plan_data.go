@@ -10,9 +10,9 @@ import (
 )
 
 type CreatePlanParams struct {
-	locationStart models.GeoLocation
-	placeStart    models.Place
-	places        []models.Place
+	LocationStart models.GeoLocation
+	PlaceStart    models.Place
+	Places        []models.Place
 }
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
@@ -31,7 +31,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 	for _, param := range params {
 		go func(ctx context.Context, param CreatePlanParams, ch chan<- *models.Plan) {
 			// 出発地点から近い順に場所をめぐるように並び替え
-			placesSortedByDistance := sortPlacesByDistanceFrom(param.locationStart, param.places)
+			placesSortedByDistance := sortPlacesByDistanceFrom(param.LocationStart, param.Places)
 
 			// プランのタイトルを生成
 			chPlanTitle := make(chan string, 1)
@@ -44,7 +44,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 						zap.String("PlanCandidateId", planCandidateId),
 						zap.Error(err),
 					)
-					title = &param.placeStart.Google.Name
+					title = &param.PlaceStart.Google.Name
 				}
 				s.logger.Info(
 					"generating plan title",
@@ -65,16 +65,16 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 					"timeout while generating plan title",
 					zap.String("PlanCandidateId", planCandidateId),
 				)
-				title = param.placeStart.Google.Name
+				title = param.PlaceStart.Google.Name
 			}
 
 			// プランに含まれる場所のレビューや写真をセットする
 			var placesInPlan []models.Place
-			for i, place := range param.places {
+			for i, place := range param.Places {
 				if value, ok := placeIdToPlaceWithPlaceDetail[place.Id]; ok {
-					param.places[i] = value
+					param.Places[i] = value
 				}
-				placesInPlan = append(placesInPlan, param.places[i])
+				placesInPlan = append(placesInPlan, param.Places[i])
 			}
 
 			ch <- &models.Plan{
@@ -102,12 +102,12 @@ func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId strin
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.Place)
 	for _, param := range params {
-		for _, place := range param.places {
+		for _, place := range param.Places {
 			placeIdToPlace[place.Id] = place
 		}
 
 		// スタート地点（ユーザーが指定した場所 or スタート地点として選ばれた場所）も含める
-		placeIdToPlace[param.placeStart.Id] = param.placeStart
+		placeIdToPlace[param.PlaceStart.Id] = param.PlaceStart
 	}
 
 	// すべてのプランに含まれる Place を重複がないように選択し、写真を取得する

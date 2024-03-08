@@ -25,6 +25,8 @@ func MapWithErr[T any, U any](slice []T, transform func(T) (*U, error)) (*[]U, e
 	return &mapped, nil
 }
 
+// MapAndFiletr はスライスと変形関数を引数にとる
+// スライスの各要素に対し、フィルタを掛けたのち変形した値をスライスにまとめ返す
 func MapAndFilter[T any, U any](slice []T, transform func(T) (U, bool)) []U {
 	var mapped []U
 	for _, v := range slice {

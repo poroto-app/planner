@@ -3,6 +3,7 @@ package place
 import (
 	"database/sql"
 	"fmt"
+
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/repository"
 	"poroto.app/poroto/planner/internal/domain/services/placesearch"
@@ -19,6 +20,11 @@ type Service struct {
 }
 
 func NewService(db *sql.DB) (*Service, error) {
+	placeSearchService, err := placesearch.NewPlaceSearchService(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place search service: %v", err)
+	}
+
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing plan candidate repository: %v", err)
@@ -34,11 +40,6 @@ func NewService(db *sql.DB) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
-	placeSearchService, err := placesearch.NewPlaceSearchService(db)
-	if err != nil {
-		return nil, fmt.Errorf("error while initializing place search service: %v", err)
-	}
-
 	logger, err := utils.NewLogger(utils.LoggerOption{
 		Tag: "PlaceService",
 	})
@@ -49,8 +50,8 @@ func NewService(db *sql.DB) (*Service, error) {
 	return &Service{
 		placeSearchService:      *placeSearchService,
 		planCandidateRepository: planCandidateRepository,
-		placeRepository:         placeRepository,
 		planRepository:          planRepository,
+		placeRepository:         placeRepository,
 		logger:                  *logger,
 	}, nil
 }
