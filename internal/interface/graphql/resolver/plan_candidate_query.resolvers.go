@@ -38,7 +38,11 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 		zap.String("planCandidateId", input.PlanCandidateID),
 	)
 
-	planCandidate, err := planService.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := planService.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId:   input.PlanCandidateID,
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
 	if err != nil {
 		logger.Error("error while finding plan candidate", zap.Error(err))
 		return nil, err

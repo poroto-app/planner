@@ -145,7 +145,9 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	planCandidate, err := service.FindPlanCandidate(ctx, input.Session)
+	planCandidate, err := service.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.Session,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -213,7 +215,9 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 		return nil, fmt.Errorf("could not add place to plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -244,7 +248,9 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("could not delete place from plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -276,7 +282,9 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 		return nil, fmt.Errorf("could not replace place of plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
