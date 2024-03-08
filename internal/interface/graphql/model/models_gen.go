@@ -142,6 +142,11 @@ type Image struct {
 	Large   *string `json:"large,omitempty"`
 }
 
+type LikePlacesInput struct {
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+}
+
 type LikeToPlaceInPlanCandidateInput struct {
 	UserID            *string `json:"userId,omitempty"`
 	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
@@ -163,7 +168,8 @@ type LikeToPlaceInPlanInput struct {
 }
 
 type LikeToPlaceInPlanOutput struct {
-	Plan *Plan `json:"plan"`
+	Plan          *Plan    `json:"plan"`
+	LikedPlaceIds []string `json:"likedPlaceIds"`
 }
 
 type LocationCategory struct {
@@ -255,7 +261,9 @@ type PlanCandidate struct {
 }
 
 type PlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
+	PlanCandidateID   string  `json:"planCandidateId"`
+	UserID            *string `json:"userId,omitempty"`
+	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
 }
 
 type PlanCandidateOutput struct {
@@ -337,7 +345,6 @@ type Transition struct {
 
 type UploadPlacePhotoInPlanInput struct {
 	UserID   string `json:"userId"`
-	PlanID   string `json:"planId"`
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
 	Width    int    `json:"width"`

@@ -16,6 +16,8 @@ extend type Query {
 
 input PlanCandidateInput {
     planCandidateId: ID!
+    userId: String
+    firebaseAuthToken: String
 }
 
 type PlanCandidateOutput {

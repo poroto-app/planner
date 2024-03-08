@@ -50,7 +50,11 @@ func (s Service) LikeToPlaceInPlanCandidate(
 		}
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateId)
+	planCandidate, err := s.FindPlanCandidate(ctx, FindPlanCandidateInput{
+		PlanCandidateId:   input.PlanCandidateId,
+		UserId:            input.UserId,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate after updating: %v", err)
 	}

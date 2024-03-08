@@ -5,53 +5,6 @@ import (
 	"testing"
 )
 
-func TestPlace_IsSameCategoryPlace(t *testing.T) {
-	cases := []struct {
-		name     string
-		a        Place
-		b        Place
-		expected bool
-	}{
-		{
-			name: "should return true when two places are same category",
-			a: Place{
-				Google: GooglePlace{
-					Types: []string{CategoryRestaurant.SubCategories[0]},
-				},
-			},
-			b: Place{
-				Google: GooglePlace{
-					Types: []string{CategoryRestaurant.SubCategories[1]},
-				},
-			},
-			expected: true,
-		},
-		{
-			name: "should return false when two places are not same category",
-			a: Place{
-				Google: GooglePlace{
-					Types: []string{CategoryRestaurant.SubCategories[0]},
-				},
-			},
-			b: Place{
-				Google: GooglePlace{
-					Types: []string{CategoryAmusements.SubCategories[0]},
-				},
-			},
-			expected: false,
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			actual := c.a.IsSameCategoryPlace(c.b)
-			if actual != c.expected {
-				t.Errorf("expected: %v, actual: %v", c.expected, actual)
-			}
-		})
-	}
-}
-
 func TestPlace_EstimatedStayDuration(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -159,6 +112,41 @@ func TestSortPlacesByRating(t *testing.T) {
 				NewMockPlaceShinjukuStation(),
 			},
 		},
+		{
+			name: "should return sorted places by rating and user ratings total",
+			places: []Place{
+				{
+					Id: "1",
+					Google: GooglePlace{
+						Rating:           5.0,
+						UserRatingsTotal: 1,
+					},
+				},
+				{
+					Id: "2",
+					Google: GooglePlace{
+						Rating:           4.0,
+						UserRatingsTotal: 100,
+					},
+				},
+			},
+			expected: []Place{
+				{
+					Id: "2",
+					Google: GooglePlace{
+						Rating:           4.0,
+						UserRatingsTotal: 100,
+					},
+				},
+				{
+					Id: "1",
+					Google: GooglePlace{
+						Rating:           5.0,
+						UserRatingsTotal: 1,
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
@@ -183,7 +171,8 @@ func NewMockPlaceShinjukuStation() Place {
 			Longitude: 139.7005071,
 		},
 		Google: GooglePlace{
-			Rating: 4.5,
+			Rating:           5.0,
+			UserRatingsTotal: 1,
 		},
 	}
 }
@@ -197,7 +186,8 @@ func NewMockPlaceIsetan() Place {
 			Longitude: 139.7046449,
 		},
 		Google: GooglePlace{
-			Rating: 4.6,
+			Rating:           4.5,
+			UserRatingsTotal: 100,
 		},
 	}
 }
@@ -211,7 +201,8 @@ func NewMockPlaceShinjukuGyoen() Place {
 			Longitude: 139.7123842,
 		},
 		Google: GooglePlace{
-			Rating: 4.7,
+			Rating:           4.8,
+			UserRatingsTotal: 100,
 		},
 	}
 }
@@ -225,7 +216,8 @@ func NewMockPlaceTakashimaya() Place {
 			Longitude: 139.7022521,
 		},
 		Google: GooglePlace{
-			Rating: 4.8,
+			Rating:           5.0,
+			UserRatingsTotal: 100,
 		},
 	}
 }
