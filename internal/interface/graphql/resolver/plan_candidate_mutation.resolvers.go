@@ -28,7 +28,7 @@ func (r *mutationResolver) CreatePlanByLocation(ctx context.Context, input model
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateService, err := plancandidate.NewService(r.DB)
+	planCandidateService, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println("error while initializing plan candidate service: ", err)
 		return nil, fmt.Errorf("internal server error")
@@ -126,7 +126,7 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
-	service, err := plancandidate.NewService(r.DB)
+	service, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -145,7 +145,9 @@ func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("could not change places order")
 	}
 
-	planCandidate, err := service.FindPlanCandidate(ctx, input.Session)
+	planCandidate, err := service.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.Session,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -201,7 +203,7 @@ func (r *mutationResolver) SavePlanFromCandidate(ctx context.Context, input mode
 
 // AddPlaceToPlanCandidateAfterPlace is the resolver for the addPlaceToPlanCandidateAfterPlace field.
 func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context, input *model.AddPlaceToPlanCandidateAfterPlaceInput) (*model.AddPlaceToPlanCandidateAfterPlaceOutput, error) {
-	s, err := plancandidate.NewService(r.DB)
+	s, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -213,7 +215,9 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 		return nil, fmt.Errorf("could not add place to plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -232,7 +236,7 @@ func (r *mutationResolver) AddPlaceToPlanCandidateAfterPlace(ctx context.Context
 
 // DeletePlaceFromPlanCandidate is the resolver for the deletePlaceFromPlanCandidate field.
 func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, input model.DeletePlaceFromPlanCandidateInput) (*model.DeletePlaceFromPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(r.DB)
+	s, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -244,7 +248,9 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 		return nil, fmt.Errorf("could not delete place from plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -264,7 +270,7 @@ func (r *mutationResolver) DeletePlaceFromPlanCandidate(ctx context.Context, inp
 
 // ReplacePlaceOfPlanCandidate is the resolver for the replacePlaceOfPlanCandidate field.
 func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, input model.ReplacePlaceOfPlanCandidateInput) (*model.ReplacePlaceOfPlanCandidateOutput, error) {
-	s, err := plancandidate.NewService(r.DB)
+	s, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -276,7 +282,9 @@ func (r *mutationResolver) ReplacePlaceOfPlanCandidate(ctx context.Context, inpu
 		return nil, fmt.Errorf("could not replace place of plan candidate")
 	}
 
-	planCandidate, err := s.FindPlanCandidate(ctx, input.PlanCandidateID)
+	planCandidate, err := s.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+		PlanCandidateId: input.PlanCandidateID,
+	})
 	if err != nil {
 		log.Println(fmt.Errorf("error while finding plan candidate: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -301,7 +309,7 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 
 // AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
 func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(r.DB)
+	planCandidateService, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
@@ -330,22 +338,42 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 
 // LikeToPlaceInPlanCandidate is the resolver for the likeToPlaceInPlanCandidate field.
 func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error) {
-	planCandidateService, err := plancandidate.NewService(r.DB)
+	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
+	if err != nil {
+		log.Println("error while initializing logger: ", err)
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planCandidateService, err := plancandidate.NewService(ctx, r.DB)
 	if err != nil {
 		log.Println(fmt.Errorf("error while initizalizing PlanService: %v", err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	planCandidateUpdated, err := planCandidateService.LikeToPlaceInPlanCandidate(ctx, input.PlanCandidateID, input.PlaceID, input.Like)
+	logger.Info(
+		"LikeToPlaceInPlanCandidate",
+		zap.String("planCandidateId", input.PlanCandidateID),
+		zap.String("placeId", input.PlaceID),
+		zap.Bool("like", input.Like),
+		zap.String("userId", utils.FromPointerOrZero(input.UserID)),
+	)
+
+	planCandidateUpdated, err := planCandidateService.LikeToPlaceInPlanCandidate(ctx, plancandidate.LikeToPlaceInPlanCandidateInput{
+		PlanCandidateId:   input.PlanCandidateID,
+		PlaceId:           input.PlaceID,
+		Like:              input.Like,
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
 	if err != nil {
-		log.Println(fmt.Errorf("error while liking to place in plan candidate: %v", err))
+		logger.Error("error while liking to place in plan candidate", zap.Error(err))
 		return nil, fmt.Errorf("could not like to place in plan candidate")
 	}
 
 	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidateUpdated)
 
 	if err != nil {
-		log.Printf("error while converting plan candidate to graphql model: %v", err)
+		logger.Error("error while converting plan candidate to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 

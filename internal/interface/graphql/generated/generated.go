@@ -117,6 +117,11 @@ type ComplexityRoot struct {
 		PlanCandidate func(childComplexity int) int
 	}
 
+	LikeToPlaceInPlanOutput struct {
+		LikedPlaceIds func(childComplexity int) int
+		Plan          func(childComplexity int) int
+	}
+
 	LocationCategory struct {
 		DefaultPhotoURL func(childComplexity int) int
 		DisplayName     func(childComplexity int) int
@@ -132,11 +137,12 @@ type ComplexityRoot struct {
 		CreatePlanByPlace                 func(childComplexity int, input model.CreatePlanByPlaceInput) int
 		DeletePlaceFromPlanCandidate      func(childComplexity int, input model.DeletePlaceFromPlanCandidateInput) int
 		EditPlanTitleOfPlanCandidate      func(childComplexity int, input model.EditPlanTitleOfPlanCandidateInput) int
+		LikeToPlaceInPlan                 func(childComplexity int, input model.LikeToPlaceInPlanInput) int
 		LikeToPlaceInPlanCandidate        func(childComplexity int, input model.LikeToPlaceInPlanCandidateInput) int
 		Ping                              func(childComplexity int, message string) int
 		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
-		UploadPlacePhotoInPlan            func(childComplexity int, inputs []*model.UploadPlacePhotoInPlanInput) int
+		UploadPlacePhotoInPlan            func(childComplexity int, planID string, inputs []*model.UploadPlacePhotoInPlanInput) int
 	}
 
 	NearbyLocationCategory struct {
@@ -167,6 +173,10 @@ type ComplexityRoot struct {
 	PlaceCategory struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
+	}
+
+	PlacesNearPlanOutput struct {
+		Places func(childComplexity int) int
 	}
 
 	PlacesToAddForPlanCandidateOutput struct {
@@ -227,7 +237,9 @@ type ComplexityRoot struct {
 	Query struct {
 		AvailablePlacesForPlan          func(childComplexity int, input model.AvailablePlacesForPlanInput) int
 		FirebaseUser                    func(childComplexity int, input *model.FirebaseUserInput) int
+		LikePlaces                      func(childComplexity int, input *model.LikePlacesInput) int
 		NearbyPlaceCategories           func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
+		PlacesNearPlan                  func(childComplexity int, input model.PlacesNearPlanInput) int
 		PlacesToAddForPlanCandidate     func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
 		PlacesToReplaceForPlanCandidate func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
 		Plan                            func(childComplexity int, input model.PlanInput) int
@@ -276,10 +288,12 @@ type MutationResolver interface {
 	EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error)
 	AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error)
 	LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error)
-	UploadPlacePhotoInPlan(ctx context.Context, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
+	UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
+	LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error)
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
+	PlacesNearPlan(ctx context.Context, input model.PlacesNearPlanInput) (*model.PlacesNearPlanOutput, error)
 	PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error)
 	NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
@@ -290,6 +304,7 @@ type QueryResolver interface {
 	PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error)
 	PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error)
 	FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error)
+	LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error)
 }
 
 type executableSchema struct {
@@ -524,6 +539,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LikeToPlaceInPlanCandidateOutput.PlanCandidate(childComplexity), true
 
+	case "LikeToPlaceInPlanOutput.likedPlaceIds":
+		if e.complexity.LikeToPlaceInPlanOutput.LikedPlaceIds == nil {
+			break
+		}
+
+		return e.complexity.LikeToPlaceInPlanOutput.LikedPlaceIds(childComplexity), true
+
+	case "LikeToPlaceInPlanOutput.plan":
+		if e.complexity.LikeToPlaceInPlanOutput.Plan == nil {
+			break
+		}
+
+		return e.complexity.LikeToPlaceInPlanOutput.Plan(childComplexity), true
+
 	case "LocationCategory.defaultPhotoUrl":
 		if e.complexity.LocationCategory.DefaultPhotoURL == nil {
 			break
@@ -636,6 +665,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EditPlanTitleOfPlanCandidate(childComplexity, args["input"].(model.EditPlanTitleOfPlanCandidateInput)), true
 
+	case "Mutation.likeToPlaceInPlan":
+		if e.complexity.Mutation.LikeToPlaceInPlan == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_likeToPlaceInPlan_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.LikeToPlaceInPlan(childComplexity, args["input"].(model.LikeToPlaceInPlanInput)), true
+
 	case "Mutation.likeToPlaceInPlanCandidate":
 		if e.complexity.Mutation.LikeToPlaceInPlanCandidate == nil {
 			break
@@ -694,7 +735,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
+		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["planId"].(string), args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
 
 	case "NearbyLocationCategory.defaultPhotoUrl":
 		if e.complexity.NearbyLocationCategory.DefaultPhotoURL == nil {
@@ -821,6 +862,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PlaceCategory.Name(childComplexity), true
+
+	case "PlacesNearPlanOutput.places":
+		if e.complexity.PlacesNearPlanOutput.Places == nil {
+			break
+		}
+
+		return e.complexity.PlacesNearPlanOutput.Places(childComplexity), true
 
 	case "PlacesToAddForPlanCandidateOutput.places":
 		if e.complexity.PlacesToAddForPlanCandidateOutput.Places == nil {
@@ -1021,6 +1069,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FirebaseUser(childComplexity, args["input"].(*model.FirebaseUserInput)), true
 
+	case "Query.likePlaces":
+		if e.complexity.Query.LikePlaces == nil {
+			break
+		}
+
+		args, err := ec.field_Query_likePlaces_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.LikePlaces(childComplexity, args["input"].(*model.LikePlacesInput)), true
+
 	case "Query.nearbyPlaceCategories":
 		if e.complexity.Query.NearbyPlaceCategories == nil {
 			break
@@ -1032,6 +1092,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.NearbyPlaceCategories(childComplexity, args["input"].(model.NearbyPlaceCategoriesInput)), true
+
+	case "Query.placesNearPlan":
+		if e.complexity.Query.PlacesNearPlan == nil {
+			break
+		}
+
+		args, err := ec.field_Query_placesNearPlan_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PlacesNearPlan(childComplexity, args["input"].(model.PlacesNearPlanInput)), true
 
 	case "Query.placesToAddForPlanCandidate":
 		if e.complexity.Query.PlacesToAddForPlanCandidate == nil {
@@ -1212,8 +1284,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputDeletePlaceFromPlanCandidateInput,
 		ec.unmarshalInputEditPlanTitleOfPlanCandidateInput,
 		ec.unmarshalInputFirebaseUserInput,
+		ec.unmarshalInputLikePlacesInput,
 		ec.unmarshalInputLikeToPlaceInPlanCandidateInput,
+		ec.unmarshalInputLikeToPlaceInPlanInput,
 		ec.unmarshalInputNearbyPlaceCategoriesInput,
+		ec.unmarshalInputPlacesNearPlanInput,
 		ec.unmarshalInputPlacesToAddForPlanCandidateInput,
 		ec.unmarshalInputPlacesToReplaceForPlanCandidateInput,
 		ec.unmarshalInputPlanCandidateInput,
@@ -1332,6 +1407,18 @@ type Image {
     large: String
 }
 `, BuiltIn: false},
+	{Name: "../schema/place_query.graphqls", Input: `extend type Query {
+    placesNearPlan(input: PlacesNearPlanInput!): PlacesNearPlanOutput!
+}
+
+input PlacesNearPlanInput {
+    planId: ID!
+    limit: Int
+}
+
+type PlacesNearPlanOutput {
+    places: [Place!]!
+}`, BuiltIn: false},
 	{Name: "../schema/place_type.graphqls", Input: `type Place {
     id: String!
     googlePlaceId: String!
@@ -1522,6 +1609,8 @@ type AutoReorderPlacesInPlanCandidateOutput {
 }
 
 input LikeToPlaceInPlanCandidateInput {
+    userId: String
+    firebaseAuthToken: String
     planCandidateId: String!
     placeId: String!
     like: Boolean!
@@ -1548,6 +1637,8 @@ type LikeToPlaceInPlanCandidateOutput {
 
 input PlanCandidateInput {
     planCandidateId: ID!
+    userId: String
+    firebaseAuthToken: String
 }
 
 type PlanCandidateOutput {
@@ -1598,13 +1689,13 @@ type PlacesToReplaceForPlanCandidateOutput {
     createdBasedOnCurrentLocation: Boolean!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_mutation.graphqls", Input: `extend type Mutation {
-    uploadPlacePhotoInPlan(inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(planId: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
-    planId: String!
     placeId: String!
     photoUrl: String!
     width: Int!
@@ -1613,6 +1704,19 @@ input UploadPlacePhotoInPlanInput {
 
 type UploadPlacePhotoInPlanOutput {
     plan: Plan!
+}
+
+input LikeToPlaceInPlanInput {
+    userId: String!
+    firebaseAuthToken: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanOutput {
+    plan: Plan!
+    likedPlaceIds: [String!]!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_query.graphqls", Input: `extend type Query {
     plan(input: PlanInput!): PlanOutput!
@@ -1707,10 +1811,17 @@ type Mutation {
 }`, BuiltIn: false},
 	{Name: "../schema/user_query.graphqls", Input: `extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
+
+    likePlaces(input: LikePlacesInput): [Place!]!
 }
 
 input FirebaseUserInput {
     firebaseUserId: String!
+    firebaseAuthToken: String!
+}
+
+input LikePlacesInput {
+    userId: ID!
     firebaseAuthToken: String!
 }
 `, BuiltIn: false},
@@ -1846,6 +1957,21 @@ func (ec *executionContext) field_Mutation_likeToPlaceInPlanCandidate_args(ctx c
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_likeToPlaceInPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.LikeToPlaceInPlanInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNLikeToPlaceInPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_ping_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1894,15 +2020,24 @@ func (ec *executionContext) field_Mutation_savePlanFromCandidate_args(ctx contex
 func (ec *executionContext) field_Mutation_uploadPlacePhotoInPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []*model.UploadPlacePhotoInPlanInput
-	if tmp, ok := rawArgs["inputs"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
-		arg0, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["planId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["inputs"] = arg0
+	args["planId"] = arg0
+	var arg1 []*model.UploadPlacePhotoInPlanInput
+	if tmp, ok := rawArgs["inputs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
+		arg1, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["inputs"] = arg1
 	return args, nil
 }
 
@@ -1951,6 +2086,21 @@ func (ec *executionContext) field_Query_firebaseUser_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_likePlaces_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.LikePlacesInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOLikePlacesInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikePlacesInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_nearbyPlaceCategories_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1958,6 +2108,21 @@ func (ec *executionContext) field_Query_nearbyPlaceCategories_args(ctx context.C
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNearbyPlaceCategoriesInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyPlaceCategoriesInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_placesNearPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.PlacesNearPlanInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNPlacesNearPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesNearPlanInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3634,6 +3799,110 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanCandidateOutput_planCa
 	return fc, nil
 }
 
+func (ec *executionContext) _LikeToPlaceInPlanOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikeToPlaceInPlanOutput_plan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plan, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LikeToPlaceInPlanOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "author":
+				return ec.fieldContext_Plan_author(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LikeToPlaceInPlanOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField, obj *model.LikeToPlaceInPlanOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikedPlaceIds, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LikeToPlaceInPlanOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LocationCategory_name(ctx context.Context, field graphql.CollectedField, obj *model.LocationCategory) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LocationCategory_name(ctx, field)
 	if err != nil {
@@ -4480,7 +4749,7 @@ func (ec *executionContext) _Mutation_uploadPlacePhotoInPlan(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
+		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["planId"].(string), fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4519,6 +4788,67 @@ func (ec *executionContext) fieldContext_Mutation_uploadPlacePhotoInPlan(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_uploadPlacePhotoInPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_likeToPlaceInPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_likeToPlaceInPlan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().LikeToPlaceInPlan(rctx, fc.Args["input"].(model.LikeToPlaceInPlanInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.LikeToPlaceInPlanOutput)
+	fc.Result = res
+	return ec.marshalNLikeToPlaceInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "plan":
+				return ec.fieldContext_LikeToPlaceInPlanOutput_plan(ctx, field)
+			case "likedPlaceIds":
+				return ec.fieldContext_LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LikeToPlaceInPlanOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_likeToPlaceInPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -5387,6 +5717,72 @@ func (ec *executionContext) fieldContext_PlaceCategory_name(ctx context.Context,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PlacesNearPlanOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.PlacesNearPlanOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlacesNearPlanOutput_places(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Places, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlacesNearPlanOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlacesNearPlanOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "likeCount":
+				return ec.fieldContext_Place_likeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
 	}
 	return fc, nil
@@ -6704,6 +7100,65 @@ func (ec *executionContext) fieldContext_Query_version(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_placesNearPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_placesNearPlan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PlacesNearPlan(rctx, fc.Args["input"].(model.PlacesNearPlanInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PlacesNearPlanOutput)
+	fc.Result = res
+	return ec.marshalNPlacesNearPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesNearPlanOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_placesNearPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "places":
+				return ec.fieldContext_PlacesNearPlanOutput_places(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlacesNearPlanOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_placesNearPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_planCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_planCandidate(ctx, field)
 	if err != nil {
@@ -7302,6 +7757,83 @@ func (ec *executionContext) fieldContext_Query_firebaseUser(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_firebaseUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_likePlaces(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_likePlaces(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LikePlaces(rctx, fc.Args["input"].(*model.LikePlacesInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_likePlaces(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "likeCount":
+				return ec.fieldContext_Place_likeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_likePlaces_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -10251,6 +10783,44 @@ func (ec *executionContext) unmarshalInputFirebaseUserInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLikePlacesInput(ctx context.Context, obj interface{}) (model.LikePlacesInput, error) {
+	var it model.LikePlacesInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx context.Context, obj interface{}) (model.LikeToPlaceInPlanCandidateInput, error) {
 	var it model.LikeToPlaceInPlanCandidateInput
 	asMap := map[string]interface{}{}
@@ -10258,13 +10828,31 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId", "placeId", "like"}
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planCandidateId", "placeId", "like"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
 		case "planCandidateId":
 			var err error
 
@@ -10274,6 +10862,71 @@ func (ec *executionContext) unmarshalInputLikeToPlaceInPlanCandidateInput(ctx co
 				return it, err
 			}
 			it.PlanCandidateID = data
+		case "placeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlaceID = data
+		case "like":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("like"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Like = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputLikeToPlaceInPlanInput(ctx context.Context, obj interface{}) (model.LikeToPlaceInPlanInput, error) {
+	var it model.LikeToPlaceInPlanInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planId", "placeId", "like"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
+		case "planId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlanID = data
 		case "placeId":
 			var err error
 
@@ -10330,6 +10983,44 @@ func (ec *executionContext) unmarshalInputNearbyPlaceCategoriesInput(ctx context
 				return it, err
 			}
 			it.Longitude = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPlacesNearPlanInput(ctx context.Context, obj interface{}) (model.PlacesNearPlanInput, error) {
+	var it model.PlacesNearPlanInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"planId", "limit"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "planId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlanID = data
+		case "limit":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
 		}
 	}
 
@@ -10428,7 +11119,7 @@ func (ec *executionContext) unmarshalInputPlanCandidateInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId"}
+	fieldsInOrder := [...]string{"planCandidateId", "userId", "firebaseAuthToken"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10444,6 +11135,24 @@ func (ec *executionContext) unmarshalInputPlanCandidateInput(ctx context.Context
 				return it, err
 			}
 			it.PlanCandidateID = data
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
 		}
 	}
 
@@ -10712,7 +11421,7 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "planId", "placeId", "photoUrl", "width", "height"}
+	fieldsInOrder := [...]string{"userId", "placeId", "photoUrl", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10728,15 +11437,6 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 				return it, err
 			}
 			it.UserID = data
-		case "planId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planId"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PlanID = data
 		case "placeId":
 			var err error
 
@@ -11397,6 +12097,50 @@ func (ec *executionContext) _LikeToPlaceInPlanCandidateOutput(ctx context.Contex
 	return out
 }
 
+var likeToPlaceInPlanOutputImplementors = []string{"LikeToPlaceInPlanOutput"}
+
+func (ec *executionContext) _LikeToPlaceInPlanOutput(ctx context.Context, sel ast.SelectionSet, obj *model.LikeToPlaceInPlanOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, likeToPlaceInPlanOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LikeToPlaceInPlanOutput")
+		case "plan":
+			out.Values[i] = ec._LikeToPlaceInPlanOutput_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likedPlaceIds":
+			out.Values[i] = ec._LikeToPlaceInPlanOutput_likedPlaceIds(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var locationCategoryImplementors = []string{"LocationCategory"}
 
 func (ec *executionContext) _LocationCategory(ctx context.Context, sel ast.SelectionSet, obj *model.LocationCategory) graphql.Marshaler {
@@ -11547,6 +12291,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "uploadPlacePhotoInPlan":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_uploadPlacePhotoInPlan(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likeToPlaceInPlan":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_likeToPlaceInPlan(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11771,6 +12522,45 @@ func (ec *executionContext) _PlaceCategory(ctx context.Context, sel ast.Selectio
 			}
 		case "name":
 			out.Values[i] = ec._PlaceCategory_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var placesNearPlanOutputImplementors = []string{"PlacesNearPlanOutput"}
+
+func (ec *executionContext) _PlacesNearPlanOutput(ctx context.Context, sel ast.SelectionSet, obj *model.PlacesNearPlanOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, placesNearPlanOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlacesNearPlanOutput")
+		case "places":
+			out.Values[i] = ec._PlacesNearPlanOutput_places(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12285,6 +13075,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "placesNearPlan":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_placesNearPlan(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "planCandidate":
 			field := field
 
@@ -12493,6 +13305,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_firebaseUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "likePlaces":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_likePlaces(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -13474,6 +14308,25 @@ func (ec *executionContext) marshalNLikeToPlaceInPlanCandidateOutput2ᚖporoto�
 	return ec._LikeToPlaceInPlanCandidateOutput(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNLikeToPlaceInPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanInput(ctx context.Context, v interface{}) (model.LikeToPlaceInPlanInput, error) {
+	res, err := ec.unmarshalInputLikeToPlaceInPlanInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNLikeToPlaceInPlanOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanOutput(ctx context.Context, sel ast.SelectionSet, v model.LikeToPlaceInPlanOutput) graphql.Marshaler {
+	return ec._LikeToPlaceInPlanOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLikeToPlaceInPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikeToPlaceInPlanOutput(ctx context.Context, sel ast.SelectionSet, v *model.LikeToPlaceInPlanOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LikeToPlaceInPlanOutput(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNNearbyLocationCategory2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐNearbyLocationCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.NearbyLocationCategory) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -13653,6 +14506,25 @@ func (ec *executionContext) marshalNPlaceCategory2ᚖporotoᚗappᚋporotoᚋpla
 		return graphql.Null
 	}
 	return ec._PlaceCategory(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPlacesNearPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesNearPlanInput(ctx context.Context, v interface{}) (model.PlacesNearPlanInput, error) {
+	res, err := ec.unmarshalInputPlacesNearPlanInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPlacesNearPlanOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesNearPlanOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesNearPlanOutput) graphql.Marshaler {
+	return ec._PlacesNearPlanOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlacesNearPlanOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesNearPlanOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesNearPlanOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PlacesNearPlanOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToAddForPlanCandidateInput, error) {
@@ -14361,6 +15233,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOLikePlacesInput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐLikePlacesInput(ctx context.Context, v interface{}) (*model.LikePlacesInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLikePlacesInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOPlace2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlace(ctx context.Context, sel ast.SelectionSet, v *model.Place) graphql.Marshaler {

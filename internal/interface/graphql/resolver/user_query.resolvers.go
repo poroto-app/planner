@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"log"
 
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
@@ -29,4 +32,22 @@ func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseU
 	}
 
 	return factory.UserFromDomainModel(u), nil
+}
+
+// LikePlaces is the resolver for the likePlaces field.
+func (r *queryResolver) LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error) {
+	placesLikedByUser, err := r.UserService.FindLikePlaces(ctx, user.FindLikedPlacesInput{
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
+	if err != nil {
+		r.Logger.Error("error while fetching liked places", zap.Error(err))
+		return nil, fmt.Errorf("internal error")
+	}
+
+	graphqlPlaces := array.Map(*placesLikedByUser, func(place models.Place) *model.Place {
+		return factory.PlaceFromDomainModel(&place)
+	})
+
+	return graphqlPlaces, nil
 }

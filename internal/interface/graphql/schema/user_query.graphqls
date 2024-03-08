@@ -1,8 +1,15 @@
 extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
+
+    likePlaces(input: LikePlacesInput): [Place!]!
 }
 
 input FirebaseUserInput {
     firebaseUserId: String!
+    firebaseAuthToken: String!
+}
+
+input LikePlacesInput {
+    userId: ID!
     firebaseAuthToken: String!
 }

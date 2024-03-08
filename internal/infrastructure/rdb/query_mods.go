@@ -1,10 +1,11 @@
 package rdb
 
 import (
+	"strings"
+
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"strings"
 )
 
 func toInterfaceArray[T any](arr []T) []interface{} {
@@ -28,6 +29,7 @@ func placeQueryModes(relationsToPlaces ...string) []qm.QueryMod {
 	relation := strings.Join(relationsToPlaces, ".")
 	return []qm.QueryMod{
 		qm.Load(relation),
+		qm.Load(relation + "." + generated.PlaceRels.PlacePhotos),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoReferences),

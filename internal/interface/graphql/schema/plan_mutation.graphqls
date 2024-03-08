@@ -1,11 +1,11 @@
 extend type Mutation {
-    uploadPlacePhotoInPlan(inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(planId: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
-    planId: String!
     placeId: String!
     photoUrl: String!
     width: Int!
@@ -14,4 +14,17 @@ input UploadPlacePhotoInPlanInput {
 
 type UploadPlacePhotoInPlanOutput {
     plan: Plan!
+}
+
+input LikeToPlaceInPlanInput {
+    userId: String!
+    firebaseAuthToken: String!
+    planId: String!
+    placeId: String!
+    like: Boolean!
+}
+
+type LikeToPlaceInPlanOutput {
+    plan: Plan!
+    likedPlaceIds: [String!]!
 }

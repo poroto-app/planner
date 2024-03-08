@@ -142,14 +142,34 @@ type Image struct {
 	Large   *string `json:"large,omitempty"`
 }
 
+type LikePlacesInput struct {
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+}
+
 type LikeToPlaceInPlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	PlaceID         string `json:"placeId"`
-	Like            bool   `json:"like"`
+	UserID            *string `json:"userId,omitempty"`
+	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
+	PlanCandidateID   string  `json:"planCandidateId"`
+	PlaceID           string  `json:"placeId"`
+	Like              bool    `json:"like"`
 }
 
 type LikeToPlaceInPlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate"`
+}
+
+type LikeToPlaceInPlanInput struct {
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+	PlanID            string `json:"planId"`
+	PlaceID           string `json:"placeId"`
+	Like              bool   `json:"like"`
+}
+
+type LikeToPlaceInPlanOutput struct {
+	Plan          *Plan    `json:"plan"`
+	LikedPlaceIds []string `json:"likedPlaceIds"`
 }
 
 type LocationCategory struct {
@@ -194,6 +214,15 @@ type PlaceCategory struct {
 	Name string `json:"name"`
 }
 
+type PlacesNearPlanInput struct {
+	PlanID string `json:"planId"`
+	Limit  *int   `json:"limit,omitempty"`
+}
+
+type PlacesNearPlanOutput struct {
+	Places []*Place `json:"places"`
+}
+
 type PlacesToAddForPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`
@@ -232,7 +261,9 @@ type PlanCandidate struct {
 }
 
 type PlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
+	PlanCandidateID   string  `json:"planCandidateId"`
+	UserID            *string `json:"userId,omitempty"`
+	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
 }
 
 type PlanCandidateOutput struct {
@@ -314,7 +345,6 @@ type Transition struct {
 
 type UploadPlacePhotoInPlanInput struct {
 	UserID   string `json:"userId"`
-	PlanID   string `json:"planId"`
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
 	Width    int    `json:"width"`

@@ -1,0 +1,12 @@
+extend type Query {
+    placesNearPlan(input: PlacesNearPlanInput!): PlacesNearPlanOutput!
+}
+
+input PlacesNearPlanInput {
+    planId: ID!
+    limit: Int
+}
+
+type PlacesNearPlanOutput {
+    places: [Place!]!
+}
