@@ -15,11 +15,16 @@ type LikeToPlaceInput struct {
 	FirebaseAuthToken string
 }
 
+type LikeToPlaceOutput struct {
+	Plan             models.Plan
+	LikePlacesByUser []models.Place
+}
+
 // LikeToPlace はプランにいいねをする
 func (s Service) LikeToPlace(
 	ctx context.Context,
 	input LikeToPlaceInput,
-) (*models.Plan, error) {
+) (*LikeToPlaceOutput, error) {
 	checkAuthStateResult, err := s.userService.CheckUserAuthState(ctx, user.CheckUserAuthStateInput{
 		UserId:            input.UserId,
 		FirebaseAuthToken: input.FirebaseAuthToken,
@@ -37,11 +42,18 @@ func (s Service) LikeToPlace(
 		return nil, fmt.Errorf("error while updating like to place in plan: %v", err)
 	}
 
-	// TODO: ユーザーがいいねしたプランを取得できるようにする
 	plan, err := s.FetchPlan(ctx, input.PlanId)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan after updating: %v", err)
 	}
 
-	return plan, nil
+	likedPlaces, err := s.placeRepository.FindLikePlacesByUserId(ctx, input.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching liked places: %v", err)
+	}
+
+	return &LikeToPlaceOutput{
+		Plan:             *plan,
+		LikePlacesByUser: *likedPlaces,
+	}, nil
 }

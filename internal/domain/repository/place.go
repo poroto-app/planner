@@ -20,6 +20,9 @@ type PlaceRepository interface {
 	// FindByPlanCandidateId は models.PlanCandidate に紐づく models.Place を取得する
 	FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error)
 
+	// FindLikePlacesByUserId はユーザーがいいねした Place を取得する
+	FindLikePlacesByUserId(ctx context.Context, userId string) (*[]models.Place, error)
+
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error

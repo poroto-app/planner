@@ -10,8 +10,9 @@ import (
 )
 
 type Service struct {
-	userRepository repository.UserRepository
-	firebaseAuth   *auth.FirebaseAuth
+	userRepository  repository.UserRepository
+	placeRepository repository.PlaceRepository
+	firebaseAuth    *auth.FirebaseAuth
 }
 
 func NewService(ctx context.Context, db *sql.DB) (*Service, error) {
@@ -20,13 +21,19 @@ func NewService(ctx context.Context, db *sql.DB) (*Service, error) {
 		return nil, fmt.Errorf("error while initializing user repository: %v", err)
 	}
 
+	placeRepository, err := rdb.NewPlaceRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
+	}
+
 	firebaseAuth, err := auth.NewFirebaseAuth(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing firebase auth: %v", err)
 	}
 
 	return &Service{
-		userRepository: userRepository,
-		firebaseAuth:   firebaseAuth,
+		userRepository:  userRepository,
+		placeRepository: placeRepository,
+		firebaseAuth:    firebaseAuth,
 	}, nil
 }

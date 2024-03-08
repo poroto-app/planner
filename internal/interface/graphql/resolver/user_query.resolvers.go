@@ -7,15 +7,18 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/models"
 
 	"poroto.app/poroto/planner/internal/domain/services/user"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
-	"poroto.app/poroto/planner/internal/interface/graphql/model"
+	graphql "poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // FirebaseUser is the resolver for the firebaseUser field.
-func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error) {
+func (r *queryResolver) FirebaseUser(ctx context.Context, input *graphql.FirebaseUserInput) (*graphql.User, error) {
 	service, err := user.NewService(ctx, r.DB)
 	if err != nil {
 		log.Printf("error while initializing user service: %v\n", err)
@@ -32,6 +35,19 @@ func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseU
 }
 
 // LikePlaces is the resolver for the likePlaces field.
-func (r *queryResolver) LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error) {
-	panic(fmt.Errorf("not implemented: LikePlaces - likePlaces"))
+func (r *queryResolver) LikePlaces(ctx context.Context, input *graphql.LikePlacesInput) ([]*graphql.Place, error) {
+	placesLikedByUser, err := r.UserService.FindLikePlaces(ctx, user.FindLikedPlacesInput{
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
+	if err != nil {
+		r.Logger.Error("error while fetching liked places", zap.Error(err))
+		return nil, fmt.Errorf("internal error")
+	}
+
+	graphqlPlaces := array.Map(*placesLikedByUser, func(place models.Place) *graphql.Place {
+		return factory.PlaceFromDomainModel(&place)
+	})
+
+	return graphqlPlaces, nil
 }
