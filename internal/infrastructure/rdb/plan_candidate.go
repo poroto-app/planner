@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -15,7 +17,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"time"
 )
 
 type PlanCandidateRepository struct {
@@ -111,6 +112,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
+			planCandidatePlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
@@ -189,6 +191,7 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planCandidatePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidatePlace.PlaceID),
+			planCandidatePlace.R.Place.R.PlacePhotos,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create place: %w", err)
