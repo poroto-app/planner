@@ -135,6 +135,8 @@ var (
 		Name: "ignore",
 		SubCategories: []string{
 			"health",
+			"hair_care",
+
 			string(maps.PlaceTypeAccounting),
 
 			string(maps.PlaceTypeAtm),
@@ -214,6 +216,15 @@ var (
 	}
 )
 
+func (l LocationCategory) IsCategoryOf(categories ...LocationCategory) bool {
+	for _, category := range categories {
+		if l.Name == category.Name {
+			return true
+		}
+	}
+	return false
+}
+
 func GetCategoryToFilter() []LocationCategory {
 	return []LocationCategory{
 		CategoryAmusements,
@@ -283,12 +294,4 @@ func GetCategoriesFromSubCategories(subCategories []string) []LocationCategory {
 	}
 
 	return categories
-}
-
-func FoodCategories() []LocationCategory {
-	return []LocationCategory{
-		CategoryRestaurant,
-		CategoryCafe,
-		CategoryBakery,
-	}
 }

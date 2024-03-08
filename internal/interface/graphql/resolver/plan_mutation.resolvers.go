@@ -11,8 +11,9 @@ import (
 
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/services/place"
+	"poroto.app/poroto/planner/internal/domain/array"
+	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
@@ -74,17 +75,7 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 
 // LikeToPlaceInPlan is the resolver for the likeToPlaceInPlan field.
 func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
-	if err != nil {
-		return nil, fmt.Errorf("error while creating logger: %v", err)
-	}
-
-	planService, err := plan.NewService(ctx, r.DB)
-	if err != nil {
-		return nil, fmt.Errorf("error while creating plan service: %v", err)
-	}
-
-	logger.Info(
+	r.Logger.Info(
 		"LikeToPlaceInPlan",
 		zap.String("planId", input.PlanID),
 		zap.String("placeId", input.PlaceID),
@@ -92,7 +83,7 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 		zap.Bool("like", input.Like),
 	)
 
-	plan, err := planService.LikeToPlace(
+	likeToPlaceResult, err := r.PlanService.LikeToPlace(
 		ctx,
 		plan.LikeToPlaceInput{
 			PlanId:            input.PlanID,
@@ -102,11 +93,11 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 			FirebaseAuthToken: input.FirebaseAuthToken,
 		})
 	if err != nil {
-		logger.Error("error while liking to place in plan", zap.Error(err))
+		r.Logger.Error("error while liking to place in plan", zap.Error(err))
 		return nil, fmt.Errorf("internal server error: %v", err)
 	}
 
-	graphqlPlan, err := factory.PlanFromDomainModel(*plan, nil)
+	graphqlPlan, err := factory.PlanFromDomainModel(likeToPlaceResult.Plan, nil)
 	if err != nil {
 		log.Println(err)
 		return nil, fmt.Errorf("internal server error")
@@ -114,5 +105,8 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 
 	return &model.LikeToPlaceInPlanOutput{
 		Plan: graphqlPlan,
+		LikedPlaceIds: array.Map(likeToPlaceResult.LikePlacesByUser, func(p models.Place) string {
+			return p.Id
+		}),
 	}, nil
 }

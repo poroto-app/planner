@@ -434,6 +434,71 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 	return places, nil
 }
 
+func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId string) (*[]models.Place, error) {
+	userLikePlaces, err := generated.UserLikePlaces(concatQueryMod(
+		[]qm.QueryMod{generated.UserLikePlaceWhere.UserID.EQ(userId)},
+		placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place),
+	)...).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user like places: %w", err)
+	}
+
+	placeLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(userLikePlaces, func(userLikePlace *generated.UserLikePlace) (string, bool) {
+		if userLikePlace == nil {
+			return "", false
+		}
+		return userLikePlace.PlaceID, true
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	places := make([]models.Place, 0, len(userLikePlaces))
+	for _, userLikePlace := range userLikePlaces {
+		if userLikePlace == nil {
+			continue
+		}
+
+		if userLikePlace.R == nil {
+			panic("userLikePlace.R is nil")
+		}
+
+		if userLikePlace.R.Place == nil {
+			p.logger.Warn("userLikePlace.R.Place is nil", zap.String("user_like_place_id", userLikePlace.ID))
+			continue
+		}
+
+		if userLikePlace.R.Place.R == nil {
+			panic("userLikePlace.R.Place.R is nil")
+		}
+
+		if len(userLikePlace.R.Place.R.GooglePlaces) == 0 {
+			p.logger.Warn("userLikePlace.R.Place.R.GooglePlaces is empty", zap.String("user_like_place_id", userLikePlace.ID))
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*userLikePlace.R.Place,
+			*userLikePlace.R.Place.R.GooglePlaces[0],
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			userLikePlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(placeLikeCounts, userLikePlace.PlaceID),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
+		}
+
+		places = append(places, *place)
+	}
+
+	return &places, nil
+}
+
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		googlePlaceEntity, err := generated.GooglePlaces(

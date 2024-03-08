@@ -945,6 +945,91 @@ func TestPlaceRepository_FindByPlanCandidateId(t *testing.T) {
 	}
 }
 
+func TestPlaceRepository_FindLikePlacesByUserId(t *testing.T) {
+	cases := []struct {
+		name           string
+		userId         string
+		savedPlaces    []models.Place
+		savedUsers     generated.UserSlice
+		savedLikes     generated.UserLikePlaceSlice
+		expectedPlaces []models.Place
+	}{
+		{
+			name:   "find like places by user id",
+			userId: "user_id",
+			savedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
+				{Id: "place_id_3", Google: models.GooglePlace{PlaceId: "google_place_id_3"}},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "user_id"},
+			},
+			savedLikes: generated.UserLikePlaceSlice{
+				{ID: uuid.New().String(), UserID: "user_id", PlaceID: "place_id_1"},
+				{ID: uuid.New().String(), UserID: "user_id", PlaceID: "place_id_2"},
+			},
+			expectedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}, LikeCount: 1},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}, LikeCount: 1},
+			},
+		},
+		{
+			name:   "find like places by user id with no like places",
+			userId: "user_id",
+			savedPlaces: []models.Place{
+				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}, LikeCount: 0},
+				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}, LikeCount: 0},
+				{Id: "place_id_3", Google: models.GooglePlace{PlaceId: "google_place_id_3"}, LikeCount: 0},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "user_id"},
+			},
+			savedLikes:     generated.UserLikePlaceSlice{},
+			expectedPlaces: []models.Place{},
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
+			// 事前にPlace, User, UserLikePlaceを保存
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			if _, err := c.savedUsers.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving users: %v", err)
+			}
+
+			if _, err := c.savedLikes.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving likes: %v", err)
+			}
+
+			actualPlaces, err := placeRepository.FindLikePlacesByUserId(testContext, c.userId)
+			if err != nil {
+				t.Fatalf("error while finding like places: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlaces, *actualPlaces); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestPlaceRepository_SaveGooglePlaceDetail(t *testing.T) {
 	cases := []struct {
 		name              string
