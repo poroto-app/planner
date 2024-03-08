@@ -29,6 +29,7 @@ func placeQueryModes(relationsToPlaces ...string) []qm.QueryMod {
 	relation := strings.Join(relationsToPlaces, ".")
 	return []qm.QueryMod{
 		qm.Load(relation),
+		qm.Load(relation + "." + generated.PlaceRels.PlacePhotos),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoReferences),
@@ -36,6 +37,5 @@ func placeQueryModes(relationsToPlaces ...string) []qm.QueryMod {
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceReviews),
 		qm.Load(relation + "." + generated.PlaceRels.GooglePlaces + "." + generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
-		qm.Load(relation + "." + generated.PlaceRels.PlacePhotos),
 	}
 }
