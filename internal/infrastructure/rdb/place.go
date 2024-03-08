@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/friendsofgo/errors"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -16,7 +18,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"strings"
 )
 
 type PlaceRepository struct {
@@ -639,27 +640,37 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 	return nil
 }
 
-func (p PlaceRepository) SavePlacePhotos(ctx context.Context, userId string, placeId string, photoUrl string, width int, height int) error {
+func (p PlaceRepository) SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		found, err := generated.PlacePhotos(generated.PlacePhotoWhere.PhotoURL.EQ(photoUrl)).Exists(ctx, tx)
+		placeIds := array.Map(photos, func(photo models.PlacePhoto) string {
+			return photo.PlaceId
+		})
+
+		placePhotosAlreadySaved, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.ID.IN(placeIds),
+		).All(ctx, tx)
+
 		if err != nil {
-			return fmt.Errorf("error while checking place photo exists: %w", err)
+			return fmt.Errorf("failed to find place photos: %w", err)
 		}
-		if found {
-			// 画像のアドレスを示すURLがすでに保存済みの場合はスキップ
+		placeIdsAlreadySaved := placePhotosAlreadySaved.GetLoadedPlaces().GetIDs()
+
+		if len(placeIdsAlreadySaved) > 0 {
+			p.logger.Debug("skipped to save because place photos already saved", zap.Strings("place_ids", placeIdsAlreadySaved))
+		}
+
+		placePhotosToSave := array.Filter(photos, func(photo models.PlacePhoto) bool {
+			return !array.IsContain(placeIdsAlreadySaved, photo.PlaceId)
+		})
+
+		placePhotoSliceToSave := factory.NewPlacePhotoSliceFromDomainModel(placePhotosToSave)
+		if placePhotoSliceToSave == nil {
+			p.logger.Debug("no place photo to save")
 			return nil
 		}
 
-		placePhoto := generated.PlacePhoto{
-			ID:       uuid.New().String(),
-			PlaceID:  placeId,
-			UserID:   userId,
-			PhotoURL: photoUrl,
-			Width:    width,
-			Height:   height,
-		}
-		if err := placePhoto.Insert(ctx, tx, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert place photo: %w", err)
+		if _, err := placePhotoSliceToSave.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert place photo slice: %w", err)
 		}
 		return nil
 	}); err != nil {

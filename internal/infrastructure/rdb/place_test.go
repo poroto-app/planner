@@ -1500,22 +1500,29 @@ func TestPlaceRepository_SaveGooglePlacePhotos(t *testing.T) {
 func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 	cases := []struct {
 		name               string
-		userId             string
-		placeId            string
-		photoUrl           string
-		width              int
-		height             int
+		placePhotos        []models.PlacePhoto
 		preSavedUser       generated.User
 		preSavedPlace      generated.Place
 		preSavedPlacePhoto generated.PlacePhoto
 	}{
 		{
-			name:     "save place photo",
-			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			photoUrl: "https://example.com/photo.jpg",
-			width:    1920,
-			height:   1080,
+			name: "save place photos",
+			placePhotos: []models.PlacePhoto{
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-1.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-2.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+			},
 			preSavedUser: generated.User{
 				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 			},
@@ -1525,16 +1532,27 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "another-photo.jpg",
+				PhotoURL: "https://example.com/photo-A.jpg",
 			},
 		},
 		{
-			name:     "already saved place photo",
-			userId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
-			placeId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-			photoUrl: "https://example.com/photo.jpg",
-			width:    1920,
-			height:   1080,
+			name: "already saved place photo",
+			placePhotos: []models.PlacePhoto{
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-1.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+				{
+					UserId:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceId:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PhotoUrl: "https://example.com/photo-2.jpg",
+					Width:    1920,
+					Height:   1080,
+				},
+			},
 			preSavedUser: generated.User{
 				ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 			},
@@ -1544,7 +1562,7 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 			preSavedPlacePhoto: generated.PlacePhoto{
 				UserID:   "3b9c288c-3ae6-41be-b375-c5aa6082114d",
 				PlaceID:  "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
-				PhotoURL: "https://example.com/photo.jpg",
+				PhotoURL: "https://example.com/photo-2.jpg",
 			},
 		},
 	}
@@ -1575,20 +1593,24 @@ func TestPlaceRepository_SavePlacePhotos(t *testing.T) {
 				t.Fatalf("failed to insert place photo: %v", err)
 			}
 
-			err := placeRepository.SavePlacePhotos(testContext, c.userId, c.placeId, c.photoUrl, c.width, c.height)
+			err := placeRepository.SavePlacePhotos(testContext, c.placePhotos)
 			if err != nil {
 				t.Fatalf("error while saving place photo: %v", err)
 			}
 
-			_, err = generated.
-				PlacePhotos(
-					generated.PlacePhotoWhere.UserID.EQ(c.userId),
-					generated.PlacePhotoWhere.PlaceID.EQ(c.placeId),
+			for _, photo := range c.placePhotos {
+				saved, err := generated.PlacePhotos(
+					generated.PlacePhotoWhere.PhotoURL.EQ(photo.PhotoUrl),
+					generated.PlacePhotoWhere.PlaceID.EQ(photo.PlaceId),
+					generated.PlacePhotoWhere.UserID.EQ(photo.UserId),
 				).Exists(testContext, testDB)
-			if err != nil {
-				t.Fatalf("error while checking photo existence: %v", err)
+				if err != nil {
+					t.Fatalf("error while checking photo existence: %v", err)
+				}
+				if !saved {
+					t.Fatalf("photo is not saved")
+				}
 			}
-
 		})
 	}
 }

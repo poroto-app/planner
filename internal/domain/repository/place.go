@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
@@ -26,6 +27,8 @@ type PlaceRepository interface {
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error
+
+	SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error
 
 	UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error
 }
