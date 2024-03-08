@@ -236,13 +236,13 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 	googlePlaceEntities, err := generated.GooglePlaces(
 		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, radius),
 		qm.Load(generated.GooglePlaceRels.Place),
+		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceReviews),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
-		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 	).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find google places: %w", err)
@@ -307,13 +307,13 @@ func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceT
 		qm.Where(fmt.Sprintf("%s.%s = ?", generated.TableNames.GooglePlaceTypes, generated.GooglePlaceTypeColumns.Type), googlePlaceType),
 		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", baseLocation.Longitude, baseLocation.Latitude, radius),
 		qm.Load(generated.GooglePlaceRels.Place),
+		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceReviews),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
-		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 	).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find google places: %w", err)
@@ -665,13 +665,13 @@ func (p PlaceRepository) findByGooglePlaceId(ctx context.Context, exec boil.Cont
 	googlePlaceEntity, err := generated.GooglePlaces(
 		generated.GooglePlaceWhere.GooglePlaceID.EQ(googlePlaceId),
 		qm.Load(generated.GooglePlaceRels.Place),
+		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceReviews),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
-		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 	).One(ctx, exec)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -715,13 +715,13 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 	googlePlaceEntities, err := generated.GooglePlaces(
 		generated.GooglePlaceWhere.GooglePlaceID.IN(googlePlaceIds),
 		qm.Load(generated.GooglePlaceRels.Place),
+		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoReferences),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlacePhotoAttributions),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceReviews),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceOpeningPeriods),
-		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 	).All(ctx, exec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find google places: %w", err)
