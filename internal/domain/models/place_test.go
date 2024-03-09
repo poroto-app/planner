@@ -77,6 +77,8 @@ func TestShufflePlaces(t *testing.T) {
 	}
 
 	for _, c := range cases {
+		t.Parallel()
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			original := make([]Place, len(c.places))
 			copy(original, c.places)
