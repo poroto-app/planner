@@ -12,6 +12,7 @@ import (
 // TODO: placePhotoSliceの中から、placeEntityに対応するものを抽出する
 func NewPlaceFromEntity(
 	placeEntity generated.Place,
+	placePhotoSlice generated.PlacePhotoSlice,
 	googlePlaceEntity generated.GooglePlace,
 	googlePlaceTypeSlice generated.GooglePlaceTypeSlice,
 	googlePlacePhotoReferenceSlice generated.GooglePlacePhotoReferenceSlice,
@@ -20,7 +21,6 @@ func NewPlaceFromEntity(
 	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
 	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
 	likeCount int,
-	placePhotoSlice generated.PlacePhotoSlice,
 ) (*models.Place, error) {
 	googlePlace, err := NewGooglePlaceFromEntity(
 		googlePlaceEntity,
