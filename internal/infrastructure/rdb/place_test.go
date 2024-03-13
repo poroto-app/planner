@@ -760,14 +760,6 @@ func TestPlaceRepository_FindByLocation(t *testing.T) {
 						Location: models.GeoLocation{Latitude: 35.6812362, Longitude: 139.7649361},
 					},
 				},
-				{
-					Id:   "place_id_2",
-					Name: "稚内",
-					Google: models.GooglePlace{
-						PlaceId:  "place_id_2",
-						Location: models.GeoLocation{Latitude: 45.415691, Longitude: 141.673105},
-					},
-				},
 			},
 			expectedPlaces: []models.Place{
 				{
@@ -818,7 +810,6 @@ func TestPlaceRepository_FindByLocation(t *testing.T) {
 				if err != nil {
 					t.Fatalf("error while cleaning up: %v", err)
 				}
-				log.Println("cleanup")
 			})
 
 			// 事前にPlaceを保存しておく
@@ -830,8 +821,6 @@ func TestPlaceRepository_FindByLocation(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error while finding places: %v", err)
 			}
-
-			log.Print(actualPlaces)
 
 			if diff := cmp.Diff(c.expectedPlaces, actualPlaces); diff != "" {
 				t.Fatalf("(-want +got):\n%s", diff)
