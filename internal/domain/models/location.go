@@ -1,6 +1,8 @@
 package models
 
 import (
+	"github.com/golang/geo/s1"
+	"github.com/golang/geo/s2"
 	"math"
 )
 
@@ -42,24 +44,21 @@ func (g GeoLocation) CalculateMBR(distance float64) (minLocation GeoLocation, ma
 	// 地球の半径（メートル単位）
 	const earthRadius = 6371e3
 
-	// 1度あたりの距離（メートル単位）
-	const metersPerDegree = earthRadius * math.Pi / 180
+	latLng := s2.LatLngFromDegrees(g.Latitude, g.Longitude)
+	point := s2.PointFromLatLng(latLng)
 
-	// 緯度の増減値
-	latDelta := distance / metersPerDegree
+	angle := s1.Angle(distance / earthRadius)
+	cap := s2.CapFromCenterAngle(point, angle)
+	rect := cap.RectBound()
 
-	// 経度の増減値（緯度に依存）
-	lngDelta := distance / (metersPerDegree * math.Cos(math.Pi*g.Latitude/180))
-
-	// 緯度経度の範囲を計算
 	minLocation = GeoLocation{
-		Latitude:  g.Latitude - latDelta*180/math.Pi,
-		Longitude: g.Longitude - lngDelta*180/math.Pi,
+		Latitude:  rect.Lo().Lat.Degrees(),
+		Longitude: rect.Lo().Lng.Degrees(),
 	}
 
 	maxLocation = GeoLocation{
-		Latitude:  g.Latitude + latDelta*180/math.Pi,
-		Longitude: g.Longitude + lngDelta*180/math.Pi,
+		Latitude:  rect.Hi().Lat.Degrees(),
+		Longitude: rect.Hi().Lng.Degrees(),
 	}
 
 	return minLocation, maxLocation

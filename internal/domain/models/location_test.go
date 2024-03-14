@@ -84,6 +84,46 @@ func TestDistanceInMeter(t *testing.T) {
 	}
 }
 
+func TestGeoLocation_CalculateMBR(t *testing.T) {
+	cases := []struct {
+		name     string
+		location GeoLocation
+		distance float64
+	}{
+		{
+			name: "Calculate MBR for Tokyo Tower",
+			location: GeoLocation{
+				Latitude:  35.658581,
+				Longitude: 139.745433,
+			},
+			distance: 1000,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			c := c
+
+			minLocation, maxLocation := c.location.CalculateMBR(c.distance)
+			distanceToMinLocation := c.location.DistanceInMeter(minLocation)
+
+			// 対角線距離を計算する
+			diagonalDistance := c.distance * math.Pow(2, 0.5)
+			allowableError := 100.0
+
+			if distanceToMinLocation < diagonalDistance-allowableError || distanceToMinLocation > diagonalDistance+allowableError {
+				t.Errorf("expected: %f\nactual: %f", c.distance, distanceToMinLocation)
+			}
+
+			distanceToMaxLocation := c.location.DistanceInMeter(maxLocation)
+			if distanceToMaxLocation < diagonalDistance-allowableError || distanceToMaxLocation > diagonalDistance+allowableError {
+				t.Errorf("expected: %f\nactual: %f", c.distance, distanceToMaxLocation)
+			}
+		})
+	}
+}
+
 func TestEqual(t *testing.T) {
 	cases := []struct {
 		name      string
