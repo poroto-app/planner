@@ -37,6 +37,34 @@ func (g GeoLocation) DistanceInMeter(another GeoLocation) float64 {
 	return distance
 }
 
+// CalculateMBR 特定の位置からの距離を元に、緯度の差分を計算する
+func (g GeoLocation) CalculateMBR(distance float64) (minLocation GeoLocation, maxLocation GeoLocation) {
+	// 地球の半径（メートル単位）
+	const earthRadius = 6371e3
+
+	// 1度あたりの距離（メートル単位）
+	const metersPerDegree = earthRadius * math.Pi / 180
+
+	// 緯度の増減値
+	latDelta := distance / metersPerDegree
+
+	// 経度の増減値（緯度に依存）
+	lngDelta := distance / (metersPerDegree * math.Cos(math.Pi*g.Latitude/180))
+
+	// 緯度経度の範囲を計算
+	minLocation = GeoLocation{
+		Latitude:  g.Latitude - latDelta*180/math.Pi,
+		Longitude: g.Longitude - lngDelta*180/math.Pi,
+	}
+
+	maxLocation = GeoLocation{
+		Latitude:  g.Latitude + latDelta*180/math.Pi,
+		Longitude: g.Longitude + lngDelta*180/math.Pi,
+	}
+
+	return minLocation, maxLocation
+}
+
 func (g GeoLocation) TravelTimeTo(
 	destination GeoLocation,
 	meterPerMinutes float64,

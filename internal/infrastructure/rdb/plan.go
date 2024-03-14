@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -353,7 +352,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 
 // TODO: ページングしない（範囲だけ指定させて、ソートも行わない）
 func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
-	minLocation, maxLocation := calculateMBR(location, defaultDistanceToSearchPlan)
+	minLocation, maxLocation := location.CalculateMBR(defaultDistanceToSearchPlan)
 
 	planEntities, err := generated.Plans(concatQueryMod(
 		[]qm.QueryMod{
@@ -458,32 +457,4 @@ func parseSortByCreatedAtQueryCursor(queryCursor repository.SortedByCreatedAtQue
 	}
 	dateTime := time.Unix(unixTime, 0)
 	return &dateTime, nil
-}
-
-// calculateMBR 特定の位置からの距離を元に、緯度の差分を計算する
-func calculateMBR(location models.GeoLocation, distance float64) (minLocation models.GeoLocation, maxLocation models.GeoLocation) {
-	// 地球の半径（メートル単位）
-	const earthRadius = 6371e3
-
-	// 1度あたりの距離（メートル単位）
-	const metersPerDegree = earthRadius * math.Pi / 180
-
-	// 緯度の増減値
-	latDelta := distance / metersPerDegree
-
-	// 経度の増減値（緯度に依存）
-	lngDelta := distance / (metersPerDegree * math.Cos(math.Pi*location.Latitude/180))
-
-	// 緯度経度の範囲を計算
-	minLocation = models.GeoLocation{
-		Latitude:  location.Latitude - latDelta*180/math.Pi,
-		Longitude: location.Longitude - lngDelta*180/math.Pi,
-	}
-
-	maxLocation = models.GeoLocation{
-		Latitude:  location.Latitude + latDelta*180/math.Pi,
-		Longitude: location.Longitude + lngDelta*180/math.Pi,
-	}
-
-	return minLocation, maxLocation
 }
