@@ -84,54 +84,10 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 			return fmt.Errorf("failed to insert place: %w", err)
 		}
 
-		// ===============================================================
 		// GooglePlaceを保存
-		// Point型を保存するのにカスタムクエリを使う必要がある
-		sqlGooglePlaceEntity := fmt.Sprintf(
-			"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ",
-			generated.TableNames.GooglePlaces,
-			generated.GooglePlaceColumns.GooglePlaceID,
-			generated.GooglePlaceColumns.PlaceID,
-			generated.GooglePlaceColumns.Name,
-			generated.GooglePlaceColumns.FormattedAddress,
-			generated.GooglePlaceColumns.Vicinity,
-			generated.GooglePlaceColumns.PriceLevel,
-			generated.GooglePlaceColumns.Rating,
-			generated.GooglePlaceColumns.UserRatingsTotal,
-			generated.GooglePlaceColumns.Latitude,
-			generated.GooglePlaceColumns.Longitude,
-			generated.GooglePlaceColumns.Location,
-		)
-		numParamsOfGooglePlaceEntity := 12
-		queryParamsGooglePlaceEntity := make([]interface{}, 0, len(googlePlaceEntities)*numParamsOfGooglePlaceEntity)
-		for i, googlePlaceEntity := range googlePlaceEntities {
-			sqlGooglePlaceEntity += "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?))"
-			if i != len(googlePlaceEntities)-1 {
-				// (), (), ...のようにカンマ区切りにする
-				sqlGooglePlaceEntity += ","
-			}
-			queryParamsGooglePlaceEntity = append(
-				queryParamsGooglePlaceEntity,
-				googlePlaceEntity.GooglePlaceID,
-				googlePlaceEntity.PlaceID,
-				googlePlaceEntity.Name,
-				googlePlaceEntity.FormattedAddress,
-				googlePlaceEntity.Vicinity,
-				googlePlaceEntity.PriceLevel,
-				googlePlaceEntity.Rating,
-				googlePlaceEntity.UserRatingsTotal,
-				googlePlaceEntity.Latitude,
-				googlePlaceEntity.Longitude,
-				googlePlaceEntity.Longitude,
-				googlePlaceEntity.Latitude,
-			)
-		}
-		if _, err := queries.Raw(sqlGooglePlaceEntity, queryParamsGooglePlaceEntity...).Exec(tx); err != nil {
+		if _, err := googlePlaceEntities.InsertAll(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert google place: %w", err)
 		}
-
-		// GooglePlaceを保存
-		// ===============================================================
 
 		// GooglePlacePhotoReference を保存
 		var googlePlacePhotoReferenceSliceNearbySearch generated.GooglePlacePhotoReferenceSlice = array.FlatMap(googlePlacesNotSaved, func(googlePlace models.GooglePlace) []*generated.GooglePlacePhotoReference {
