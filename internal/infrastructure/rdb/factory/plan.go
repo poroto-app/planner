@@ -17,7 +17,10 @@ func NewPlanEntityFromDomainModel(plan models.Plan) generated.Plan {
 		userId = &plan.Author.Id
 	}
 
-	startLocation := plan.Places[0].Location
+	var startLocation models.GeoLocation
+	if len(plan.Places) > 0 {
+		startLocation = plan.Places[0].Location
+	}
 
 	return generated.Plan{
 		ID:        plan.Id,
