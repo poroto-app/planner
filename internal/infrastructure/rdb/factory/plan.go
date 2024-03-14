@@ -17,10 +17,14 @@ func NewPlanEntityFromDomainModel(plan models.Plan) generated.Plan {
 		userId = &plan.Author.Id
 	}
 
+	startLocation := plan.Places[0].Location
+
 	return generated.Plan{
-		ID:     plan.Id,
-		UserID: null.StringFromPtr(userId),
-		Name:   plan.Name,
+		ID:        plan.Id,
+		UserID:    null.StringFromPtr(userId),
+		Name:      plan.Name,
+		Latitude:  startLocation.Latitude,
+		Longitude: startLocation.Longitude,
 	}
 }
 

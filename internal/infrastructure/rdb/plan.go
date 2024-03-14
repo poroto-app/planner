@@ -10,7 +10,6 @@ import (
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -60,25 +59,9 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 		return fmt.Errorf("plan places is empty")
 	}
 
-	startLocation := plan.Places[0].Location
-
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planEntity := factory.NewPlanEntityFromDomainModel(*plan)
-		if _, err := queries.Raw(
-			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
-				generated.TableNames.Plans,
-				generated.PlanColumns.ID,
-				generated.PlanColumns.UserID,
-				generated.PlanColumns.Name,
-				generated.PlanColumns.Location,
-			),
-			planEntity.ID,
-			planEntity.UserID,
-			planEntity.Name,
-			startLocation.Longitude,
-			startLocation.Latitude,
-		).ExecContext(ctx, tx); err != nil {
+		if err := planEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan: %w", err)
 		}
 
@@ -374,13 +357,10 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 
 	planEntities, err := generated.Plans(concatQueryMod(
 		[]qm.QueryMod{
-			qm.Where(
-				fmt.Sprintf("MBRContains(LineString(Point(?, ?), Point(?, ?)), %s)", generated.PlanColumns.Location),
-				minLocation.Longitude,
-				minLocation.Latitude,
-				maxLocation.Longitude,
-				maxLocation.Latitude,
-			),
+			generated.PlanWhere.Longitude.GT(minLocation.Longitude),
+			generated.PlanWhere.Longitude.LT(maxLocation.Longitude),
+			generated.PlanWhere.Latitude.GT(minLocation.Latitude),
+			generated.PlanWhere.Latitude.LT(maxLocation.Latitude),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
 			qm.Limit(limit),
 			qm.Load(generated.PlanRels.PlanPlaces),
