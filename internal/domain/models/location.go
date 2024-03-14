@@ -2,8 +2,6 @@ package models
 
 import (
 	"math"
-
-	"github.com/mmcloughlin/geohash"
 )
 
 type GeoLocation struct {
@@ -37,19 +35,6 @@ func (g GeoLocation) DistanceInMeter(another GeoLocation) float64 {
 	distance = toKilometers(distance) * 1000
 
 	return distance
-}
-
-func (g GeoLocation) GeoHash() string {
-	return geohash.Encode(g.Latitude, g.Longitude)
-}
-
-// GeoHashOfNeighbors は指定した精度の周辺のGeoHashを返す
-// 精度（precision）の値がどのような範囲を表すかは https://en.wikipedia.org/wiki/Geohash#Digits_and_precision_in_km を参照
-// 例えば、precision=4の場合は、 GeoLocation　を中心とした 北、北東、東、南東、南、南西、西、北西の各方向に
-// 20kmの範囲を表すGeoHashを返す
-func (g GeoLocation) GeoHashOfNeighbors(precision uint) []string {
-	centerGeoHash := geohash.EncodeWithPrecision(g.Latitude, g.Longitude, precision)
-	return geohash.Neighbors(centerGeoHash)
 }
 
 func (g GeoLocation) TravelTimeTo(
