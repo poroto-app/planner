@@ -189,8 +189,13 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 }
 
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error) {
+	minLocation, maxLocation := location.CalculateMBR(radius)
+
 	googlePlaceEntities, err := generated.GooglePlaces(
-		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", location.Longitude, location.Latitude, radius),
+		generated.GooglePlaceWhere.Latitude.GT(minLocation.Latitude),
+		generated.GooglePlaceWhere.Latitude.LT(maxLocation.Latitude),
+		generated.GooglePlaceWhere.Longitude.GT(minLocation.Longitude),
+		generated.GooglePlaceWhere.Longitude.LT(maxLocation.Longitude),
 		qm.Load(generated.GooglePlaceRels.Place),
 		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
@@ -253,6 +258,7 @@ func (p PlaceRepository) FindByLocation(ctx context.Context, location models.Geo
 }
 
 func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceType string, baseLocation models.GeoLocation, radius float64) (*[]models.Place, error) {
+	minLocation, maxLocation := baseLocation.CalculateMBR(radius)
 	googlePlaceEntities, err := generated.GooglePlaces(
 		qm.InnerJoin(fmt.Sprintf(
 			"%s on %s.%s = %s.%s",
@@ -263,7 +269,10 @@ func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceT
 			generated.GooglePlaceColumns.GooglePlaceID,
 		)),
 		qm.Where(fmt.Sprintf("%s.%s = ?", generated.TableNames.GooglePlaceTypes, generated.GooglePlaceTypeColumns.Type), googlePlaceType),
-		qm.Where("ST_Distance_Sphere(POINT(?, ?), location) < ?", baseLocation.Longitude, baseLocation.Latitude, radius),
+		generated.GooglePlaceWhere.Latitude.GT(minLocation.Latitude),
+		generated.GooglePlaceWhere.Latitude.LT(maxLocation.Latitude),
+		generated.GooglePlaceWhere.Longitude.GT(minLocation.Longitude),
+		generated.GooglePlaceWhere.Longitude.LT(maxLocation.Longitude),
 		qm.Load(generated.GooglePlaceRels.Place),
 		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
