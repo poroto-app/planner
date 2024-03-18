@@ -5,6 +5,7 @@ package resolver
 import (
 	"database/sql"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 )
@@ -14,8 +15,9 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	Logger      *zap.Logger
-	DB          *sql.DB
-	UserService *user.Service
-	PlanService *plan.Service
+	Logger       *zap.Logger
+	DB           *sql.DB
+	UserService  *user.Service
+	PlanService  *plan.Service
+	PlaceService *place.Service
 }
