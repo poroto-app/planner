@@ -7,44 +7,28 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // PlanCandidate is the resolver for the planCandidate field.
 func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
-	if err != nil {
-		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	planService, err := plancandidate.NewService(ctx, r.DB)
-	if err != nil {
-		logger.Error("error while initializing plan candidate service", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	logger.Info(
+	r.Logger.Info(
 		"PlanCandidate",
 		zap.String("planCandidateId", input.PlanCandidateID),
 	)
 
-	planCandidate, err := planService.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
+	planCandidate, err := r.PlanCandidateService.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
 		PlanCandidateId:   input.PlanCandidateID,
 		UserId:            input.UserID,
-		FirebaseAuthToken: input.FirebaseAuthToken,
-	})
+		FirebaseAuthToken: input.FirebaseAuthToken})
 	if err != nil {
-		logger.Error("error while finding plan candidate", zap.Error(err))
+		r.Logger.Error("error while finding plan candidate", zap.Error(err))
 		return nil, err
 	}
 
@@ -56,29 +40,15 @@ func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandi
 
 // NearbyPlaceCategories is the resolver for the nearbyPlaceCategories field.
 func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{
-		Tag: "GraphQL",
-	})
-	if err != nil {
-		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	service, err := plancandidate.NewService(ctx, r.DB)
-	if err != nil {
-		log.Println("error while initializing plan candidate service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
 	createPlanSessionId := uuid.New().String()
-	logger.Info(
+	r.Logger.Info(
 		"NearbyPlaceCategories",
 		zap.String("planCandidateId", createPlanSessionId),
 		zap.Float64("latitude", input.Latitude),
 		zap.Float64("longitude", input.Longitude),
 	)
 
-	categoriesSearched, err := service.CategoriesNearLocation(
+	categoriesSearched, err := r.PlanCandidateService.CategoriesNearLocation(
 		ctx,
 		plancandidate.CategoryNearLocationParams{
 			Location: models.GeoLocation{
@@ -89,7 +59,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 		},
 	)
 	if err != nil {
-		log.Printf("error while searching categories for session[%s]: %v", createPlanSessionId, err)
+		r.Logger.Error("error while finding nearby place categories", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -116,17 +86,11 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
-	s, err := place.NewService(r.DB)
-	if err != nil {
-		log.Println("error while initializing place service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	availablePlaces, err := s.FetchCandidatePlaces(ctx, place.FetchCandidatePlacesInput{
+	availablePlaces, err := r.PlaceService.FetchCandidatePlaces(ctx, place.FetchCandidatePlacesInput{
 		PlanCandidateId: input.Session,
 	})
 	if err != nil {
-		log.Println("error while fetching candidate places: ", err)
+		r.Logger.Error("error while fetching available places for plan", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -142,20 +106,14 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
-	s, err := place.NewService(r.DB)
-	if err != nil {
-		log.Println("error while initializing place service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
-	result, err := s.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
+	result, err := r.PlaceService.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
 		PlanCandidateId: input.PlanCandidateID,
 		PlanId:          input.PlanID,
 		NLimit:          4,
 	})
 	if err != nil {
-		log.Println("error while fetching places to add: ", err)
+		r.Logger.Error("error while fetching places to add", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
@@ -193,30 +151,16 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 
 // PlacesToReplaceForPlanCandidate is the resolver for the placesToReplaceForPlanCandidate field.
 func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{
-		Tag: "GraphQL",
-	})
-	if err != nil {
-		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	logger.Info(
+	r.Logger.Info(
 		"PlacesToReplaceForPlanCandidate",
 		zap.String("planCandidateId", input.PlanCandidateID),
 		zap.String("planId", input.PlanID),
 		zap.String("placeId", input.PlaceID),
 	)
 
-	s, err := place.NewService(r.DB)
+	placesToReplace, err := r.PlaceService.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 4)
 	if err != nil {
-		log.Println("error while initializing place service: ", err)
-		return nil, fmt.Errorf("internal server error")
-	}
-
-	placesToReplace, err := s.FetchPlacesToReplace(ctx, input.PlanCandidateID, input.PlanID, input.PlaceID, 4)
-	if err != nil {
-		log.Println("error while fetching places to replace: ", err)
+		r.Logger.Error("error while fetching places to replace", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
