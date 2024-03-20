@@ -27,7 +27,7 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 		return nil, fmt.Errorf("internal resolver error")
 	}
 
-	placeService, err := place.NewService(r.DB)
+	placeService, err := place.NewService(ctx, r.DB)
 	if err != nil {
 		logger.Error("error while initializing place service", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")

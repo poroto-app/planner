@@ -30,7 +30,7 @@ func (r *queryResolver) PlacesNearPlan(ctx context.Context, input model.PlacesNe
 		zap.Int("limit", utils.FromPointerOrZero(input.Limit)),
 	)
 
-	s, err := place.NewService(r.DB)
+	s, err := place.NewService(ctx, r.DB)
 	if err != nil {
 		logger.Error("error while creating places service", zap.Error(err))
 		return nil, fmt.Errorf("internal server err")
