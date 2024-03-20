@@ -8,11 +8,12 @@ import (
 )
 
 type UploadPlacePhotoInPlanInput struct {
-	PlaceId  string
-	UserId   string
-	PhotoUrl string
-	Width    int
-	Height   int
+	PlaceId           string
+	UserId            string
+	PhotoUrl          string
+	Width             int
+	Height            int
+	FirebaseAuthToken string
 }
 
 func (s Service) UploadPlacePhotoInPlan(

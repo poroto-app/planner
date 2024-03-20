@@ -39,11 +39,12 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 	var uploadPlacePhotoInPlanInput []place.UploadPlacePhotoInPlanInput
 	for _, input := range inputs {
 		uploadPlacePhotoInPlanInput = append(uploadPlacePhotoInPlanInput, place.UploadPlacePhotoInPlanInput{
-			PlaceId:  input.PlaceID,
-			UserId:   input.UserID,
-			PhotoUrl: input.PhotoURL,
-			Width:    input.Width,
-			Height:   input.Height,
+			PlaceId:           input.PlaceID,
+			UserId:            input.UserID,
+			PhotoUrl:          input.PhotoURL,
+			Width:             input.Width,
+			Height:            input.Height,
+			FirebaseAuthToken: input.FirebaseAuthToken,
 		})
 	}
 	err = placeService.UploadPlacePhotoInPlan(ctx, uploadPlacePhotoInPlanInput)
