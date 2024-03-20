@@ -38,7 +38,7 @@ func NewPlaceFromEntity(
 		return nil, err
 	}
 
-	placePhootos := array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
+	placePhotos := array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
 		return models.PlacePhoto{
 			PlaceId:  placePhoto.PlaceID,
 			UserId:   placePhoto.UserID,
@@ -54,7 +54,7 @@ func NewPlaceFromEntity(
 		Location:    googlePlace.Location,
 		Google:      *googlePlace,
 		LikeCount:   likeCount,
-		PlacePhotos: placePhootos,
+		PlacePhotos: placePhotos,
 	}, nil
 }
 
