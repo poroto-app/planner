@@ -158,6 +158,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -166,9 +167,6 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(planPlace.R.Place.R.PlacePhotos, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
@@ -227,8 +225,6 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntity.R.PlanPlaces.GetLoadedPlaces().GetLoadedPlacePhotos()
-
 	places, err := array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
 		if planPlace.R == nil {
 			return nil, fmt.Errorf("planPlace.R is nil")
@@ -244,6 +240,7 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 
 		return factory.NewPlaceFromEntity(
 			*planPlace.R.Place,
+			planPlace.R.Place.R.PlacePhotos,
 			*planPlace.R.Place.R.GooglePlaces[0],
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -252,9 +249,6 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-				return placePhoto.PlaceID == planPlace.PlaceID
-			}),
 		)
 	})
 	if err != nil {
@@ -305,7 +299,6 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -330,6 +323,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -338,9 +332,6 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
@@ -404,7 +395,6 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -429,6 +419,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -437,9 +428,6 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
