@@ -7,35 +7,17 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"log"
-
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // UploadPlacePhotoInPlan is the resolver for the uploadPlacePhotoInPlan field.
 func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
-	logger, err := utils.NewLogger(utils.LoggerOption{Tag: "GraphQL"})
-	if err != nil {
-		log.Println("error while initializing logger: ", err)
-		return nil, fmt.Errorf("internal resolver error")
-	}
-
-	placeService, err := place.NewService(r.DB)
-	if err != nil {
-		logger.Error("error while initializing place service", zap.Error(err))
-		return nil, fmt.Errorf("internal resolver error")
-
-	}
-
-	planId := planID
-
 	var uploadPlacePhotoInPlanInput []place.UploadPlacePhotoInPlanInput
 	for _, input := range inputs {
 		uploadPlacePhotoInPlanInput = append(uploadPlacePhotoInPlanInput, place.UploadPlacePhotoInPlanInput{
@@ -46,27 +28,21 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 			Height:   input.Height,
 		})
 	}
-	err = placeService.UploadPlacePhotoInPlan(ctx, uploadPlacePhotoInPlanInput)
+	err := r.PlaceService.UploadPlacePhotoInPlan(ctx, uploadPlacePhotoInPlanInput)
 	if err != nil {
-		logger.Error("error while uploading place photos", zap.Error(err))
+		r.Logger.Error("error while uploading place photo in plan", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")
 	}
 
-	planService, err := plan.NewService(ctx, r.DB)
+	planDomainModel, err := r.PlanService.FetchPlan(ctx, planID)
 	if err != nil {
-		logger.Error("error while initializing plan service", zap.Error(err))
-		return nil, fmt.Errorf("internal resolver error")
-	}
-
-	planDomainModel, err := planService.FetchPlan(ctx, planId)
-	if err != nil {
-		logger.Error("error while fetching plan", zap.Error(err))
+		r.Logger.Error("error while fetching plan", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")
 	}
 
 	planGraphQLModel, err := factory.PlanFromDomainModel(*planDomainModel, nil)
 	if err != nil {
-		log.Printf("error while converting plan to graphql model: %v", err)
+		r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")
 	}
 	return &model.UploadPlacePhotoInPlanOutput{
@@ -100,7 +76,7 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 
 	graphqlPlan, err := factory.PlanFromDomainModel(likeToPlaceResult.Plan, nil)
 	if err != nil {
-		log.Println(err)
+		r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
