@@ -38,21 +38,23 @@ func NewPlaceFromEntity(
 		return nil, err
 	}
 
+	placePhootos := array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
+		return models.PlacePhoto{
+			PlaceId:  placePhoto.PlaceID,
+			UserId:   placePhoto.UserID,
+			PhotoUrl: placePhoto.PhotoURL,
+			Width:    placePhoto.Width,
+			Height:   placePhoto.Height,
+		}, placePhoto.PlaceID == placeEntity.ID
+	})
+
 	return &models.Place{
-		Id:        placeEntity.ID,
-		Name:      placeEntity.Name,
-		Location:  googlePlace.Location,
-		Google:    *googlePlace,
-		LikeCount: likeCount,
-		PlacePhotos: array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
-			return models.PlacePhoto{
-				PlaceId:  placePhoto.PlaceID,
-				UserId:   placePhoto.UserID,
-				PhotoUrl: placePhoto.PhotoURL,
-				Width:    placePhoto.Width,
-				Height:   placePhoto.Height,
-			}, placePhoto.PlaceID == placeEntity.ID
-		}),
+		Id:          placeEntity.ID,
+		Name:        placeEntity.Name,
+		Location:    googlePlace.Location,
+		Google:      *googlePlace,
+		LikeCount:   likeCount,
+		PlacePhotos: placePhootos,
 	}, nil
 }
 
