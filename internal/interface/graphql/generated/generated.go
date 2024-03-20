@@ -1696,6 +1696,7 @@ type PlacesToReplaceForPlanCandidateOutput {
 input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
     userId: String!
+    firebaseAuthToken: String!
     placeId: String!
     photoUrl: String!
     width: Int!
@@ -11421,7 +11422,7 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "placeId", "photoUrl", "width", "height"}
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "placeId", "photoUrl", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11437,6 +11438,15 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 				return it, err
 			}
 			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
 		case "placeId":
 			var err error
 

@@ -7,13 +7,13 @@ package resolver
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
-
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
@@ -30,7 +30,7 @@ func (r *queryResolver) PlacesNearPlan(ctx context.Context, input model.PlacesNe
 		zap.Int("limit", utils.FromPointerOrZero(input.Limit)),
 	)
 
-	s, err := place.NewService(r.DB)
+	s, err := place.NewService(ctx, r.DB)
 	if err != nil {
 		logger.Error("error while creating places service", zap.Error(err))
 		return nil, fmt.Errorf("internal server err")
