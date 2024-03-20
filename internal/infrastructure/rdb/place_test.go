@@ -3,7 +3,6 @@ package rdb
 import (
 	"context"
 	"database/sql"
-	"log"
 	"testing"
 	"time"
 
@@ -870,8 +869,6 @@ func TestPlaceRepository_FindByGooglePlaceID(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error while finding place: %v", err)
 			}
-
-			log.Print(actualPlace)
 
 			if diff := cmp.Diff(c.expectedPlace, actualPlace); diff != "" {
 				t.Fatalf("(-want +got):\n%s", diff)
