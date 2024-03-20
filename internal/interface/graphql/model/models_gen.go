@@ -344,11 +344,12 @@ type Transition struct {
 }
 
 type UploadPlacePhotoInPlanInput struct {
-	UserID   string `json:"userId"`
-	PlaceID  string `json:"placeId"`
-	PhotoURL string `json:"photoUrl"`
-	Width    int    `json:"width"`
-	Height   int    `json:"height"`
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+	PlaceID           string `json:"placeId"`
+	PhotoURL          string `json:"photoUrl"`
+	Width             int    `json:"width"`
+	Height            int    `json:"height"`
 }
 
 type UploadPlacePhotoInPlanOutput struct {
