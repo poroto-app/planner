@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-// TODO: 引数を placeEntity, placePhotoSliceの順番になるようにする
-// TODO: placePhotoSliceの中から、placeEntityに対応するものを抽出する
 func NewPlaceFromEntity(
 	placeEntity generated.Place,
+	placePhotoSlice generated.PlacePhotoSlice,
 	googlePlaceEntity generated.GooglePlace,
 	googlePlaceTypeSlice generated.GooglePlaceTypeSlice,
 	googlePlacePhotoReferenceSlice generated.GooglePlacePhotoReferenceSlice,
@@ -20,7 +20,6 @@ func NewPlaceFromEntity(
 	googlePlaceReviewSlice generated.GooglePlaceReviewSlice,
 	googlePlaceOpeningPeriodSlice generated.GooglePlaceOpeningPeriodSlice,
 	likeCount int,
-	placePhotoSlice generated.PlacePhotoSlice,
 ) (*models.Place, error) {
 	googlePlace, err := NewGooglePlaceFromEntity(
 		googlePlaceEntity,
@@ -39,18 +38,15 @@ func NewPlaceFromEntity(
 		return nil, err
 	}
 
-	var placePhotos []models.PlacePhoto
-	if len(placePhotoSlice) != 0 {
-		for _, placePhoto := range placePhotoSlice {
-			placePhotos = append(placePhotos, models.PlacePhoto{
-				UserId:   placePhoto.UserID,
-				PlaceId:  placePhoto.PlaceID,
-				PhotoUrl: placePhoto.PhotoURL,
-				Width:    placePhoto.Width,
-				Height:   placePhoto.Height,
-			})
-		}
-	}
+	placePhotos := array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
+		return models.PlacePhoto{
+			PlaceId:  placePhoto.PlaceID,
+			UserId:   placePhoto.UserID,
+			PhotoUrl: placePhoto.PhotoURL,
+			Width:    placePhoto.Width,
+			Height:   placePhoto.Height,
+		}, placePhoto.PlaceID == placeEntity.ID
+	})
 
 	return &models.Place{
 		Id:          placeEntity.ID,

@@ -58,13 +58,13 @@ func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID st
 		return nil, fmt.Errorf("internal resolver error")
 	}
 
-	planDoaminModel, err := planService.FetchPlan(ctx, planId)
+	planDomainModel, err := planService.FetchPlan(ctx, planId)
 	if err != nil {
 		logger.Error("error while fetching plan", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")
 	}
 
-	planGraphQLModel, err := factory.PlanFromDomainModel(*planDoaminModel, nil)
+	planGraphQLModel, err := factory.PlanFromDomainModel(*planDomainModel, nil)
 	if err != nil {
 		log.Printf("error while converting plan to graphql model: %v", err)
 		return nil, fmt.Errorf("internal resolver error")
