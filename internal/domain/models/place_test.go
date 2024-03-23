@@ -62,15 +62,23 @@ func TestShufflePlaces(t *testing.T) {
 		{
 			name: "should return shuffled places",
 			places: []Place{
-				NewMockPlaceShinjukuStation(),
-				NewMockPlaceIsetan(),
-				NewMockPlaceShinjukuGyoen(),
-				NewMockPlaceTakashimaya(),
+				{Id: "1"},
+				{Id: "2"},
+				{Id: "3"},
+				{Id: "4"},
+				{Id: "5"},
+				{Id: "6"},
+				{Id: "7"},
+				{Id: "8"},
+				{Id: "9"},
+				{Id: "10"},
 			},
 		},
 	}
 
 	for _, c := range cases {
+		t.Parallel()
+		c := c
 		t.Run(c.name, func(t *testing.T) {
 			original := make([]Place, len(c.places))
 			copy(original, c.places)

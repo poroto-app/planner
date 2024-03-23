@@ -7,7 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"log"
+	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
+	"poroto.app/poroto/planner/internal/domain/services/plangen"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
@@ -47,11 +50,38 @@ func GraphQlQueryHandler(db *sql.DB) gin.HandlerFunc {
 			})
 		}
 
+		planGenService, err := plangen.NewService(db)
+		if err != nil {
+			logger.Error("error while initializing plan gen service", zap.Error(err))
+			c.JSON(500, gin.H{
+				"error": "internal server error",
+			})
+		}
+
+		planCandidateService, err := plancandidate.NewService(c.Request.Context(), db)
+		if err != nil {
+			logger.Error("error while initializing plan candidate service", zap.Error(err))
+			c.JSON(500, gin.H{
+				"error": "internal server error",
+			})
+		}
+
+		placeService, err := place.NewService(db)
+		if err != nil {
+			logger.Error("error while initializing place service", zap.Error(err))
+			c.JSON(500, gin.H{
+				"error": "internal server error",
+			})
+		}
+
 		schema := generated.NewExecutableSchema(generated.Config{Resolvers: &resolver.Resolver{
-			Logger:      logger,
-			DB:          db,
-			UserService: userService,
-			PlanService: planService,
+			Logger:               logger,
+			DB:                   db,
+			UserService:          userService,
+			PlanService:          planService,
+			PlanCandidateService: planCandidateService,
+			PlanGenService:       planGenService,
+			PlaceService:         placeService,
 		}})
 		h := handler.NewDefaultServer(schema)
 		h.ServeHTTP(c.Writer, c.Request)

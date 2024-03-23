@@ -1,8 +1,10 @@
 package rdb
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"go.uber.org/zap"
@@ -12,15 +14,27 @@ import (
 
 func InitDB(debugMode bool) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s)/%s?parseTime=true&loc=%s&tls=%v&interpolateParams=%v",
+		"%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=%s&interpolateParams=%v",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"),
 		"Asia%2FTokyo",
-		os.Getenv("ENV") != "development",
 		true,
 	)
+
+	if os.Getenv("ENV") != "development" {
+		dsn += fmt.Sprintf("&tls=%s", "tidb")
+
+		err := mysql.RegisterTLSConfig("tidb", &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			ServerName: os.Getenv("DB_HOST"),
+		})
+		if err != nil {
+			return nil, fmt.Errorf("error while registering tls config: %v\n", err)
+		}
+	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {

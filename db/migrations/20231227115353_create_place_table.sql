@@ -20,12 +20,10 @@ CREATE TABLE google_places
     user_ratings_total INT,
     latitude           DOUBLE       NOT NULL,
     longitude          DOUBLE       NOT NULL,
-    location           POINT        NOT NULL COMMENT "This column value will be set by the trigger(google_places_before_insert)",
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (google_place_id),
-    FOREIGN KEY (place_id) REFERENCES places (id),
-    SPATIAL INDEX (location)
+    FOREIGN KEY (place_id) REFERENCES places (id)
 );
 
 CREATE TABLE google_place_types

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
@@ -27,36 +26,8 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 		}
 
 		googlePlaceEntity := factory.NewGooglePlaceEntityFromGooglePlace(place.Google, place.Id)
-		if _, err := queries.Raw(
-			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, POINT(?, ?) )",
-				generated.TableNames.GooglePlaces,
-				generated.GooglePlaceColumns.GooglePlaceID,
-				generated.GooglePlaceColumns.PlaceID,
-				generated.GooglePlaceColumns.Name,
-				generated.GooglePlaceColumns.FormattedAddress,
-				generated.GooglePlaceColumns.Vicinity,
-				generated.GooglePlaceColumns.PriceLevel,
-				generated.GooglePlaceColumns.Rating,
-				generated.GooglePlaceColumns.UserRatingsTotal,
-				generated.GooglePlaceColumns.Latitude,
-				generated.GooglePlaceColumns.Longitude,
-				generated.GooglePlaceColumns.Location,
-			),
-			googlePlaceEntity.GooglePlaceID,
-			googlePlaceEntity.PlaceID,
-			googlePlaceEntity.Name,
-			googlePlaceEntity.FormattedAddress,
-			googlePlaceEntity.Vicinity,
-			googlePlaceEntity.PriceLevel,
-			googlePlaceEntity.Rating,
-			googlePlaceEntity.UserRatingsTotal,
-			googlePlaceEntity.Latitude,
-			googlePlaceEntity.Longitude,
-			googlePlaceEntity.Longitude,
-			googlePlaceEntity.Latitude,
-		).Exec(db); err != nil {
-			return fmt.Errorf("failed to insert google place: %w", err)
+		if err := googlePlaceEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert google place: %v", err)
 		}
 
 		photoReferenceSlice := factory.NewGooglePlacePhotoReferenceSliceFromGooglePlacePhotoReferences(place.Google.PhotoReferences, place.Google.PlaceId)
@@ -100,26 +71,8 @@ func savePlaces(ctx context.Context, db *sql.DB, places []models.Place) error {
 func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 	for _, plan := range plans {
 		planEntity := factory.NewPlanEntityFromDomainModel(plan)
-		var startLocation models.GeoLocation
-		if len(plan.Places) > 0 {
-			startLocation = plan.Places[0].Location
-		}
-		if _, err := queries.Raw(
-			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
-				generated.TableNames.Plans,
-				generated.PlanColumns.ID,
-				generated.PlanColumns.UserID,
-				generated.PlanColumns.Name,
-				generated.PlanColumns.Location,
-			),
-			planEntity.ID,
-			planEntity.UserID,
-			planEntity.Name,
-			startLocation.Longitude,
-			startLocation.Latitude,
-		).ExecContext(ctx, db); err != nil {
-			return fmt.Errorf("failed to insert plan: %w", err)
+		if err := planEntity.Insert(ctx, db, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan: %v", err)
 		}
 
 		planPlaceSlice := factory.NewPlanPlaceSliceFromDomainMode(plan.Places, plan.Id)
