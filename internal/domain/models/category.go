@@ -189,7 +189,6 @@ var (
 
 			string(maps.PlaceTypeNightClub),
 			string(maps.PlaceTypePainter),
-			string(maps.PlaceTypePark),
 			string(maps.PlaceTypeParking),
 			string(maps.PlaceTypePharmacy),
 			string(maps.PlaceTypePhysiotherapist),
