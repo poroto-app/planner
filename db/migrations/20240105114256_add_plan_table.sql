@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS plans
 (
     id         char(36) PRIMARY KEY NOT NULL,
-    user_id    char(36),
+    user_id    VARCHAR(36),
     name       VARCHAR(2000)        NOT NULL,
     created_at DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME             NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

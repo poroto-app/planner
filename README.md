@@ -153,5 +153,5 @@ sqlboiler mysql
 ローカルでデータを削除する場合は以下のコマンドを利用します
 ```shell
 docker compose down
-docker volume rm planner_mysql-data
+docker volume rm docker_mysql-data
 ```
