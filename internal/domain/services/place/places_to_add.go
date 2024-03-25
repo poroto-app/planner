@@ -24,6 +24,7 @@ type FetchPlacesToAddInput struct {
 type FetchPlacesToAddOutput struct {
 	PlacesRecommended []models.Place
 	PlacesGrouped     []categoryGroupedPlaces
+	Transitions       []models.Transition
 }
 
 type categoryGroupedPlaces struct {
@@ -204,9 +205,22 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		}
 	}
 
+	// 移動時間の算出
+	placesAll := placesRecommend
+	placesAll = append(placesAll, array.FlatMap(placesGrouped, func(categoryGroupedPlaces categoryGroupedPlaces) []models.Place {
+		return categoryGroupedPlaces.Places
+	})...)
+	placesAll = array.DistinctBy(placesAll, func(place models.Place) string {
+		return place.Id
+	})
+	transitions := array.Map(placesAll, func(place models.Place) models.Transition {
+		return startPlace.CreateTransition(place)
+	})
+
 	return &FetchPlacesToAddOutput{
 		PlacesRecommended: placesRecommend,
 		PlacesGrouped:     placesGrouped,
+		Transitions:       transitions,
 	}, nil
 }
 
