@@ -44,10 +44,18 @@ type ChatCompletionMessage struct {
 }
 
 type ChatCompletionResponse struct {
-	ID      string                 `json:"id"`
-	Object  string                 `json:"object"`
-	Created int64                  `json:"created"`
-	Choices []ChatCompletionChoice `json:"choices"`
+	ID      string                       `json:"id"`
+	Object  string                       `json:"object"`
+	Created int64                        `json:"created"`
+	Choices []ChatCompletionChoice       `json:"choices"`
+	Error   *ChatCompletionErrorResponse `json:"error,omitempty"`
+}
+
+type ChatCompletionErrorResponse struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
+	Param   string `json:"param"`
+	Code    string `json:"code"`
 }
 
 type ChatCompletionChoice struct {
@@ -81,6 +89,14 @@ func (c *ChatCompletionClient) Complete(request ChatCompletionRequest) (*ChatCom
 	var response ChatCompletionResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("error while decoding response: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if response.Error == nil {
+			return nil, fmt.Errorf("unexpected status code: %v", resp.StatusCode)
+		}
+
+		return nil, fmt.Errorf("unexpected status code(%v): %v", resp.StatusCode, response.Error)
 	}
 
 	return &response, nil
