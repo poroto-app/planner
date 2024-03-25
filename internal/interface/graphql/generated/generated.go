@@ -182,6 +182,7 @@ type ComplexityRoot struct {
 	PlacesToAddForPlanCandidateOutput struct {
 		Places                  func(childComplexity int) int
 		PlacesGroupedByCategory func(childComplexity int) int
+		Transitions             func(childComplexity int) int
 	}
 
 	PlacesToReplaceForPlanCandidateOutput struct {
@@ -883,6 +884,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PlacesToAddForPlanCandidateOutput.PlacesGroupedByCategory(childComplexity), true
+
+	case "PlacesToAddForPlanCandidateOutput.transitions":
+		if e.complexity.PlacesToAddForPlanCandidateOutput.Transitions == nil {
+			break
+		}
+
+		return e.complexity.PlacesToAddForPlanCandidateOutput.Transitions(childComplexity), true
 
 	case "PlacesToReplaceForPlanCandidateOutput.places":
 		if e.complexity.PlacesToReplaceForPlanCandidateOutput.Places == nil {
@@ -1666,11 +1674,15 @@ type NearbyPlaceCategoryOutput {
 input PlacesToAddForPlanCandidateInput {
     planCandidateId: ID!
     planId: ID!
+    # この場所を基準に検索を行う
+    # 指定されていない場合は、プランの出発地点からの検索を行う
+    placeId: ID
 }
 
 type PlacesToAddForPlanCandidateOutput {
     places: [Place!]!
     placesGroupedByCategory: [CategoryGroupedPlaces!]!
+    transitions: [Transition!]!
 }
 
 input PlacesToReplaceForPlanCandidateInput {
@@ -5904,6 +5916,58 @@ func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_place
 	return fc, nil
 }
 
+func (ec *executionContext) _PlacesToAddForPlanCandidateOutput_transitions(ctx context.Context, field graphql.CollectedField, obj *model.PlacesToAddForPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlacesToAddForPlanCandidateOutput_transitions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Transitions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Transition)
+	fc.Result = res
+	return ec.marshalNTransition2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐTransitionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_transitions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlacesToAddForPlanCandidateOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "from":
+				return ec.fieldContext_Transition_from(ctx, field)
+			case "to":
+				return ec.fieldContext_Transition_to(ctx, field)
+			case "duration":
+				return ec.fieldContext_Transition_duration(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Transition", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlacesToReplaceForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.PlacesToReplaceForPlanCandidateOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlacesToReplaceForPlanCandidateOutput_places(ctx, field)
 	if err != nil {
@@ -7381,6 +7445,8 @@ func (ec *executionContext) fieldContext_Query_placesToAddForPlanCandidate(ctx c
 				return ec.fieldContext_PlacesToAddForPlanCandidateOutput_places(ctx, field)
 			case "placesGroupedByCategory":
 				return ec.fieldContext_PlacesToAddForPlanCandidateOutput_placesGroupedByCategory(ctx, field)
+			case "transitions":
+				return ec.fieldContext_PlacesToAddForPlanCandidateOutput_transitions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PlacesToAddForPlanCandidateOutput", field.Name)
 		},
@@ -11034,7 +11100,7 @@ func (ec *executionContext) unmarshalInputPlacesToAddForPlanCandidateInput(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"planCandidateId", "planId"}
+	fieldsInOrder := [...]string{"planCandidateId", "planId", "placeId"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -11059,6 +11125,15 @@ func (ec *executionContext) unmarshalInputPlacesToAddForPlanCandidateInput(ctx c
 				return it, err
 			}
 			it.PlanID = data
+		case "placeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("placeId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlaceID = data
 		}
 	}
 
@@ -12605,6 +12680,11 @@ func (ec *executionContext) _PlacesToAddForPlanCandidateOutput(ctx context.Conte
 			}
 		case "placesGroupedByCategory":
 			out.Values[i] = ec._PlacesToAddForPlanCandidateOutput_placesGroupedByCategory(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "transitions":
+			out.Values[i] = ec._PlacesToAddForPlanCandidateOutput_transitions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -15217,6 +15297,22 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalID(*v)
+	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

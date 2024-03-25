@@ -224,13 +224,15 @@ type PlacesNearPlanOutput struct {
 }
 
 type PlacesToAddForPlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
+	PlanCandidateID string  `json:"planCandidateId"`
+	PlanID          string  `json:"planId"`
+	PlaceID         *string `json:"placeId,omitempty"`
 }
 
 type PlacesToAddForPlanCandidateOutput struct {
 	Places                  []*Place                 `json:"places"`
 	PlacesGroupedByCategory []*CategoryGroupedPlaces `json:"placesGroupedByCategory"`
+	Transitions             []*Transition            `json:"transitions"`
 }
 
 type PlacesToReplaceForPlanCandidateInput struct {
