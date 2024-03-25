@@ -17,6 +17,7 @@ const (
 type FetchPlacesToAddInput struct {
 	PlanCandidateId string
 	PlanId          string
+	PlaceId         *string
 	NLimit          uint
 }
 
@@ -64,7 +65,18 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		return nil, fmt.Errorf("plan has no places")
 	}
 
-	startPlace := plan.Places[0]
+	var startPlace models.Place
+	if input.PlaceId != nil {
+		p, found := array.Find(plan.Places, func(place models.Place) bool {
+			return place.Id == *input.PlaceId
+		})
+		if !found {
+			return nil, fmt.Errorf("place(%s) not found in plan", *input.PlaceId)
+		}
+		startPlace = p
+	} else {
+		startPlace = plan.Places[0]
+	}
 
 	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {

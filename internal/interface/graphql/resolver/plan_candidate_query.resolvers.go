@@ -111,6 +111,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	result, err := r.PlaceService.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
 		PlanCandidateId: input.PlanCandidateID,
 		PlanId:          input.PlanID,
+		PlaceId:         input.PlaceID,
 		NLimit:          4,
 	})
 	if err != nil {
