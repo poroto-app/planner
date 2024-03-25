@@ -24,6 +24,7 @@ type FetchPlacesToAddInput struct {
 type FetchPlacesToAddOutput struct {
 	PlacesRecommended []models.Place
 	PlacesGrouped     []categoryGroupedPlaces
+	PlacesAll         []models.Place
 	Transitions       []models.Transition
 }
 
@@ -210,6 +211,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	placesAll = append(placesAll, array.FlatMap(placesGrouped, func(categoryGroupedPlaces categoryGroupedPlaces) []models.Place {
 		return categoryGroupedPlaces.Places
 	})...)
+	placesAll = append(placesAll, startPlace)
 	placesAll = array.DistinctBy(placesAll, func(place models.Place) string {
 		return place.Id
 	})
@@ -220,6 +222,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	return &FetchPlacesToAddOutput{
 		PlacesRecommended: placesRecommend,
 		PlacesGrouped:     placesGrouped,
+		PlacesAll:         placesAll,
 		Transitions:       transitions,
 	}, nil
 }
