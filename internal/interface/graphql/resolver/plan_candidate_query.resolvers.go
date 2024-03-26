@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/array"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -111,6 +112,7 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 	result, err := r.PlaceService.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
 		PlanCandidateId: input.PlanCandidateID,
 		PlanId:          input.PlanID,
+		PlaceId:         input.PlaceID,
 		NLimit:          4,
 	})
 	if err != nil {
@@ -144,9 +146,18 @@ func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input m
 		})
 	}
 
+	graphqlTransitions, err := array.MapWithErr(result.Transitions, func(transition models.Transition) (**model.Transition, error) {
+		t, err := factory.TransitionFromDomainModel(transition, result.PlacesAll)
+		if err != nil {
+			return nil, err
+		}
+		return &t, nil
+	})
+
 	return &model.PlacesToAddForPlanCandidateOutput{
 		Places:                  places,
 		PlacesGroupedByCategory: placesGroupedByCategory,
+		Transitions:             *graphqlTransitions,
 	}, nil
 }
 

@@ -24,15 +24,11 @@ func CreateTransition(places []Place, startLocation *GeoLocation) []Transition {
 		})
 	}
 
-	for i, place := range places {
+	for i := range places {
 		if i >= len(places)-1 {
 			break
 		}
-		transitions = append(transitions, Transition{
-			FromPlaceId: &places[i].Id,
-			ToPlaceId:   places[i+1].Id,
-			Duration:    place.Location.TravelTimeTo(places[i+1].Location, 80.0),
-		})
+		transitions = append(transitions, places[i].CreateTransition(places[i+1]))
 	}
 
 	return transitions

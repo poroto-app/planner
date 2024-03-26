@@ -42,6 +42,14 @@ func (p Place) EstimatedPriceRange() (priceRange *PriceRange) {
 	return PriceRangeFromGooglePriceLevel(p.Google.PriceLevel)
 }
 
+func (p Place) CreateTransition(destination Place) Transition {
+	return Transition{
+		FromPlaceId: &p.Id,
+		ToPlaceId:   destination.Id,
+		Duration:    p.Location.TravelTimeTo(destination.Location, 80.0),
+	}
+}
+
 // ShufflePlaces 場所の順番をシャッフルする
 func ShufflePlaces(places []Place) []Place {
 	placesCopy := make([]Place, len(places))

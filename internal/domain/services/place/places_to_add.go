@@ -17,12 +17,15 @@ const (
 type FetchPlacesToAddInput struct {
 	PlanCandidateId string
 	PlanId          string
+	PlaceId         *string
 	NLimit          uint
 }
 
 type FetchPlacesToAddOutput struct {
 	PlacesRecommended []models.Place
 	PlacesGrouped     []categoryGroupedPlaces
+	PlacesAll         []models.Place
+	Transitions       []models.Transition
 }
 
 type categoryGroupedPlaces struct {
@@ -64,7 +67,18 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		return nil, fmt.Errorf("plan has no places")
 	}
 
-	startPlace := plan.Places[0]
+	var startPlace models.Place
+	if input.PlaceId != nil {
+		p, found := array.Find(plan.Places, func(place models.Place) bool {
+			return place.Id == *input.PlaceId
+		})
+		if !found {
+			return nil, fmt.Errorf("place(%s) not found in plan", *input.PlaceId)
+		}
+		startPlace = p
+	} else {
+		startPlace = plan.Places[0]
+	}
 
 	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
 	if err != nil {
@@ -192,9 +206,24 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		}
 	}
 
+	// 移動時間の算出
+	placesAll := placesRecommend
+	placesAll = append(placesAll, array.FlatMap(placesGrouped, func(categoryGroupedPlaces categoryGroupedPlaces) []models.Place {
+		return categoryGroupedPlaces.Places
+	})...)
+	placesAll = append(placesAll, startPlace)
+	placesAll = array.DistinctBy(placesAll, func(place models.Place) string {
+		return place.Id
+	})
+	transitions := array.Map(placesAll, func(place models.Place) models.Transition {
+		return startPlace.CreateTransition(place)
+	})
+
 	return &FetchPlacesToAddOutput{
 		PlacesRecommended: placesRecommend,
 		PlacesGrouped:     placesGrouped,
+		PlacesAll:         placesAll,
+		Transitions:       transitions,
 	}, nil
 }
 
