@@ -604,7 +604,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 	}
 }
 
-func TestPlaceRepository_FindByCategory(t *testing.T) {
+func TestPlaceRepository_FindByGooglePlaceType(t *testing.T) {
 	cases := []struct {
 		name            string
 		savedPlaces     []models.Place
@@ -735,6 +735,98 @@ func TestPlaceRepository_FindByCategory(t *testing.T) {
 	}
 }
 
+func TestPlaceRepository_FindByLocation(t *testing.T) {
+	cases := []struct {
+		name           string
+		location       models.GeoLocation
+		radius         float64
+		savedPlaces    []models.Place
+		expectedPlaces []models.Place
+	}{
+		{
+			name: "find places by location",
+			location: models.GeoLocation{
+				Latitude:  35.6812362,
+				Longitude: 139.7649361,
+			},
+			radius: 5000,
+			savedPlaces: []models.Place{
+				{
+					Id:   "place_id_1",
+					Name: "新宿",
+					Google: models.GooglePlace{
+						PlaceId:  "place_id_1",
+						Location: models.GeoLocation{Latitude: 35.6812362, Longitude: 139.7649361},
+					},
+				},
+			},
+			expectedPlaces: []models.Place{
+				{
+					Id:   "place_id_1",
+					Name: "新宿",
+					Location: models.GeoLocation{
+						Latitude:  35.6812362,
+						Longitude: 139.7649361,
+					},
+					Google: models.GooglePlace{
+						PlaceId:  "place_id_1",
+						Location: models.GeoLocation{Latitude: 35.6812362, Longitude: 139.7649361},
+					},
+				},
+			},
+		},
+		{
+			name: "not find places by location",
+			location: models.GeoLocation{
+				Latitude:  35.6812362,
+				Longitude: 139.7649361,
+			},
+			radius: 5000,
+			savedPlaces: []models.Place{
+				{
+					Id:   "place_id_2",
+					Name: "稚内",
+					Google: models.GooglePlace{
+						PlaceId:  "place_id_2",
+						Location: models.GeoLocation{Latitude: 45.415691, Longitude: 141.673105},
+					},
+				},
+			},
+			expectedPlaces: nil,
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// 事前にPlaceを保存しておく
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			actualPlaces, err := placeRepository.FindByLocation(testContext, c.location, c.radius)
+			if err != nil {
+				t.Fatalf("error while finding places: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlaces, actualPlaces); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 func TestPlaceRepository_FindByGooglePlaceID(t *testing.T) {
 	cases := []struct {
 		name          string

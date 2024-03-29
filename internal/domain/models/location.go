@@ -1,9 +1,9 @@
 package models
 
 import (
+	"github.com/golang/geo/s1"
+	"github.com/golang/geo/s2"
 	"math"
-
-	"github.com/mmcloughlin/geohash"
 )
 
 type GeoLocation struct {
@@ -39,17 +39,29 @@ func (g GeoLocation) DistanceInMeter(another GeoLocation) float64 {
 	return distance
 }
 
-func (g GeoLocation) GeoHash() string {
-	return geohash.Encode(g.Latitude, g.Longitude)
-}
+// CalculateMBR 特定の位置からの距離を元に、緯度の差分を計算する
+func (g GeoLocation) CalculateMBR(distance float64) (minLocation GeoLocation, maxLocation GeoLocation) {
+	// 地球の半径（メートル単位）
+	const earthRadius = 6371e3
 
-// GeoHashOfNeighbors は指定した精度の周辺のGeoHashを返す
-// 精度（precision）の値がどのような範囲を表すかは https://en.wikipedia.org/wiki/Geohash#Digits_and_precision_in_km を参照
-// 例えば、precision=4の場合は、 GeoLocation　を中心とした 北、北東、東、南東、南、南西、西、北西の各方向に
-// 20kmの範囲を表すGeoHashを返す
-func (g GeoLocation) GeoHashOfNeighbors(precision uint) []string {
-	centerGeoHash := geohash.EncodeWithPrecision(g.Latitude, g.Longitude, precision)
-	return geohash.Neighbors(centerGeoHash)
+	latLng := s2.LatLngFromDegrees(g.Latitude, g.Longitude)
+	point := s2.PointFromLatLng(latLng)
+
+	angle := s1.Angle(distance / earthRadius)
+	cap := s2.CapFromCenterAngle(point, angle)
+	rect := cap.RectBound()
+
+	minLocation = GeoLocation{
+		Latitude:  rect.Lo().Lat.Degrees(),
+		Longitude: rect.Lo().Lng.Degrees(),
+	}
+
+	maxLocation = GeoLocation{
+		Latitude:  rect.Hi().Lat.Degrees(),
+		Longitude: rect.Hi().Lng.Degrees(),
+	}
+
+	return minLocation, maxLocation
 }
 
 func (g GeoLocation) TravelTimeTo(

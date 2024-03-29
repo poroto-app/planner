@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -60,25 +58,9 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 		return fmt.Errorf("plan places is empty")
 	}
 
-	startLocation := plan.Places[0].Location
-
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planEntity := factory.NewPlanEntityFromDomainModel(*plan)
-		if _, err := queries.Raw(
-			fmt.Sprintf(
-				"INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, POINT(?, ?))",
-				generated.TableNames.Plans,
-				generated.PlanColumns.ID,
-				generated.PlanColumns.UserID,
-				generated.PlanColumns.Name,
-				generated.PlanColumns.Location,
-			),
-			planEntity.ID,
-			planEntity.UserID,
-			planEntity.Name,
-			startLocation.Longitude,
-			startLocation.Latitude,
-		).ExecContext(ctx, tx); err != nil {
+		if err := planEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan: %w", err)
 		}
 
@@ -158,6 +140,7 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -166,9 +149,6 @@ func (p PlanRepository) SortedByCreatedAt(ctx context.Context, queryCursor *repo
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(planPlace.R.Place.R.PlacePhotos, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
@@ -227,8 +207,6 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntity.R.PlanPlaces.GetLoadedPlaces().GetLoadedPlacePhotos()
-
 	places, err := array.MapWithErr(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) (*models.Place, error) {
 		if planPlace.R == nil {
 			return nil, fmt.Errorf("planPlace.R is nil")
@@ -244,6 +222,7 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 
 		return factory.NewPlaceFromEntity(
 			*planPlace.R.Place,
+			planPlace.R.Place.R.PlacePhotos,
 			*planPlace.R.Place.R.GooglePlaces[0],
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -252,9 +231,6 @@ func (p PlanRepository) Find(ctx context.Context, planId string) (*models.Plan, 
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 			planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-			array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-				return placePhoto.PlaceID == planPlace.PlaceID
-			}),
 		)
 	})
 	if err != nil {
@@ -305,7 +281,6 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -330,6 +305,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -338,9 +314,6 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
@@ -370,17 +343,14 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 
 // TODO: ページングしない（範囲だけ指定させて、ソートも行わない）
 func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
-	minLocation, maxLocation := calculateMBR(location, defaultDistanceToSearchPlan)
+	minLocation, maxLocation := location.CalculateMBR(defaultDistanceToSearchPlan)
 
 	planEntities, err := generated.Plans(concatQueryMod(
 		[]qm.QueryMod{
-			qm.Where(
-				fmt.Sprintf("MBRContains(LineString(Point(?, ?), Point(?, ?)), %s)", generated.PlanColumns.Location),
-				minLocation.Longitude,
-				minLocation.Latitude,
-				maxLocation.Longitude,
-				maxLocation.Latitude,
-			),
+			generated.PlanWhere.Longitude.GT(minLocation.Longitude),
+			generated.PlanWhere.Longitude.LT(maxLocation.Longitude),
+			generated.PlanWhere.Latitude.GT(minLocation.Latitude),
+			generated.PlanWhere.Latitude.LT(maxLocation.Latitude),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.PlanColumns.CreatedAt, "desc")),
 			qm.Limit(limit),
 			qm.Load(generated.PlanRels.PlanPlaces),
@@ -404,7 +374,6 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 		p.logger.Warn("failed to count place like counts", zap.Error(err))
 	}
 
-	placePhotoSlice := planEntities.GetLoadedPlanPlaces().GetLoadedPlaces().GetLoadedPlacePhotos()
 	places, err := array.MapWithErr(planEntities, func(planEntity *generated.Plan) (*[]models.Place, error) {
 		if planEntity.R == nil {
 			return nil, fmt.Errorf("planEntity.R is nil")
@@ -429,6 +398,7 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 
 			return factory.NewPlaceFromEntity(
 				*planPlace.R.Place,
+				planPlace.R.Place.R.PlacePhotos,
 				*planPlace.R.Place.R.GooglePlaces[0],
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
@@ -437,9 +407,6 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
 				planPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
 				entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planPlace.PlaceID),
-				array.Filter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) bool {
-					return placePhoto.PlaceID == planPlace.PlaceID
-				}),
 			)
 		})
 	})
@@ -478,32 +445,4 @@ func parseSortByCreatedAtQueryCursor(queryCursor repository.SortedByCreatedAtQue
 	}
 	dateTime := time.Unix(unixTime, 0)
 	return &dateTime, nil
-}
-
-// calculateMBR 特定の位置からの距離を元に、緯度の差分を計算する
-func calculateMBR(location models.GeoLocation, distance float64) (minLocation models.GeoLocation, maxLocation models.GeoLocation) {
-	// 地球の半径（メートル単位）
-	const earthRadius = 6371e3
-
-	// 1度あたりの距離（メートル単位）
-	const metersPerDegree = earthRadius * math.Pi / 180
-
-	// 緯度の増減値
-	latDelta := distance / metersPerDegree
-
-	// 経度の増減値（緯度に依存）
-	lngDelta := distance / (metersPerDegree * math.Cos(math.Pi*location.Latitude/180))
-
-	// 緯度経度の範囲を計算
-	minLocation = models.GeoLocation{
-		Latitude:  location.Latitude - latDelta*180/math.Pi,
-		Longitude: location.Longitude - lngDelta*180/math.Pi,
-	}
-
-	maxLocation = models.GeoLocation{
-		Latitude:  location.Latitude + latDelta*180/math.Pi,
-		Longitude: location.Longitude + lngDelta*180/math.Pi,
-	}
-
-	return minLocation, maxLocation
 }
