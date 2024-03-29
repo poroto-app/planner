@@ -2,7 +2,6 @@ version: '3.1'
 
 services:
   db:
-    # SEE: https://planetscale.com/docs/reference/mysql-compatibility#overview
     image: mysql:8.0
     restart: always
     healthcheck:
