@@ -66,8 +66,8 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId strin
 		},
 		placeQueryModes(generated.PlanCandidateSetRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
-
 	if err != nil {
+		// TODO: エラーにする
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
