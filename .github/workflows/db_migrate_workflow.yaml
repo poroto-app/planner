@@ -37,7 +37,7 @@ jobs:
           DB_HOST: ${{ inputs.db_host }}
           DB_PORT: ${{ inputs.db_port }}
         run: |
-          goose -dir db/migrations -certfile=/etc/ssl/certs/ca-certificates.crt mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" up
+          goose -dir db/migrations -certfile=/etc/ssl/cert.pem mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" up
       - name: Rollback Migration on Failure
         if: failure()
         env:
@@ -47,4 +47,4 @@ jobs:
           DB_HOST: ${{ inputs.db_host }}
           DB_PORT: ${{ inputs.db_port }}
         run: |
-          goose -dir db/migrations -certfile=/etc/ssl/certs/ca-certificates.crt mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" down
+          goose -dir db/migrations -certfile=/etc/ssl/cert.pem mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" down
