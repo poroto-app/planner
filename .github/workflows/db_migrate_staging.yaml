@@ -2,8 +2,8 @@ name: db-migrate-staging
 run-name: Staging - TiDB Migration by @${{ github.actor }}
 on:
   push:
-    branches:
-      - develop
+#    branches:
+#      - develop
 jobs:
     db-migrate-staging:
         name: TiDB Staging Migration

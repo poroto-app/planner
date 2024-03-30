@@ -2,8 +2,8 @@ name: db-migrate-production
 run-name: Production - TiDB Migration by @${{ github.actor }}
 on:
   push:
-    branches:
-      - main
+#    branches:
+#      - develop
 jobs:
     db-migrate-production:
         name: TiDB Production Migration
