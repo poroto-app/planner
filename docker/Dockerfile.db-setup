@@ -1,5 +1,5 @@
 # ベースイメージの指定
-FROM golang:1.18
+FROM golang:1.22.0
 
 # gooseのインストール
 RUN go install github.com/pressly/goose/cmd/goose@latest
