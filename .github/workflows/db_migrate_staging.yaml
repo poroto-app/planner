@@ -13,5 +13,5 @@ jobs:
           db_host: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com'
           db_port: '4000'
         secrets:
-            DB_USER: ${{ secrets.TIDB_STAGING_DB_USER }}
-            DB_PASSWORD: ${{ secrets.TIDB_STAGING_DB_PASSWORD }}
+            DB_USER: ${{ secrets.TiDB_STAGING_DB_USER }}
+            DB_PASSWORD: ${{ secrets.TiDB_STAGING_DB_PASSWORD }}
