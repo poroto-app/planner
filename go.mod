@@ -1,6 +1,6 @@
 module poroto.app/poroto/planner
 
-go 1.19
+go 1.22.0
 
 require (
 	firebase.google.com/go/v4 v4.13.0
