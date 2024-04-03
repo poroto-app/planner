@@ -434,6 +434,50 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 	return plans, nil, nil
 }
 
+func (p PlanRepository) UpdatePlanAuthorUserByPlanCandidateSet(ctx context.Context, userId string, planCandidateSetIds []string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateEntities, err := generated.PlanCandidates(
+			generated.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateSetIds),
+		).All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find plan candidates: %w", err)
+		}
+
+		planCandidateIds := array.Map(planCandidateEntities, func(planCandidate *generated.PlanCandidate) string {
+			if planCandidate == nil {
+				return ""
+			}
+			return planCandidate.ID
+		})
+
+		savedPlanEntities, err := generated.Plans(
+			generated.PlanWhere.ID.IN(planCandidateIds),
+		).All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find plans: %w", err)
+		}
+
+		var savedPlanWoAuthorEntities generated.PlanSlice = array.Filter(savedPlanEntities, func(plan *generated.Plan) bool {
+			if plan == nil {
+				return false
+			}
+			return plan.UserID.IsZero()
+		})
+
+		if _, err := savedPlanWoAuthorEntities.UpdateAll(ctx, tx, generated.M{
+			generated.PlanColumns.UserID: userId,
+		}); err != nil {
+			return fmt.Errorf("failed to update plans: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
+}
+
 func newSortByCreatedAtQueryCursor(createdAt time.Time) repository.SortedByCreatedAtQueryCursor {
 	return repository.SortedByCreatedAtQueryCursor(fmt.Sprintf("%d", createdAt.Unix()))
 }
