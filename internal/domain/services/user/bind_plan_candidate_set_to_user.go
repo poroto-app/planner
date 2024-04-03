@@ -30,7 +30,9 @@ func (s Service) BindPlanCandidateSetToUser(ctx context.Context, input BindPlanC
 		return nil, fmt.Errorf("error while updating like to place in plan: %v", err)
 	}
 
-	// TODO: プラン候補に紐づくプランをユーザーに紐づける
+	if err := s.planRepository.UpdatePlanAuthorUserByPlanCandidateSet(ctx, input.UserId, input.PlanCandidateSetIds); err != nil {
+		return nil, fmt.Errorf("error while updating author of plan candidate to user: %v", err)
+	}
 
 	return &checkAuthStateResult.User, nil
 }
