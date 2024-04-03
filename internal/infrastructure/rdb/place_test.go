@@ -1833,12 +1833,46 @@ func TestPlaceRepository_UpdateLikeByPlanCandidateSetToUser(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:                "already liked place by user",
+			userId:              "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			planCandidateSetIds: []string{"c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
+			savedPlaces: generated.PlaceSlice{
+				{ID: "6c935f9d-c300-42a7-855c-ae83fb2ee4f3"},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
+			},
+			savedUserLikePlaces: generated.UserLikePlaceSlice{
+				{
+					UserID:  "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+					PlaceID: "6c935f9d-c300-42a7-855c-ae83fb2ee4f3",
+				},
+			},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12", ExpiresAt: time.Now()},
+			},
+			savedPlanCandidateSetLikes: generated.PlanCandidateSetLikePlaceSlice{
+				{
+					ID:                 "407d9af5-798a-4d76-a14d-3bd7c3d18785",
+					PlanCandidateSetID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PlaceID:            "6c935f9d-c300-42a7-855c-ae83fb2ee4f3",
+				},
+			},
+		},
 	}
 
 	testContext := context.Background()
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			defer func(ctx context.Context, db *sql.DB) {
+				err := cleanup(ctx, db)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			}(testContext, testDB)
+
 			// 事前にデータを保存する
 			if _, err := c.savedPlaces.InsertAll(context.Background(), testDB, boil.Infer()); err != nil {
 				t.Fatalf("failed to insert places: %v", err)

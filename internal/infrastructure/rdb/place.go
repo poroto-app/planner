@@ -683,24 +683,14 @@ func (p PlaceRepository) UpdateLikeByUserId(ctx context.Context, userId string, 
 
 func (p PlaceRepository) UpdateLikeByPlanCandidateSetToUser(ctx context.Context, userId string, planCandidateSetIds []string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateSetEntities, err := generated.PlanCandidateSets(
-			generated.PlanCandidateSetWhere.ID.IN(planCandidateSetIds),
-			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetLikePlaces),
+		planCandidateSetLikePlaceEntities, err := generated.PlanCandidateSetLikePlaces(
+			generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.IN(planCandidateSetIds),
 		).All(ctx, tx)
 		if err != nil {
 			return fmt.Errorf("failed to find plan candidate sets: %w", err)
 		}
 
-		var likePlacesByPlanCandidates generated.PlanCandidateSetLikePlaceSlice
-		likePlacesByPlanCandidates = array.FlatMap(planCandidateSetEntities, func(planCandidateSetEntity *generated.PlanCandidateSet) []*generated.PlanCandidateSetLikePlace {
-			likePlaces := planCandidateSetEntity.R.GetPlanCandidateSetLikePlaces()
-			if likePlaces == nil {
-				return []*generated.PlanCandidateSetLikePlace{}
-			}
-			return likePlaces
-		})
-
-		likePlacesByPlanCandidates = array.DistinctBy(likePlacesByPlanCandidates, func(likePlace *generated.PlanCandidateSetLikePlace) string {
+		planCandidateSetLikePlaceEntities = array.DistinctBy(planCandidateSetLikePlaceEntities, func(likePlace *generated.PlanCandidateSetLikePlace) string {
 			if likePlace == nil {
 				return ""
 			}
@@ -708,19 +698,47 @@ func (p PlaceRepository) UpdateLikeByPlanCandidateSetToUser(ctx context.Context,
 		})
 
 		// ユーザーとしていいねを登録
-		var userLikePlaceEntities generated.UserLikePlaceSlice = array.Map(likePlacesByPlanCandidates, func(likePlace *generated.PlanCandidateSetLikePlace) *generated.UserLikePlace {
+		likePlaceIdsByPlanCandidateSet := array.Map(planCandidateSetLikePlaceEntities, func(likePlace *generated.PlanCandidateSetLikePlace) string {
+			if likePlace == nil {
+				return ""
+			}
+			return likePlace.PlaceID
+		})
+		savedUserLikePlaceEntities, err := generated.UserLikePlaces(
+			generated.UserLikePlaceWhere.UserID.EQ(userId),
+			generated.UserLikePlaceWhere.PlaceID.IN(likePlaceIdsByPlanCandidateSet),
+		).All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find user like places: %w", err)
+		}
+
+		var userLikePlaceEntities generated.UserLikePlaceSlice = array.MapAndFilter(planCandidateSetLikePlaceEntities, func(planCandidateSetLikePlace *generated.PlanCandidateSetLikePlace) (*generated.UserLikePlace, bool) {
+			if planCandidateSetLikePlace == nil {
+				return nil, false
+			}
+
+			// すでにいいね済みの場合はスキップ
+			if _, found := array.Find(savedUserLikePlaceEntities, func(place *generated.UserLikePlace) bool {
+				if place == nil {
+					return false
+				}
+				return place.PlaceID == planCandidateSetLikePlace.PlaceID
+			}); found {
+				return nil, false
+			}
+
 			return &generated.UserLikePlace{
 				ID:      uuid.New().String(),
 				UserID:  userId,
-				PlaceID: likePlace.PlaceID,
-			}
+				PlaceID: planCandidateSetLikePlace.PlaceID,
+			}, true
 		})
 		if _, err := userLikePlaceEntities.InsertAll(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert user like places: %w", err)
 		}
 
 		// プラン候補セットとしていいねした記録を削除
-		if _, err := likePlacesByPlanCandidates.DeleteAll(ctx, tx); err != nil {
+		if _, err := planCandidateSetLikePlaceEntities.DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate set like places: %w", err)
 		}
 
