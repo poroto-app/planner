@@ -142,7 +142,7 @@ type ComplexityRoot struct {
 		Ping                              func(childComplexity int, message string) int
 		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
-		UploadPlacePhotoInPlan            func(childComplexity int, planID string, inputs []*model.UploadPlacePhotoInPlanInput) int
+		UploadPlacePhotoInPlan            func(childComplexity int, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) int
 	}
 
 	NearbyLocationCategory struct {
@@ -289,7 +289,7 @@ type MutationResolver interface {
 	EditPlanTitleOfPlanCandidate(ctx context.Context, input model.EditPlanTitleOfPlanCandidateInput) (*model.EditPlanTitleOfPlanCandidateOutput, error)
 	AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error)
 	LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error)
-	UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
+	UploadPlacePhotoInPlan(ctx context.Context, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
 	LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error)
 }
 type QueryResolver interface {
@@ -736,7 +736,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["planId"].(string), args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
+		return e.complexity.Mutation.UploadPlacePhotoInPlan(childComplexity, args["planId"].(string), args["userId"].(string), args["firebaseAuthToken"].(string), args["inputs"].([]*model.UploadPlacePhotoInPlanInput)), true
 
 	case "NearbyLocationCategory.defaultPhotoUrl":
 		if e.complexity.NearbyLocationCategory.DefaultPhotoURL == nil {
@@ -1701,14 +1701,12 @@ type PlacesToReplaceForPlanCandidateOutput {
     createdBasedOnCurrentLocation: Boolean!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_mutation.graphqls", Input: `extend type Mutation {
-    uploadPlacePhotoInPlan(planId: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
+    uploadPlacePhotoInPlan(planId: String!, userId: String!, firebaseAuthToken: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
     likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
     # 画像投稿にはログインが必須
-    userId: String!
-    firebaseAuthToken: String!
     placeId: String!
     photoUrl: String!
     width: Int!
@@ -2042,15 +2040,33 @@ func (ec *executionContext) field_Mutation_uploadPlacePhotoInPlan_args(ctx conte
 		}
 	}
 	args["planId"] = arg0
-	var arg1 []*model.UploadPlacePhotoInPlanInput
-	if tmp, ok := rawArgs["inputs"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
-		arg1, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+	var arg1 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["inputs"] = arg1
+	args["userId"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["firebaseAuthToken"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["firebaseAuthToken"] = arg2
+	var arg3 []*model.UploadPlacePhotoInPlanInput
+	if tmp, ok := rawArgs["inputs"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inputs"))
+		arg3, err = ec.unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["inputs"] = arg3
 	return args, nil
 }
 
@@ -4762,7 +4778,7 @@ func (ec *executionContext) _Mutation_uploadPlacePhotoInPlan(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["planId"].(string), fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
+		return ec.resolvers.Mutation().UploadPlacePhotoInPlan(rctx, fc.Args["planId"].(string), fc.Args["userId"].(string), fc.Args["firebaseAuthToken"].(string), fc.Args["inputs"].([]*model.UploadPlacePhotoInPlanInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11497,31 +11513,13 @@ func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "placeId", "photoUrl", "width", "height"}
+	fieldsInOrder := [...]string{"placeId", "photoUrl", "width", "height"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "userId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.UserID = data
-		case "firebaseAuthToken":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FirebaseAuthToken = data
 		case "placeId":
 			var err error
 
