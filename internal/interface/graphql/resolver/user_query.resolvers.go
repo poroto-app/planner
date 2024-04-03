@@ -7,7 +7,6 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -19,15 +18,9 @@ import (
 
 // FirebaseUser is the resolver for the firebaseUser field.
 func (r *queryResolver) FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error) {
-	service, err := user.NewService(ctx, r.DB)
+	u, err := r.UserService.FindOrCreateFirebaseUser(ctx, input.FirebaseUserID, input.FirebaseAuthToken)
 	if err != nil {
-		log.Printf("error while initializing user service: %v\n", err)
-		return nil, fmt.Errorf("internal error")
-	}
-
-	u, err := service.FindOrCreateFirebaseUser(ctx, input.FirebaseUserID, input.FirebaseAuthToken)
-	if err != nil {
-		log.Printf("error while finding or creating firebase user: %v\n", err)
+		r.Logger.Error("error while fetching firebase user", zap.Error(err))
 		return nil, fmt.Errorf("internal error")
 	}
 

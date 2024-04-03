@@ -45,11 +45,15 @@ type NearbyPlaceCategoryOutput {
 input PlacesToAddForPlanCandidateInput {
     planCandidateId: ID!
     planId: ID!
+    # この場所を基準に検索を行う
+    # 指定されていない場合は、プランの出発地点からの検索を行う
+    placeId: ID
 }
 
 type PlacesToAddForPlanCandidateOutput {
     places: [Place!]!
     placesGroupedByCategory: [CategoryGroupedPlaces!]!
+    transitions: [Transition!]!
 }
 
 input PlacesToReplaceForPlanCandidateInput {

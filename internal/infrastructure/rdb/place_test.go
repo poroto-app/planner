@@ -604,7 +604,7 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 	}
 }
 
-func TestPlaceRepository_FindByCategory(t *testing.T) {
+func TestPlaceRepository_FindByGooglePlaceType(t *testing.T) {
 	cases := []struct {
 		name            string
 		savedPlaces     []models.Place
