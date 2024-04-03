@@ -1799,3 +1799,96 @@ func TestPlaceRepository_UpdateLikeByUserId(t *testing.T) {
 		})
 	}
 }
+
+func TestPlaceRepository_UpdateLikeByPlanCandidateSetToUser(t *testing.T) {
+	cases := []struct {
+		name                       string
+		userId                     string
+		planCandidateSetIds        []string
+		savedPlaces                generated.PlaceSlice
+		savedUsers                 generated.UserSlice
+		savedUserLikePlaces        generated.UserLikePlaceSlice
+		savedPlanCandidateSets     generated.PlanCandidateSetSlice
+		savedPlanCandidateSetLikes generated.PlanCandidateSetLikePlaceSlice
+	}{
+		{
+			name:                "like plan candidate set to user",
+			userId:              "3b9c288c-3ae6-41be-b375-c5aa6082114d",
+			planCandidateSetIds: []string{"c0bbee6a-acd4-41b6-957e-2aeb83e29d12"},
+			savedPlaces: generated.PlaceSlice{
+				{ID: "6c935f9d-c300-42a7-855c-ae83fb2ee4f3"},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "3b9c288c-3ae6-41be-b375-c5aa6082114d"},
+			},
+			savedUserLikePlaces: generated.UserLikePlaceSlice{},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12", ExpiresAt: time.Now()},
+			},
+			savedPlanCandidateSetLikes: generated.PlanCandidateSetLikePlaceSlice{
+				{
+					ID:                 "407d9af5-798a-4d76-a14d-3bd7c3d18785",
+					PlanCandidateSetID: "c0bbee6a-acd4-41b6-957e-2aeb83e29d12",
+					PlaceID:            "6c935f9d-c300-42a7-855c-ae83fb2ee4f3",
+				},
+			},
+		},
+	}
+
+	testContext := context.Background()
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			// 事前にデータを保存する
+			if _, err := c.savedPlaces.InsertAll(context.Background(), testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert places: %v", err)
+			}
+
+			if _, err := c.savedUsers.InsertAll(context.Background(), testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert users: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSets.InsertAll(context.Background(), testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert plan candidate sets: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSetLikes.InsertAll(context.Background(), testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert plan candidate set likes: %v", err)
+			}
+
+			placeRepository, err := NewPlaceRepository(testDB)
+			if err != nil {
+				t.Fatalf("error while initializing place repository: %v", err)
+			}
+
+			if err := placeRepository.UpdateLikeByPlanCandidateSetToUser(testContext, c.userId, c.planCandidateSetIds); err != nil {
+				t.Fatalf("error while updating like by plan candidate set to user: %v", err)
+			}
+
+			// PlanCandidateSetLikePlace が削除されているか確認
+			planCandidateSetLikePlaceExist, err := generated.PlanCandidateSetLikePlaces(
+				generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.IN(c.planCandidateSetIds),
+			).Exists(testContext, testDB)
+			if err != nil {
+				t.Fatalf("error while checking plan candidate set like place existence: %v", err)
+			}
+			if planCandidateSetLikePlaceExist {
+				t.Fatalf("plan candidate set like place is not deleted")
+			}
+
+			// UserLikePlace が保存されているか確認
+			for _, planCandidateSetLikeEntity := range c.savedPlanCandidateSetLikes {
+				isUserLikePlaceExists, err := generated.UserLikePlaces(
+					generated.UserLikePlaceWhere.UserID.EQ(c.userId),
+					generated.UserLikePlaceWhere.PlaceID.EQ(planCandidateSetLikeEntity.PlaceID),
+				).Exists(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while checking user like place existence: %v", err)
+				}
+				if !isUserLikePlaceExists {
+					t.Fatalf("user like place(%s) is not saved", planCandidateSetLikeEntity.PlaceID)
+				}
+			}
+		})
+	}
+}
