@@ -4,7 +4,6 @@ import (
 	"math"
 	"math/rand"
 	"sort"
-	"time"
 )
 
 // Place 場所の情報
@@ -54,8 +53,6 @@ func (p Place) CreateTransition(destination Place) Transition {
 func ShufflePlaces(places []Place) []Place {
 	placesCopy := make([]Place, len(places))
 	copy(placesCopy, places)
-
-	rand.Seed(time.Now().UnixNano())
 
 	// Fisher-Yatesアルゴリズム
 	// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle

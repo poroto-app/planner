@@ -9,19 +9,15 @@
 - [インストール方法はこちらを参考にしてください](https://github.com/syndbg/goenv/blob/master/INSTALL.md)
 
 ```shell
-goenv install 1.19.6
-```
-- バージョンを指定
-```shell
-goenv global 1.19.6
+goenv install 1.22.0
 ```
 - バージョンを確認
 ```shell
 goenv version
-# 1.19.6 (set by /your/path/to/planner/.go-version)
+# 1.22.0 (set by /your/path/to/planner/.go-version)
 
 go version
-# go version go1.19.6 linux/amd64
+# go version go1.22.0 linux/amd64
 ```
 
 ### ライブラリのインストール
@@ -155,4 +151,14 @@ sqlboiler mysql
 ```shell
 docker compose down
 docker volume rm docker_mysql-data
+```
+
+### `go version`と`goenv version`の結果が違う
+以下の内容を`~/.zprofile`, `~/.bash_profile`, `~/.config/fish/config.fish`に含める
+```sh
+export GOENV_ROOT="$HOME/.goenv"
+export PATH="$GOENV_ROOT/bin:$PATH"
+eval "$(goenv init -)"
+export PATH="$GOROOT/bin:$PATH"
+export PATH="$PATH:$GOPATH/bin"
 ```
