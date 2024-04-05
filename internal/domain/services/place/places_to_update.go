@@ -9,7 +9,6 @@ import (
 
 type UploadPlacePhotoInPlanInput struct {
 	PlaceId  string
-	UserId   string
 	PhotoUrl string
 	Width    int
 	Height   int
@@ -17,13 +16,14 @@ type UploadPlacePhotoInPlanInput struct {
 
 func (s Service) UploadPlacePhotoInPlan(
 	ctx context.Context,
+	userId string,
 	inputs []UploadPlacePhotoInPlanInput,
 ) error {
 	var placePhotos []models.PlacePhoto
 	for _, input := range inputs {
 		placePhotos = append(placePhotos, models.PlacePhoto{
 			PlaceId:  input.PlaceId,
-			UserId:   input.UserId,
+			UserId:   userId,
 			PhotoUrl: input.PhotoUrl,
 			Width:    input.Width,
 			Height:   input.Height,
