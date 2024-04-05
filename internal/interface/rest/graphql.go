@@ -2,11 +2,12 @@ package rest
 
 import (
 	"database/sql"
+	"log"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"log"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
@@ -66,7 +67,7 @@ func GraphQlQueryHandler(db *sql.DB) gin.HandlerFunc {
 			})
 		}
 
-		placeService, err := place.NewService(db)
+		placeService, err := place.NewService(c.Request.Context(), db)
 		if err != nil {
 			logger.Error("error while initializing place service", zap.Error(err))
 			c.JSON(500, gin.H{
