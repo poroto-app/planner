@@ -10,23 +10,23 @@ import (
 )
 
 type UploadPlacePhotoInPlanInput struct {
-	PlaceId           string
-	UserId            string
-	PhotoUrl          string
-	Width             int
-	Height            int
-	FirebaseAuthToken string
+	PlaceId  string
+	PhotoUrl string
+	Width    int
+	Height   int
 }
 
 func (s Service) UploadPlacePhotoInPlan(
 	ctx context.Context,
+	userId string,
+	firebaseAuthToken string,
 	inputs []UploadPlacePhotoInPlanInput,
 ) error {
 	var placePhotos []models.PlacePhoto
 	for _, input := range inputs {
 		checkAuthStateResult, err := s.userService.CheckUserAuthState(ctx, user.CheckUserAuthStateInput{
-			UserId:            input.UserId,
-			FirebaseAuthToken: input.FirebaseAuthToken,
+			UserId:            userId,
+			FirebaseAuthToken: firebaseAuthToken,
 		})
 		if err != nil {
 			s.logger.Error("error while checking user auth state", zap.Error(err))
@@ -34,13 +34,13 @@ func (s Service) UploadPlacePhotoInPlan(
 		}
 
 		if !checkAuthStateResult.IsAuthenticated {
-			s.logger.Error("user is not authenticated", zap.String("userId", input.UserId), zap.String("firebaseAuthToken", input.FirebaseAuthToken))
+			s.logger.Error("user is not authenticated", zap.String("userId", userId), zap.String("firebaseAuthToken", firebaseAuthToken))
 			continue
 		}
 
 		placePhotos = append(placePhotos, models.PlacePhoto{
 			PlaceId:  input.PlaceId,
-			UserId:   input.UserId,
+			UserId:   userId,
 			PhotoUrl: input.PhotoUrl,
 			Width:    input.Width,
 			Height:   input.Height,

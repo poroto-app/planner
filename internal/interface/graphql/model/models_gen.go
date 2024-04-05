@@ -224,13 +224,15 @@ type PlacesNearPlanOutput struct {
 }
 
 type PlacesToAddForPlanCandidateInput struct {
-	PlanCandidateID string `json:"planCandidateId"`
-	PlanID          string `json:"planId"`
+	PlanCandidateID string  `json:"planCandidateId"`
+	PlanID          string  `json:"planId"`
+	PlaceID         *string `json:"placeId,omitempty"`
 }
 
 type PlacesToAddForPlanCandidateOutput struct {
 	Places                  []*Place                 `json:"places"`
 	PlacesGroupedByCategory []*CategoryGroupedPlaces `json:"placesGroupedByCategory"`
+	Transitions             []*Transition            `json:"transitions"`
 }
 
 type PlacesToReplaceForPlanCandidateInput struct {
@@ -344,12 +346,10 @@ type Transition struct {
 }
 
 type UploadPlacePhotoInPlanInput struct {
-	UserID            string `json:"userId"`
-	FirebaseAuthToken string `json:"firebaseAuthToken"`
-	PlaceID           string `json:"placeId"`
-	PhotoURL          string `json:"photoUrl"`
-	Width             int    `json:"width"`
-	Height            int    `json:"height"`
+	PlaceID  string `json:"placeId"`
+	PhotoURL string `json:"photoUrl"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
 }
 
 type UploadPlacePhotoInPlanOutput struct {

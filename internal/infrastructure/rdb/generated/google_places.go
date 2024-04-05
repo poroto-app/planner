@@ -34,10 +34,8 @@ type GooglePlace struct {
 	UserRatingsTotal null.Int     `boil:"user_ratings_total" json:"user_ratings_total,omitempty" toml:"user_ratings_total" yaml:"user_ratings_total,omitempty"`
 	Latitude         float64      `boil:"latitude" json:"latitude" toml:"latitude" yaml:"latitude"`
 	Longitude        float64      `boil:"longitude" json:"longitude" toml:"longitude" yaml:"longitude"`
-	// This column value will be set by the trigger(google_places_before_insert)
-	Location  string    `boil:"location" json:"location" toml:"location" yaml:"location"`
-	CreatedAt null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt null.Time `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	CreatedAt        null.Time    `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
+	UpdatedAt        null.Time    `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
 
 	R *googlePlaceR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L googlePlaceL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -54,7 +52,6 @@ var GooglePlaceColumns = struct {
 	UserRatingsTotal string
 	Latitude         string
 	Longitude        string
-	Location         string
 	CreatedAt        string
 	UpdatedAt        string
 }{
@@ -68,7 +65,6 @@ var GooglePlaceColumns = struct {
 	UserRatingsTotal: "user_ratings_total",
 	Latitude:         "latitude",
 	Longitude:        "longitude",
-	Location:         "location",
 	CreatedAt:        "created_at",
 	UpdatedAt:        "updated_at",
 }
@@ -84,7 +80,6 @@ var GooglePlaceTableColumns = struct {
 	UserRatingsTotal string
 	Latitude         string
 	Longitude        string
-	Location         string
 	CreatedAt        string
 	UpdatedAt        string
 }{
@@ -98,7 +93,6 @@ var GooglePlaceTableColumns = struct {
 	UserRatingsTotal: "google_places.user_ratings_total",
 	Latitude:         "google_places.latitude",
 	Longitude:        "google_places.longitude",
-	Location:         "google_places.location",
 	CreatedAt:        "google_places.created_at",
 	UpdatedAt:        "google_places.updated_at",
 }
@@ -183,7 +177,6 @@ var GooglePlaceWhere = struct {
 	UserRatingsTotal whereHelpernull_Int
 	Latitude         whereHelperfloat64
 	Longitude        whereHelperfloat64
-	Location         whereHelperstring
 	CreatedAt        whereHelpernull_Time
 	UpdatedAt        whereHelpernull_Time
 }{
@@ -197,7 +190,6 @@ var GooglePlaceWhere = struct {
 	UserRatingsTotal: whereHelpernull_Int{field: "`google_places`.`user_ratings_total`"},
 	Latitude:         whereHelperfloat64{field: "`google_places`.`latitude`"},
 	Longitude:        whereHelperfloat64{field: "`google_places`.`longitude`"},
-	Location:         whereHelperstring{field: "`google_places`.`location`"},
 	CreatedAt:        whereHelpernull_Time{field: "`google_places`.`created_at`"},
 	UpdatedAt:        whereHelpernull_Time{field: "`google_places`.`updated_at`"},
 }
@@ -290,8 +282,8 @@ func (r *googlePlaceR) GetGooglePlaceTypes() GooglePlaceTypeSlice {
 type googlePlaceL struct{}
 
 var (
-	googlePlaceAllColumns            = []string{"google_place_id", "place_id", "name", "formatted_address", "vicinity", "price_level", "rating", "user_ratings_total", "latitude", "longitude", "location", "created_at", "updated_at"}
-	googlePlaceColumnsWithoutDefault = []string{"google_place_id", "place_id", "name", "formatted_address", "vicinity", "price_level", "rating", "user_ratings_total", "latitude", "longitude", "location"}
+	googlePlaceAllColumns            = []string{"google_place_id", "place_id", "name", "formatted_address", "vicinity", "price_level", "rating", "user_ratings_total", "latitude", "longitude", "created_at", "updated_at"}
+	googlePlaceColumnsWithoutDefault = []string{"google_place_id", "place_id", "name", "formatted_address", "vicinity", "price_level", "rating", "user_ratings_total", "latitude", "longitude"}
 	googlePlaceColumnsWithDefault    = []string{"created_at", "updated_at"}
 	googlePlacePrimaryKeyColumns     = []string{"google_place_id"}
 	googlePlaceGeneratedColumns      = []string{}
