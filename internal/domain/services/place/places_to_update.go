@@ -41,8 +41,8 @@ func (s Service) UploadPlacePhotoInPlan(
 			Height:   input.Height,
 		})
 	}
-	err = s.placeRepository.SavePlacePhotos(ctx, placePhotos)
-	if err != nil {
+
+	if err = s.placeRepository.SavePlacePhotos(ctx, placePhotos); err != nil {
 		return fmt.Errorf("error while saving place photos: %v", err)
 	}
 	return nil
