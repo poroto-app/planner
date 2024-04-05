@@ -15,10 +15,10 @@ import (
 
 type Service struct {
 	placeSearchService      placesearch.Service
+	userService             *user.Service
 	planCandidateRepository repository.PlanCandidateRepository
 	planRepository          repository.PlanRepository
 	placeRepository         repository.PlaceRepository
-	userService             *user.Service
 	logger                  zap.Logger
 }
 
