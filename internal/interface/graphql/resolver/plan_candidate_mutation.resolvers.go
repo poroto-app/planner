@@ -297,12 +297,6 @@ func (r *mutationResolver) LikeToPlaceInPlanCandidate(ctx context.Context, input
 	}
 
 	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidateUpdated)
-
-	if err != nil {
-		r.Logger.Error("error while converting plan candidate to graphql model", zap.Error(err))
-		return nil, fmt.Errorf("internal server error")
-	}
-
 	return &model.LikeToPlaceInPlanCandidateOutput{
 		PlanCandidate: graphqlPlanCandidate,
 	}, nil
