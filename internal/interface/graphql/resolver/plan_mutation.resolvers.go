@@ -18,18 +18,17 @@ import (
 )
 
 // UploadPlacePhotoInPlan is the resolver for the uploadPlacePhotoInPlan field.
-func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
-	var uploadPlacePhotoInPlanInput []place.UploadPlacePhotoInPlanInput
+func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
+	var uploadPlacePhotoInPlanInputs []place.UploadPlacePhotoInPlanInput
 	for _, input := range inputs {
-		uploadPlacePhotoInPlanInput = append(uploadPlacePhotoInPlanInput, place.UploadPlacePhotoInPlanInput{
+		uploadPlacePhotoInPlanInputs = append(uploadPlacePhotoInPlanInputs, place.UploadPlacePhotoInPlanInput{
 			PlaceId:  input.PlaceID,
-			UserId:   input.UserID,
 			PhotoUrl: input.PhotoURL,
 			Width:    input.Width,
 			Height:   input.Height,
 		})
 	}
-	err := r.PlaceService.UploadPlacePhotoInPlan(ctx, uploadPlacePhotoInPlanInput)
+	err := r.PlaceService.UploadPlacePhotoInPlan(ctx, userID, firebaseAuthToken, uploadPlacePhotoInPlanInputs)
 	if err != nil {
 		r.Logger.Error("error while uploading place photo in plan", zap.Error(err))
 		return nil, fmt.Errorf("internal resolver error")
