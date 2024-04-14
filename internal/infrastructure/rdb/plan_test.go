@@ -917,13 +917,11 @@ func TestPlanRepository_UpdatePlanAuthorUserByPlanCandidateSet(t *testing.T) {
 			},
 			savedPlanCandidates: generated.PlanCandidateSlice{
 				{
-					ID:                 "a05c61a5-2974-4a8f-9914-8639088481a85",
+					ID:                 "a05c61a5-2974-4a8f-9914-8639088481a8",
 					PlanCandidateSetID: "d65ecb97-99f5-474e-a349-79fa888b37f5",
 				},
 			},
-			expectedUserPlans: generated.PlanSlice{
-				{},
-			},
+			expectedUserPlans: nil,
 		},
 	}
 
