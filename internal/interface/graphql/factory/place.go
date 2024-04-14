@@ -12,7 +12,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 
 	var images []*graphql.Image
 	if place.PlacePhotos != nil {
-		for _, photo := range place.PlacePhotos {
+		for _, photo := range place.PlacePhotosSortedByUploadedAt() {
 			image := photo.ToImage()
 			images = append(images, ImageFromDomainModel(&image))
 		}
