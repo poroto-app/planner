@@ -137,9 +137,12 @@ type GooglePlaceReview struct {
 }
 
 type Image struct {
+	ID      string  `json:"id"`
 	Default string  `json:"default"`
 	Small   *string `json:"small,omitempty"`
 	Large   *string `json:"large,omitempty"`
+	Google  bool    `json:"google"`
+	Author  *User   `json:"author,omitempty"`
 }
 
 type LikePlacesInput struct {
