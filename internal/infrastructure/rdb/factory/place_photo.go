@@ -25,11 +25,13 @@ func NewPlacePhotoSliceFromDomainModel(placePhoto []models.PlacePhoto) generated
 func NewPlacePhotosFromEntities(placeId string, placePhotoSlice generated.PlacePhotoSlice) []models.PlacePhoto {
 	return array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
 		return models.PlacePhoto{
-			PlaceId:  placePhoto.PlaceID,
-			UserId:   placePhoto.UserID,
-			PhotoUrl: placePhoto.PhotoURL,
-			Width:    placePhoto.Width,
-			Height:   placePhoto.Height,
+			PlaceId:   placePhoto.PlaceID,
+			UserId:    placePhoto.UserID,
+			PhotoUrl:  placePhoto.PhotoURL,
+			Width:     placePhoto.Width,
+			Height:    placePhoto.Height,
+			CreatedAt: placePhoto.CreatedAt,
+			UpdatedAt: placePhoto.UpdatedAt,
 		}, placePhoto.PlaceID == placeId
 	})
 }
