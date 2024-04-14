@@ -50,14 +50,16 @@ func NewGooglePlacePhotoFromEntity(
 	})
 
 	imgSmall := models.Image{
-		URL:    googlePlacePhotoEntitiesFiltered[0].URL,
-		Width:  uint(googlePlacePhotoEntitiesFiltered[0].Width),
-		Height: uint(googlePlacePhotoEntitiesFiltered[0].Height),
+		URL:            googlePlacePhotoEntitiesFiltered[0].URL,
+		Width:          uint(googlePlacePhotoEntitiesFiltered[0].Width),
+		Height:         uint(googlePlacePhotoEntitiesFiltered[0].Height),
+		IsGooglePhotos: true,
 	}
 	imgLarge := models.Image{
-		URL:    googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].URL,
-		Width:  uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Width),
-		Height: uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Height),
+		URL:            googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].URL,
+		Width:          uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Width),
+		Height:         uint(googlePlacePhotoEntitiesFiltered[len(googlePlacePhotoEntitiesFiltered)-1].Height),
+		IsGooglePhotos: true,
 	}
 
 	return &models.GooglePlacePhoto{

@@ -11,7 +11,8 @@ type PlacePhoto struct {
 func (p PlacePhoto) ToImage() ImageSmallLarge {
 	// TODO: SmallとLargeのURLを区別する
 	return ImageSmallLarge{
-		Small: &p.PhotoUrl,
-		Large: &p.PhotoUrl,
+		Small:          &p.PhotoUrl,
+		Large:          &p.PhotoUrl,
+		IsGooglePhotos: false,
 	}
 }

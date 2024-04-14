@@ -84,9 +84,10 @@ func (r PlacesApi) FetchPlacePhoto(photoReferences []models.GooglePlacePhotoRefe
 	}
 
 	image := models.Image{
-		Width:  imgMaxWidth,
-		Height: imgMaxHeight,
-		URL:    *publicImageUrl,
+		Width:          imgMaxWidth,
+		Height:         imgMaxHeight,
+		URL:            *publicImageUrl,
+		IsGooglePhotos: true,
 	}
 	googlePhoto := photoReference.ToGooglePlacePhoto(&image, &image)
 	return &googlePhoto, nil
@@ -151,9 +152,10 @@ func (r PlacesApi) FetchPlacePhotos(ctx context.Context, photoReferences []model
 			ch <- &PlacePhotoWithSize{
 				photoReference: photoReference,
 				image: models.Image{
-					Width:  imageSize.Width,
-					Height: imageSize.Height,
-					URL:    *publicImageUrl,
+					Width:          imageSize.Width,
+					Height:         imageSize.Height,
+					URL:            *publicImageUrl,
+					IsGooglePhotos: true,
 				},
 			}
 		}(ctx, iPhoto, photoReference, ch)
