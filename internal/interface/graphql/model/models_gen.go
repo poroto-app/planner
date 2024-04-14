@@ -356,7 +356,6 @@ type Transition struct {
 }
 
 type UploadPlacePhotoInPlanInput struct {
-	UserID   string `json:"userId"`
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
 	Width    int    `json:"width"`

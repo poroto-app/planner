@@ -1,0 +1,50 @@
+name: db-migrate
+run-name: TiDB Migration by @${{ github.actor }}
+on:
+  workflow_call:
+    inputs:
+      db_name:
+        type: string
+        description: database name
+        required: true
+      db_host:
+        type: string
+        description: database host
+        required: true
+      db_port:
+        type: string
+        description: database port
+        required: true
+    secrets:
+        DB_USER:
+            required: true
+        DB_PASSWORD:
+            required: true
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup_environment
+      - name: Install Goose
+        run: |
+          go install github.com/pressly/goose/cmd/goose@latest
+      - name: Run Migration
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ inputs.db_name }}
+          DB_HOST: ${{ inputs.db_host }}
+          DB_PORT: ${{ inputs.db_port }}
+        run: |
+          goose -dir db/migrations -certfile=/etc/ssl/certs/ca-certificates.crt mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" up
+      - name: Rollback Migration on Failure
+        if: failure()
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ inputs.db_name }}
+          DB_HOST: ${{ inputs.db_host }}
+          DB_PORT: ${{ inputs.db_port }}
+        run: |
+          goose -dir db/migrations -certfile=/etc/ssl/certs/ca-certificates.crt mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo&tls=true" down

@@ -1,0 +1,17 @@
+name: db-migrate-staging
+run-name: Staging - TiDB Migration by @${{ github.actor }}
+on:
+  push:
+    branches:
+      - develop
+jobs:
+    db-migrate-staging:
+        name: TiDB Staging Migration
+        uses: ./.github/workflows/db_migrate_workflow.yaml
+        with:
+          db_name: 'poroto'
+          db_host: 'gateway01.ap-northeast-1.prod.aws.tidbcloud.com'
+          db_port: '4000'
+        secrets:
+            DB_USER: ${{ secrets.TIDB_STAGING_DB_USER }}
+            DB_PASSWORD: ${{ secrets.TIDB_STAGING_DB_PASSWORD }}
