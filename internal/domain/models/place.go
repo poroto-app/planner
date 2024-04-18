@@ -27,6 +27,15 @@ func (p Place) MainCategory() *LocationCategory {
 	return &p.Categories()[0]
 }
 
+// PlacePhotosSortedByUploadedAt 新しい画像が先頭になるように並び替える
+func (p Place) PlacePhotosSortedByUploadedAt() []PlacePhoto {
+	placePhotos := p.PlacePhotos
+	sort.Slice(placePhotos, func(i, j int) bool {
+		return placePhotos[i].CreatedAt.After(placePhotos[j].CreatedAt)
+	})
+	return placePhotos
+}
+
 func (p Place) EstimatedStayDuration() uint {
 	categoryMain := p.MainCategory()
 	if categoryMain == nil {
