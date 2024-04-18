@@ -19,8 +19,9 @@ func (g GooglePlacePhoto) ToImage() ImageSmallLarge {
 		large = &g.Large.URL
 	}
 	return ImageSmallLarge{
-		Small: small,
-		Large: large,
+		Small:          small,
+		Large:          large,
+		IsGooglePhotos: true,
 	}
 }
 
