@@ -543,9 +543,6 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 		// GooglePlaceReviewを保存
 		if len(googlePlaceEntity.R.GooglePlaceReviews) == 0 {
 			googlePlaceOpeningPeriodEntities := factory.NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail, googlePlaceId)
-			if err != nil {
-				return fmt.Errorf("failed to convert google place opening period: %w", err)
-			}
 			if err := googlePlaceEntity.AddGooglePlaceReviews(ctx, tx, true, googlePlaceOpeningPeriodEntities...); err != nil {
 				return fmt.Errorf("failed to insert google place opening period: %w", err)
 			}
