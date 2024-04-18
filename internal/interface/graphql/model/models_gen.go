@@ -38,6 +38,16 @@ type AvailablePlacesForPlanInput struct {
 	Session string `json:"session"`
 }
 
+type BindPlanCandidateSetToUserInput struct {
+	UserID              string   `json:"userId"`
+	FirebaseAuthToken   string   `json:"firebaseAuthToken"`
+	PlanCandidateSetIds []string `json:"planCandidateSetIds"`
+}
+
+type BindPlanCandidateSetToUserOutput struct {
+	User *User `json:"user"`
+}
+
 type CategoryGroupedPlaces struct {
 	Category *PlaceCategory `json:"category"`
 	Places   []*Place       `json:"places"`
