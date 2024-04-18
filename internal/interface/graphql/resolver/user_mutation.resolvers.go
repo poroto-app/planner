@@ -7,11 +7,28 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/services/user"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // BindPlanCandidateSetToUser is the resolver for the bindPlanCandidateSetToUser field.
 func (r *mutationResolver) BindPlanCandidateSetToUser(ctx context.Context, input model.BindPlanCandidateSetToUserInput) (*model.BindPlanCandidateSetToUserOutput, error) {
-	panic(fmt.Errorf("not implemented: BindPlanCandidateSetToUser - bindPlanCandidateSetToUser"))
+	user, err := r.UserService.BindPlanCandidateSetToUser(ctx, user.BindPlanCandidateSetToUserInput{
+		PlanCandidateSetIds: input.PlanCandidateSetIds,
+		UserId:              input.UserID,
+		FirebaseAuthToken:   input.FirebaseAuthToken,
+	})
+	if err != nil {
+		r.Logger.Error("error while binding plan candidate set to user", zap.Error(err))
+		return nil, fmt.Errorf("internal error")
+	}
+
+	graphqlUser := factory.UserFromDomainModel(user)
+
+	return &model.BindPlanCandidateSetToUserOutput{
+		User: graphqlUser,
+	}, nil
 }

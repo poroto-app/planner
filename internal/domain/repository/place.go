@@ -31,4 +31,7 @@ type PlaceRepository interface {
 	SavePlacePhotos(ctx context.Context, photos []models.PlacePhoto) error
 
 	UpdateLikeByUserId(ctx context.Context, userId string, placeId string, like bool) error
+
+	// UpdateLikeByPlanCandidateSetToUser PlanCandidateSet によりLikeされたものを、UserによるLikeに変更する
+	UpdateLikeByPlanCandidateSetToUser(ctx context.Context, userId string, planCandidateSetIds []string) error
 }
