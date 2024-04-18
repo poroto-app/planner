@@ -4,7 +4,11 @@ enum ImageSize {
 }
 
 type Image {
+    id: ID!
     default: String!
     small: String
     large: String
+    # Google Places APIから取得した画像かどうか
+    google: Boolean!
+    author: User
 }
