@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
@@ -38,15 +37,7 @@ func NewPlaceFromEntity(
 		return nil, err
 	}
 
-	placePhotos := array.MapAndFilter(placePhotoSlice, func(placePhoto *generated.PlacePhoto) (models.PlacePhoto, bool) {
-		return models.PlacePhoto{
-			PlaceId:  placePhoto.PlaceID,
-			UserId:   placePhoto.UserID,
-			PhotoUrl: placePhoto.PhotoURL,
-			Width:    placePhoto.Width,
-			Height:   placePhoto.Height,
-		}, placePhoto.PlaceID == placeEntity.ID
-	})
+	placePhotos := NewPlacePhotosFromEntities(placeEntity.ID, placePhotoSlice)
 
 	return &models.Place{
 		Id:          placeEntity.ID,
