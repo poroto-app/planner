@@ -38,6 +38,16 @@ type AvailablePlacesForPlanInput struct {
 	Session string `json:"session"`
 }
 
+type BindPlanCandidateSetToUserInput struct {
+	UserID              string   `json:"userId"`
+	FirebaseAuthToken   string   `json:"firebaseAuthToken"`
+	PlanCandidateSetIds []string `json:"planCandidateSetIds"`
+}
+
+type BindPlanCandidateSetToUserOutput struct {
+	User *User `json:"user"`
+}
+
 type CategoryGroupedPlaces struct {
 	Category *PlaceCategory `json:"category"`
 	Places   []*Place       `json:"places"`
@@ -137,9 +147,12 @@ type GooglePlaceReview struct {
 }
 
 type Image struct {
+	ID      string  `json:"id"`
 	Default string  `json:"default"`
 	Small   *string `json:"small,omitempty"`
 	Large   *string `json:"large,omitempty"`
+	Google  bool    `json:"google"`
+	Author  *User   `json:"author,omitempty"`
 }
 
 type LikePlacesInput struct {

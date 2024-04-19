@@ -543,9 +543,6 @@ func (p PlaceRepository) SaveGooglePlaceDetail(ctx context.Context, googlePlaceI
 		// GooglePlaceReviewを保存
 		if len(googlePlaceEntity.R.GooglePlaceReviews) == 0 {
 			googlePlaceOpeningPeriodEntities := factory.NewGooglePlaceReviewSliceFromGooglePlaceDetail(googlePlaceDetail, googlePlaceId)
-			if err != nil {
-				return fmt.Errorf("failed to convert google place opening period: %w", err)
-			}
 			if err := googlePlaceEntity.AddGooglePlaceReviews(ctx, tx, true, googlePlaceOpeningPeriodEntities...); err != nil {
 				return fmt.Errorf("failed to insert google place opening period: %w", err)
 			}
@@ -672,6 +669,74 @@ func (p PlaceRepository) UpdateLikeByUserId(ctx context.Context, userId string, 
 		}
 		if err := userLikePlaceEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert place like: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+	return nil
+}
+
+func (p PlaceRepository) UpdateLikeByPlanCandidateSetToUser(ctx context.Context, userId string, planCandidateSetIds []string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateSetLikePlaceEntities, err := generated.PlanCandidateSetLikePlaces(
+			generated.PlanCandidateSetLikePlaceWhere.PlanCandidateSetID.IN(planCandidateSetIds),
+		).All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find plan candidate sets: %w", err)
+		}
+
+		planCandidateSetLikePlaceEntities = array.DistinctBy(planCandidateSetLikePlaceEntities, func(likePlace *generated.PlanCandidateSetLikePlace) string {
+			if likePlace == nil {
+				return ""
+			}
+			return likePlace.PlaceID
+		})
+
+		// ユーザーとしていいねを登録
+		likePlaceIdsByPlanCandidateSet := array.Map(planCandidateSetLikePlaceEntities, func(likePlace *generated.PlanCandidateSetLikePlace) string {
+			if likePlace == nil {
+				return ""
+			}
+			return likePlace.PlaceID
+		})
+		savedUserLikePlaceEntities, err := generated.UserLikePlaces(
+			generated.UserLikePlaceWhere.UserID.EQ(userId),
+			generated.UserLikePlaceWhere.PlaceID.IN(likePlaceIdsByPlanCandidateSet),
+		).All(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to find user like places: %w", err)
+		}
+
+		var userLikePlaceEntities generated.UserLikePlaceSlice = array.MapAndFilter(planCandidateSetLikePlaceEntities, func(planCandidateSetLikePlace *generated.PlanCandidateSetLikePlace) (*generated.UserLikePlace, bool) {
+			if planCandidateSetLikePlace == nil {
+				return nil, false
+			}
+
+			// すでにいいね済みの場合はスキップ
+			if _, found := array.Find(savedUserLikePlaceEntities, func(place *generated.UserLikePlace) bool {
+				if place == nil {
+					return false
+				}
+				return place.PlaceID == planCandidateSetLikePlace.PlaceID
+			}); found {
+				return nil, false
+			}
+
+			return &generated.UserLikePlace{
+				ID:      uuid.New().String(),
+				UserID:  userId,
+				PlaceID: planCandidateSetLikePlace.PlaceID,
+			}, true
+		})
+		if _, err := userLikePlaceEntities.InsertAll(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert user like places: %w", err)
+		}
+
+		// プラン候補セットとしていいねした記録を削除
+		if _, err := planCandidateSetLikePlaceEntities.DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan candidate set like places: %w", err)
 		}
 
 		return nil

@@ -1,0 +1,13 @@
+extend type Mutation {
+    bindPlanCandidateSetToUser(input: BindPlanCandidateSetToUserInput!): BindPlanCandidateSetToUserOutput!
+}
+
+input BindPlanCandidateSetToUserInput {
+    userId: ID!
+    firebaseAuthToken: String!
+    planCandidateSetIds: [String!]!
+}
+
+type BindPlanCandidateSetToUserOutput {
+    user: User!
+}

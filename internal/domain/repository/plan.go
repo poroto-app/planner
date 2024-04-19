@@ -19,4 +19,7 @@ type PlanRepository interface {
 
 	// SortedByLocation location で指定した地点に近いプランを返す
 	SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error)
+
+	// UpdatePlanAuthorUserByPlanCandidateSet プラン候補に紐づくプランの作者をユーザーに紐づける
+	UpdatePlanAuthorUserByPlanCandidateSet(ctx context.Context, userId string, planCandidateSetIds []string) error
 }

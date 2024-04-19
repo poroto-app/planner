@@ -58,6 +58,10 @@ type ComplexityRoot struct {
 		Places func(childComplexity int) int
 	}
 
+	BindPlanCandidateSetToUserOutput struct {
+		User func(childComplexity int) int
+	}
+
 	CategoryGroupedPlaces struct {
 		Category func(childComplexity int) int
 		Places   func(childComplexity int) int
@@ -108,7 +112,10 @@ type ComplexityRoot struct {
 	}
 
 	Image struct {
+		Author  func(childComplexity int) int
 		Default func(childComplexity int) int
+		Google  func(childComplexity int) int
+		ID      func(childComplexity int) int
 		Large   func(childComplexity int) int
 		Small   func(childComplexity int) int
 	}
@@ -132,6 +139,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddPlaceToPlanCandidateAfterPlace func(childComplexity int, input *model.AddPlaceToPlanCandidateAfterPlaceInput) int
 		AutoReorderPlacesInPlanCandidate  func(childComplexity int, input model.AutoReorderPlacesInPlanCandidateInput) int
+		BindPlanCandidateSetToUser        func(childComplexity int, input model.BindPlanCandidateSetToUserInput) int
 		ChangePlacesOrderInPlanCandidate  func(childComplexity int, input model.ChangePlacesOrderInPlanCandidateInput) int
 		CreatePlanByLocation              func(childComplexity int, input model.CreatePlanByLocationInput) int
 		CreatePlanByPlace                 func(childComplexity int, input model.CreatePlanByPlaceInput) int
@@ -291,6 +299,7 @@ type MutationResolver interface {
 	LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error)
 	UploadPlacePhotoInPlan(ctx context.Context, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
 	LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error)
+	BindPlanCandidateSetToUser(ctx context.Context, input model.BindPlanCandidateSetToUserInput) (*model.BindPlanCandidateSetToUserOutput, error)
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
@@ -357,6 +366,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AvailablePlacesForPlan.Places(childComplexity), true
+
+	case "BindPlanCandidateSetToUserOutput.user":
+		if e.complexity.BindPlanCandidateSetToUserOutput.User == nil {
+			break
+		}
+
+		return e.complexity.BindPlanCandidateSetToUserOutput.User(childComplexity), true
 
 	case "CategoryGroupedPlaces.category":
 		if e.complexity.CategoryGroupedPlaces.Category == nil {
@@ -512,12 +528,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.GooglePlaceReview.Time(childComplexity), true
 
+	case "Image.author":
+		if e.complexity.Image.Author == nil {
+			break
+		}
+
+		return e.complexity.Image.Author(childComplexity), true
+
 	case "Image.default":
 		if e.complexity.Image.Default == nil {
 			break
 		}
 
 		return e.complexity.Image.Default(childComplexity), true
+
+	case "Image.google":
+		if e.complexity.Image.Google == nil {
+			break
+		}
+
+		return e.complexity.Image.Google(childComplexity), true
+
+	case "Image.id":
+		if e.complexity.Image.ID == nil {
+			break
+		}
+
+		return e.complexity.Image.ID(childComplexity), true
 
 	case "Image.large":
 		if e.complexity.Image.Large == nil {
@@ -605,6 +642,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AutoReorderPlacesInPlanCandidate(childComplexity, args["input"].(model.AutoReorderPlacesInPlanCandidateInput)), true
+
+	case "Mutation.bindPlanCandidateSetToUser":
+		if e.complexity.Mutation.BindPlanCandidateSetToUser == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_bindPlanCandidateSetToUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BindPlanCandidateSetToUser(childComplexity, args["input"].(model.BindPlanCandidateSetToUserInput)), true
 
 	case "Mutation.changePlacesOrderInPlanCandidate":
 		if e.complexity.Mutation.ChangePlacesOrderInPlanCandidate == nil {
@@ -1285,6 +1334,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputAddPlaceToPlanCandidateAfterPlaceInput,
 		ec.unmarshalInputAutoReorderPlacesInPlanCandidateInput,
 		ec.unmarshalInputAvailablePlacesForPlanInput,
+		ec.unmarshalInputBindPlanCandidateSetToUserInput,
 		ec.unmarshalInputChangePlacesOrderInPlanCandidateInput,
 		ec.unmarshalInputCreatePlanByGooglePlaceIdInput,
 		ec.unmarshalInputCreatePlanByLocationInput,
@@ -1410,9 +1460,13 @@ var sources = []*ast.Source{
 }
 
 type Image {
+    id: ID!
     default: String!
     small: String
     large: String
+    # Google Places APIから取得した画像かどうか
+    google: Boolean!
+    author: User
 }
 `, BuiltIn: false},
 	{Name: "../schema/place_query.graphqls", Input: `extend type Query {
@@ -1820,6 +1874,19 @@ type Query {
 type Mutation {
     ping(message: String!): String!
 }`, BuiltIn: false},
+	{Name: "../schema/user_mutation.graphqls", Input: `extend type Mutation {
+    bindPlanCandidateSetToUser(input: BindPlanCandidateSetToUserInput!): BindPlanCandidateSetToUserOutput!
+}
+
+input BindPlanCandidateSetToUserInput {
+    userId: ID!
+    firebaseAuthToken: String!
+    planCandidateSetIds: [String!]!
+}
+
+type BindPlanCandidateSetToUserOutput {
+    user: User!
+}`, BuiltIn: false},
 	{Name: "../schema/user_query.graphqls", Input: `extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
 
@@ -1870,6 +1937,21 @@ func (ec *executionContext) field_Mutation_autoReorderPlacesInPlanCandidate_args
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_bindPlanCandidateSetToUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.BindPlanCandidateSetToUserInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNBindPlanCandidateSetToUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐBindPlanCandidateSetToUserInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2572,6 +2654,58 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_likeCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BindPlanCandidateSetToUserOutput_user(ctx context.Context, field graphql.CollectedField, obj *model.BindPlanCandidateSetToUserOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BindPlanCandidateSetToUserOutput_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BindPlanCandidateSetToUserOutput_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BindPlanCandidateSetToUserOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_User_photoUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -3648,6 +3782,50 @@ func (ec *executionContext) fieldContext_GooglePlaceReview_originalLanguage(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _Image_id(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Image_default(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Image_default(ctx, field)
 	if err != nil {
@@ -3769,6 +3947,99 @@ func (ec *executionContext) fieldContext_Image_large(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_google(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_google(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Google, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_google(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_author(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_author(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Author, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_author(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_User_photoUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -4884,6 +5155,65 @@ func (ec *executionContext) fieldContext_Mutation_likeToPlaceInPlan(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_bindPlanCandidateSetToUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_bindPlanCandidateSetToUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BindPlanCandidateSetToUser(rctx, fc.Args["input"].(model.BindPlanCandidateSetToUserInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.BindPlanCandidateSetToUserOutput)
+	fc.Result = res
+	return ec.marshalNBindPlanCandidateSetToUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐBindPlanCandidateSetToUserOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_bindPlanCandidateSetToUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_BindPlanCandidateSetToUserOutput_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type BindPlanCandidateSetToUserOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_bindPlanCandidateSetToUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _NearbyLocationCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.NearbyLocationCategory) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_NearbyLocationCategory_id(ctx, field)
 	if err != nil {
@@ -5401,12 +5731,18 @@ func (ec *executionContext) fieldContext_Place_images(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_Image_id(ctx, field)
 			case "default":
 				return ec.fieldContext_Image_default(ctx, field)
 			case "small":
 				return ec.fieldContext_Image_small(ctx, field)
 			case "large":
 				return ec.fieldContext_Image_large(ctx, field)
+			case "google":
+				return ec.fieldContext_Image_google(ctx, field)
+			case "author":
+				return ec.fieldContext_Image_author(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -10474,6 +10810,53 @@ func (ec *executionContext) unmarshalInputAvailablePlacesForPlanInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputBindPlanCandidateSetToUserInput(ctx context.Context, obj interface{}) (model.BindPlanCandidateSetToUserInput, error) {
+	var it model.BindPlanCandidateSetToUserInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "planCandidateSetIds"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "firebaseAuthToken":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FirebaseAuthToken = data
+		case "planCandidateSetIds":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("planCandidateSetIds"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PlanCandidateSetIds = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputChangePlacesOrderInPlanCandidateInput(ctx context.Context, obj interface{}) (model.ChangePlacesOrderInPlanCandidateInput, error) {
 	var it model.ChangePlacesOrderInPlanCandidateInput
 	asMap := map[string]interface{}{}
@@ -11697,6 +12080,45 @@ func (ec *executionContext) _AvailablePlacesForPlan(ctx context.Context, sel ast
 	return out
 }
 
+var bindPlanCandidateSetToUserOutputImplementors = []string{"BindPlanCandidateSetToUserOutput"}
+
+func (ec *executionContext) _BindPlanCandidateSetToUserOutput(ctx context.Context, sel ast.SelectionSet, obj *model.BindPlanCandidateSetToUserOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, bindPlanCandidateSetToUserOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BindPlanCandidateSetToUserOutput")
+		case "user":
+			out.Values[i] = ec._BindPlanCandidateSetToUserOutput_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var categoryGroupedPlacesImplementors = []string{"CategoryGroupedPlaces"}
 
 func (ec *executionContext) _CategoryGroupedPlaces(ctx context.Context, sel ast.SelectionSet, obj *model.CategoryGroupedPlaces) graphql.Marshaler {
@@ -12109,6 +12531,11 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Image")
+		case "id":
+			out.Values[i] = ec._Image_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "default":
 			out.Values[i] = ec._Image_default(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12118,6 +12545,13 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Image_small(ctx, field, obj)
 		case "large":
 			out.Values[i] = ec._Image_large(ctx, field, obj)
+		case "google":
+			out.Values[i] = ec._Image_google(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "author":
+			out.Values[i] = ec._Image_author(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12381,6 +12815,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "likeToPlaceInPlan":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_likeToPlaceInPlan(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bindPlanCandidateSetToUser":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_bindPlanCandidateSetToUser(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -14048,6 +14489,25 @@ func (ec *executionContext) marshalNAvailablePlacesForPlan2ᚖporotoᚗappᚋpor
 func (ec *executionContext) unmarshalNAvailablePlacesForPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAvailablePlacesForPlanInput(ctx context.Context, v interface{}) (model.AvailablePlacesForPlanInput, error) {
 	res, err := ec.unmarshalInputAvailablePlacesForPlanInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNBindPlanCandidateSetToUserInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐBindPlanCandidateSetToUserInput(ctx context.Context, v interface{}) (model.BindPlanCandidateSetToUserInput, error) {
+	res, err := ec.unmarshalInputBindPlanCandidateSetToUserInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBindPlanCandidateSetToUserOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐBindPlanCandidateSetToUserOutput(ctx context.Context, sel ast.SelectionSet, v model.BindPlanCandidateSetToUserOutput) graphql.Marshaler {
+	return ec._BindPlanCandidateSetToUserOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBindPlanCandidateSetToUserOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐBindPlanCandidateSetToUserOutput(ctx context.Context, sel ast.SelectionSet, v *model.BindPlanCandidateSetToUserOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._BindPlanCandidateSetToUserOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

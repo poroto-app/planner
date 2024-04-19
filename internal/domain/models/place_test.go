@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/google/go-cmp/cmp"
 	"testing"
+	"time"
 )
 
 func TestPlace_EstimatedStayDuration(t *testing.T) {
@@ -162,6 +163,51 @@ func TestSortPlacesByRating(t *testing.T) {
 			actual := SortPlacesByRating(c.places)
 			if diff := cmp.Diff(c.expected, actual); diff != "" {
 				t.Errorf("SortPlacesByRating() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPlace_PlacePhotosSortedByUploadedAt(t *testing.T) {
+	cases := []struct {
+		name     string
+		place    Place
+		expected []PlacePhoto
+	}{
+		{
+			name: "should return place photos sorted by uploaded at",
+			place: Place{
+				PlacePhotos: []PlacePhoto{
+					{
+						PhotoUrl:  "https://example.com/1.jpg",
+						CreatedAt: time.Date(2021, 1, 1, 23, 59, 59, 0, time.UTC),
+					},
+					{
+						PhotoUrl:  "https://example.com/2.jpg",
+						CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+			expected: []PlacePhoto{
+				{
+					PhotoUrl:  "https://example.com/2.jpg",
+					CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
+				},
+				{
+					PhotoUrl:  "https://example.com/1.jpg",
+					CreatedAt: time.Date(2021, 1, 1, 23, 59, 59, 0, time.UTC),
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Parallel()
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			actual := c.place.PlacePhotosSortedByUploadedAt()
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("PlacePhotosSortedByUploadedAt() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

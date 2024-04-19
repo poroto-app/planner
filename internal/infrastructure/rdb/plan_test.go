@@ -854,3 +854,129 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanRepository_UpdatePlanAuthorUserByPlanCandidateSet(t *testing.T) {
+	cases := []struct {
+		name                   string
+		userId                 string
+		planCandidateSetIds    []string
+		savedUsers             generated.UserSlice
+		savedPlans             generated.PlanSlice
+		savedPlanCandidateSets generated.PlanCandidateSetSlice
+		savedPlanCandidates    generated.PlanCandidateSlice
+		expectedUserPlans      generated.PlanSlice
+	}{
+		{
+			name:   "should update plan author user",
+			userId: "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+			planCandidateSetIds: []string{
+				"d65ecb97-99f5-474e-a349-79fa888b37f5",
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "8fde8eff-4b18-4276-b71f-2fec30ea65c8"},
+			},
+			savedPlans: generated.PlanSlice{
+				{
+					ID:     "f2c98d68-3904-455b-8832-a0f723a96735",
+					UserID: null.StringFromPtr(nil),
+				},
+			},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "d65ecb97-99f5-474e-a349-79fa888b37f5", ExpiresAt: time.Now()},
+			},
+			savedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "f2c98d68-3904-455b-8832-a0f723a96735",
+					PlanCandidateSetID: "d65ecb97-99f5-474e-a349-79fa888b37f5",
+				},
+			},
+			expectedUserPlans: generated.PlanSlice{
+				{
+					ID:     "f2c98d68-3904-455b-8832-a0f723a96735",
+					UserID: null.StringFrom("8fde8eff-4b18-4276-b71f-2fec30ea65c8"),
+				},
+			},
+		},
+		{
+			name:   "should not update plan author user",
+			userId: "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+			planCandidateSetIds: []string{
+				"d65ecb97-99f5-474e-a349-79fa888b37f5",
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "8fde8eff-4b18-4276-b71f-2fec30ea65c8"},
+			},
+			savedPlans: generated.PlanSlice{
+				{
+					ID:     "f2c98d68-3904-455b-8832-a0f723a96735",
+					UserID: null.StringFromPtr(nil),
+				},
+			},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "d65ecb97-99f5-474e-a349-79fa888b37f5", ExpiresAt: time.Now()},
+			},
+			savedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "a05c61a5-2974-4a8f-9914-8639088481a8",
+					PlanCandidateSetID: "d65ecb97-99f5-474e-a349-79fa888b37f5",
+				},
+			},
+			expectedUserPlans: nil,
+		},
+	}
+
+	testContext := context.Background()
+	planRepository, err := NewPlanRepository(testDB)
+	if err != nil {
+		t.Errorf("error initializing plan repository: %v", err)
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				if err := cleanup(testContext, planRepository.GetDB()); err != nil {
+					t.Errorf("error cleaning up: %v", err)
+				}
+			})
+
+			// 事前に保存
+			if _, err := c.savedUsers.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
+			if _, err := c.savedPlans.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSets.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate set: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidates.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate: %v", err)
+			}
+
+			err := planRepository.UpdatePlanAuthorUserByPlanCandidateSet(testContext, c.userId, c.planCandidateSetIds)
+			if err != nil {
+				t.Errorf("error updating plan author user: %v", err)
+			}
+
+			actualUserPlans, err := generated.Plans(
+				generated.PlanWhere.UserID.EQ(null.StringFrom(c.userId)),
+			).All(testContext, planRepository.GetDB())
+			if err != nil {
+				t.Errorf("error finding user plans: %v", err)
+			}
+
+			if diff := cmp.Diff(
+				c.expectedUserPlans,
+				actualUserPlans,
+				cmpopts.SortSlices(func(a, b *models.Plan) bool { return a.Id < b.Id }),
+				cmpopts.IgnoreFields(generated.Plan{}, "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Errorf("user plan mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
