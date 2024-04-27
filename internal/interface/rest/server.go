@@ -1,9 +1,11 @@
 package rest
 
 import (
+	"context"
 	"database/sql"
 	"net/url"
 	"os"
+	"poroto.app/poroto/planner/internal/infrastructure/auth"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,8 +13,9 @@ import (
 )
 
 type Server struct {
-	port string
-	mode string
+	port         string
+	mode         string
+	firebaseAuth auth.FirebaseAuth
 }
 
 const (
@@ -21,16 +24,22 @@ const (
 	ServerModeProduction  = "production"
 )
 
-func NewRestServer(env string) *Server {
+func NewRestServer(ctx context.Context, env string) (*Server, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	return &Server{
-		port: port,
-		mode: serverModeFromEnv(env),
+	firebaseAuth, err := auth.NewFirebaseAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Server{
+		port:         port,
+		mode:         serverModeFromEnv(env),
+		firebaseAuth: *firebaseAuth,
+	}, nil
 }
 
 func (s Server) ServeHTTP(db *sql.DB) error {
@@ -73,6 +82,11 @@ func (s Server) ServeHTTP(db *sql.DB) error {
 	if s.isDevelopment() || s.isStaging() {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
+
+	groupSession := r.Group("/session")
+	groupSession.POST("/login", s.SessionLoginHandler())
+	groupSession.POST("/logout", s.SessionLogoutHandler())
+	groupSession.POST("/verify", s.SessionUserHandler())
 
 	if err := r.Run(":" + s.port); err != nil {
 		return nil

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"os"
+	"time"
 
 	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
@@ -53,6 +54,18 @@ func (f *FirebaseAuth) Verify(
 	}
 
 	return true, nil
+}
+
+func (f *FirebaseAuth) VerifyIdToken(ctx context.Context, tokenId string) (*auth.Token, error) {
+	return f.client.VerifyIDToken(ctx, tokenId)
+}
+
+func (f *FirebaseAuth) CreateSessionCookie(ctx context.Context, tokenId string, expiresIn time.Duration) (string, error) {
+	return f.client.SessionCookie(ctx, tokenId, expiresIn)
+}
+
+func (f *FirebaseAuth) VerifySessionCookie(ctx context.Context, sessionCookie string) (*auth.Token, error) {
+	return f.client.VerifySessionCookie(ctx, sessionCookie)
 }
 
 func (f *FirebaseAuth) GetFirebaseUIDFromTokenId(ctx context.Context, tokenId string) (*string, error) {
