@@ -6,8 +6,10 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
+type contextKey string
+
 const (
-	contextAuthUserKey = "auth_user"
+	contextAuthUserKey contextKey = "auth_user"
 )
 
 // SetAuthUser sets the auth user in the context.
