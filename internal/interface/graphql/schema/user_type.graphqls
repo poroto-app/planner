@@ -2,4 +2,6 @@ type User {
     id: ID!
     name: String!
     photoUrl: String
+    plans: [Plan!]!
+    likedPlaces: [Place!]!
 }
