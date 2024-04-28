@@ -50,6 +50,12 @@ func (s Server) SessionLoginHandler() gin.HandlerFunc {
 			idToken,
 			sessionCookieExpiration,
 		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create session cookie",
+			})
+			return
+		}
 
 		c.SetSameSite(http.SameSiteNoneMode)
 		c.SetCookie(
