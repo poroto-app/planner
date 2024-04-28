@@ -7,6 +7,8 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
@@ -14,7 +16,25 @@ import (
 
 // Plans is the resolver for the plans field.
 func (r *userResolver) Plans(ctx context.Context, obj *model.User) ([]*model.Plan, error) {
-	panic(fmt.Errorf("not implemented: Plans - plans"))
+	r.Logger.Info("User#Plans", zap.String("userId", obj.ID))
+
+	author, err := r.UserService.FindByUserId(ctx, obj.ID)
+	if err != nil {
+		r.Logger.Error("error while fetching user by id", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	if author == nil {
+		return nil, nil
+	}
+
+	plans, err := r.PlanService.PlansByUser(ctx, obj.ID)
+	if err != nil {
+		r.Logger.Error("error while fetching plans by user", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return factory.PlansFromDomainModel(plans, nil), nil
 }
 
 // LikedPlaces is the resolver for the likedPlaces field.
