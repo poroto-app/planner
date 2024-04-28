@@ -83,6 +83,7 @@ func (s Server) ServeHTTP(db *sql.DB) error {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
 
+	// TODO: productionでも使えるようにする
 	if s.isDevelopment() {
 		groupSession := r.Group("/session")
 		groupSession.POST("/login", s.SessionLoginHandler())
