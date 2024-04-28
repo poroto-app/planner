@@ -1,9 +1,16 @@
 package rest
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"go.uber.org/zap"
 	"net/url"
 	"os"
+	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/infrastructure/auth"
+	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -11,8 +18,11 @@ import (
 )
 
 type Server struct {
-	port string
-	mode string
+	port           string
+	mode           string
+	firebaseAuth   auth.FirebaseAuth
+	userRepository repository.UserRepository
+	logger         zap.Logger
 }
 
 const (
@@ -21,16 +31,36 @@ const (
 	ServerModeProduction  = "production"
 )
 
-func NewRestServer(env string) *Server {
+func NewRestServer(ctx context.Context, db *sql.DB, env string) (*Server, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	return &Server{
-		port: port,
-		mode: serverModeFromEnv(env),
+	logger, err := utils.NewLogger(utils.LoggerOption{
+		Tag: "RestServer",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing Logger: %w", err)
 	}
+
+	firebaseAuth, err := auth.NewFirebaseAuth(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing firebase auth: %w", err)
+	}
+
+	userRepository, err := rdb.NewUserRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing user repository: %w", err)
+	}
+
+	return &Server{
+		port:           port,
+		mode:           serverModeFromEnv(env),
+		firebaseAuth:   *firebaseAuth,
+		userRepository: userRepository,
+		logger:         *logger,
+	}, nil
 }
 
 func (s Server) ServeHTTP(db *sql.DB) error {
@@ -69,9 +99,13 @@ func (s Server) ServeHTTP(db *sql.DB) error {
 		})
 	})
 
-	r.POST("/graphql", GraphQlQueryHandler(db))
-	if s.isDevelopment() || s.isStaging() {
-		r.GET("/graphql/playground", GraphQlPlayGround)
+	groupGraphql := r.Group("/graphql")
+	{
+		groupGraphql.Use(s.GraphqlAuthMiddleware())
+		groupGraphql.POST("", GraphQlQueryHandler(db))
+		if s.isDevelopment() || s.isStaging() {
+			groupGraphql.GET("/playground", GraphQlPlayGround)
+		}
 	}
 
 	if err := r.Run(":" + s.port); err != nil {
