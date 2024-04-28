@@ -2,6 +2,9 @@ extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
 
     likePlaces(input: LikePlacesInput): [Place!]!
+
+    # セッション情報を使ってユーザー情報を取得する
+    authenticatedUser: AuthenticatedUser!
 }
 
 input FirebaseUserInput {
@@ -12,4 +15,11 @@ input FirebaseUserInput {
 input LikePlacesInput {
     userId: ID!
     firebaseAuthToken: String!
+}
+
+# TODO: User type から取得できるようにする
+type AuthenticatedUser {
+    user: User!
+    likePlaces: [Place!]!
+    plans: [Plan!]!
 }

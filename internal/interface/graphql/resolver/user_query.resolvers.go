@@ -44,3 +44,8 @@ func (r *queryResolver) LikePlaces(ctx context.Context, input *model.LikePlacesI
 
 	return graphqlPlaces, nil
 }
+
+// AuthenticatedUser is the resolver for the authenticatedUser field.
+func (r *queryResolver) AuthenticatedUser(ctx context.Context) (*model.AuthenticatedUser, error) {
+	panic(fmt.Errorf("not implemented: AuthenticatedUser - authenticatedUser"))
+}

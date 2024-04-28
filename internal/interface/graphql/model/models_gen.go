@@ -20,6 +20,12 @@ type AddPlaceToPlanCandidateAfterPlaceOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
+type AuthenticatedUser struct {
+	User       *User    `json:"user"`
+	LikePlaces []*Place `json:"likePlaces"`
+	Plans      []*Plan  `json:"plans"`
+}
+
 type AutoReorderPlacesInPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`

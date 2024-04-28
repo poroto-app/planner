@@ -49,6 +49,12 @@ type ComplexityRoot struct {
 		PlanCandidateID func(childComplexity int) int
 	}
 
+	AuthenticatedUser struct {
+		LikePlaces func(childComplexity int) int
+		Plans      func(childComplexity int) int
+		User       func(childComplexity int) int
+	}
+
 	AutoReorderPlacesInPlanCandidateOutput struct {
 		Plan            func(childComplexity int) int
 		PlanCandidateID func(childComplexity int) int
@@ -244,6 +250,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AuthenticatedUser               func(childComplexity int) int
 		AvailablePlacesForPlan          func(childComplexity int, input model.AvailablePlacesForPlanInput) int
 		FirebaseUser                    func(childComplexity int, input *model.FirebaseUserInput) int
 		LikePlaces                      func(childComplexity int, input *model.LikePlacesInput) int
@@ -315,6 +322,7 @@ type QueryResolver interface {
 	PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error)
 	FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error)
 	LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error)
+	AuthenticatedUser(ctx context.Context) (*model.AuthenticatedUser, error)
 }
 
 type executableSchema struct {
@@ -345,6 +353,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddPlaceToPlanCandidateAfterPlaceOutput.PlanCandidateID(childComplexity), true
+
+	case "AuthenticatedUser.likePlaces":
+		if e.complexity.AuthenticatedUser.LikePlaces == nil {
+			break
+		}
+
+		return e.complexity.AuthenticatedUser.LikePlaces(childComplexity), true
+
+	case "AuthenticatedUser.plans":
+		if e.complexity.AuthenticatedUser.Plans == nil {
+			break
+		}
+
+		return e.complexity.AuthenticatedUser.Plans(childComplexity), true
+
+	case "AuthenticatedUser.user":
+		if e.complexity.AuthenticatedUser.User == nil {
+			break
+		}
+
+		return e.complexity.AuthenticatedUser.User(childComplexity), true
 
 	case "AutoReorderPlacesInPlanCandidateOutput.plan":
 		if e.complexity.AutoReorderPlacesInPlanCandidateOutput.Plan == nil {
@@ -1101,6 +1130,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PriceRange.PriceRangeMin(childComplexity), true
+
+	case "Query.authenticatedUser":
+		if e.complexity.Query.AuthenticatedUser == nil {
+			break
+		}
+
+		return e.complexity.Query.AuthenticatedUser(childComplexity), true
 
 	case "Query.availablePlacesForPlan":
 		if e.complexity.Query.AvailablePlacesForPlan == nil {
@@ -1891,6 +1927,9 @@ type BindPlanCandidateSetToUserOutput {
     firebaseUser(input: FirebaseUserInput): User!
 
     likePlaces(input: LikePlacesInput): [Place!]!
+
+    # セッション情報を使ってユーザー情報を取得する
+    authenticatedUser: AuthenticatedUser!
 }
 
 input FirebaseUserInput {
@@ -1902,7 +1941,12 @@ input LikePlacesInput {
     userId: ID!
     firebaseAuthToken: String!
 }
-`, BuiltIn: false},
+
+type AuthenticatedUser {
+    user: User!
+    likePlaces: [Place!]!
+    plans: [Plan!]!
+}`, BuiltIn: false},
 	{Name: "../schema/user_type.graphqls", Input: `type User {
     id: ID!
     name: String!
@@ -2463,6 +2507,184 @@ func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx co
 func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput_plan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AddPlaceToPlanCandidateAfterPlaceOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "author":
+				return ec.fieldContext_Plan_author(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthenticatedUser_user(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticatedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthenticatedUser_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthenticatedUser_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthenticatedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_User_photoUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthenticatedUser_likePlaces(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticatedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthenticatedUser_likePlaces(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LikePlaces, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthenticatedUser_likePlaces(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthenticatedUser",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "likeCount":
+				return ec.fieldContext_Place_likeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthenticatedUser_plans(ctx context.Context, field graphql.CollectedField, obj *model.AuthenticatedUser) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthenticatedUser_plans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plans, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthenticatedUser_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthenticatedUser",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -8259,6 +8481,58 @@ func (ec *executionContext) fieldContext_Query_likePlaces(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_authenticatedUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_authenticatedUser(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AuthenticatedUser(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthenticatedUser)
+	fc.Result = res
+	return ec.marshalNAuthenticatedUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAuthenticatedUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_authenticatedUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_AuthenticatedUser_user(ctx, field)
+			case "likePlaces":
+				return ec.fieldContext_AuthenticatedUser_likePlaces(ctx, field)
+			case "plans":
+				return ec.fieldContext_AuthenticatedUser_plans(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthenticatedUser", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -11997,6 +12271,55 @@ func (ec *executionContext) _AddPlaceToPlanCandidateAfterPlaceOutput(ctx context
 	return out
 }
 
+var authenticatedUserImplementors = []string{"AuthenticatedUser"}
+
+func (ec *executionContext) _AuthenticatedUser(ctx context.Context, sel ast.SelectionSet, obj *model.AuthenticatedUser) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authenticatedUserImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthenticatedUser")
+		case "user":
+			out.Values[i] = ec._AuthenticatedUser_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "likePlaces":
+			out.Values[i] = ec._AuthenticatedUser_likePlaces(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "plans":
+			out.Values[i] = ec._AuthenticatedUser_plans(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var autoReorderPlacesInPlanCandidateOutputImplementors = []string{"AutoReorderPlacesInPlanCandidateOutput"}
 
 func (ec *executionContext) _AutoReorderPlacesInPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, obj *model.AutoReorderPlacesInPlanCandidateOutput) graphql.Marshaler {
@@ -13868,6 +14191,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "authenticatedUser":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_authenticatedUser(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -14451,6 +14796,20 @@ func (ec *executionContext) marshalNAddPlaceToPlanCandidateAfterPlaceOutput2ᚖp
 		return graphql.Null
 	}
 	return ec._AddPlaceToPlanCandidateAfterPlaceOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNAuthenticatedUser2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAuthenticatedUser(ctx context.Context, sel ast.SelectionSet, v model.AuthenticatedUser) graphql.Marshaler {
+	return ec._AuthenticatedUser(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthenticatedUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAuthenticatedUser(ctx context.Context, sel ast.SelectionSet, v *model.AuthenticatedUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuthenticatedUser(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNAutoReorderPlacesInPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐAutoReorderPlacesInPlanCandidateInput(ctx context.Context, v interface{}) (model.AutoReorderPlacesInPlanCandidateInput, error) {
