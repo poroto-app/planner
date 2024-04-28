@@ -83,10 +83,12 @@ func (s Server) ServeHTTP(db *sql.DB) error {
 		r.GET("/graphql/playground", GraphQlPlayGround)
 	}
 
-	groupSession := r.Group("/session")
-	groupSession.POST("/login", s.SessionLoginHandler())
-	groupSession.POST("/logout", s.SessionLogoutHandler())
-	groupSession.POST("/verify", s.SessionUserHandler())
+	if s.isDevelopment() {
+		groupSession := r.Group("/session")
+		groupSession.POST("/login", s.SessionLoginHandler())
+		groupSession.POST("/logout", s.SessionLogoutHandler())
+		groupSession.POST("/verify", s.SessionUserHandler())
+	}
 
 	if err := r.Run(":" + s.port); err != nil {
 		return nil
