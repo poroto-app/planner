@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -12,24 +13,23 @@ const (
 	cookieKeySession        = "session"
 )
 
-type LoginRequest struct {
-	IdToken string `json:"id_token"`
-}
-
 // SessionLoginHandler Firebase AuthによるセッションCookieを作成する
 // https://firebase.google.com/docs/auth/admin/manage-cookies?hl=ja#go
 func (s Server) SessionLoginHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Verify ID token passed in via HTTP json body
-		var req LoginRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid request body",
+		// Verify ID token passed in via HTTP request header
+		// Authorization: Bearer <ID token>
+		var idToken string
+		_, err := fmt.Sscanf(c.GetHeader("Authorization"), "Bearer %s", &idToken)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Invalid Authorization header",
 			})
 			return
 		}
 
-		token, err := s.firebaseAuth.VerifyIdToken(c.Request.Context(), req.IdToken)
+		// Verify ID token
+		token, err := s.firebaseAuth.VerifyIdToken(c.Request.Context(), idToken)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "Invalid ID token",
@@ -47,7 +47,7 @@ func (s Server) SessionLoginHandler() gin.HandlerFunc {
 
 		cookie, err := s.firebaseAuth.CreateSessionCookie(
 			c.Request.Context(),
-			req.IdToken,
+			idToken,
 			sessionCookieExpiration,
 		)
 

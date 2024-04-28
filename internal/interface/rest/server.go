@@ -54,6 +54,7 @@ func (s Server) ServeHTTP(db *sql.DB) error {
 		AllowCredentials: true,
 		AllowHeaders: []string{
 			"Content-Type",
+			"Authorization",
 		},
 		AllowOriginFunc: func(origin string) bool {
 			if s.isDevelopment() {
