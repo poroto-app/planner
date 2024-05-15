@@ -43,6 +43,7 @@ func NewPlaceFromEntity(
 		Id:          placeEntity.ID,
 		Name:        placeEntity.Name,
 		Location:    googlePlace.Location,
+		Address:     googlePlace.Vicinity,
 		Google:      *googlePlace,
 		LikeCount:   likeCount,
 		PlacePhotos: placePhotos,
