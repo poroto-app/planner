@@ -12,6 +12,7 @@ type Place struct {
 	Google      GooglePlace  `json:"google"`
 	Name        string       `json:"name"`
 	Location    GeoLocation  `json:"location"`
+	Address     *string      `json:"address"`
 	LikeCount   int          `json:"like_count"`
 	PlacePhotos []PlacePhoto `json:"place_photos"`
 }
