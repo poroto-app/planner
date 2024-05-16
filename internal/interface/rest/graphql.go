@@ -2,18 +2,19 @@ package rest
 
 import (
 	"database/sql"
-	"log"
-
+	"fmt"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"log"
 	"poroto.app/poroto/planner/internal/domain/services/place"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 	"poroto.app/poroto/planner/internal/domain/utils"
+	gcontext "poroto.app/poroto/planner/internal/interface/graphql/context"
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/resolver"
 )
@@ -86,5 +87,48 @@ func GraphQlQueryHandler(db *sql.DB) gin.HandlerFunc {
 		}})
 		h := handler.NewDefaultServer(schema)
 		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+// GraphqlAuthMiddleware Authorization Header が設定されている場合のみ
+// 対応するユーザーを取得し、contextにセットする
+func (s Server) GraphqlAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		s.logger.Info("GraphqlAuthMiddleware")
+
+		var idToken string
+		_, err := fmt.Sscanf(c.GetHeader("Authorization"), "Bearer %s", &idToken)
+		if err != nil || idToken == "" {
+			s.logger.Debug("no authorization header")
+			c.Next()
+			return
+		}
+
+		firebaseUid, err := s.firebaseAuth.GetFirebaseUIDFromTokenId(c.Request.Context(), idToken)
+		if err != nil {
+			s.logger.Warn(
+				"error while getting firebase uid from token id",
+				zap.Error(err),
+			)
+			c.Next()
+			return
+		}
+
+		user, err := s.userRepository.FindByFirebaseUID(c.Request.Context(), *firebaseUid)
+		if err != nil {
+			s.logger.Warn(
+				"error while getting user by firebase uid",
+				zap.Error(err),
+			)
+			c.Next()
+			return
+		}
+
+		s.logger.Debug(
+			"set auth user to context",
+			zap.String("userId", user.Id),
+		)
+		gcontext.SetAuthUser(c, user)
+		c.Next()
 	}
 }
