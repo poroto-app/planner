@@ -3,6 +3,8 @@ package models
 import (
 	"math"
 	"math/rand"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	"regexp"
 	"sort"
 )
 
@@ -26,6 +28,22 @@ func (p Place) MainCategory() *LocationCategory {
 		return nil
 	}
 	return &p.Categories()[0]
+}
+
+// ShortenAddress 番地等の細かい情報のない住所を取得する
+func (p Place) ShortenAddress() *string {
+	if p.Address == nil {
+		return nil
+	}
+
+	re := regexp.MustCompile(`^(.*?)[0-9０-９]`)
+	match := re.FindStringSubmatch(*p.Address)
+	if len(match) > 1 {
+		return utils.ToPointer(match[1])
+	}
+
+	// 数字が含まれていない
+	return p.Address
 }
 
 // PlacePhotosSortedByUploadedAt 新しい画像が先頭になるように並び替える
