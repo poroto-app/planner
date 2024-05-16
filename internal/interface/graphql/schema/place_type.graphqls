@@ -3,6 +3,7 @@ type Place {
     googlePlaceId: String!
     name: String!
     location: GeoLocation!
+    address: String
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]!

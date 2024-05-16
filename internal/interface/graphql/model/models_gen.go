@@ -214,6 +214,7 @@ type Place struct {
 	GooglePlaceID         string               `json:"googlePlaceId"`
 	Name                  string               `json:"name"`
 	Location              *GeoLocation         `json:"location"`
+	Address               *string              `json:"address,omitempty"`
 	Images                []*Image             `json:"images"`
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews"`

@@ -167,6 +167,7 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
+		Address               func(childComplexity int) int
 		Categories            func(childComplexity int) int
 		EstimatedStayDuration func(childComplexity int) int
 		GooglePlaceID         func(childComplexity int) int
@@ -835,6 +836,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.NearbyPlaceCategoryOutput.PlanCandidateID(childComplexity), true
+
+	case "Place.address":
+		if e.complexity.Place.Address == nil {
+			break
+		}
+
+		return e.complexity.Place.Address(childComplexity), true
 
 	case "Place.categories":
 		if e.complexity.Place.Categories == nil {
@@ -1507,6 +1515,7 @@ type PlacesNearPlanOutput {
     googlePlaceId: String!
     name: String!
     location: GeoLocation!
+    address: String
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]!
@@ -2662,6 +2671,8 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -2834,6 +2845,8 @@ func (ec *executionContext) fieldContext_CategoryGroupedPlaces_places(ctx contex
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -5379,6 +5392,8 @@ func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx conte
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -5717,6 +5732,47 @@ func (ec *executionContext) fieldContext_Place_location(ctx context.Context, fie
 				return ec.fieldContext_GeoLocation_longitude(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GeoLocation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_address(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_address(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_address(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6164,6 +6220,8 @@ func (ec *executionContext) fieldContext_PlacesNearPlanOutput_places(ctx context
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6230,6 +6288,8 @@ func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_place
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6398,6 +6458,8 @@ func (ec *executionContext) fieldContext_PlacesToReplaceForPlanCandidateOutput_p
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6552,6 +6614,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8271,6 +8335,8 @@ func (ec *executionContext) fieldContext_Query_likePlaces(ctx context.Context, f
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8638,6 +8704,8 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8704,6 +8772,8 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -13146,6 +13216,8 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "address":
+			out.Values[i] = ec._Place_address(ctx, field, obj)
 		case "images":
 			out.Values[i] = ec._Place_images(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
