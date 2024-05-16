@@ -370,9 +370,11 @@ type UploadPlacePhotoInPlanOutput struct {
 }
 
 type User struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	PhotoURL *string `json:"photoUrl,omitempty"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	PhotoURL    *string  `json:"photoUrl,omitempty"`
+	Plans       []*Plan  `json:"plans"`
+	LikedPlaces []*Place `json:"likedPlaces"`
 }
 
 type ImageSize string
