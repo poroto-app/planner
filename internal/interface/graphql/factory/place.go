@@ -52,6 +52,7 @@ func PlaceFromDomainModel(place *models.Place) *graphql.Place {
 		GooglePlaceID: place.Google.PlaceId,
 		Name:          place.Name,
 		Images:        images,
+		Address:       place.Address,
 		Location: &graphql.GeoLocation{
 			Latitude:  place.Location.Latitude,
 			Longitude: place.Location.Longitude,
