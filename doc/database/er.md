@@ -231,3 +231,34 @@ erDiagram
     user_like_places o|..|| places: "N:1"
     user_like_places o|..|| users: "N:1"
 ```
+
+### Collage
+- プランに対して作成されるコラージュ
+- 一つの場所に対して複数の画像を登録することができる柔軟性を持たせるために制約はつけない
+- プラン内の場所を削除したあとで、再度、同じ場所を追加したときに同じ画像が表示できるようにするため、`plan_places`との紐づけは行わない
+- コラージュ画像の目的はユーザの画像アップロードを促すことであるため、`google_place_photos`との紐づけは行わない
+- TODO：異なるコラージュレイアウトに対応できるように、typeプロパティをつける
+
+```mermaid
+---
+title: collage
+---
+erDiagram
+    plan_collages {
+        char(36) id PK
+        char(36) plan_id FK
+    }
+
+    plan_collage_photos {
+        char(36) id PK
+        char(36) plan_collage_id FK
+        char(36) place_id FK
+        char(36) place_photo_id FK
+    }
+
+    plan ||..o{ plan_collages: "1:N"
+    plan_collages }o..|| plan_collage_photos: "1:N"
+    plan_collage_photos ||..|| place_photos: "1:1"
+    %% 一つの場所にたいして複数の写真が登録させることもある
+    plan_collage_photos }o..|| place: "N:1"
+```
