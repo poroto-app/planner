@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"os"
@@ -20,7 +21,11 @@ func main() {
 		log.Fatalf("error while initializing db: %v", err)
 	}
 
-	s := rest.NewRestServer(os.Getenv("ENV"))
+	s, err := rest.NewRestServer(context.Background(), db, os.Getenv("ENV"))
+	if err != nil {
+		log.Fatalf("error while initializing server: %v", err)
+	}
+
 	if err := s.ServeHTTP(db); err != nil {
 		log.Fatalf("error while starting server: %v", err)
 	}

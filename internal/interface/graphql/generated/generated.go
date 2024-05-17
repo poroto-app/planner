@@ -38,6 +38,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -166,6 +167,7 @@ type ComplexityRoot struct {
 	}
 
 	Place struct {
+		Address               func(childComplexity int) int
 		Categories            func(childComplexity int) int
 		EstimatedStayDuration func(childComplexity int) int
 		GooglePlaceID         func(childComplexity int) int
@@ -279,9 +281,11 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		ID       func(childComplexity int) int
-		Name     func(childComplexity int) int
-		PhotoURL func(childComplexity int) int
+		ID          func(childComplexity int) int
+		LikedPlaces func(childComplexity int) int
+		Name        func(childComplexity int) int
+		PhotoURL    func(childComplexity int) int
+		Plans       func(childComplexity int) int
 	}
 }
 
@@ -315,6 +319,10 @@ type QueryResolver interface {
 	PlansByUser(ctx context.Context, input model.PlansByUserInput) (*model.PlansByUserOutput, error)
 	FirebaseUser(ctx context.Context, input *model.FirebaseUserInput) (*model.User, error)
 	LikePlaces(ctx context.Context, input *model.LikePlacesInput) ([]*model.Place, error)
+}
+type UserResolver interface {
+	Plans(ctx context.Context, obj *model.User) ([]*model.Plan, error)
+	LikedPlaces(ctx context.Context, obj *model.User) ([]*model.Place, error)
 }
 
 type executableSchema struct {
@@ -829,6 +837,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.NearbyPlaceCategoryOutput.PlanCandidateID(childComplexity), true
 
+	case "Place.address":
+		if e.complexity.Place.Address == nil {
+			break
+		}
+
+		return e.complexity.Place.Address(childComplexity), true
+
 	case "Place.categories":
 		if e.complexity.Place.Categories == nil {
 			break
@@ -1309,6 +1324,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "User.likedPlaces":
+		if e.complexity.User.LikedPlaces == nil {
+			break
+		}
+
+		return e.complexity.User.LikedPlaces(childComplexity), true
+
 	case "User.name":
 		if e.complexity.User.Name == nil {
 			break
@@ -1322,6 +1344,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.PhotoURL(childComplexity), true
+
+	case "User.plans":
+		if e.complexity.User.Plans == nil {
+			break
+		}
+
+		return e.complexity.User.Plans(childComplexity), true
 
 	}
 	return 0, false
@@ -1486,6 +1515,7 @@ type PlacesNearPlanOutput {
     googlePlaceId: String!
     name: String!
     location: GeoLocation!
+    address: String
     images: [Image!]!
     estimatedStayDuration: Int!
     googleReviews: [GooglePlaceReview!]!
@@ -1901,12 +1931,13 @@ input FirebaseUserInput {
 input LikePlacesInput {
     userId: ID!
     firebaseAuthToken: String!
-}
-`, BuiltIn: false},
+}`, BuiltIn: false},
 	{Name: "../schema/user_type.graphqls", Input: `type User {
     id: ID!
     name: String!
     photoUrl: String
+    plans: [Plan!]!
+    likedPlaces: [Place!]!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -2640,6 +2671,8 @@ func (ec *executionContext) fieldContext_AvailablePlacesForPlan_places(ctx conte
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -2704,6 +2737,10 @@ func (ec *executionContext) fieldContext_BindPlanCandidateSetToUserOutput_user(c
 				return ec.fieldContext_User_name(ctx, field)
 			case "photoUrl":
 				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -2808,6 +2845,8 @@ func (ec *executionContext) fieldContext_CategoryGroupedPlaces_places(ctx contex
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -4038,6 +4077,10 @@ func (ec *executionContext) fieldContext_Image_author(ctx context.Context, field
 				return ec.fieldContext_User_name(ctx, field)
 			case "photoUrl":
 				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -5349,6 +5392,8 @@ func (ec *executionContext) fieldContext_NearbyLocationCategory_places(ctx conte
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -5687,6 +5732,47 @@ func (ec *executionContext) fieldContext_Place_location(ctx context.Context, fie
 				return ec.fieldContext_GeoLocation_longitude(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type GeoLocation", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Place_address(ctx context.Context, field graphql.CollectedField, obj *model.Place) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Place_address(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Place_address(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Place",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6134,6 +6220,8 @@ func (ec *executionContext) fieldContext_PlacesNearPlanOutput_places(ctx context
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6200,6 +6288,8 @@ func (ec *executionContext) fieldContext_PlacesToAddForPlanCandidateOutput_place
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6368,6 +6458,8 @@ func (ec *executionContext) fieldContext_PlacesToReplaceForPlanCandidateOutput_p
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6522,6 +6614,8 @@ func (ec *executionContext) fieldContext_Plan_places(ctx context.Context, field 
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -6720,6 +6814,10 @@ func (ec *executionContext) fieldContext_Plan_author(ctx context.Context, field 
 				return ec.fieldContext_User_name(ctx, field)
 			case "photoUrl":
 				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -7233,6 +7331,10 @@ func (ec *executionContext) fieldContext_PlansByUserOutput_author(ctx context.Co
 				return ec.fieldContext_User_name(ctx, field)
 			case "photoUrl":
 				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -8164,6 +8266,10 @@ func (ec *executionContext) fieldContext_Query_firebaseUser(ctx context.Context,
 				return ec.fieldContext_User_name(ctx, field)
 			case "photoUrl":
 				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -8229,6 +8335,8 @@ func (ec *executionContext) fieldContext_Query_likePlaces(ctx context.Context, f
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8596,6 +8704,8 @@ func (ec *executionContext) fieldContext_Transition_from(ctx context.Context, fi
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8662,6 +8772,8 @@ func (ec *executionContext) fieldContext_Transition_to(ctx context.Context, fiel
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -8909,6 +9021,132 @@ func (ec *executionContext) fieldContext_User_photoUrl(ctx context.Context, fiel
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_plans(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_plans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Plans(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_plans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "author":
+				return ec.fieldContext_Plan_author(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_likedPlaces(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_likedPlaces(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().LikedPlaces(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_likedPlaces(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "likeCount":
+				return ec.fieldContext_Place_likeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
 		},
 	}
 	return fc, nil
@@ -12978,6 +13216,8 @@ func (ec *executionContext) _Place(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "address":
+			out.Values[i] = ec._Place_address(ctx, field, obj)
 		case "images":
 			out.Values[i] = ec._Place_images(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -14081,15 +14321,87 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "photoUrl":
 			out.Values[i] = ec._User_photoUrl(ctx, field, obj)
+		case "plans":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_plans(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "likedPlaces":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_likedPlaces(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

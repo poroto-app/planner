@@ -406,7 +406,10 @@ func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidat
 
 func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId string) (*[]models.Place, error) {
 	userLikePlaces, err := generated.UserLikePlaces(concatQueryMod(
-		[]qm.QueryMod{generated.UserLikePlaceWhere.UserID.EQ(userId)},
+		[]qm.QueryMod{
+			generated.UserLikePlaceWhere.UserID.EQ(userId),
+			qm.OrderBy(fmt.Sprintf("%s %s", generated.UserLikePlaceColumns.UpdatedAt, "desc")),
+		},
 		placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place),
 	)...).All(ctx, p.db)
 	if err != nil {

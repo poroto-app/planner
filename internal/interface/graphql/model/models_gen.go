@@ -214,6 +214,7 @@ type Place struct {
 	GooglePlaceID         string               `json:"googlePlaceId"`
 	Name                  string               `json:"name"`
 	Location              *GeoLocation         `json:"location"`
+	Address               *string              `json:"address,omitempty"`
 	Images                []*Image             `json:"images"`
 	EstimatedStayDuration int                  `json:"estimatedStayDuration"`
 	GoogleReviews         []*GooglePlaceReview `json:"googleReviews"`
@@ -370,9 +371,11 @@ type UploadPlacePhotoInPlanOutput struct {
 }
 
 type User struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	PhotoURL *string `json:"photoUrl,omitempty"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	PhotoURL    *string  `json:"photoUrl,omitempty"`
+	Plans       []*Plan  `json:"plans"`
+	LikedPlaces []*Place `json:"likedPlaces"`
 }
 
 type ImageSize string

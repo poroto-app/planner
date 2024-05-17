@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/google/go-cmp/cmp"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"testing"
 	"time"
 )
@@ -54,6 +55,56 @@ func TestPlace_EstimatedStayDuration(t *testing.T) {
 	}
 }
 
+func TestPlace_ShortenAddress(t *testing.T) {
+	cases := []struct {
+		name     string
+		place    Place
+		expected *string
+	}{
+		{
+			name: "should return address without numbers",
+			place: Place{
+				Address: utils.ToPointer("相模原市中央区淵野辺1丁目13−12"),
+			},
+			expected: utils.ToPointer("相模原市中央区淵野辺"),
+		},
+		{
+			name: "should return address without full-width numbers",
+			place: Place{
+				Address: utils.ToPointer("相模原市中央区淵野辺１丁目１３−１２"),
+			},
+			expected: utils.ToPointer("相模原市中央区淵野辺"),
+		},
+		{
+			name: "should return original address",
+			place: Place{
+				Address: utils.ToPointer("相模原市中央区淵野辺"),
+			},
+			expected: utils.ToPointer("相模原市中央区淵野辺"),
+		},
+		{
+			name: "should return nil if value is empty",
+			place: Place{
+				Address: nil,
+			},
+			expected: nil,
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := c.place.ShortenAddress()
+
+			if diff := cmp.Diff(c.expected, actual); diff != "" {
+				t.Errorf("ShortenAddress() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestShufflePlaces(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -78,9 +129,10 @@ func TestShufflePlaces(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		t.Parallel()
 		c := c
 		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+
 			original := make([]Place, len(c.places))
 			copy(original, c.places)
 

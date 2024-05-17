@@ -7,10 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/services/user"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
-
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
