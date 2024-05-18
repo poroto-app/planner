@@ -21,8 +21,8 @@ type PlacePhotoWithSize struct {
 }
 
 const (
-	imgMaxHeight = 2000
-	imgMaxWidth  = 2000
+	imgMaxHeight = 500
+	imgMaxWidth  = 500
 )
 
 func imgUrlBuilder(maxWidth uint, maxHeight uint, photoReference string, apiKey string) (string, error) {
