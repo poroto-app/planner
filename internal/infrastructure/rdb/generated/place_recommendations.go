@@ -529,7 +529,7 @@ func (placeRecommendationL) LoadPlace(ctx context.Context, e boil.ContextExecuto
 		if foreign.R == nil {
 			foreign.R = &placeR{}
 		}
-		foreign.R.PlaceRecommendations = append(foreign.R.PlaceRecommendations, object)
+		foreign.R.PlaceRecommendation = object
 		return nil
 	}
 
@@ -540,7 +540,7 @@ func (placeRecommendationL) LoadPlace(ctx context.Context, e boil.ContextExecuto
 				if foreign.R == nil {
 					foreign.R = &placeR{}
 				}
-				foreign.R.PlaceRecommendations = append(foreign.R.PlaceRecommendations, local)
+				foreign.R.PlaceRecommendation = local
 				break
 			}
 		}
@@ -551,7 +551,7 @@ func (placeRecommendationL) LoadPlace(ctx context.Context, e boil.ContextExecuto
 
 // SetPlace of the placeRecommendation to the related item.
 // Sets o.R.Place to related.
-// Adds o to related.R.PlaceRecommendations.
+// Adds o to related.R.PlaceRecommendation.
 func (o *PlaceRecommendation) SetPlace(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Place) error {
 	var err error
 	if insert {
@@ -587,10 +587,10 @@ func (o *PlaceRecommendation) SetPlace(ctx context.Context, exec boil.ContextExe
 
 	if related.R == nil {
 		related.R = &placeR{
-			PlaceRecommendations: PlaceRecommendationSlice{o},
+			PlaceRecommendation: o,
 		}
 	} else {
-		related.R.PlaceRecommendations = append(related.R.PlaceRecommendations, o)
+		related.R.PlaceRecommendation = o
 	}
 
 	return nil
@@ -878,6 +878,7 @@ func (o PlaceRecommendationSlice) UpdateAll(ctx context.Context, exec boil.Conte
 
 var mySQLPlaceRecommendationUniqueColumns = []string{
 	"id",
+	"place_id",
 }
 
 // Upsert attempts an insert using an executor, and does an update or ignore on conflict.

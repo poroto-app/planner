@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS place_recommendations
     sort_order INT      NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (place_id) REFERENCES places (id)
+    FOREIGN KEY (place_id) REFERENCES places (id),
+    UNIQUE KEY place_id (place_id)
 );
 -- +goose StatementEnd
 
