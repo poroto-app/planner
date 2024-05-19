@@ -75,6 +75,7 @@ var PlaceWhere = struct {
 var PlaceRels = struct {
 	GooglePlaces                   string
 	PlacePhotos                    string
+	PlaceRecommendations           string
 	PlanCandidatePlaces            string
 	PlanCandidateSetLikePlaces     string
 	PlanCandidateSetSearchedPlaces string
@@ -83,6 +84,7 @@ var PlaceRels = struct {
 }{
 	GooglePlaces:                   "GooglePlaces",
 	PlacePhotos:                    "PlacePhotos",
+	PlaceRecommendations:           "PlaceRecommendations",
 	PlanCandidatePlaces:            "PlanCandidatePlaces",
 	PlanCandidateSetLikePlaces:     "PlanCandidateSetLikePlaces",
 	PlanCandidateSetSearchedPlaces: "PlanCandidateSetSearchedPlaces",
@@ -94,6 +96,7 @@ var PlaceRels = struct {
 type placeR struct {
 	GooglePlaces                   GooglePlaceSlice                   `boil:"GooglePlaces" json:"GooglePlaces" toml:"GooglePlaces" yaml:"GooglePlaces"`
 	PlacePhotos                    PlacePhotoSlice                    `boil:"PlacePhotos" json:"PlacePhotos" toml:"PlacePhotos" yaml:"PlacePhotos"`
+	PlaceRecommendations           PlaceRecommendationSlice           `boil:"PlaceRecommendations" json:"PlaceRecommendations" toml:"PlaceRecommendations" yaml:"PlaceRecommendations"`
 	PlanCandidatePlaces            PlanCandidatePlaceSlice            `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
 	PlanCandidateSetLikePlaces     PlanCandidateSetLikePlaceSlice     `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
 	PlanCandidateSetSearchedPlaces PlanCandidateSetSearchedPlaceSlice `boil:"PlanCandidateSetSearchedPlaces" json:"PlanCandidateSetSearchedPlaces" toml:"PlanCandidateSetSearchedPlaces" yaml:"PlanCandidateSetSearchedPlaces"`
@@ -118,6 +121,13 @@ func (r *placeR) GetPlacePhotos() PlacePhotoSlice {
 		return nil
 	}
 	return r.PlacePhotos
+}
+
+func (r *placeR) GetPlaceRecommendations() PlaceRecommendationSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlaceRecommendations
 }
 
 func (r *placeR) GetPlanCandidatePlaces() PlanCandidatePlaceSlice {
@@ -499,6 +509,20 @@ func (o *Place) PlacePhotos(mods ...qm.QueryMod) placePhotoQuery {
 	return PlacePhotos(queryMods...)
 }
 
+// PlaceRecommendations retrieves all the place_recommendation's PlaceRecommendations with an executor.
+func (o *Place) PlaceRecommendations(mods ...qm.QueryMod) placeRecommendationQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`place_recommendations`.`place_id`=?", o.ID),
+	)
+
+	return PlaceRecommendations(queryMods...)
+}
+
 // PlanCandidatePlaces retrieves all the plan_candidate_place's PlanCandidatePlaces with an executor.
 func (o *Place) PlanCandidatePlaces(mods ...qm.QueryMod) planCandidatePlaceQuery {
 	var queryMods []qm.QueryMod
@@ -785,6 +809,119 @@ func (placeL) LoadPlacePhotos(ctx context.Context, e boil.ContextExecutor, singu
 				local.R.PlacePhotos = append(local.R.PlacePhotos, foreign)
 				if foreign.R == nil {
 					foreign.R = &placePhotoR{}
+				}
+				foreign.R.Place = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadPlaceRecommendations allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (placeL) LoadPlaceRecommendations(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`place_recommendations`),
+		qm.WhereIn(`place_recommendations.place_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load place_recommendations")
+	}
+
+	var resultSlice []*PlaceRecommendation
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice place_recommendations")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on place_recommendations")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for place_recommendations")
+	}
+
+	if len(placeRecommendationAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlaceRecommendations = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &placeRecommendationR{}
+			}
+			foreign.R.Place = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlaceID {
+				local.R.PlaceRecommendations = append(local.R.PlaceRecommendations, foreign)
+				if foreign.R == nil {
+					foreign.R = &placeRecommendationR{}
 				}
 				foreign.R.Place = local
 				break
@@ -1457,6 +1594,59 @@ func (o *Place) AddPlacePhotos(ctx context.Context, exec boil.ContextExecutor, i
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &placePhotoR{
+				Place: o,
+			}
+		} else {
+			rel.R.Place = o
+		}
+	}
+	return nil
+}
+
+// AddPlaceRecommendations adds the given related objects to the existing relationships
+// of the place, optionally inserting them as new records.
+// Appends related to o.R.PlaceRecommendations.
+// Sets related.R.Place appropriately.
+func (o *Place) AddPlaceRecommendations(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlaceRecommendation) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlaceID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `place_recommendations` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
+				strmangle.WhereClause("`", "`", 0, placeRecommendationPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlaceID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &placeR{
+			PlaceRecommendations: related,
+		}
+	} else {
+		o.R.PlaceRecommendations = append(o.R.PlaceRecommendations, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &placeRecommendationR{
 				Place: o,
 			}
 		} else {
@@ -2800,6 +2990,33 @@ func (s PlaceSlice) GetLoadedPlacePhotos() PlacePhotoSlice {
 			continue
 		}
 		result = append(result, item.R.PlacePhotos...)
+	}
+	return result
+}
+
+// LoadPlaceRecommendationsByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s PlaceSlice) LoadPlaceRecommendationsByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadPlaceRecommendationsByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlaceSlice) LoadPlaceRecommendationsByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*Place](s, pageSize) {
+		if err := chunk[0].L.LoadPlaceRecommendations(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlaceSlice) GetLoadedPlaceRecommendations() PlaceRecommendationSlice {
+	result := make(PlaceRecommendationSlice, 0, len(s)*2)
+	for _, item := range s {
+		if item.R == nil || item.R.PlaceRecommendations == nil {
+			continue
+		}
+		result = append(result, item.R.PlaceRecommendations...)
 	}
 	return result
 }
