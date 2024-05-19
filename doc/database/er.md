@@ -233,7 +233,7 @@ erDiagram
 ```
 
 ### Place Recommendation
-
+- 重複した場所がおすすめに提示されないように、`place_id` に UNIQUE 制約を付与する
 ```mermaid
 ---
 title: place_recommendation
