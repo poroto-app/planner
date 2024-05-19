@@ -57,7 +57,6 @@ func main() {
 	}
 
 	log.Printf("place name: %s", *name)
-	return
 }
 
 func fetchPlaceName(ctx context.Context, db *sql.DB, placeId string) (*string, error) {
