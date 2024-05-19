@@ -231,3 +231,19 @@ erDiagram
     user_like_places o|..|| places: "N:1"
     user_like_places o|..|| users: "N:1"
 ```
+
+### Place Recommendation
+
+```mermaid
+---
+title: place_recommendation
+---
+erDiagram
+    place_recommendations {
+        char(36) id PK
+        char(36) place_id FK
+        int sort_order
+    }
+
+    place_recommendations ||--|| places: "1:1"
+```
