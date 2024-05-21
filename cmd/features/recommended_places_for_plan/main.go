@@ -42,7 +42,7 @@ func main() {
 	// おすすめの場所として追加
 	if registerPlace != nil && *registerPlace {
 		googlePlace := place.R.GooglePlaces
-		if googlePlace == nil || len(googlePlace) == 0 {
+		if len(googlePlace) == 0 {
 			log.Fatalf("google place not found")
 		}
 
