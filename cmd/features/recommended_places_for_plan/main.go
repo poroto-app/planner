@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -19,12 +20,13 @@ func init() {
 
 func main() {
 	placeId := flag.String("place", "", "おすすめのとして追加したい場所のID")
-	registerPlace := flag.Bool("register", false, "おすすめの場所を登録する")
-	deletePlaceRecommendation := flag.Bool("delete", false, "おすすめの場所を削除する")
+	placeName := flag.String("name", "", "検索したい場所の名前")
+	flagRegisterPlace := flag.Bool("register", false, "おすすめの場所を登録する")
+	flagDeletePlaceRecommendation := flag.Bool("delete", false, "おすすめの場所を削除する")
 
 	flag.Parse()
 
-	if placeId == nil || *placeId == "" {
+	if (placeId == nil || *placeId == "") && (placeName == nil || *placeName == "") {
 		flag.PrintDefaults()
 		return
 	}
@@ -34,13 +36,25 @@ func main() {
 		log.Fatalf("error while initializing db: %v", err)
 	}
 
+	if placeName != nil && *placeName != "" {
+		places, err := searchPlace(context.Background(), db, *placeName)
+		if err != nil {
+			log.Fatalf("error while searching place: %v", err)
+		}
+		log.Printf("name: place_id")
+		for _, place := range places {
+			log.Printf("%s: %s", place.Name, place.ID)
+		}
+		return
+	}
+
 	place, err := fetchPlace(context.Background(), db, *placeId)
 	if err != nil {
 		log.Fatalf("error while fetching place: %v", err)
 	}
 
 	// おすすめの場所として追加
-	if registerPlace != nil && *registerPlace {
+	if flagRegisterPlace != nil && *flagRegisterPlace {
 		googlePlace := place.R.GooglePlaces
 		if len(googlePlace) == 0 {
 			log.Fatalf("google place not found")
@@ -61,7 +75,7 @@ func main() {
 		return
 	}
 	// おすすめの場所を削除
-	if deletePlaceRecommendation != nil && *deletePlaceRecommendation {
+	if flagDeletePlaceRecommendation != nil && *flagDeletePlaceRecommendation {
 		if err := deleteRecommendPlace(context.Background(), db, *placeId); err != nil {
 			log.Fatalf("error while deleting recommend place: %v", err)
 		}
@@ -70,6 +84,16 @@ func main() {
 	}
 
 	log.Printf("place name: %s", place.Name)
+}
+
+func searchPlace(ctx context.Context, db *sql.DB, placeName string) (generated.PlaceSlice, error) {
+	placeRecommendation, err := generated.Places(
+		generated.PlaceWhere.Name.LIKE(fmt.Sprintf("%%%s%%", placeName)),
+	).All(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	return placeRecommendation, nil
 }
 
 func fetchPlace(ctx context.Context, db *sql.DB, placeId string) (*generated.Place, error) {
