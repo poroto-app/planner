@@ -42,3 +42,8 @@ func (r *queryResolver) PlacesNearPlan(ctx context.Context, input model.PlacesNe
 		Places: graphqlPlaces,
 	}, nil
 }
+
+// PlacesRecommendation is the resolver for the placesRecommendation field.
+func (r *queryResolver) PlacesRecommendation(ctx context.Context) (*model.PlacesRecommendationOutput, error) {
+	panic(fmt.Errorf("not implemented: PlacesRecommendation - placesRecommendation"))
+}

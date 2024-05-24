@@ -237,6 +237,10 @@ type PlacesNearPlanOutput struct {
 	Places []*Place `json:"places"`
 }
 
+type PlacesRecommendationOutput struct {
+	Places []*Place `json:"places"`
+}
+
 type PlacesToAddForPlanCandidateInput struct {
 	PlanCandidateID string  `json:"planCandidateId"`
 	PlanID          string  `json:"planId"`
