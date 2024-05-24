@@ -189,6 +189,10 @@ type ComplexityRoot struct {
 		Places func(childComplexity int) int
 	}
 
+	PlacesRecommendationOutput struct {
+		Places func(childComplexity int) int
+	}
+
 	PlacesToAddForPlanCandidateOutput struct {
 		Places                  func(childComplexity int) int
 		PlacesGroupedByCategory func(childComplexity int) int
@@ -251,6 +255,7 @@ type ComplexityRoot struct {
 		LikePlaces                      func(childComplexity int, input *model.LikePlacesInput) int
 		NearbyPlaceCategories           func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
 		PlacesNearPlan                  func(childComplexity int, input model.PlacesNearPlanInput) int
+		PlacesRecommendation            func(childComplexity int) int
 		PlacesToAddForPlanCandidate     func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
 		PlacesToReplaceForPlanCandidate func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
 		Plan                            func(childComplexity int, input model.PlanInput) int
@@ -308,6 +313,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
 	PlacesNearPlan(ctx context.Context, input model.PlacesNearPlanInput) (*model.PlacesNearPlanOutput, error)
+	PlacesRecommendation(ctx context.Context) (*model.PlacesRecommendationOutput, error)
 	PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error)
 	NearbyPlaceCategories(ctx context.Context, input model.NearbyPlaceCategoriesInput) (*model.NearbyPlaceCategoryOutput, error)
 	AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error)
@@ -935,6 +941,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PlacesNearPlanOutput.Places(childComplexity), true
 
+	case "PlacesRecommendationOutput.places":
+		if e.complexity.PlacesRecommendationOutput.Places == nil {
+			break
+		}
+
+		return e.complexity.PlacesRecommendationOutput.Places(childComplexity), true
+
 	case "PlacesToAddForPlanCandidateOutput.places":
 		if e.complexity.PlacesToAddForPlanCandidateOutput.Places == nil {
 			break
@@ -1176,6 +1189,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.PlacesNearPlan(childComplexity, args["input"].(model.PlacesNearPlanInput)), true
+
+	case "Query.placesRecommendation":
+		if e.complexity.Query.PlacesRecommendation == nil {
+			break
+		}
+
+		return e.complexity.Query.PlacesRecommendation(childComplexity), true
 
 	case "Query.placesToAddForPlanCandidate":
 		if e.complexity.Query.PlacesToAddForPlanCandidate == nil {
@@ -1500,6 +1520,8 @@ type Image {
 `, BuiltIn: false},
 	{Name: "../schema/place_query.graphqls", Input: `extend type Query {
     placesNearPlan(input: PlacesNearPlanInput!): PlacesNearPlanOutput!
+
+    placesRecommendation: PlacesRecommendationOutput!
 }
 
 input PlacesNearPlanInput {
@@ -1509,7 +1531,12 @@ input PlacesNearPlanInput {
 
 type PlacesNearPlanOutput {
     places: [Place!]!
-}`, BuiltIn: false},
+}
+
+type PlacesRecommendationOutput {
+    places: [Place!]!
+}
+`, BuiltIn: false},
 	{Name: "../schema/place_type.graphqls", Input: `type Place {
     id: String!
     googlePlaceId: String!
@@ -6241,6 +6268,74 @@ func (ec *executionContext) fieldContext_PlacesNearPlanOutput_places(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _PlacesRecommendationOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.PlacesRecommendationOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlacesRecommendationOutput_places(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Places, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Place)
+	fc.Result = res
+	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PlacesRecommendationOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PlacesRecommendationOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Place_id(ctx, field)
+			case "googlePlaceId":
+				return ec.fieldContext_Place_googlePlaceId(ctx, field)
+			case "name":
+				return ec.fieldContext_Place_name(ctx, field)
+			case "location":
+				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
+			case "images":
+				return ec.fieldContext_Place_images(ctx, field)
+			case "estimatedStayDuration":
+				return ec.fieldContext_Place_estimatedStayDuration(ctx, field)
+			case "googleReviews":
+				return ec.fieldContext_Place_googleReviews(ctx, field)
+			case "categories":
+				return ec.fieldContext_Place_categories(ctx, field)
+			case "priceRange":
+				return ec.fieldContext_Place_priceRange(ctx, field)
+			case "likeCount":
+				return ec.fieldContext_Place_likeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Place", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlacesToAddForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.PlacesToAddForPlanCandidateOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlacesToAddForPlanCandidateOutput_places(ctx, field)
 	if err != nil {
@@ -7674,6 +7769,54 @@ func (ec *executionContext) fieldContext_Query_placesNearPlan(ctx context.Contex
 	if fc.Args, err = ec.field_Query_placesNearPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_placesRecommendation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_placesRecommendation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PlacesRecommendation(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PlacesRecommendationOutput)
+	fc.Result = res
+	return ec.marshalNPlacesRecommendationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesRecommendationOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_placesRecommendation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "places":
+				return ec.fieldContext_PlacesRecommendationOutput_places(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PlacesRecommendationOutput", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -9133,6 +9276,8 @@ func (ec *executionContext) fieldContext_User_likedPlaces(ctx context.Context, f
 				return ec.fieldContext_Place_name(ctx, field)
 			case "location":
 				return ec.fieldContext_Place_location(ctx, field)
+			case "address":
+				return ec.fieldContext_Place_address(ctx, field)
 			case "images":
 				return ec.fieldContext_Place_images(ctx, field)
 			case "estimatedStayDuration":
@@ -13351,6 +13496,45 @@ func (ec *executionContext) _PlacesNearPlanOutput(ctx context.Context, sel ast.S
 	return out
 }
 
+var placesRecommendationOutputImplementors = []string{"PlacesRecommendationOutput"}
+
+func (ec *executionContext) _PlacesRecommendationOutput(ctx context.Context, sel ast.SelectionSet, obj *model.PlacesRecommendationOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, placesRecommendationOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PlacesRecommendationOutput")
+		case "places":
+			out.Values[i] = ec._PlacesRecommendationOutput_places(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var placesToAddForPlanCandidateOutputImplementors = []string{"PlacesToAddForPlanCandidateOutput"}
 
 func (ec *executionContext) _PlacesToAddForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, obj *model.PlacesToAddForPlanCandidateOutput) graphql.Marshaler {
@@ -13854,6 +14038,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_placesNearPlan(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "placesRecommendation":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_placesRecommendation(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -15385,6 +15591,20 @@ func (ec *executionContext) marshalNPlacesNearPlanOutput2ᚖporotoᚗappᚋporot
 		return graphql.Null
 	}
 	return ec._PlacesNearPlanOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPlacesRecommendationOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesRecommendationOutput(ctx context.Context, sel ast.SelectionSet, v model.PlacesRecommendationOutput) graphql.Marshaler {
+	return ec._PlacesRecommendationOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPlacesRecommendationOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesRecommendationOutput(ctx context.Context, sel ast.SelectionSet, v *model.PlacesRecommendationOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PlacesRecommendationOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPlacesToAddForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlacesToAddForPlanCandidateInput(ctx context.Context, v interface{}) (model.PlacesToAddForPlanCandidateInput, error) {
