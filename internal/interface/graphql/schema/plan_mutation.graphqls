@@ -3,7 +3,7 @@ extend type Mutation {
 
     likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 
-    updatePlanCollageImage(input: UpdatePlanCollageImage!): UpdatePlanCollageImageOutput!
+    updatePlanCollageImage(input: UpdatePlanCollageImageInput!): UpdatePlanCollageImageOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
@@ -31,7 +31,7 @@ type LikeToPlaceInPlanOutput {
     likedPlaceIds: [String!]!
 }
 
-input UpdatePlanCollageImage {
+input UpdatePlanCollageImageInput {
     planId: String!
     userId: String!
     firebaseAuthToken: String!

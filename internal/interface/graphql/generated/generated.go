@@ -152,7 +152,7 @@ type ComplexityRoot struct {
 		Ping                              func(childComplexity int, message string) int
 		ReplacePlaceOfPlanCandidate       func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate             func(childComplexity int, input model.SavePlanFromCandidateInput) int
-		UpdatePlanCollageImage            func(childComplexity int, input model.UpdatePlanCollageImage) int
+		UpdatePlanCollageImage            func(childComplexity int, input model.UpdatePlanCollageImageInput) int
 		UploadPlacePhotoInPlan            func(childComplexity int, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) int
 	}
 
@@ -319,7 +319,7 @@ type MutationResolver interface {
 	LikeToPlaceInPlanCandidate(ctx context.Context, input model.LikeToPlaceInPlanCandidateInput) (*model.LikeToPlaceInPlanCandidateOutput, error)
 	UploadPlacePhotoInPlan(ctx context.Context, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error)
 	LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error)
-	UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImage) (*model.UpdatePlanCollageImageOutput, error)
+	UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImageInput) (*model.UpdatePlanCollageImageOutput, error)
 	BindPlanCandidateSetToUser(ctx context.Context, input model.BindPlanCandidateSetToUserInput) (*model.BindPlanCandidateSetToUserOutput, error)
 }
 type PlanResolver interface {
@@ -813,7 +813,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdatePlanCollageImage(childComplexity, args["input"].(model.UpdatePlanCollageImage)), true
+		return e.complexity.Mutation.UpdatePlanCollageImage(childComplexity, args["input"].(model.UpdatePlanCollageImageInput)), true
 
 	case "Mutation.uploadPlacePhotoInPlan":
 		if e.complexity.Mutation.UploadPlacePhotoInPlan == nil {
@@ -1452,7 +1452,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPlansInput,
 		ec.unmarshalInputReplacePlaceOfPlanCandidateInput,
 		ec.unmarshalInputSavePlanFromCandidateInput,
-		ec.unmarshalInputUpdatePlanCollageImage,
+		ec.unmarshalInputUpdatePlanCollageImageInput,
 		ec.unmarshalInputUploadPlacePhotoInPlanInput,
 	)
 	first := true
@@ -1857,7 +1857,7 @@ type PlacesToReplaceForPlanCandidateOutput {
 
     likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
 
-    updatePlanCollageImage(input: UpdatePlanCollageImage!): UpdatePlanCollageImageOutput!
+    updatePlanCollageImage(input: UpdatePlanCollageImageInput!): UpdatePlanCollageImageOutput!
 }
 
 input UploadPlacePhotoInPlanInput {
@@ -1885,7 +1885,7 @@ type LikeToPlaceInPlanOutput {
     likedPlaceIds: [String!]!
 }
 
-input UpdatePlanCollageImage {
+input UpdatePlanCollageImageInput {
     planId: String!
     userId: String!
     firebaseAuthToken: String!
@@ -2237,10 +2237,10 @@ func (ec *executionContext) field_Mutation_savePlanFromCandidate_args(ctx contex
 func (ec *executionContext) field_Mutation_updatePlanCollageImage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.UpdatePlanCollageImage
+	var arg0 model.UpdatePlanCollageImageInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdatePlanCollageImage2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdatePlanCollageImage(ctx, tmp)
+		arg0, err = ec.unmarshalNUpdatePlanCollageImageInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdatePlanCollageImageInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5336,7 +5336,7 @@ func (ec *executionContext) _Mutation_updatePlanCollageImage(ctx context.Context
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdatePlanCollageImage(rctx, fc.Args["input"].(model.UpdatePlanCollageImage))
+		return ec.resolvers.Mutation().UpdatePlanCollageImage(rctx, fc.Args["input"].(model.UpdatePlanCollageImageInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12589,8 +12589,8 @@ func (ec *executionContext) unmarshalInputSavePlanFromCandidateInput(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdatePlanCollageImage(ctx context.Context, obj interface{}) (model.UpdatePlanCollageImage, error) {
-	var it model.UpdatePlanCollageImage
+func (ec *executionContext) unmarshalInputUpdatePlanCollageImageInput(ctx context.Context, obj interface{}) (model.UpdatePlanCollageImageInput, error) {
+	var it model.UpdatePlanCollageImageInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -16475,8 +16475,8 @@ func (ec *executionContext) marshalNTransition2ᚖporotoᚗappᚋporotoᚋplanne
 	return ec._Transition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUpdatePlanCollageImage2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdatePlanCollageImage(ctx context.Context, v interface{}) (model.UpdatePlanCollageImage, error) {
-	res, err := ec.unmarshalInputUpdatePlanCollageImage(ctx, v)
+func (ec *executionContext) unmarshalNUpdatePlanCollageImageInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdatePlanCollageImageInput(ctx context.Context, v interface{}) (model.UpdatePlanCollageImageInput, error) {
+	res, err := ec.unmarshalInputUpdatePlanCollageImageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
