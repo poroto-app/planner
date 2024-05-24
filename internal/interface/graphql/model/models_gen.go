@@ -369,6 +369,18 @@ type Transition struct {
 	Duration int    `json:"duration"`
 }
 
+type UpdatePlanCollageImage struct {
+	PlanID            string `json:"planId"`
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+	PlaceID           string `json:"placeId"`
+	ImageURL          string `json:"imageUrl"`
+}
+
+type UpdatePlanCollageImageOutput struct {
+	Plan *Plan `json:"plan"`
+}
+
 type UploadPlacePhotoInPlanInput struct {
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
