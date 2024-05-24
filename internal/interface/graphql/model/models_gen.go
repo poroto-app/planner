@@ -267,6 +267,7 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	Author        *User         `json:"author,omitempty"`
+	Collage       *PlanCollage  `json:"collage"`
 }
 
 type PlanCandidate struct {
@@ -284,6 +285,15 @@ type PlanCandidateInput struct {
 
 type PlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
+}
+
+type PlanCollage struct {
+	Images []*PlanCollageImages `json:"images"`
+}
+
+type PlanCollageImages struct {
+	PlaceID string `json:"placeId"`
+	Image   *Image `json:"image,omitempty"`
 }
 
 type PlanInput struct {

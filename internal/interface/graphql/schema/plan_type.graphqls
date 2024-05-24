@@ -6,6 +6,16 @@ type Plan {
     description: String
     transitions: [Transition!]!
     author: User
+    collage: PlanCollage!
+}
+
+type PlanCollage {
+    images: [PlanCollageImages!]!
+}
+
+type PlanCollageImages {
+    placeId: String!
+    image: Image
 }
 
 type Transition {
