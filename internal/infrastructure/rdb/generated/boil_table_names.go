@@ -20,6 +20,8 @@ var TableNames = struct {
 	PlanCandidateSetSearchedPlaces     string
 	PlanCandidateSets                  string
 	PlanCandidates                     string
+	PlanCollagePhotos                  string
+	PlanCollages                       string
 	PlanPlaces                         string
 	Plans                              string
 	UserLikePlaces                     string
@@ -41,6 +43,8 @@ var TableNames = struct {
 	PlanCandidateSetSearchedPlaces:     "plan_candidate_set_searched_places",
 	PlanCandidateSets:                  "plan_candidate_sets",
 	PlanCandidates:                     "plan_candidates",
+	PlanCollagePhotos:                  "plan_collage_photos",
+	PlanCollages:                       "plan_collages",
 	PlanPlaces:                         "plan_places",
 	Plans:                              "plans",
 	UserLikePlaces:                     "user_like_places",
