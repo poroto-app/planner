@@ -1,5 +1,7 @@
 extend type Query {
     placesNearPlan(input: PlacesNearPlanInput!): PlacesNearPlanOutput!
+
+    placesRecommendation: PlacesRecommendationOutput!
 }
 
 input PlacesNearPlanInput {
@@ -8,5 +10,9 @@ input PlacesNearPlanInput {
 }
 
 type PlacesNearPlanOutput {
+    places: [Place!]!
+}
+
+type PlacesRecommendationOutput {
     places: [Place!]!
 }

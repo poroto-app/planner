@@ -473,6 +473,75 @@ func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId stri
 	return &places, nil
 }
 
+func (p PlaceRepository) FindRecommendPlacesForCreatePlan(ctx context.Context) (*[]models.Place, error) {
+	placesRecommended, err := generated.PlaceRecommendations(
+		concatQueryMod(
+			[]qm.QueryMod{
+				qm.OrderBy(generated.PlaceRecommendationColumns.SortOrder),
+			},
+			placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place))...,
+	).All(ctx, p.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find place recommendations: %w", err)
+	}
+
+	placeLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(placesRecommended, func(placeRecommendation *generated.PlaceRecommendation) (string, bool) {
+		if placeRecommendation == nil {
+			return "", false
+		}
+		return placeRecommendation.PlaceID, true
+	})...)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	places := make([]models.Place, 0, len(placesRecommended))
+	for _, placeRecommendation := range placesRecommended {
+		if placeRecommendation == nil {
+			continue
+		}
+
+		if placeRecommendation.R == nil {
+			panic("placeRecommendation.R is nil")
+		}
+
+		if placeRecommendation.R.Place == nil {
+			p.logger.Warn("placeRecommendation.R.Place is nil", zap.String("place_recommendation_id", placeRecommendation.ID))
+			continue
+		}
+
+		if placeRecommendation.R.Place.R == nil {
+			panic("placeRecommendation.R.Place.R is nil")
+		}
+
+		if len(placeRecommendation.R.Place.R.GooglePlaces) == 0 {
+			p.logger.Warn("placeRecommendation.R.Place.R.GooglePlaces is empty", zap.String("place_recommendation_id", placeRecommendation.ID))
+			continue
+		}
+
+		place, err := factory.NewPlaceFromEntity(
+			*placeRecommendation.R.Place,
+			placeRecommendation.R.Place.R.PlacePhotos,
+			*placeRecommendation.R.Place.R.GooglePlaces[0],
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
+			placeRecommendation.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+			entities.CountLikeOfPlace(placeLikeCounts, placeRecommendation.PlaceID),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
+		}
+
+		places = append(places, *place)
+	}
+
+	return &places, nil
+}
+
 func (p PlaceRepository) SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		googlePlaceEntity, err := generated.GooglePlaces(
