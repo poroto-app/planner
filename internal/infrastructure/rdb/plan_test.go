@@ -980,3 +980,280 @@ func TestPlanRepository_UpdatePlanAuthorUserByPlanCandidateSet(t *testing.T) {
 		})
 	}
 }
+
+func TestPlanRepository_FindCollage(t *testing.T) {
+	cases := []struct {
+		name                   string
+		savedUsers             generated.UserSlice
+		savedPlaces            generated.PlaceSlice
+		savedPlacePhotos       generated.PlacePhotoSlice
+		savedPlan              models.Plan
+		savedPlanCollages      generated.PlanCollageSlice
+		savedPlanCollagePhotos generated.PlanCollagePhotoSlice
+		planId                 string
+		expected               *models.PlanCollage
+	}{
+		{
+			name: "should find plan collage",
+			savedUsers: generated.UserSlice{
+				{ID: "8fde8eff-4b18-4276-b71f-2fec30ea65c8"},
+			},
+			savedPlaces: generated.PlaceSlice{
+				{ID: "f2c98d68-3904-455b-8832-a0f723a96735"},
+				{ID: "c61a8b42-2c07-4957-913d-6930f0d881ec"},
+			},
+			savedPlacePhotos: generated.PlacePhotoSlice{
+				{
+					ID:       "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+					PlaceID:  "f2c98d68-3904-455b-8832-a0f723a96735",
+					PhotoURL: "https://example.com/image1.jpg",
+					UserID:   "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+				},
+				{
+					ID:       "a0abac6e-74ac-4959-8919-bdcf120a387d",
+					PlaceID:  "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					PhotoURL: "https://example.com/image2.jpg",
+					UserID:   "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+				},
+			},
+			savedPlan: models.Plan{
+				Id: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+				Places: []models.Place{
+					{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
+					{Id: "c61a8b42-2c07-4957-913d-6930f0d881ec"},
+				},
+			},
+			savedPlanCollages: generated.PlanCollageSlice{
+				{
+					ID:     "684930c8-c7e9-471d-bd26-2fee7d3c2d7d",
+					PlanID: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+				},
+			},
+			savedPlanCollagePhotos: generated.PlanCollagePhotoSlice{
+				{
+					ID:            "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+					PlanCollageID: "684930c8-c7e9-471d-bd26-2fee7d3c2d7d",
+					PlaceID:       "f2c98d68-3904-455b-8832-a0f723a96735",
+					PlacePhotoID:  "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+				},
+				{
+					ID:            "a0abac6e-74ac-4959-8919-bdcf120a387d",
+					PlanCollageID: "684930c8-c7e9-471d-bd26-2fee7d3c2d7d",
+					PlaceID:       "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					PlacePhotoID:  "a0abac6e-74ac-4959-8919-bdcf120a387d",
+				},
+			},
+			planId: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			expected: &models.PlanCollage{
+				Images: []models.PlanCollageImage{
+					{
+						PlaceId:  "f2c98d68-3904-455b-8832-a0f723a96735",
+						ImageUrl: "https://example.com/image1.jpg",
+					},
+					{
+						PlaceId:  "c61a8b42-2c07-4957-913d-6930f0d881ec",
+						ImageUrl: "https://example.com/image2.jpg",
+					},
+				},
+			},
+		},
+		{
+			name: "should not find plan collage",
+			savedPlan: models.Plan{
+				Id: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			},
+			planId:   "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			expected: nil,
+		},
+	}
+
+	planRepository, err := NewPlanRepository(testDB)
+	if err != nil {
+		t.Errorf("error initializing plan repository: %v", err)
+	}
+
+	for _, c := range cases {
+		c := c
+		textContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				if err := cleanup(textContext, planRepository.GetDB()); err != nil {
+					t.Errorf("error cleaning up: %v", err)
+				}
+			})
+
+			// 事前に保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
+			if _, err := c.savedPlaces.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving places: %v", err)
+			}
+
+			if _, err := c.savedPlacePhotos.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving place photos: %v", err)
+			}
+
+			if err := savePlans(textContext, planRepository.GetDB(), []models.Plan{c.savedPlan}); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			if _, err := c.savedPlanCollages.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan collages: %v", err)
+			}
+
+			if _, err := c.savedPlanCollagePhotos.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan collage photos: %v", err)
+			}
+
+			planCollage, err := planRepository.FindCollage(textContext, c.planId)
+			if err != nil {
+				t.Errorf("error finding plan collage: %v", err)
+			}
+
+			if diff := cmp.Diff(
+				c.expected,
+				planCollage,
+				cmpopts.SortSlices(func(a, b models.PlanCollageImage) bool { return a.PlaceId < b.PlaceId }),
+			); diff != "" {
+				t.Errorf("plan collage mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPlanRepository_UpdateCollageImage(t *testing.T) {
+	var cases = []struct {
+		name                   string
+		savedUsers             generated.UserSlice
+		savedPlaces            generated.PlaceSlice
+		savedPlacePhotos       generated.PlacePhotoSlice
+		savedPlan              models.Plan
+		savedPlanCollages      generated.PlanCollageSlice
+		savedPlanCollagePhotos generated.PlanCollagePhotoSlice
+		planId                 string
+		placeId                string
+		placePhotoId           string
+	}{
+		{
+			name: "should update plan collage image",
+			savedUsers: generated.UserSlice{
+				{ID: "8fde8eff-4b18-4276-b71f-2fec30ea65c8"},
+			},
+			savedPlaces: generated.PlaceSlice{
+				{ID: "f2c98d68-3904-455b-8832-a0f723a96735"},
+			},
+			savedPlacePhotos: generated.PlacePhotoSlice{
+				{
+					ID:       "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+					PlaceID:  "f2c98d68-3904-455b-8832-a0f723a96735",
+					PhotoURL: "https://example.com/image1.jpg",
+					UserID:   "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+				},
+				{
+					ID:       "a0abac6e-74ac-4959-8919-bdcf120a387d",
+					PlaceID:  "f2c98d68-3904-455b-8832-a0f723a96735",
+					PhotoURL: "https://example.com/image2.jpg",
+					UserID:   "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+				},
+			},
+			savedPlan: models.Plan{
+				Id: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+				Places: []models.Place{
+					{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
+				},
+			},
+			savedPlanCollages: generated.PlanCollageSlice{
+				{
+					ID:     "684930c8-c7e9-471d-bd26-2fee7d3c2d7d",
+					PlanID: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+				},
+			},
+			savedPlanCollagePhotos: generated.PlanCollagePhotoSlice{
+				{
+					ID:            "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+					PlanCollageID: "684930c8-c7e9-471d-bd26-2fee7d3c2d7d",
+					PlaceID:       "f2c98d68-3904-455b-8832-a0f723a96735",
+					PlacePhotoID:  "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+				},
+			},
+			planId:       "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			placeId:      "f2c98d68-3904-455b-8832-a0f723a96735",
+			placePhotoId: "a0abac6e-74ac-4959-8919-bdcf120a387d",
+		},
+		{
+			name: "should create plan collage image if not exists",
+			savedUsers: generated.UserSlice{
+				{ID: "8fde8eff-4b18-4276-b71f-2fec30ea65c8"},
+			},
+			savedPlaces: generated.PlaceSlice{
+				{ID: "f2c98d68-3904-455b-8832-a0f723a96735"},
+			},
+			savedPlacePhotos: generated.PlacePhotoSlice{
+				{
+					ID:       "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+					PlaceID:  "f2c98d68-3904-455b-8832-a0f723a96735",
+					PhotoURL: "https://example.com/image1.jpg",
+					UserID:   "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+				},
+			},
+			savedPlan: models.Plan{
+				Id: "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+				Places: []models.Place{
+					{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
+				},
+			},
+			planId:       "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			placeId:      "f2c98d68-3904-455b-8832-a0f723a96735",
+			placePhotoId: "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+		},
+	}
+
+	planRepository, err := NewPlanRepository(testDB)
+	if err != nil {
+		t.Errorf("error initializing plan repository: %v", err)
+	}
+
+	for _, c := range cases {
+		c := c
+		textContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				if err := cleanup(textContext, planRepository.GetDB()); err != nil {
+					t.Errorf("error cleaning up: %v", err)
+				}
+			})
+
+			// 事前に保存
+			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user: %v", err)
+			}
+
+			if _, err := c.savedPlaces.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving places: %v", err)
+			}
+
+			if _, err := c.savedPlacePhotos.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving place photos: %v", err)
+			}
+
+			if err := savePlans(textContext, planRepository.GetDB(), []models.Plan{c.savedPlan}); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			if _, err := c.savedPlanCollages.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan collages: %v", err)
+			}
+
+			if _, err := c.savedPlanCollagePhotos.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan collage photos: %v", err)
+			}
+
+			err := planRepository.UpdateCollageImage(textContext, c.planId, c.placeId, c.placePhotoId)
+			if err != nil {
+				t.Errorf("error updating plan collage image: %v", err)
+			}
+		})
+	}
+}

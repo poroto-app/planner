@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/friendsofgo/errors"
+	"github.com/google/uuid"
 	"strconv"
 	"time"
 
@@ -475,6 +477,90 @@ func (p PlanRepository) UpdatePlanAuthorUserByPlanCandidateSet(ctx context.Conte
 		return fmt.Errorf("failed to run transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (p PlanRepository) FindCollage(ctx context.Context, planId string) (*models.PlanCollage, error) {
+	planCollageEntity, err := generated.PlanCollages(
+		generated.PlanCollageWhere.PlanID.EQ(planId),
+		qm.Load(generated.PlanCollageRels.PlanCollagePhotos),
+		qm.Load(generated.PlanCollageRels.PlanCollagePhotos+"."+generated.PlanCollagePhotoRels.PlacePhoto),
+	).One(ctx, p.db)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("failed to find plan collage: %w", err)
+		}
+	}
+
+	if planCollageEntity == nil {
+		return nil, nil
+	}
+
+	var images []models.PlanCollageImage
+	for _, planCollagePhotoEntity := range planCollageEntity.R.PlanCollagePhotos {
+		if planCollagePhotoEntity == nil {
+			continue
+		}
+
+		if planCollageEntity.R.PlanCollagePhotos == nil || len(planCollageEntity.R.PlanCollagePhotos) == 0 {
+			continue
+		}
+
+		images = append(images, models.PlanCollageImage{
+			PlaceId:  planCollagePhotoEntity.PlaceID,
+			ImageUrl: planCollagePhotoEntity.R.PlacePhoto.PhotoURL,
+		})
+	}
+	return &models.PlanCollage{
+		Images: images,
+	}, nil
+}
+
+func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoId string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCollageEntity, err := generated.PlanCollages(
+			generated.PlanCollageWhere.PlanID.EQ(planId),
+		).One(ctx, tx)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("failed to find plan collage: %w", err)
+			}
+		}
+
+		// まだ、コラージュが作成されていない場合は作成
+		if planCollageEntity == nil {
+			planCollageEntity = &generated.PlanCollage{
+				ID:     uuid.New().String(),
+				PlanID: planId,
+			}
+			if err := planCollageEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan collage: %w", err)
+			}
+		}
+
+		// すでに登録されている場合は削除
+		if _, err := generated.PlanCollagePhotos(
+			generated.PlanCollagePhotoWhere.PlanCollageID.EQ(planCollageEntity.ID),
+			generated.PlanCollagePhotoWhere.PlaceID.EQ(placeId),
+		).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan collage photo: %w", err)
+		}
+
+		planCollagePhotoEntity := &generated.PlanCollagePhoto{
+			ID:            uuid.New().String(),
+			PlanCollageID: planCollageEntity.ID,
+			PlaceID:       placeId,
+			PlacePhotoID:  placePhotoId,
+		}
+
+		if err := planCollagePhotoEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan collage photo: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
 	return nil
 }
 

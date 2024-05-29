@@ -22,4 +22,8 @@ type PlanRepository interface {
 
 	// UpdatePlanAuthorUserByPlanCandidateSet プラン候補に紐づくプランの作者をユーザーに紐づける
 	UpdatePlanAuthorUserByPlanCandidateSet(ctx context.Context, userId string, planCandidateSetIds []string) error
+
+	FindCollage(ctx context.Context, planId string) (*models.PlanCollage, error)
+
+	UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoId string) error
 }
