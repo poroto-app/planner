@@ -516,7 +516,7 @@ func (p PlanRepository) FindCollage(ctx context.Context, planId string) (*models
 	}, nil
 }
 
-func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoId string) error {
+func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoUrl string) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planCollageEntity, err := generated.PlanCollages(
 			generated.PlanCollageWhere.PlanID.EQ(planId),
@@ -538,6 +538,17 @@ func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, p
 			}
 		}
 
+		placePhotoEntity, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.PlaceID.EQ(placeId),
+			generated.PlacePhotoWhere.PhotoURL.EQ(placePhotoUrl),
+		).One(ctx, tx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("place photo should be saved before updating plan collage: %w", err)
+			}
+			return fmt.Errorf("failed to find place photo: %w", err)
+		}
+
 		// すでに登録されている場合は削除
 		if _, err := generated.PlanCollagePhotos(
 			generated.PlanCollagePhotoWhere.PlanCollageID.EQ(planCollageEntity.ID),
@@ -550,7 +561,7 @@ func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, p
 			ID:            uuid.New().String(),
 			PlanCollageID: planCollageEntity.ID,
 			PlaceID:       placeId,
-			PlacePhotoID:  placePhotoId,
+			PlacePhotoID:  placePhotoEntity.ID,
 		}
 
 		if err := planCollagePhotoEntity.Insert(ctx, tx, boil.Infer()); err != nil {

@@ -25,5 +25,5 @@ type PlanRepository interface {
 
 	FindCollage(ctx context.Context, planId string) (*models.PlanCollage, error)
 
-	UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoId string) error
+	UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoUrl string) error
 }

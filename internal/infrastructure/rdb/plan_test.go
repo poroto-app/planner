@@ -1134,7 +1134,7 @@ func TestPlanRepository_UpdateCollageImage(t *testing.T) {
 		savedPlanCollagePhotos generated.PlanCollagePhotoSlice
 		planId                 string
 		placeId                string
-		placePhotoId           string
+		placePhotoUrl          string
 	}{
 		{
 			name: "should update plan collage image",
@@ -1178,9 +1178,9 @@ func TestPlanRepository_UpdateCollageImage(t *testing.T) {
 					PlacePhotoID:  "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
 				},
 			},
-			planId:       "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
-			placeId:      "f2c98d68-3904-455b-8832-a0f723a96735",
-			placePhotoId: "a0abac6e-74ac-4959-8919-bdcf120a387d",
+			planId:        "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			placeId:       "f2c98d68-3904-455b-8832-a0f723a96735",
+			placePhotoUrl: "https://example.com/image2.jpg",
 		},
 		{
 			name: "should create plan collage image if not exists",
@@ -1204,9 +1204,9 @@ func TestPlanRepository_UpdateCollageImage(t *testing.T) {
 					{Id: "f2c98d68-3904-455b-8832-a0f723a96735"},
 				},
 			},
-			planId:       "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
-			placeId:      "f2c98d68-3904-455b-8832-a0f723a96735",
-			placePhotoId: "c46387bd-a712-48f9-bf8b-8ef696e4ec5a",
+			planId:        "4a7f0508-6be2-4571-9b36-aea8e93d4f03",
+			placeId:       "f2c98d68-3904-455b-8832-a0f723a96735",
+			placePhotoUrl: "https://example.com/image1.jpg",
 		},
 	}
 
@@ -1250,7 +1250,7 @@ func TestPlanRepository_UpdateCollageImage(t *testing.T) {
 				t.Errorf("error saving plan collage photos: %v", err)
 			}
 
-			err := planRepository.UpdateCollageImage(textContext, c.planId, c.placeId, c.placePhotoId)
+			err := planRepository.UpdateCollageImage(textContext, c.planId, c.placeId, c.placePhotoUrl)
 			if err != nil {
 				t.Errorf("error updating plan collage image: %v", err)
 			}
