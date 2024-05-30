@@ -39,7 +39,7 @@ func (s Service) UpdatePlanCollageImage(ctx context.Context, input UpdatePlanCol
 	}
 
 	// プランの作者のみがプランの画像を更新できる
-	if plan.Author != nil || plan.Author.Id != input.UserId {
+	if plan.Author == nil || plan.Author.Id != input.UserId {
 		return nil, fmt.Errorf("user is not author of the plan")
 	}
 
