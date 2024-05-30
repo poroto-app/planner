@@ -7,6 +7,8 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
@@ -14,7 +16,14 @@ import (
 
 // Collage is the resolver for the collage field.
 func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error) {
-	panic(fmt.Errorf("not implemented: Collage - collage"))
+	planCollage, err := r.PlanService.FetchPlanCollage(ctx, plan.FetchPlanCollageInput{
+		PlanId: obj.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan collage: %v", err)
+	}
+
+	return factory.PlanCollageFromDomainModel(planCollage), nil
 }
 
 // Plan returns generated.PlanResolver implementation.
