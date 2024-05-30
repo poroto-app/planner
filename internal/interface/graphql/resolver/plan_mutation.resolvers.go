@@ -17,6 +17,11 @@ import (
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
+// CreatePlanFromSavedPlan is the resolver for the createPlanFromSavedPlan field.
+func (r *mutationResolver) CreatePlanFromSavedPlan(ctx context.Context, input model.CreatePlanFromSavedPlanInput) (*model.CreatePlanFromSavedPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: CreatePlanFromSavedPlan - createPlanFromSavedPlan"))
+}
+
 // UploadPlacePhotoInPlan is the resolver for the uploadPlacePhotoInPlan field.
 func (r *mutationResolver) UploadPlacePhotoInPlan(ctx context.Context, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) (*model.UploadPlacePhotoInPlanOutput, error) {
 	var uploadPlacePhotoInPlanInputs []place.UploadPlacePhotoInPlanInput

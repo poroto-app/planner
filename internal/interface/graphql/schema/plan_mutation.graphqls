@@ -1,6 +1,19 @@
 extend type Mutation {
+    # 保存されたプランをベースに新しいプランを作成する
+    createPlanFromSavedPlan(input: CreatePlanFromSavedPlanInput!): CreatePlanFromSavedPlanOutput!
+
     uploadPlacePhotoInPlan(planId: String!, userId: String!, firebaseAuthToken: String!, inputs: [UploadPlacePhotoInPlanInput!]!): UploadPlacePhotoInPlanOutput!
     likeToPlaceInPlan(input: LikeToPlaceInPlanInput!): LikeToPlaceInPlanOutput!
+}
+
+input CreatePlanFromSavedPlanInput {
+    userId: String
+    firebaseAuthToken: String
+    savedPlanId: String!
+}
+
+type CreatePlanFromSavedPlanOutput {
+    planCandidate: PlanCandidate!
 }
 
 input UploadPlacePhotoInPlanInput {
