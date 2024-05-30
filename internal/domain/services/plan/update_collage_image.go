@@ -16,12 +16,11 @@ type UpdatePlanCollageImageInput struct {
 }
 
 type UpdatePlanCollageImageOutput struct {
-	Plan        models.Plan
-	PlanCollage models.PlanCollage
+	Plan models.Plan
 }
 
 // TODO: 画像URLの代わりに画像IDを指定させる
-func (s Service) UpdatePlanCollage(ctx context.Context, input UpdatePlanCollageImageInput) (*UpdatePlanCollageImageOutput, error) {
+func (s Service) UpdatePlanCollageImage(ctx context.Context, input UpdatePlanCollageImageInput) (*UpdatePlanCollageImageOutput, error) {
 	checkAuthStateResult, err := s.userService.CheckUserAuthState(ctx, user.CheckUserAuthStateInput{
 		UserId:            input.UserId,
 		FirebaseAuthToken: input.FirebaseAuthToken,
@@ -53,8 +52,9 @@ func (s Service) UpdatePlanCollage(ctx context.Context, input UpdatePlanCollageI
 		return nil, fmt.Errorf("error while fetching plan collage after updating: %v", err)
 	}
 
+	plan.Collage = planCollage
+
 	return &UpdatePlanCollageImageOutput{
-		Plan:        *plan,
-		PlanCollage: *planCollage,
+		Plan: *plan,
 	}, nil
 }

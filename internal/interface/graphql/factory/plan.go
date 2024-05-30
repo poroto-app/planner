@@ -57,6 +57,11 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		author = UserFromDomainModel(plan.Author)
 	}
 
+	var collage *graphql.PlanCollage
+	if plan.Collage != nil {
+		collage = PlanCollageFromDomainModel(plan.Collage)
+	}
+
 	return &graphql.Plan{
 		ID:            plan.Id,
 		Name:          plan.Name,
@@ -64,5 +69,6 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 		TimeInMinutes: int(plan.TimeInMinutes(startLocation)),
 		Transitions:   graphqlTransitionEntities,
 		Author:        author,
+		Collage:       collage,
 	}, nil
 }
