@@ -10,10 +10,10 @@ type Plan {
 }
 
 type PlanCollage {
-    images: [PlanCollageImages!]!
+    images: [PlanCollageImage!]!
 }
 
-type PlanCollageImages {
+type PlanCollageImage {
     placeId: String!
     image: Image
 }

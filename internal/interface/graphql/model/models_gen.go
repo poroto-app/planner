@@ -288,10 +288,10 @@ type PlanCandidateOutput struct {
 }
 
 type PlanCollage struct {
-	Images []*PlanCollageImages `json:"images"`
+	Images []*PlanCollageImage `json:"images"`
 }
 
-type PlanCollageImages struct {
+type PlanCollageImage struct {
 	PlaceID string `json:"placeId"`
 	Image   *Image `json:"image,omitempty"`
 }
