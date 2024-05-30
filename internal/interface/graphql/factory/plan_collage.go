@@ -8,7 +8,7 @@ import (
 
 func PlanCollageFromDomainModel(planCollage *models.PlanCollage) *graphql.PlanCollage {
 	if planCollage == nil {
-		return nil
+		return &graphql.PlanCollage{}
 	}
 
 	graphqlPlanCollageImages := array.Map(planCollage.Images, func(image models.PlanCollageImage) *graphql.PlanCollageImage {

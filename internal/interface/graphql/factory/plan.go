@@ -60,6 +60,8 @@ func PlanFromDomainModel(plan models.Plan, startLocation *models.GeoLocation) (*
 	var collage *graphql.PlanCollage
 	if plan.Collage != nil {
 		collage = PlanCollageFromDomainModel(plan.Collage)
+	} else {
+		collage = &graphql.PlanCollage{}
 	}
 
 	return &graphql.Plan{
