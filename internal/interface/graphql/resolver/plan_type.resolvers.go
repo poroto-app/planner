@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
@@ -16,6 +17,11 @@ import (
 
 // Collage is the resolver for the collage field.
 func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error) {
+	r.Logger.Info(
+		"Collage",
+		zap.String("planId", obj.ID),
+	)
+
 	planCollage, err := r.PlanService.FetchPlanCollage(ctx, plan.FetchPlanCollageInput{
 		PlanId: obj.ID,
 	})
