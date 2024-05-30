@@ -5,6 +5,6 @@ type PlanCollage struct {
 }
 
 type PlanCollageImage struct {
-	PlaceId  string
-	ImageUrl string
+	PlaceId string
+	Image   ImageSmallLarge
 }

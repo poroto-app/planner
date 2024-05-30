@@ -507,8 +507,12 @@ func (p PlanRepository) FindCollage(ctx context.Context, planId string) (*models
 		}
 
 		images = append(images, models.PlanCollageImage{
-			PlaceId:  planCollagePhotoEntity.PlaceID,
-			ImageUrl: planCollagePhotoEntity.R.PlacePhoto.PhotoURL,
+			PlaceId: planCollagePhotoEntity.PlaceID,
+			Image: models.ImageSmallLarge{
+				Small:          utils.ToPointer(planCollagePhotoEntity.R.PlacePhoto.PhotoURL),
+				Large:          utils.ToPointer(planCollagePhotoEntity.R.PlacePhoto.PhotoURL),
+				IsGooglePhotos: false,
+			},
 		})
 	}
 	return &models.PlanCollage{

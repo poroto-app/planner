@@ -12,6 +12,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/repository"
+	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 	"testing"
 	"time"
@@ -1047,12 +1048,20 @@ func TestPlanRepository_FindCollage(t *testing.T) {
 			expected: &models.PlanCollage{
 				Images: []models.PlanCollageImage{
 					{
-						PlaceId:  "f2c98d68-3904-455b-8832-a0f723a96735",
-						ImageUrl: "https://example.com/image1.jpg",
+						PlaceId: "f2c98d68-3904-455b-8832-a0f723a96735",
+						Image: models.ImageSmallLarge{
+							Small:          utils.ToPointer("https://example.com/image1.jpg"),
+							Large:          utils.ToPointer("https://example.com/image1.jpg"),
+							IsGooglePhotos: false,
+						},
 					},
 					{
-						PlaceId:  "c61a8b42-2c07-4957-913d-6930f0d881ec",
-						ImageUrl: "https://example.com/image2.jpg",
+						PlaceId: "c61a8b42-2c07-4957-913d-6930f0d881ec",
+						Image: models.ImageSmallLarge{
+							Small:          utils.ToPointer("https://example.com/image2.jpg"),
+							Large:          utils.ToPointer("https://example.com/image2.jpg"),
+							IsGooglePhotos: false,
+						},
 					},
 				},
 			},
