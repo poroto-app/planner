@@ -227,7 +227,7 @@ type ComplexityRoot struct {
 		Images func(childComplexity int) int
 	}
 
-	PlanCollageImages struct {
+	PlanCollageImage struct {
 		Image   func(childComplexity int) int
 		PlaceID func(childComplexity int) int
 	}
@@ -1093,19 +1093,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PlanCollage.Images(childComplexity), true
 
-	case "PlanCollageImages.image":
-		if e.complexity.PlanCollageImages.Image == nil {
+	case "PlanCollageImage.image":
+		if e.complexity.PlanCollageImage.Image == nil {
 			break
 		}
 
-		return e.complexity.PlanCollageImages.Image(childComplexity), true
+		return e.complexity.PlanCollageImage.Image(childComplexity), true
 
-	case "PlanCollageImages.placeId":
-		if e.complexity.PlanCollageImages.PlaceID == nil {
+	case "PlanCollageImage.placeId":
+		if e.complexity.PlanCollageImage.PlaceID == nil {
 			break
 		}
 
-		return e.complexity.PlanCollageImages.PlaceID(childComplexity), true
+		return e.complexity.PlanCollageImage.PlaceID(childComplexity), true
 
 	case "PlanOutput.plan":
 		if e.complexity.PlanOutput.Plan == nil {
@@ -1957,10 +1957,10 @@ type PlansByUserOutput {
 }
 
 type PlanCollage {
-    images: [PlanCollageImages!]!
+    images: [PlanCollageImage!]!
 }
 
-type PlanCollageImages {
+type PlanCollageImage {
     placeId: String!
     image: Image
 }
@@ -7327,9 +7327,9 @@ func (ec *executionContext) _PlanCollage_images(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.PlanCollageImages)
+	res := resTmp.([]*model.PlanCollageImage)
 	fc.Result = res
-	return ec.marshalNPlanCollageImages2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImagesᚄ(ctx, field.Selections, res)
+	return ec.marshalNPlanCollageImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PlanCollage_images(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7341,18 +7341,18 @@ func (ec *executionContext) fieldContext_PlanCollage_images(ctx context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "placeId":
-				return ec.fieldContext_PlanCollageImages_placeId(ctx, field)
+				return ec.fieldContext_PlanCollageImage_placeId(ctx, field)
 			case "image":
-				return ec.fieldContext_PlanCollageImages_image(ctx, field)
+				return ec.fieldContext_PlanCollageImage_image(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type PlanCollageImages", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PlanCollageImage", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _PlanCollageImages_placeId(ctx context.Context, field graphql.CollectedField, obj *model.PlanCollageImages) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PlanCollageImages_placeId(ctx, field)
+func (ec *executionContext) _PlanCollageImage_placeId(ctx context.Context, field graphql.CollectedField, obj *model.PlanCollageImage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCollageImage_placeId(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7382,9 +7382,9 @@ func (ec *executionContext) _PlanCollageImages_placeId(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PlanCollageImages_placeId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PlanCollageImage_placeId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "PlanCollageImages",
+		Object:     "PlanCollageImage",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7395,8 +7395,8 @@ func (ec *executionContext) fieldContext_PlanCollageImages_placeId(ctx context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _PlanCollageImages_image(ctx context.Context, field graphql.CollectedField, obj *model.PlanCollageImages) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_PlanCollageImages_image(ctx, field)
+func (ec *executionContext) _PlanCollageImage_image(ctx context.Context, field graphql.CollectedField, obj *model.PlanCollageImage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PlanCollageImage_image(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -7423,9 +7423,9 @@ func (ec *executionContext) _PlanCollageImages_image(ctx context.Context, field 
 	return ec.marshalOImage2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐImage(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_PlanCollageImages_image(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_PlanCollageImage_image(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "PlanCollageImages",
+		Object:     "PlanCollageImage",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -14201,24 +14201,24 @@ func (ec *executionContext) _PlanCollage(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
-var planCollageImagesImplementors = []string{"PlanCollageImages"}
+var planCollageImageImplementors = []string{"PlanCollageImage"}
 
-func (ec *executionContext) _PlanCollageImages(ctx context.Context, sel ast.SelectionSet, obj *model.PlanCollageImages) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, planCollageImagesImplementors)
+func (ec *executionContext) _PlanCollageImage(ctx context.Context, sel ast.SelectionSet, obj *model.PlanCollageImage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, planCollageImageImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("PlanCollageImages")
+			out.Values[i] = graphql.MarshalString("PlanCollageImage")
 		case "placeId":
-			out.Values[i] = ec._PlanCollageImages_placeId(ctx, field, obj)
+			out.Values[i] = ec._PlanCollageImage_placeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "image":
-			out.Values[i] = ec._PlanCollageImages_image(ctx, field, obj)
+			out.Values[i] = ec._PlanCollageImage_image(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16211,7 +16211,7 @@ func (ec *executionContext) marshalNPlanCollage2ᚖporotoᚗappᚋporotoᚋplann
 	return ec._PlanCollage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPlanCollageImages2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImagesᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanCollageImages) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanCollageImage2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PlanCollageImage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -16235,7 +16235,7 @@ func (ec *executionContext) marshalNPlanCollageImages2ᚕᚖporotoᚗappᚋporot
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPlanCollageImages2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImages(ctx, sel, v[i])
+			ret[i] = ec.marshalNPlanCollageImage2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -16255,14 +16255,14 @@ func (ec *executionContext) marshalNPlanCollageImages2ᚕᚖporotoᚗappᚋporot
 	return ret
 }
 
-func (ec *executionContext) marshalNPlanCollageImages2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImages(ctx context.Context, sel ast.SelectionSet, v *model.PlanCollageImages) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanCollageImage2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanCollageImage(ctx context.Context, sel ast.SelectionSet, v *model.PlanCollageImage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._PlanCollageImages(ctx, sel, v)
+	return ec._PlanCollageImage(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNPlanInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanInput(ctx context.Context, v interface{}) (model.PlanInput, error) {
