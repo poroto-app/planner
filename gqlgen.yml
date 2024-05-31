@@ -67,3 +67,7 @@ models:
         resolver: true
       likedPlaces:
         resolver: true
+  Plan:
+    fields:
+      collage:
+        resolver: true

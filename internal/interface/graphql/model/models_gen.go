@@ -281,6 +281,7 @@ type Plan struct {
 	Description   *string       `json:"description,omitempty"`
 	Transitions   []*Transition `json:"transitions"`
 	Author        *User         `json:"author,omitempty"`
+	Collage       *PlanCollage  `json:"collage"`
 }
 
 type PlanCandidate struct {
@@ -298,6 +299,15 @@ type PlanCandidateInput struct {
 
 type PlanCandidateOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate,omitempty"`
+}
+
+type PlanCollage struct {
+	Images []*PlanCollageImage `json:"images"`
+}
+
+type PlanCollageImage struct {
+	PlaceID string `json:"placeId"`
+	Image   *Image `json:"image,omitempty"`
 }
 
 type PlanInput struct {
@@ -371,6 +381,18 @@ type Transition struct {
 	From     *Place `json:"from,omitempty"`
 	To       *Place `json:"to"`
 	Duration int    `json:"duration"`
+}
+
+type UpdatePlanCollageImageInput struct {
+	PlanID            string `json:"planId"`
+	UserID            string `json:"userId"`
+	FirebaseAuthToken string `json:"firebaseAuthToken"`
+	PlaceID           string `json:"placeId"`
+	ImageURL          string `json:"imageUrl"`
+}
+
+type UpdatePlanCollageImageOutput struct {
+	Plan *Plan `json:"plan"`
 }
 
 type UploadPlacePhotoInPlanInput struct {

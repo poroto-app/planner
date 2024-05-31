@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -85,4 +86,9 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 			return p.Id
 		}),
 	}, nil
+}
+
+// UpdatePlanCollageImage is the resolver for the updatePlanCollageImage field.
+func (r *mutationResolver) UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImageInput) (*model.UpdatePlanCollageImageOutput, error) {
+	panic(fmt.Errorf("not implemented: UpdatePlanCollageImage - updatePlanCollageImage"))
 }
