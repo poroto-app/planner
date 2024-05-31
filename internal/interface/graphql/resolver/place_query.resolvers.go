@@ -42,3 +42,22 @@ func (r *queryResolver) PlacesNearPlan(ctx context.Context, input model.PlacesNe
 		Places: graphqlPlaces,
 	}, nil
 }
+
+// PlacesRecommendation is the resolver for the placesRecommendation field.
+func (r *queryResolver) PlacesRecommendation(ctx context.Context) (*model.PlacesRecommendationOutput, error) {
+	r.Logger.Info("PlacesRecommendation")
+
+	places, err := r.PlaceService.FetchPlacesRecommended(ctx)
+	if err != nil {
+		r.Logger.Error("error while fetching places recommendation", zap.Error(err))
+		return nil, fmt.Errorf("internal server err")
+	}
+
+	graphqlPlaces := array.Map(*places, func(place models.Place) *model.Place {
+		return factory.PlaceFromDomainModel(&place)
+	})
+
+	return &model.PlacesRecommendationOutput{
+		Places: graphqlPlaces,
+	}, nil
+}

@@ -24,6 +24,9 @@ type PlaceRepository interface {
 	// FindLikePlacesByUserId はユーザーがいいねした Place を取得する
 	FindLikePlacesByUserId(ctx context.Context, userId string) (*[]models.Place, error)
 
+	// FindRecommendPlacesForCreatePlan は場所を指定してプランを作成するときに、おすすめの場所を取得する
+	FindRecommendPlacesForCreatePlan(ctx context.Context) (*[]models.Place, error)
+
 	SaveGooglePlacePhotos(ctx context.Context, googlePlaceId string, photos []models.GooglePlacePhoto) error
 
 	SaveGooglePlaceDetail(ctx context.Context, googlePlaceId string, detail models.GooglePlaceDetail) error
