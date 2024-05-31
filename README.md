@@ -119,7 +119,7 @@ DB_PASSWORD=password \
 DB_HOST=localhost \
 DB_PORT=3306 \
 DB_NAME=poroto \
-goose -dir db/migrations -certfile=/etc/ssl/cert.pem mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
+goose -dir db/migrations mysql "$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?parseTime=true&loc=Asia%2FTokyo" up
 ```
 
 ### SQLBoilerをインストール
