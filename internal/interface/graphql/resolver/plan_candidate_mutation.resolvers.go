@@ -104,6 +104,11 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 	}, nil
 }
 
+// CreatePlanCandidateSetFromSavedPlan is the resolver for the createPlanCandidateSetFromSavedPlan field.
+func (r *mutationResolver) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input model.CreatePlanCandidateSetFromSavedPlanInput) (*model.CreatePlanCandidateSetFromSavedPlanOutput, error) {
+	panic(fmt.Errorf("not implemented: CreatePlanCandidateSetFromSavedPlan - createPlanCandidateSetFromSavedPlan"))
+}
+
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
 	var currentLocation *model.GeoLocation

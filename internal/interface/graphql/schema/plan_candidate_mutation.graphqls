@@ -1,7 +1,13 @@
 extend type Mutation {
+    # ===========================================================
+    # Create
+    # ===========================================================
     createPlanByLocation(input: CreatePlanByLocationInput!): CreatePlanByLocationOutput!
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
+
+    # 保存されたプランをベースに新しいプランを作成する
+    createPlanCandidateSetFromSavedPlan(input: CreatePlanCandidateSetFromSavedPlanInput!): CreatePlanCandidateSetFromSavedPlanOutput!
 
     changePlacesOrderInPlanCandidate(input: ChangePlacesOrderInPlanCandidateInput!): ChangePlacesOrderInPlanCandidateOutput!
 
@@ -62,6 +68,16 @@ input CreatePlanByGooglePlaceIdInput {
 }
 
 type CreatePlanByGooglePlaceIdOutput {
+    planCandidate: PlanCandidate!
+}
+
+input CreatePlanCandidateSetFromSavedPlanInput {
+    userId: String
+    firebaseAuthToken: String
+    savedPlanId: String!
+}
+
+type CreatePlanCandidateSetFromSavedPlanOutput {
     planCandidate: PlanCandidate!
 }
 
