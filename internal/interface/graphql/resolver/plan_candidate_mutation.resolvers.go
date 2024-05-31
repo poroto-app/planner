@@ -104,6 +104,37 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 	}, nil
 }
 
+// CreatePlanCandidateSetFromSavedPlan is the resolver for the createPlanCandidateSetFromSavedPlan field.
+func (r *mutationResolver) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input model.CreatePlanCandidateSetFromSavedPlanInput) (*model.CreatePlanCandidateSetFromSavedPlanOutput, error) {
+	r.Logger.Info(
+		"CreatePlanCandidateSetFromSavedPlan",
+		zap.String("planId", input.SavedPlanID),
+		zap.String("userId", utils.StrEmptyIfNil(input.UserID)),
+		zap.String("firebaseAuthToken", utils.StrEmptyIfNil(input.FirebaseAuthToken)),
+	)
+
+	output, err := r.PlanCandidateService.CreatePlanCandidateSetFromSavedPlan(ctx, plancandidate.CreatePlanCandidateSetFromSavedPlanInput{
+		PlanId:            input.SavedPlanID,
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
+	if err != nil {
+		r.Logger.Error("error while creating plan candidate set from saved plan", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	planGraphQLModel := factory.PlanCandidateFromDomainModel(&output.PlanCandidateSet)
+
+	if err != nil {
+		r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.CreatePlanCandidateSetFromSavedPlanOutput{
+		PlanCandidate: planGraphQLModel,
+	}, nil
+}
+
 // ChangePlacesOrderInPlanCandidate is the resolver for the changePlacesOrderInPlanCandidate field.
 func (r *mutationResolver) ChangePlacesOrderInPlanCandidate(ctx context.Context, input model.ChangePlacesOrderInPlanCandidateInput) (*model.ChangePlacesOrderInPlanCandidateOutput, error) {
 	var currentLocation *model.GeoLocation

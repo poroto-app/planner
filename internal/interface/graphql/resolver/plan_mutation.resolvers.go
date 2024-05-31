@@ -87,3 +87,8 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 		}),
 	}, nil
 }
+
+// UpdatePlanCollageImage is the resolver for the updatePlanCollageImage field.
+func (r *mutationResolver) UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImageInput) (*model.UpdatePlanCollageImageOutput, error) {
+	panic(fmt.Errorf("not implemented: UpdatePlanCollageImage - updatePlanCollageImage"))
+}
