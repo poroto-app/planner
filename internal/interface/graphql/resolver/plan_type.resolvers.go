@@ -7,6 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
@@ -19,7 +23,36 @@ func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.Pla
 
 // NearbyPlans is the resolver for the nearbyPlans field.
 func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*model.Plan, error) {
-	panic(fmt.Errorf("not implemented: NearbyPlans - nearbyPlans"))
+	r.Logger.Info("Plan#NeabyPlans", zap.String("plan_id", obj.ID))
+	if len(obj.Places) == 0 {
+		return nil, nil
+	}
+
+	plans, _, err := r.PlanService.FetchPlansByLocation(
+		ctx,
+		models.GeoLocation{
+			Latitude:  obj.Places[0].Location.Latitude,
+			Longitude: obj.Places[0].Location.Longitude,
+		},
+		utils.ToPointer(10),
+		nil,
+	)
+	if err != nil {
+		r.Logger.Error("error while fetching nearby plans", zap.Error(err))
+		return nil, nil
+	}
+
+	graphqlPlans := make([]*model.Plan, 0, len(*plans))
+	for _, p := range *plans {
+		graphqlPlan, err := factory.PlanFromDomainModel(p, nil)
+		if err != nil {
+			r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
+			return nil, nil
+		}
+		graphqlPlans = append(graphqlPlans, graphqlPlan)
+	}
+
+	return graphqlPlans, nil
 }
 
 // Plan returns generated.PlanResolver implementation.
