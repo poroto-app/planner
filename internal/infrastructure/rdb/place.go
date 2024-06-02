@@ -919,6 +919,10 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 // countPlaceLikeCounts は場所ごとのいいね数をカウントする
 // いいねはPlanCandidateSetとUserによって行われるが、その両方を考慮し、総数をカウントする
 func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeIds ...string) (*[]entities.PlanCandidateSetPlaceLikeCount, error) {
+	placeIds = array.DistinctBy(placeIds, func(placeId string) string {
+		return placeId
+	})
+
 	var placeIdPlaceHolder string
 	if len(placeIds) == 0 {
 		return nil, nil

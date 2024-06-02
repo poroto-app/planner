@@ -360,8 +360,14 @@ func (p PlanRepository) FindByLocation(ctx context.Context, location models.GeoL
 		return &[]models.Plan{}, nil, nil
 	}
 
-	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
-		return planEntity.ID
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.FlatMap(planEntities, func(planEntity *generated.Plan) []string {
+		if planEntity.R.PlanPlaces == nil {
+			return nil
+		}
+
+		return array.Map(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) string {
+			return planPlace.PlaceID
+		})
 	})...)
 	if err != nil {
 		// いいね数の取得に失敗してもエラーにしない
