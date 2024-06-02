@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/domain/utils"
 
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -35,6 +36,7 @@ func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*mod
 				Latitude:  obj.Places[0].Location.Latitude,
 				Longitude: obj.Places[0].Location.Longitude,
 			},
+			SearchRange: utils.ToPointer(5 * 1000),
 		},
 	)
 	if err != nil {
