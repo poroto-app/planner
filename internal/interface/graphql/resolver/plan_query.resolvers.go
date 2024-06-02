@@ -63,7 +63,6 @@ func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansBy
 			Longitude: input.Longitude,
 		},
 		input.Limit,
-		input.PageKey,
 	)
 	if err != nil {
 		r.Logger.Error("error while fetching plans by location", zap.Error(err))

@@ -35,7 +35,6 @@ func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*mod
 			Longitude: obj.Places[0].Location.Longitude,
 		},
 		utils.ToPointer(10),
-		nil,
 	)
 	if err != nil {
 		r.Logger.Error("error while fetching nearby plans", zap.Error(err))

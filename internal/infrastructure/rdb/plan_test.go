@@ -839,7 +839,7 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			plans, _, err := planRepository.FindByLocation(textContext, c.location, nil, c.limit)
+			plans, _, err := planRepository.FindByLocation(textContext, c.location, c.limit)
 			if err != nil {
 				t.Errorf("error finding plans: %v", err)
 			}
