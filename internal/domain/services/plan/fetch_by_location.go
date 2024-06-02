@@ -21,7 +21,7 @@ func (s Service) FetchPlansByLocation(
 		limit = &value
 	}
 
-	plans, nextPageToken, err = s.planRepository.SortedByLocation(ctx, location, pageToken, *limit)
+	plans, nextPageToken, err = s.planRepository.FindByLocation(ctx, location, pageToken, *limit)
 	if err != nil {
 		return nil, nil, err
 	}

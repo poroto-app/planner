@@ -342,7 +342,7 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 }
 
 // TODO: ページングしない（範囲だけ指定させて、ソートも行わない）
-func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
+func (p PlanRepository) FindByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
 	minLocation, maxLocation := location.CalculateMBR(defaultDistanceToSearchPlan)
 
 	planEntities, err := generated.Plans(concatQueryMod(
