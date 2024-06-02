@@ -17,6 +17,11 @@ func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.Pla
 	panic(fmt.Errorf("not implemented: Collage - collage"))
 }
 
+// NearbyPlans is the resolver for the nearbyPlans field.
+func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*model.Plan, error) {
+	panic(fmt.Errorf("not implemented: NearbyPlans - nearbyPlans"))
+}
+
 // Plan returns generated.PlanResolver implementation.
 func (r *Resolver) Plan() generated.PlanResolver { return &planResolver{r} }
 
