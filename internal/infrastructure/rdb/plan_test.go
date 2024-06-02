@@ -712,7 +712,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 	}
 }
 
-func TestPlanRepository_SortedByLocation(t *testing.T) {
+func TestPlanRepository_FindByLocation(t *testing.T) {
 	cases := []struct {
 		name        string
 		savedUsers  generated.UserSlice
@@ -720,6 +720,7 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 		savedPlans  []models.Plan
 		location    models.GeoLocation
 		limit       int
+		searchRange int
 		expected    []models.Plan
 	}{
 		{
@@ -784,8 +785,9 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 					},
 				},
 			},
-			location: models.GeoLocation{Latitude: 35.6905, Longitude: 139.6995},
-			limit:    10,
+			location:    models.GeoLocation{Latitude: 35.6905, Longitude: 139.6995},
+			limit:       10,
+			searchRange: 2 * 1000,
 			expected: []models.Plan{
 				{
 					Id:   "9c93c944-ac8e-11ee-a506-0242ac120002",
@@ -839,7 +841,7 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			plans, _, err := planRepository.FindByLocation(textContext, c.location, c.limit)
+			plans, _, err := planRepository.FindByLocation(textContext, c.location, c.limit, c.searchRange)
 			if err != nil {
 				t.Errorf("error finding plans: %v", err)
 			}

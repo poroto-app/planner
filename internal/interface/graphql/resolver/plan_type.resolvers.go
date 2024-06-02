@@ -7,10 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/plan"
 
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
-	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
@@ -30,11 +30,12 @@ func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*mod
 
 	plans, _, err := r.PlanService.FetchPlansByLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  obj.Places[0].Location.Latitude,
-			Longitude: obj.Places[0].Location.Longitude,
+		plan.FetchPlansByLocationInput{
+			Location: models.GeoLocation{
+				Latitude:  obj.Places[0].Location.Latitude,
+				Longitude: obj.Places[0].Location.Longitude,
+			},
 		},
-		utils.ToPointer(10),
 	)
 	if err != nil {
 		r.Logger.Error("error while fetching nearby plans", zap.Error(err))
