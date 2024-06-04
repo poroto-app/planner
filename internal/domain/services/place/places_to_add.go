@@ -65,7 +65,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	}
 
 	if len(plan.Places) == 0 {
-		return nil, fmt.Errorf("plan has no places")
+		return nil, fmt.Errorf("plan has no placesNearby")
 	}
 
 	var startPlace models.Place
@@ -81,25 +81,16 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		startPlace = plan.Places[0]
 	}
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	// 付近の場所を検索
+	googlePlacesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching places searched: %v", err)
+		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
 
-	if placesSearched == nil {
-		// 付近の場所を検索
-		placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching places: %v\n", err)
-		}
-
-		// 検索された場所を保存
-		places, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, placesNearby)
-		if err != nil {
-			return nil, fmt.Errorf("error while saving searched places: %v\n", err)
-		}
-
-		placesSearched = places
+	// 検索された場所を保存
+	placesNearby, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlacesNearby)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving nearby places: %v\n", err)
 	}
 
 	categoriesToSearch := make([]models.LocationCategory, 0)
@@ -143,7 +134,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 
 	// おすすめの場所を取得する
 	placesRecommend := selectRecommendedPlaces(
-		placesSearched,
+		placesNearby,
 		nil,
 		*plan,
 		startPlace.Location,
@@ -170,7 +161,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		}
 
 		placesRecommendedWithCategory := selectRecommendedPlaces(
-			placesSearched,
+			placesNearby,
 			placesAlreadyChosen,
 			*plan,
 			startPlace.Location,
