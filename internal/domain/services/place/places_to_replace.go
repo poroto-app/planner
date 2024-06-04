@@ -49,15 +49,9 @@ func (s Service) FetchPlacesToReplace(
 	}
 
 	// 付近の場所を検索
-	googlePlacesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
-	}
-
-	// 検索された場所を保存
-	placesNearby, err := s.placeSearchService.SaveSearchedPlaces(ctx, planCandidateId, googlePlacesNearby)
-	if err != nil {
-		return nil, fmt.Errorf("error while saving searched places: %v\n", err)
 	}
 
 	placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{

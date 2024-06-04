@@ -82,15 +82,9 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	}
 
 	// 付近の場所を検索
-	googlePlacesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
-	}
-
-	// 検索された場所を保存
-	placesNearby, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlacesNearby)
-	if err != nil {
-		return nil, fmt.Errorf("error while saving nearby places: %v\n", err)
 	}
 
 	categoriesToSearch := make([]models.LocationCategory, 0)

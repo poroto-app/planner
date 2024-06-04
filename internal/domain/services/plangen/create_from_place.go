@@ -29,16 +29,11 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("place not found")
 	}
 
-	googlePlacesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
 		Location: placeStart.Location,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places")
-	}
-
-	placesNearby, err := s.placeSearchService.SaveSearchedPlaces(ctx, createPlanSessionId, googlePlacesNearby)
-	if err != nil {
-		return nil, fmt.Errorf("error while saving nearby places")
 	}
 
 	var categoryNamesRejected []string
