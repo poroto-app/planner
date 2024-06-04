@@ -240,6 +240,7 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 			ignorePlaceCount: 1,
 		},
 		// 近くに無いことがあたりまえなレベル
+		// TODO: すでに検索したが、ヒットしなかった場合に対応する
 		{
 			placeType:        maps.PlaceTypeAquarium,
 			searchRange:      50 * 1000,
