@@ -1553,17 +1553,6 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				if planCandidatePlaceEntityExist {
 					t.Fatalf("plan candidate place should not exist")
 				}
-
-				// PlanCandidateSetSearchedPlace が削除されていることを確認
-				planCandidateSetSearchedPlaceEntityExist, err := generated.PlanCandidateSetSearchedPlaces(
-					generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
-				).Exists(testContext, testDB)
-				if err != nil {
-					t.Fatalf("failed to get plan candidate set searched place: %v", err)
-				}
-				if planCandidateSetSearchedPlaceEntityExist {
-					t.Fatalf("plan candidate set searched place should not exist")
-				}
 			}
 		})
 	}

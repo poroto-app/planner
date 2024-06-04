@@ -467,11 +467,6 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 			return fmt.Errorf("failed to delete plan candidate places: %w", err)
 		}
 
-		// 検索履歴を削除
-		if _, err := generated.PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate set searched places: %w", err)
-		}
-
 		// プラン候補を削除
 		if _, err := generated.PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidates: %w", err)

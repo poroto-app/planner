@@ -382,7 +382,7 @@ func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId stri
 			generated.UserLikePlaceWhere.UserID.EQ(userId),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.UserLikePlaceColumns.UpdatedAt, "desc")),
 		},
-		placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place),
+		placeQueryModes(generated.UserLikePlaceRels.Place),
 	)...).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user like places: %w", err)
@@ -451,7 +451,7 @@ func (p PlaceRepository) FindRecommendPlacesForCreatePlan(ctx context.Context) (
 			[]qm.QueryMod{
 				qm.OrderBy(generated.PlaceRecommendationColumns.SortOrder),
 			},
-			placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place))...,
+			placeQueryModes(generated.PlaceRecommendationRels.Place))...,
 	).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find place recommendations: %w", err)
