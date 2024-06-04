@@ -18,7 +18,6 @@ var TableNames = struct {
 	PlanCandidateSetLikePlaces         string
 	PlanCandidateSetMetaData           string
 	PlanCandidateSetMetaDataCategories string
-	PlanCandidateSetSearchedPlaces     string
 	PlanCandidateSets                  string
 	PlanCandidates                     string
 	PlanCollagePhotos                  string
@@ -42,7 +41,6 @@ var TableNames = struct {
 	PlanCandidateSetLikePlaces:         "plan_candidate_set_like_places",
 	PlanCandidateSetMetaData:           "plan_candidate_set_meta_data",
 	PlanCandidateSetMetaDataCategories: "plan_candidate_set_meta_data_categories",
-	PlanCandidateSetSearchedPlaces:     "plan_candidate_set_searched_places",
 	PlanCandidateSets:                  "plan_candidate_sets",
 	PlanCandidates:                     "plan_candidates",
 	PlanCollagePhotos:                  "plan_collage_photos",
