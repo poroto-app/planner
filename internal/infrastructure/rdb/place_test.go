@@ -604,6 +604,105 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 	}
 }
 
+func TestPlaceRepository_Find(t *testing.T) {
+	cases := []struct {
+		name                string
+		savedPlaces         []models.Place
+		savedUsers          generated.UserSlice
+		savedUserLikePlaces generated.UserLikePlaceSlice
+		placeId             string
+		expectedPlaces      *models.Place
+	}{
+		{
+			name: "should return place",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
+					},
+				},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "user-1"},
+			},
+			savedUserLikePlaces: generated.UserLikePlaceSlice{
+				{ID: uuid.New().String(), UserID: "user-1", PlaceID: "kinokuniya-shoten"},
+			},
+			placeId: "kinokuniya-shoten",
+			expectedPlaces: &models.Place{
+				Id:        "kinokuniya-shoten",
+				Location:  models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+				LikeCount: 1,
+				Google: models.GooglePlace{
+					PlaceId:  "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					Location: models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+					Types:    []string{"book_store", "point_of_interest", "store", "establishment"},
+				},
+			},
+		},
+		{
+			name: "not found",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId:  "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+						Types:    []string{"book_store", "point_of_interest", "store", "establishment"},
+					},
+				},
+			},
+			placeId:        "not-found",
+			expectedPlaces: nil,
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// データの準備
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			if _, err := c.savedUsers.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving users: %v", err)
+			}
+
+			if _, err := c.savedUserLikePlaces.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving user like places: %v", err)
+			}
+
+			actualPlaces, err := placeRepository.Find(testContext, c.placeId)
+			if err != nil {
+				t.Fatalf("error while finding places: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlaces, actualPlaces); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestPlaceRepository_FindByGooglePlaceType(t *testing.T) {
 	cases := []struct {
 		name            string

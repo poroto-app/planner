@@ -7,6 +7,8 @@ import (
 )
 
 type PlaceRepository interface {
+	Find(ctx context.Context, placeId string) (*models.Place, error)
+
 	// SavePlacesFromGooglePlaces はGooglePlaceからPlaceを作成し、保存する
 	// すでに models.GooglePlace が保存されている場合は、それに紐づく models.Place を取得する
 	SavePlacesFromGooglePlaces(ctx context.Context, googlePlaces ...models.GooglePlace) (*[]models.Place, error)

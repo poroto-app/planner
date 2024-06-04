@@ -188,6 +188,44 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 	return &places, nil
 }
 
+func (p PlaceRepository) Find(ctx context.Context, placeId string) (*models.Place, error) {
+	placeEntity, err := generated.Places(
+		concatQueryMod(
+			[]qm.QueryMod{generated.PlaceWhere.ID.EQ(placeId)},
+			placeQueryModes(),
+		)...).One(ctx, p.db)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find place: %w", err)
+	}
+
+	likeCounts, err := countPlaceLikeCounts(ctx, p.db, placeEntity.ID)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	place, err := factory.NewPlaceFromEntity(
+		*placeEntity,
+		placeEntity.R.PlacePhotos,
+		*placeEntity.R.GooglePlaces[0],
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceTypes,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotos,
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceReviews,
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+		entities.CountLikeOfPlace(likeCounts, placeEntity.ID),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert place entity to place: %w", err)
+	}
+
+	return place, nil
+}
+
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error) {
 	minLocation, maxLocation := location.CalculateMBR(radius)
 
@@ -959,6 +997,7 @@ GROUP BY place_likes.place_id`,
 		placeIdPlaceHolder,
 	)
 
+	// TODO: ユーザからのいいねも含まれているため、構造体の名前を修正する
 	var planCandidateSetPlaceLikeCounts []entities.PlanCandidateSetPlaceLikeCount
 	if err := queries.
 		Raw(query, toInterfaceArray(placeIds)...).
