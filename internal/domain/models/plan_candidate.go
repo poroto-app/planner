@@ -5,11 +5,12 @@ import "time"
 // TODO: PlanCandidateSet という名前にする
 // TODO: Plans を PlanCandidate という名前にする
 type PlanCandidate struct {
-	Id            string
-	Plans         []Plan
-	MetaData      PlanCandidateMetaData
-	ExpiresAt     time.Time
-	LikedPlaceIds []string
+	Id              string
+	Plans           []Plan
+	MetaData        PlanCandidateMetaData
+	IsPlaceSearched bool
+	ExpiresAt       time.Time
+	LikedPlaceIds   []string
 }
 
 func (p PlanCandidate) HasPlace(placeId string) bool {
