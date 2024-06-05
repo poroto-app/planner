@@ -19,7 +19,7 @@ const (
 // GooglePlaceId が指定された場合は、その場所を起点としてプランを作成する
 // MaxDistanceFromStart は、プランの起点となる場所を選択するときの LocationStart からの最大距離
 type CreatePlanByLocationInput struct {
-	PlanCandidateId              string
+	PlanCandidateSetId           string
 	LocationStart                models.GeoLocation
 	GooglePlaceId                *string
 	CategoryNamesPreferred       *[]string
@@ -39,7 +39,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 	// 付近の場所を検索
 	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
 		Location:           input.LocationStart,
-		PlanCandidateSetId: &input.PlanCandidateId,
+		PlanCandidateSetId: &input.PlanCandidateSetId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
@@ -47,7 +47,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 	s.logger.Debug(
 		"Places searched",
-		zap.String("PlanCandidateId", input.PlanCandidateId),
+		zap.String("PlanCandidateSetId", input.PlanCandidateSetId),
 		zap.Float64("lat", input.LocationStart.Latitude),
 		zap.Float64("lng", input.LocationStart.Longitude),
 		zap.Int("placesCount", len(placesNearby)),
@@ -114,7 +114,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		createPlanParams = append(createPlanParams, createPlanParamsInRange[0])
 	}
 
-	plans := s.createPlanData(ctx, input.PlanCandidateId, createPlanParams...)
+	plans := s.createPlanData(ctx, input.PlanCandidateSetId, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if input.GooglePlaceId != nil {
@@ -163,7 +163,7 @@ func (s Service) CreatePlan(input CreatePlanByLocationInput, places []models.Pla
 	}
 
 	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
-		PlanCandidateId:         input.PlanCandidateId,
+		PlanCandidateSetId:      input.PlanCandidateSetId,
 		LocationStart:           placeRecommend.Location,
 		PlaceStart:              placeRecommend,
 		Places:                  places,

@@ -85,7 +85,7 @@ func (p PlanRepository) DeleteAll(ctx context.Context, planCandidateIds []string
 	return nil
 }
 
-func (p PlanRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
+func (p PlanRepository) UpdateLikeToPlaceInPlanCandidateSet(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	//TODO implement me
 	panic("implement me")
 }

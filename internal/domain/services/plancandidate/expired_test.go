@@ -23,22 +23,22 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 			name:      "expired plan candidates are deleted",
 			expiresAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 			planCandidates: map[string]models.PlanCandidateSet{
-				"planCandidate1": {
-					Id:        "planCandidate1",
+				"planCandidateSet1": {
+					Id:        "planCandidateSet1",
 					ExpiresAt: time.Date(2019, 12, 31, 23, 59, 59, 0, time.UTC),
 				},
-				"planCandidate2": {
-					Id:        "planCandidate2",
+				"planCandidateSet2": {
+					Id:        "planCandidateSet2",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
 				},
-				"planCandidate3": {
-					Id:        "planCandidate3",
+				"planCandidateSet3": {
+					Id:        "planCandidateSet3",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
 			expectedPlanCandidates: map[string]models.PlanCandidateSet{
-				"planCandidate3": {
-					Id:        "planCandidate3",
+				"planCandidateSet3": {
+					Id:        "planCandidateSet3",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},

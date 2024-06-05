@@ -17,14 +17,14 @@ import (
 
 func TestPlanCandidateRepository_Create(t *testing.T) {
 	cases := []struct {
-		name            string
-		planCandidateId string
-		expiresAt       time.Time
+		name               string
+		planCandidateSetId string
+		expiresAt          time.Time
 	}{
 		{
-			name:            "success",
-			planCandidateId: uuid.New().String(),
-			expiresAt:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+			name:               "success",
+			planCandidateSetId: uuid.New().String(),
+			expiresAt:          time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
@@ -44,11 +44,11 @@ func TestPlanCandidateRepository_Create(t *testing.T) {
 				}
 			})
 
-			if err := planCandidateRepository.Create(testContext, c.planCandidateId, c.expiresAt); err != nil {
+			if err := planCandidateRepository.Create(testContext, c.planCandidateSetId, c.expiresAt); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
-			exists, err := generated.PlanCandidateSetExists(testContext, testDB, c.planCandidateId)
+			exists, err := generated.PlanCandidateSetExists(testContext, testDB, c.planCandidateSetId)
 			if err != nil {
 				t.Fatalf("failed to check plan candidate existence: %v", err)
 			}
@@ -66,7 +66,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 		name                  string
 		now                   time.Time
 		savedPlanCandidateSet models.PlanCandidateSet
-		planCandidateId       string
+		planCandidateSetId    string
 		expected              models.PlanCandidateSet
 	}{
 		{
@@ -77,7 +77,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
 			},
-			planCandidateId: "test",
+			planCandidateSetId: "test",
 			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -109,7 +109,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					},
 				},
 			},
-			planCandidateId: "test",
+			planCandidateSetId: "test",
 			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -131,9 +131,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 		},
 		{
-			name:            "plan candidate set without PlanCandidateSetMetaData",
-			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			planCandidateId: "test",
+			name:               "plan candidate set without PlanCandidateSetMetaData",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
 			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -162,9 +162,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 		},
 		{
-			name:            "plan candidate set with IsPlaceSearched false",
-			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			planCandidateId: "test",
+			name:               "plan candidate set with IsPlaceSearched false",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
 			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -201,11 +201,11 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
-			actual, err := planCandidateRepository.Find(testContext, c.planCandidateId, c.now)
+			actual, err := planCandidateRepository.Find(testContext, c.planCandidateSetId, c.now)
 			if err != nil {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
@@ -313,7 +313,7 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -338,7 +338,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 		savedPlanCandidateSets                 []models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 		savedUserLikePlaceEntities             generated.UserLikePlaceSlice
-		planCandidateId                        string
+		planCandidateSetId                     string
 		expected                               models.PlanCandidateSet
 	}{
 		{
@@ -380,7 +380,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: uuid.New().String(), UserID: "test-user-1", PlaceID: "test-place-1"},
 				{ID: uuid.New().String(), UserID: "test-user-2", PlaceID: "test-place-2"},
 			},
-			planCandidateId: "plan-candidate-set-1",
+			planCandidateSetId: "plan-candidate-set-1",
 			expected: models.PlanCandidateSet{
 				Id:        "plan-candidate-set-1",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -423,7 +423,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 			}
 
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(textContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(textContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -438,7 +438,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				t.Fatalf("failed to save user like place: %v", err)
 			}
 
-			actual, err := planCandidateRepository.Find(textContext, c.planCandidateId, c.now)
+			actual, err := planCandidateRepository.Find(textContext, c.planCandidateSetId, c.now)
 			if err != nil {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
@@ -611,7 +611,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -701,7 +701,7 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 
 			// 事前にPlanCandidateSetを作成しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(testContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -774,7 +774,7 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
@@ -972,7 +972,7 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1047,7 +1047,7 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1125,7 +1125,7 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1200,7 +1200,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			})
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1380,7 +1380,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1461,7 +1461,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1557,7 +1557,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 
 			// 事前にPlanCandidateSetを作成しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(testContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -1717,7 +1717,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			}
 
 			// 事前に PlanCandidateSet を作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidate); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1728,7 +1728,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 				}
 			}
 
-			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, true)
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidateSet(testContext, c.planCandidateSetId, c.placeId, true)
 			if err != nil {
 				t.Fatalf("failed to update like to place in plan candidate: %v", err)
 			}
@@ -1824,7 +1824,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			}
 
 			// 事前に PlanCandidateSet を作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidate); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1835,7 +1835,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 				}
 			}
 
-			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, false)
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidateSet(testContext, c.planCandidateSetId, c.placeId, false)
 			if err != nil {
 				t.Fatalf("failed to update like to place in plan candidate: %v", err)
 			}

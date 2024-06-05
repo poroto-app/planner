@@ -18,7 +18,7 @@ func DeleteExpiredPlanCandidates(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := batch.DeleteExpiredPlanCandidate(r.Context(), db); err != nil {
+	if err := batch.DeleteExpiredPlanCandidateSet(r.Context(), db); err != nil {
 		log.Printf("error while deleting expired plan candidates: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

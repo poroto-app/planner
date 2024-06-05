@@ -1031,7 +1031,7 @@ func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
 
 			// 事前にPlanCandidateSetを保存しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(testContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("error while saving plan candidate set: %v", err)
 				}
 			}

@@ -7,7 +7,7 @@ import (
 )
 
 type SavePlansInput struct {
-	PlanCandidateId              string
+	PlanCandidateSetId           string
 	Plans                        []models.Plan
 	LocationStart                *models.GeoLocation
 	CategoryNamesPreferred       *[]string
@@ -20,7 +20,7 @@ type SavePlansInput struct {
 // はじめてプランを作成したときに呼び出す
 func (s Service) SavePlans(ctx context.Context, input SavePlansInput) (err error) {
 	// プランをプラン候補に追加して保存する
-	if err := s.planCandidateRepository.AddPlan(ctx, input.PlanCandidateId, input.Plans...); err != nil {
+	if err := s.planCandidateRepository.AddPlan(ctx, input.PlanCandidateSetId, input.Plans...); err != nil {
 		return fmt.Errorf("error while adding plan to plan candidate: %v\n", err)
 	}
 
@@ -48,7 +48,7 @@ func (s Service) SavePlans(ctx context.Context, input SavePlansInput) (err error
 		categoriesDisliked = &categories
 	}
 
-	if err := s.planCandidateRepository.UpdatePlanCandidateMetaData(ctx, input.PlanCandidateId, models.PlanCandidateMetaData{
+	if err := s.planCandidateRepository.UpdatePlanCandidateMetaData(ctx, input.PlanCandidateSetId, models.PlanCandidateMetaData{
 		LocationStart:                 input.LocationStart,
 		CategoriesPreferred:           categoriesPreferred,
 		CategoriesRejected:            categoriesDisliked,

@@ -83,7 +83,7 @@ func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 	return nil
 }
 
-func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.PlanCandidateSet) error {
+func savePlanCandidateSet(ctx context.Context, db *sql.DB, planCandidateSet models.PlanCandidateSet) error {
 	// PlanCandidateSetを作成
 	planCandidateSetEntity := generated.PlanCandidateSet{
 		ID:        planCandidateSet.Id,

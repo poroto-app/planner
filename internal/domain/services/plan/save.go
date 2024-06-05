@@ -12,18 +12,18 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-func (s Service) SavePlanFromPlanCandidate(ctx context.Context, planCandidateId string, planId string, authToken *string) (*models.Plan, error) {
+func (s Service) SavePlanFromPlanCandidateSet(ctx context.Context, planCandidateSetId string, planId string, authToken *string) (*models.Plan, error) {
 	// プラン候補から対応するプランを取得
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, planCandidateSetId, time.Now())
 	if err != nil {
 		return nil, err
 	}
 
-	planToSave, ok := array.Find(planCandidate.Plans, func(plan models.Plan) bool {
+	planToSave, ok := array.Find(planCandidateSet.Plans, func(plan models.Plan) bool {
 		return plan.Id == planId
 	})
 	if !ok {
-		return nil, fmt.Errorf("plan(%v) not found in plan candidate(%v)", planId, planCandidateId)
+		return nil, fmt.Errorf("plan(%v) not found in plan candidate(%v)", planId, planCandidateSetId)
 	}
 
 	// 冪等性を保つために、既存のプランを取得してから保存する

@@ -16,7 +16,7 @@ const (
 )
 
 type CreatePlanPlacesInput struct {
-	PlanCandidateId         string
+	PlanCandidateSetId      string
 	LocationStart           models.GeoLocation
 	PlaceStart              models.Place
 	Places                  []models.Place
@@ -28,8 +28,8 @@ type CreatePlanPlacesInput struct {
 
 // CreatePlanPlaces プランの候補地となる場所を作成する
 func (s Service) CreatePlanPlaces(input CreatePlanPlacesInput) ([]models.Place, error) {
-	if input.PlanCandidateId == "" {
-		panic("PlanCandidateId is required")
+	if input.PlanCandidateSetId == "" {
+		panic("PlanCandidateSetId is required")
 	}
 
 	if input.MaxPlace == 0 {
