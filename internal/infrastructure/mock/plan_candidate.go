@@ -68,6 +68,11 @@ func (p PlanRepository) UpdatePlanCandidateMetaData(ctx context.Context, planCan
 	panic("implement me")
 }
 
+func (p PlanRepository) UpdateIsPlaceSearched(ctx context.Context, planCandidateId string, isPlaceSearched bool) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p PlanRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
 	// TODO implement me
 	panic("implement me")

@@ -435,6 +435,28 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 	return nil
 }
 
+func (p PlanCandidateRepository) UpdateIsPlaceSearched(ctx context.Context, planCandidateId string, isPlaceSearched bool) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateSetEntity, err := generated.PlanCandidateSets(
+			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate set: %w", err)
+		}
+
+		planCandidateSetEntity.IsPlaceSearched = isPlaceSearched
+		if _, err := planCandidateSetEntity.Update(ctx, tx, boil.Whitelist(generated.PlanCandidateSetColumns.IsPlaceSearched)); err != nil {
+			return fmt.Errorf("failed to update plan candidate set: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
+}
+
 func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planCandidatePlaceEntity, err := generated.PlanCandidatePlaces(
