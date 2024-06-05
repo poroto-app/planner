@@ -82,7 +82,10 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	}
 
 	// 付近の場所を検索
-	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           startPlace.Location,
+		PlanCandidateSetId: &planCandidate.Id,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}

@@ -30,7 +30,8 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
-		Location: placeStart.Location,
+		Location:           placeStart.Location,
+		PlanCandidateSetId: &createPlanSessionId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places")
