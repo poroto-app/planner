@@ -73,21 +73,24 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			name: "plan candidate set with only id",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
 			planCandidateId: "test",
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
 		},
 		{
 			name: "plan candidate set with plan candidate",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -108,8 +111,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 			planCandidateId: "test",
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -131,8 +135,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			planCandidateId: "test",
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -143,8 +148,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				},
 			},
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -153,6 +159,21 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 						},
 					},
 				},
+			},
+		},
+		{
+			name:            "plan candidate set with IsPlaceSearched false",
+			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateId: "test",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
+			},
+			expected: models.PlanCandidate{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
 			},
 		},
 	}
