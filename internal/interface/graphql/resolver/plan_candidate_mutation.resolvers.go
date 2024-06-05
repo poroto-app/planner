@@ -276,6 +276,25 @@ func (r *mutationResolver) EditPlanTitleOfPlanCandidate(ctx context.Context, inp
 
 // AutoReorderPlacesInPlanCandidate is the resolver for the autoReorderPlacesInPlanCandidate field.
 func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context, input model.AutoReorderPlacesInPlanCandidateInput) (*model.AutoReorderPlacesInPlanCandidateOutput, error) {
+	r.Logger.Info(
+		"AutoReorderPlacesInPlanCandidate",
+		zap.String("planCandidateId", input.PlanCandidateID),
+		zap.String("planId", input.PlanID),
+	)
+
+	planCandidateSet, err := r.PlanCandidateService.Find(ctx, plancandidate.FindPlanCandidateSetInput{
+		PlanCandidateSetId: input.PlanCandidateID,
+	})
+	if err != nil {
+		r.Logger.Error("error while finding plan candidate", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	if planCandidateSet == nil {
+		r.Logger.Error("plan candidate not found", zap.String("planCandidateId", input.PlanCandidateID))
+		return nil, fmt.Errorf("plan candidate not found")
+	}
+
 	planUpdated, err := r.PlanCandidateService.AutoReorderPlaces(ctx, plancandidate.AutoReorderPlacesInput{
 		PlanCandidateSetId: input.PlanCandidateID,
 		PlanId:             input.PlanID,
@@ -285,7 +304,7 @@ func (r *mutationResolver) AutoReorderPlacesInPlanCandidate(ctx context.Context,
 		return nil, fmt.Errorf("could not auto reorder places in plan candidate")
 	}
 
-	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated, nil)
+	graphqlPlanInPlanCandidate, err := factory.PlanFromDomainModel(*planUpdated, planCandidateSet.MetaData.GetLocationStart())
 	if err != nil {
 		r.Logger.Error("error while converting plan to graphql model", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
