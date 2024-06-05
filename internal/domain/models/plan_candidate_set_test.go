@@ -8,13 +8,13 @@ import (
 func TestPlanCandidate_HasPlace(t *testing.T) {
 	cases := []struct {
 		name          string
-		planCandidate PlanCandidate
+		planCandidate PlanCandidateSet
 		placeId       string
 		expected      bool
 	}{
 		{
 			name: "Has place of placeId",
-			planCandidate: PlanCandidate{
+			planCandidate: PlanCandidateSet{
 				Plans: []Plan{
 					{
 						Places: []Place{{Id: "1"}},
@@ -26,7 +26,7 @@ func TestPlanCandidate_HasPlace(t *testing.T) {
 		},
 		{
 			name: "Does not have place of placeId",
-			planCandidate: PlanCandidate{
+			planCandidate: PlanCandidateSet{
 				Plans: []Plan{
 					{
 						Places: []Place{{Id: "1"}},
@@ -51,19 +51,19 @@ func TestPlanCandidate_HasPlace(t *testing.T) {
 func TestPlanCandidate_GetPlan(t *testing.T) {
 	cases := []struct {
 		name          string
-		planCandidate PlanCandidate
+		planCandidate PlanCandidateSet
 		planId        string
 		expected      *Plan
 	}{
 		{
 			name:          "Has plan",
-			planCandidate: PlanCandidate{Plans: []Plan{{Id: "1"}}},
+			planCandidate: PlanCandidateSet{Plans: []Plan{{Id: "1"}}},
 			planId:        "1",
 			expected:      &Plan{Id: "1"},
 		},
 		{
 			name:          "Does not have plan",
-			planCandidate: PlanCandidate{Plans: []Plan{{Id: "1"}}},
+			planCandidate: PlanCandidateSet{Plans: []Plan{{Id: "1"}}},
 			planId:        "2",
 			expected:      nil,
 		},

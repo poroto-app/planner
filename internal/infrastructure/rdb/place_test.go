@@ -980,7 +980,7 @@ func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
 	cases := []struct {
 		name                            string
 		savedPlaces                     []models.Place
-		savedPlanCandidateSets          []models.PlanCandidate
+		savedPlanCandidateSets          []models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaces []generated.PlanCandidateSetLikePlace
 		googlePlaceId                   string
 		expectedPlace                   *models.Place
@@ -990,7 +990,7 @@ func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
 			savedPlaces: []models.Place{
 				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
 			},
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{Id: "plan_candidate_set_id_1", ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local)},
 			},
 			savedPlanCandidateSetLikePlaces: []generated.PlanCandidateSetLikePlace{

@@ -16,7 +16,7 @@ type FindPlanCandidateInput struct {
 	FirebaseAuthToken *string
 }
 
-func (s Service) FindPlanCandidate(ctx context.Context, input FindPlanCandidateInput) (*models.PlanCandidate, error) {
+func (s Service) FindPlanCandidate(ctx context.Context, input FindPlanCandidateInput) (*models.PlanCandidateSet, error) {
 	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error finding plan candidate: %w", err)

@@ -21,7 +21,7 @@ import (
 // PlanCandidate is the resolver for the planCandidate field.
 func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
 	r.Logger.Info(
-		"PlanCandidate",
+		"PlanCandidateSet",
 		zap.String("planCandidateId", input.PlanCandidateID),
 	)
 

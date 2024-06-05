@@ -14,7 +14,7 @@ type CreatePlanCandidateSetFromSavedPlanInput struct {
 }
 
 type CreatePlanCandidateSetFromSavedPlanOutput struct {
-	PlanCandidateSet models.PlanCandidate
+	PlanCandidateSet models.PlanCandidateSet
 }
 
 func (s Service) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input CreatePlanCandidateSetFromSavedPlanInput) (*CreatePlanCandidateSetFromSavedPlanOutput, error) {

@@ -54,7 +54,7 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 	return nil
 }
 
-func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
+func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidateSet, error) {
 	planCandidateSetEntity, err := generated.PlanCandidateSets(concatQueryMod(
 		[]qm.QueryMod{
 			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),

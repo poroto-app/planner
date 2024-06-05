@@ -19,7 +19,7 @@ type LikeToPlaceInPlanCandidateInput struct {
 func (s Service) LikeToPlaceInPlanCandidate(
 	ctx context.Context,
 	input LikeToPlaceInPlanCandidateInput,
-) (*models.PlanCandidate, error) {
+) (*models.PlanCandidateSet, error) {
 	if input.UserId != nil && input.FirebaseAuthToken == nil {
 		return nil, fmt.Errorf("firebase auth token is required")
 	}

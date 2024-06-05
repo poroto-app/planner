@@ -5,7 +5,7 @@ import (
 	graphql "poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
-func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidate) *graphql.PlanCandidate {
+func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidateSet) *graphql.PlanCandidate {
 	if planCandidate == nil {
 		return nil
 	}

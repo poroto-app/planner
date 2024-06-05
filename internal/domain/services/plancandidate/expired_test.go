@@ -16,13 +16,13 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 	cases := []struct {
 		name                   string
 		expiresAt              time.Time
-		planCandidates         map[string]models.PlanCandidate
-		expectedPlanCandidates map[string]models.PlanCandidate
+		planCandidates         map[string]models.PlanCandidateSet
+		expectedPlanCandidates map[string]models.PlanCandidateSet
 	}{
 		{
 			name:      "expired plan candidates are deleted",
 			expiresAt: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-			planCandidates: map[string]models.PlanCandidate{
+			planCandidates: map[string]models.PlanCandidateSet{
 				"planCandidate1": {
 					Id:        "planCandidate1",
 					ExpiresAt: time.Date(2019, 12, 31, 23, 59, 59, 0, time.UTC),
@@ -36,7 +36,7 @@ func TestDeleteExpiredPlanCandidates(t *testing.T) {
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),
 				},
 			},
-			expectedPlanCandidates: map[string]models.PlanCandidate{
+			expectedPlanCandidates: map[string]models.PlanCandidateSet{
 				"planCandidate3": {
 					Id:        "planCandidate3",
 					ExpiresAt: time.Date(2020, 1, 1, 0, 0, 1, 0, time.UTC),

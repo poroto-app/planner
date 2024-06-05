@@ -65,20 +65,20 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 	cases := []struct {
 		name                  string
 		now                   time.Time
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		planCandidateId       string
-		expected              models.PlanCandidate
+		expected              models.PlanCandidateSet
 	}{
 		{
 			name: "plan candidate set with only id",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
 			},
 			planCandidateId: "test",
-			expected: models.PlanCandidate{
+			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -87,7 +87,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 		{
 			name: "plan candidate set with plan candidate",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -110,7 +110,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				},
 			},
 			planCandidateId: "test",
-			expected: models.PlanCandidate{
+			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -134,7 +134,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			name:            "plan candidate set without PlanCandidateSetMetaData",
 			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			planCandidateId: "test",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -147,7 +147,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					},
 				},
 			},
-			expected: models.PlanCandidate{
+			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -165,12 +165,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			name:            "plan candidate set with IsPlaceSearched false",
 			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			planCandidateId: "test",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: false,
 			},
-			expected: models.PlanCandidate{
+			expected: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: false,
@@ -276,13 +276,13 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 	cases := []struct {
 		name                  string
 		now                   time.Time
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		planCandidateId       string
 	}{
 		{
 			name: "expired plan candidate set will not be returned",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test",
 				ExpiresAt: time.Date(2019, 12, 1, 0, 0, 0, 0, time.Local),
 			},
@@ -335,11 +335,11 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 		now                                    time.Time
 		savedPlaces                            []models.Place
 		savedUsers                             generated.UserSlice
-		savedPlanCandidateSets                 []models.PlanCandidate
+		savedPlanCandidateSets                 []models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 		savedUserLikePlaceEntities             generated.UserLikePlaceSlice
 		planCandidateId                        string
-		expected                               models.PlanCandidate
+		expected                               models.PlanCandidateSet
 	}{
 		{
 			name: "plan candidate set with place like count",
@@ -352,7 +352,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: "test-user-1", FirebaseUID: uuid.New().String()},
 				{ID: "test-user-2", FirebaseUID: uuid.New().String()},
 			},
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -381,7 +381,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: uuid.New().String(), UserID: "test-user-2", PlaceID: "test-place-2"},
 			},
 			planCandidateId: "plan-candidate-set-1",
-			expected: models.PlanCandidate{
+			expected: models.PlanCandidateSet{
 				Id:        "plan-candidate-set-1",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -460,7 +460,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		savedPlaces           []models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		expected              models.Plan
 	}{
 		{
@@ -515,7 +515,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 					},
 				},
 			},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -656,13 +656,13 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 	cases := []struct {
 		name                   string
 		expiresAt              time.Time
-		savedPlanCandidateSets []models.PlanCandidate
+		savedPlanCandidateSets []models.PlanCandidateSet
 		expected               []string
 	}{
 		{
 			name:      "success",
 			expiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "test-plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
@@ -692,7 +692,7 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 			})
 
 			// 事前にPlaceを作成しておく
-			placesInPlans := array.Flatten(array.Flatten(array.Map(c.savedPlanCandidateSets, func(planCandidate models.PlanCandidate) [][]models.Place {
+			placesInPlans := array.Flatten(array.Flatten(array.Map(c.savedPlanCandidateSets, func(planCandidate models.PlanCandidateSet) [][]models.Place {
 				return array.Map(planCandidate.Plans, func(plan models.Plan) []models.Place { return plan.Places })
 			})))
 			if err := savePlaces(testContext, testDB, placesInPlans); err != nil {
@@ -774,7 +774,7 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
+			if err := savePlanCandidate(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
@@ -906,14 +906,14 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdToDelete       string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdToDelete:    "second-place",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -933,7 +933,7 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdToDelete:    "not-existing-place",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1001,14 +1001,14 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdsOrdered       []string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdsOrdered:    []string{"third-place", "first-place", "second-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1079,14 +1079,14 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdsOrdered       []string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "reorder with not existing place",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdsOrdered:    []string{"third-place", "first-place", "not-existing-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1141,13 +1141,13 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 	cases := []struct {
 		name                  string
 		planCandidateSetId    string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		metaData              models.PlanCandidateMetaData
 	}{
 		{
 			name:               "save plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				MetaData:  models.PlanCandidateMetaData{},
@@ -1163,7 +1163,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 		{
 			name:               "update plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				MetaData: models.PlanCandidateMetaData{
@@ -1330,7 +1330,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 		planCandidateId       string
 		placeIdToReplace      string
 		placeToReplace        models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
@@ -1338,7 +1338,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 			planCandidateId:    "test-plan-candidate",
 			placeIdToReplace:   "second-place",
 			placeToReplace:     models.Place{Id: "replaced-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1411,7 +1411,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 		planCandidateId       string
 		placeIdToReplace      string
 		placeToReplace        models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "replace with not existing place",
@@ -1419,7 +1419,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 			planCandidateId:    "test-plan-candidate",
 			placeIdToReplace:   "not-existing-place",
 			placeToReplace:     models.Place{Id: "place-to-replace"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1476,13 +1476,13 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 	cases := []struct {
 		name                        string
-		savedPlanCandidateSets      []models.PlanCandidate
+		savedPlanCandidateSets      []models.PlanCandidateSet
 		planCandidateIdsToDelete    []string
 		planCandidateIdsNotToDelete []string
 	}{
 		{
 			name: "success",
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "test-plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -1615,7 +1615,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 					t.Fatalf("plan candidate set meta data category should not exist")
 				}
 
-				// PlanCandidate が削除されていることを確認
+				// PlanCandidateSet が削除されていることを確認
 				planCandidateEntityExist, err := generated.PlanCandidates(
 					generated.PlanCandidateWhere.ID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
@@ -1647,7 +1647,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 		planCandidateSetId                     string
 		placeId                                string
 		savedPlaces                            []models.Place
-		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidate                     models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 	}{
 		{
@@ -1657,7 +1657,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1676,7 +1676,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1754,7 +1754,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 		planCandidateSetId                     string
 		placeId                                string
 		savedPlaces                            []models.Place
-		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidate                     models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 	}{
 		{
@@ -1764,7 +1764,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1789,7 +1789,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{

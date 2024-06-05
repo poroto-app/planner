@@ -12,14 +12,14 @@ type PlanCandidateRepository interface {
 	// この時点ではプランは保存されない
 	Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error
 
-	Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error)
+	Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidateSet, error)
 
 	FindPlan(ctx context.Context, planCandidateId string, planId string) (*models.Plan, error)
 
 	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
 
 	// AddPlan プラン候補にプランを追加する
-	// 事前に models.PlanCandidate が保存されている必要がある
+	// 事前に models.PlanCandidateSet が保存されている必要がある
 	AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error
 
 	AddPlaceToPlan(ctx context.Context, planCandidateId string, planId string, previousPlaceId string, place models.Place) error
