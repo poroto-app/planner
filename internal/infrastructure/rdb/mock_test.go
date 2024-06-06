@@ -86,8 +86,9 @@ func savePlans(ctx context.Context, db *sql.DB, plans []models.Plan) error {
 func savePlanCandidate(ctx context.Context, db *sql.DB, planCandidateSet models.PlanCandidate) error {
 	// PlanCandidateSetを作成
 	planCandidateSetEntity := generated.PlanCandidateSet{
-		ID:        planCandidateSet.Id,
-		ExpiresAt: planCandidateSet.ExpiresAt,
+		ID:              planCandidateSet.Id,
+		ExpiresAt:       planCandidateSet.ExpiresAt,
+		IsPlaceSearched: planCandidateSet.IsPlaceSearched,
 	}
 	if err := planCandidateSetEntity.Insert(ctx, db, boil.Infer()); err != nil {
 		return fmt.Errorf("failed to insert plan candidate set: %v", err)

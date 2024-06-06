@@ -98,9 +98,10 @@ func NewPlanCandidateFromEntity(
 	}
 
 	return &models.Plan{
-		Id:     planCandidateEntity.ID,
-		Name:   planCandidateEntity.Name,
-		Places: *placesOrdered,
-		Author: author,
+		Id:           planCandidateEntity.ID,
+		Name:         planCandidateEntity.Name,
+		Places:       *placesOrdered,
+		Author:       author,
+		ParentPlanId: planCandidateEntity.ParentPlanID.Ptr(),
 	}, nil
 }
