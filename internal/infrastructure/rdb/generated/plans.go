@@ -94,29 +94,29 @@ var PlanWhere = struct {
 
 // PlanRels is where relationship names are stored.
 var PlanRels = struct {
-	User                               string
-	ParentPlanPlanCandidateSetMetaData string
-	PlanCollages                       string
-	ParentPlanPlanParentChildren       string
-	ChildPlanPlanParentChildren        string
-	PlanPlaces                         string
+	User                         string
+	ParentPlanPlanCandidates     string
+	PlanCollages                 string
+	ParentPlanPlanParentChildren string
+	ChildPlanPlanParentChildren  string
+	PlanPlaces                   string
 }{
-	User:                               "User",
-	ParentPlanPlanCandidateSetMetaData: "ParentPlanPlanCandidateSetMetaData",
-	PlanCollages:                       "PlanCollages",
-	ParentPlanPlanParentChildren:       "ParentPlanPlanParentChildren",
-	ChildPlanPlanParentChildren:        "ChildPlanPlanParentChildren",
-	PlanPlaces:                         "PlanPlaces",
+	User:                         "User",
+	ParentPlanPlanCandidates:     "ParentPlanPlanCandidates",
+	PlanCollages:                 "PlanCollages",
+	ParentPlanPlanParentChildren: "ParentPlanPlanParentChildren",
+	ChildPlanPlanParentChildren:  "ChildPlanPlanParentChildren",
+	PlanPlaces:                   "PlanPlaces",
 }
 
 // planR is where relationships are stored.
 type planR struct {
-	User                               *User                          `boil:"User" json:"User" toml:"User" yaml:"User"`
-	ParentPlanPlanCandidateSetMetaData PlanCandidateSetMetaDatumSlice `boil:"ParentPlanPlanCandidateSetMetaData" json:"ParentPlanPlanCandidateSetMetaData" toml:"ParentPlanPlanCandidateSetMetaData" yaml:"ParentPlanPlanCandidateSetMetaData"`
-	PlanCollages                       PlanCollageSlice               `boil:"PlanCollages" json:"PlanCollages" toml:"PlanCollages" yaml:"PlanCollages"`
-	ParentPlanPlanParentChildren       PlanParentChildSlice           `boil:"ParentPlanPlanParentChildren" json:"ParentPlanPlanParentChildren" toml:"ParentPlanPlanParentChildren" yaml:"ParentPlanPlanParentChildren"`
-	ChildPlanPlanParentChildren        PlanParentChildSlice           `boil:"ChildPlanPlanParentChildren" json:"ChildPlanPlanParentChildren" toml:"ChildPlanPlanParentChildren" yaml:"ChildPlanPlanParentChildren"`
-	PlanPlaces                         PlanPlaceSlice                 `boil:"PlanPlaces" json:"PlanPlaces" toml:"PlanPlaces" yaml:"PlanPlaces"`
+	User                         *User                `boil:"User" json:"User" toml:"User" yaml:"User"`
+	ParentPlanPlanCandidates     PlanCandidateSlice   `boil:"ParentPlanPlanCandidates" json:"ParentPlanPlanCandidates" toml:"ParentPlanPlanCandidates" yaml:"ParentPlanPlanCandidates"`
+	PlanCollages                 PlanCollageSlice     `boil:"PlanCollages" json:"PlanCollages" toml:"PlanCollages" yaml:"PlanCollages"`
+	ParentPlanPlanParentChildren PlanParentChildSlice `boil:"ParentPlanPlanParentChildren" json:"ParentPlanPlanParentChildren" toml:"ParentPlanPlanParentChildren" yaml:"ParentPlanPlanParentChildren"`
+	ChildPlanPlanParentChildren  PlanParentChildSlice `boil:"ChildPlanPlanParentChildren" json:"ChildPlanPlanParentChildren" toml:"ChildPlanPlanParentChildren" yaml:"ChildPlanPlanParentChildren"`
+	PlanPlaces                   PlanPlaceSlice       `boil:"PlanPlaces" json:"PlanPlaces" toml:"PlanPlaces" yaml:"PlanPlaces"`
 }
 
 // NewStruct creates a new relationship struct
@@ -131,11 +131,11 @@ func (r *planR) GetUser() *User {
 	return r.User
 }
 
-func (r *planR) GetParentPlanPlanCandidateSetMetaData() PlanCandidateSetMetaDatumSlice {
+func (r *planR) GetParentPlanPlanCandidates() PlanCandidateSlice {
 	if r == nil {
 		return nil
 	}
-	return r.ParentPlanPlanCandidateSetMetaData
+	return r.ParentPlanPlanCandidates
 }
 
 func (r *planR) GetPlanCollages() PlanCollageSlice {
@@ -493,18 +493,18 @@ func (o *Plan) User(mods ...qm.QueryMod) userQuery {
 	return Users(queryMods...)
 }
 
-// ParentPlanPlanCandidateSetMetaData retrieves all the plan_candidate_set_meta_datum's PlanCandidateSetMetaData with an executor via parent_plan_id column.
-func (o *Plan) ParentPlanPlanCandidateSetMetaData(mods ...qm.QueryMod) planCandidateSetMetaDatumQuery {
+// ParentPlanPlanCandidates retrieves all the plan_candidate's PlanCandidates with an executor via parent_plan_id column.
+func (o *Plan) ParentPlanPlanCandidates(mods ...qm.QueryMod) planCandidateQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("`plan_candidate_set_meta_data`.`parent_plan_id`=?", o.ID),
+		qm.Where("`plan_candidates`.`parent_plan_id`=?", o.ID),
 	)
 
-	return PlanCandidateSetMetaData(queryMods...)
+	return PlanCandidates(queryMods...)
 }
 
 // PlanCollages retrieves all the plan_collage's PlanCollages with an executor.
@@ -687,9 +687,9 @@ func (planL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool
 	return nil
 }
 
-// LoadParentPlanPlanCandidateSetMetaData allows an eager lookup of values, cached into the
+// LoadParentPlanPlanCandidates allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (planL) LoadParentPlanPlanCandidateSetMetaData(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlan interface{}, mods queries.Applicator) error {
+func (planL) LoadParentPlanPlanCandidates(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlan interface{}, mods queries.Applicator) error {
 	var slice []*Plan
 	var object *Plan
 
@@ -742,8 +742,8 @@ func (planL) LoadParentPlanPlanCandidateSetMetaData(ctx context.Context, e boil.
 	}
 
 	query := NewQuery(
-		qm.From(`plan_candidate_set_meta_data`),
-		qm.WhereIn(`plan_candidate_set_meta_data.parent_plan_id in ?`, argsSlice...),
+		qm.From(`plan_candidates`),
+		qm.WhereIn(`plan_candidates.parent_plan_id in ?`, argsSlice...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -751,22 +751,22 @@ func (planL) LoadParentPlanPlanCandidateSetMetaData(ctx context.Context, e boil.
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load plan_candidate_set_meta_data")
+		return errors.Wrap(err, "failed to eager load plan_candidates")
 	}
 
-	var resultSlice []*PlanCandidateSetMetaDatum
+	var resultSlice []*PlanCandidate
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_set_meta_data")
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidates")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_set_meta_data")
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidates")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_set_meta_data")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidates")
 	}
 
-	if len(planCandidateSetMetaDatumAfterSelectHooks) != 0 {
+	if len(planCandidateAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -774,10 +774,10 @@ func (planL) LoadParentPlanPlanCandidateSetMetaData(ctx context.Context, e boil.
 		}
 	}
 	if singular {
-		object.R.ParentPlanPlanCandidateSetMetaData = resultSlice
+		object.R.ParentPlanPlanCandidates = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &planCandidateSetMetaDatumR{}
+				foreign.R = &planCandidateR{}
 			}
 			foreign.R.ParentPlan = object
 		}
@@ -787,9 +787,9 @@ func (planL) LoadParentPlanPlanCandidateSetMetaData(ctx context.Context, e boil.
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if queries.Equal(local.ID, foreign.ParentPlanID) {
-				local.R.ParentPlanPlanCandidateSetMetaData = append(local.R.ParentPlanPlanCandidateSetMetaData, foreign)
+				local.R.ParentPlanPlanCandidates = append(local.R.ParentPlanPlanCandidates, foreign)
 				if foreign.R == nil {
-					foreign.R = &planCandidateSetMetaDatumR{}
+					foreign.R = &planCandidateR{}
 				}
 				foreign.R.ParentPlan = local
 				break
@@ -1332,11 +1332,11 @@ func (o *Plan) RemoveUser(ctx context.Context, exec boil.ContextExecutor, relate
 	return nil
 }
 
-// AddParentPlanPlanCandidateSetMetaData adds the given related objects to the existing relationships
+// AddParentPlanPlanCandidates adds the given related objects to the existing relationships
 // of the plan, optionally inserting them as new records.
-// Appends related to o.R.ParentPlanPlanCandidateSetMetaData.
+// Appends related to o.R.ParentPlanPlanCandidates.
 // Sets related.R.ParentPlan appropriately.
-func (o *Plan) AddParentPlanPlanCandidateSetMetaData(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetMetaDatum) error {
+func (o *Plan) AddParentPlanPlanCandidates(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidate) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -1346,9 +1346,9 @@ func (o *Plan) AddParentPlanPlanCandidateSetMetaData(ctx context.Context, exec b
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE `plan_candidate_set_meta_data` SET %s WHERE %s",
+				"UPDATE `plan_candidates` SET %s WHERE %s",
 				strmangle.SetParamNames("`", "`", 0, []string{"parent_plan_id"}),
-				strmangle.WhereClause("`", "`", 0, planCandidateSetMetaDatumPrimaryKeyColumns),
+				strmangle.WhereClause("`", "`", 0, planCandidatePrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -1367,15 +1367,15 @@ func (o *Plan) AddParentPlanPlanCandidateSetMetaData(ctx context.Context, exec b
 
 	if o.R == nil {
 		o.R = &planR{
-			ParentPlanPlanCandidateSetMetaData: related,
+			ParentPlanPlanCandidates: related,
 		}
 	} else {
-		o.R.ParentPlanPlanCandidateSetMetaData = append(o.R.ParentPlanPlanCandidateSetMetaData, related...)
+		o.R.ParentPlanPlanCandidates = append(o.R.ParentPlanPlanCandidates, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &planCandidateSetMetaDatumR{
+			rel.R = &planCandidateR{
 				ParentPlan: o,
 			}
 		} else {
@@ -1385,14 +1385,14 @@ func (o *Plan) AddParentPlanPlanCandidateSetMetaData(ctx context.Context, exec b
 	return nil
 }
 
-// SetParentPlanPlanCandidateSetMetaData removes all previously related items of the
+// SetParentPlanPlanCandidates removes all previously related items of the
 // plan replacing them completely with the passed
 // in related items, optionally inserting them as new records.
-// Sets o.R.ParentPlan's ParentPlanPlanCandidateSetMetaData accordingly.
-// Replaces o.R.ParentPlanPlanCandidateSetMetaData with related.
-// Sets related.R.ParentPlan's ParentPlanPlanCandidateSetMetaData accordingly.
-func (o *Plan) SetParentPlanPlanCandidateSetMetaData(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetMetaDatum) error {
-	query := "update `plan_candidate_set_meta_data` set `parent_plan_id` = null where `parent_plan_id` = ?"
+// Sets o.R.ParentPlan's ParentPlanPlanCandidates accordingly.
+// Replaces o.R.ParentPlanPlanCandidates with related.
+// Sets related.R.ParentPlan's ParentPlanPlanCandidates accordingly.
+func (o *Plan) SetParentPlanPlanCandidates(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidate) error {
+	query := "update `plan_candidates` set `parent_plan_id` = null where `parent_plan_id` = ?"
 	values := []interface{}{o.ID}
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -1405,7 +1405,7 @@ func (o *Plan) SetParentPlanPlanCandidateSetMetaData(ctx context.Context, exec b
 	}
 
 	if o.R != nil {
-		for _, rel := range o.R.ParentPlanPlanCandidateSetMetaData {
+		for _, rel := range o.R.ParentPlanPlanCandidates {
 			queries.SetScanner(&rel.ParentPlanID, nil)
 			if rel.R == nil {
 				continue
@@ -1413,16 +1413,16 @@ func (o *Plan) SetParentPlanPlanCandidateSetMetaData(ctx context.Context, exec b
 
 			rel.R.ParentPlan = nil
 		}
-		o.R.ParentPlanPlanCandidateSetMetaData = nil
+		o.R.ParentPlanPlanCandidates = nil
 	}
 
-	return o.AddParentPlanPlanCandidateSetMetaData(ctx, exec, insert, related...)
+	return o.AddParentPlanPlanCandidates(ctx, exec, insert, related...)
 }
 
-// RemoveParentPlanPlanCandidateSetMetaData relationships from objects passed in.
-// Removes related items from R.ParentPlanPlanCandidateSetMetaData (uses pointer comparison, removal does not keep order)
+// RemoveParentPlanPlanCandidates relationships from objects passed in.
+// Removes related items from R.ParentPlanPlanCandidates (uses pointer comparison, removal does not keep order)
 // Sets related.R.ParentPlan.
-func (o *Plan) RemoveParentPlanPlanCandidateSetMetaData(ctx context.Context, exec boil.ContextExecutor, related ...*PlanCandidateSetMetaDatum) error {
+func (o *Plan) RemoveParentPlanPlanCandidates(ctx context.Context, exec boil.ContextExecutor, related ...*PlanCandidate) error {
 	if len(related) == 0 {
 		return nil
 	}
@@ -1442,16 +1442,16 @@ func (o *Plan) RemoveParentPlanPlanCandidateSetMetaData(ctx context.Context, exe
 	}
 
 	for _, rel := range related {
-		for i, ri := range o.R.ParentPlanPlanCandidateSetMetaData {
+		for i, ri := range o.R.ParentPlanPlanCandidates {
 			if rel != ri {
 				continue
 			}
 
-			ln := len(o.R.ParentPlanPlanCandidateSetMetaData)
+			ln := len(o.R.ParentPlanPlanCandidates)
 			if ln > 1 && i < ln-1 {
-				o.R.ParentPlanPlanCandidateSetMetaData[i] = o.R.ParentPlanPlanCandidateSetMetaData[ln-1]
+				o.R.ParentPlanPlanCandidates[i] = o.R.ParentPlanPlanCandidates[ln-1]
 			}
-			o.R.ParentPlanPlanCandidateSetMetaData = o.R.ParentPlanPlanCandidateSetMetaData[:ln-1]
+			o.R.ParentPlanPlanCandidates = o.R.ParentPlanPlanCandidates[:ln-1]
 			break
 		}
 	}
@@ -2690,29 +2690,29 @@ func (s PlanSlice) UpsertAllByPage(ctx context.Context, exec boil.ContextExecuto
 	return rowsAffected, nil
 }
 
-// LoadParentPlanPlanCandidateSetMetaDataByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
-func (s PlanSlice) LoadParentPlanPlanCandidateSetMetaDataByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
-	return s.LoadParentPlanPlanCandidateSetMetaDataByPageEx(ctx, e, DefaultPageSize, mods...)
+// LoadParentPlanPlanCandidatesByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s PlanSlice) LoadParentPlanPlanCandidatesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadParentPlanPlanCandidatesByPageEx(ctx, e, DefaultPageSize, mods...)
 }
-func (s PlanSlice) LoadParentPlanPlanCandidateSetMetaDataByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+func (s PlanSlice) LoadParentPlanPlanCandidatesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
 	if len(s) == 0 {
 		return nil
 	}
 	for _, chunk := range chunkSlice[*Plan](s, pageSize) {
-		if err := chunk[0].L.LoadParentPlanPlanCandidateSetMetaData(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+		if err := chunk[0].L.LoadParentPlanPlanCandidates(ctx, e, false, &chunk, queryMods(mods)); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s PlanSlice) GetLoadedParentPlanPlanCandidateSetMetaData() PlanCandidateSetMetaDatumSlice {
-	result := make(PlanCandidateSetMetaDatumSlice, 0, len(s)*2)
+func (s PlanSlice) GetLoadedParentPlanPlanCandidates() PlanCandidateSlice {
+	result := make(PlanCandidateSlice, 0, len(s)*2)
 	for _, item := range s {
-		if item.R == nil || item.R.ParentPlanPlanCandidateSetMetaData == nil {
+		if item.R == nil || item.R.ParentPlanPlanCandidates == nil {
 			continue
 		}
-		result = append(result, item.R.ParentPlanPlanCandidateSetMetaData...)
+		result = append(result, item.R.ParentPlanPlanCandidates...)
 	}
 	return result
 }

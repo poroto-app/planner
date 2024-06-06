@@ -143,8 +143,6 @@ erDiagram
         double longitude_start
         int plan_duration_minutes
         bool is_created_from_current_location
-        %%  もとになったプラン（カスタム元になったプラン等） 
-        char(36) parent_plan_id FK
     }
 
     plan_candidate_set_searched_places {
@@ -165,6 +163,8 @@ erDiagram
         char(36) plan_candidate_set_id FK
         VARCHAR(255) name
         int sort_order
+        %%  もとになったプラン（カスタム元になったプラン等） 
+      char(36) parent_plan_id FK
     }
 
     plan_candidate_places {
@@ -179,7 +179,7 @@ erDiagram
     plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
     plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
-    plan_candidate_sets ||..o| plan: "1:1"
+    plan_candidates ||..o| plan : "1:1"
     plan_candidates ||..o{ plan_candidate_places: "1:N"
     plan_candidate_places ||..|| places: "1:1"
     plan_candidate_set_searched_places ||..|| places: "1:1"

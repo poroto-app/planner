@@ -24,15 +24,14 @@ import (
 
 // PlanCandidateSetMetaDatum is an object representing the database table.
 type PlanCandidateSetMetaDatum struct {
-	ID                           string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlanCandidateSetID           string      `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
-	LatitudeStart                float64     `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
-	LongitudeStart               float64     `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
-	IsCreatedFromCurrentLocation bool        `boil:"is_created_from_current_location" json:"is_created_from_current_location" toml:"is_created_from_current_location" yaml:"is_created_from_current_location"`
-	PlanDurationMinutes          null.Int    `boil:"plan_duration_minutes" json:"plan_duration_minutes,omitempty" toml:"plan_duration_minutes" yaml:"plan_duration_minutes,omitempty"`
-	CreatedAt                    time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt                    time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	ParentPlanID                 null.String `boil:"parent_plan_id" json:"parent_plan_id,omitempty" toml:"parent_plan_id" yaml:"parent_plan_id,omitempty"`
+	ID                           string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlanCandidateSetID           string    `boil:"plan_candidate_set_id" json:"plan_candidate_set_id" toml:"plan_candidate_set_id" yaml:"plan_candidate_set_id"`
+	LatitudeStart                float64   `boil:"latitude_start" json:"latitude_start" toml:"latitude_start" yaml:"latitude_start"`
+	LongitudeStart               float64   `boil:"longitude_start" json:"longitude_start" toml:"longitude_start" yaml:"longitude_start"`
+	IsCreatedFromCurrentLocation bool      `boil:"is_created_from_current_location" json:"is_created_from_current_location" toml:"is_created_from_current_location" yaml:"is_created_from_current_location"`
+	PlanDurationMinutes          null.Int  `boil:"plan_duration_minutes" json:"plan_duration_minutes,omitempty" toml:"plan_duration_minutes" yaml:"plan_duration_minutes,omitempty"`
+	CreatedAt                    time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt                    time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *planCandidateSetMetaDatumR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetMetaDatumL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -47,7 +46,6 @@ var PlanCandidateSetMetaDatumColumns = struct {
 	PlanDurationMinutes          string
 	CreatedAt                    string
 	UpdatedAt                    string
-	ParentPlanID                 string
 }{
 	ID:                           "id",
 	PlanCandidateSetID:           "plan_candidate_set_id",
@@ -57,7 +55,6 @@ var PlanCandidateSetMetaDatumColumns = struct {
 	PlanDurationMinutes:          "plan_duration_minutes",
 	CreatedAt:                    "created_at",
 	UpdatedAt:                    "updated_at",
-	ParentPlanID:                 "parent_plan_id",
 }
 
 var PlanCandidateSetMetaDatumTableColumns = struct {
@@ -69,7 +66,6 @@ var PlanCandidateSetMetaDatumTableColumns = struct {
 	PlanDurationMinutes          string
 	CreatedAt                    string
 	UpdatedAt                    string
-	ParentPlanID                 string
 }{
 	ID:                           "plan_candidate_set_meta_data.id",
 	PlanCandidateSetID:           "plan_candidate_set_meta_data.plan_candidate_set_id",
@@ -79,7 +75,6 @@ var PlanCandidateSetMetaDatumTableColumns = struct {
 	PlanDurationMinutes:          "plan_candidate_set_meta_data.plan_duration_minutes",
 	CreatedAt:                    "plan_candidate_set_meta_data.created_at",
 	UpdatedAt:                    "plan_candidate_set_meta_data.updated_at",
-	ParentPlanID:                 "plan_candidate_set_meta_data.parent_plan_id",
 }
 
 // Generated where
@@ -102,7 +97,6 @@ var PlanCandidateSetMetaDatumWhere = struct {
 	PlanDurationMinutes          whereHelpernull_Int
 	CreatedAt                    whereHelpertime_Time
 	UpdatedAt                    whereHelpertime_Time
-	ParentPlanID                 whereHelpernull_String
 }{
 	ID:                           whereHelperstring{field: "`plan_candidate_set_meta_data`.`id`"},
 	PlanCandidateSetID:           whereHelperstring{field: "`plan_candidate_set_meta_data`.`plan_candidate_set_id`"},
@@ -112,34 +106,23 @@ var PlanCandidateSetMetaDatumWhere = struct {
 	PlanDurationMinutes:          whereHelpernull_Int{field: "`plan_candidate_set_meta_data`.`plan_duration_minutes`"},
 	CreatedAt:                    whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`created_at`"},
 	UpdatedAt:                    whereHelpertime_Time{field: "`plan_candidate_set_meta_data`.`updated_at`"},
-	ParentPlanID:                 whereHelpernull_String{field: "`plan_candidate_set_meta_data`.`parent_plan_id`"},
 }
 
 // PlanCandidateSetMetaDatumRels is where relationship names are stored.
 var PlanCandidateSetMetaDatumRels = struct {
-	ParentPlan       string
 	PlanCandidateSet string
 }{
-	ParentPlan:       "ParentPlan",
 	PlanCandidateSet: "PlanCandidateSet",
 }
 
 // planCandidateSetMetaDatumR is where relationships are stored.
 type planCandidateSetMetaDatumR struct {
-	ParentPlan       *Plan             `boil:"ParentPlan" json:"ParentPlan" toml:"ParentPlan" yaml:"ParentPlan"`
 	PlanCandidateSet *PlanCandidateSet `boil:"PlanCandidateSet" json:"PlanCandidateSet" toml:"PlanCandidateSet" yaml:"PlanCandidateSet"`
 }
 
 // NewStruct creates a new relationship struct
 func (*planCandidateSetMetaDatumR) NewStruct() *planCandidateSetMetaDatumR {
 	return &planCandidateSetMetaDatumR{}
-}
-
-func (r *planCandidateSetMetaDatumR) GetParentPlan() *Plan {
-	if r == nil {
-		return nil
-	}
-	return r.ParentPlan
 }
 
 func (r *planCandidateSetMetaDatumR) GetPlanCandidateSet() *PlanCandidateSet {
@@ -153,8 +136,8 @@ func (r *planCandidateSetMetaDatumR) GetPlanCandidateSet() *PlanCandidateSet {
 type planCandidateSetMetaDatumL struct{}
 
 var (
-	planCandidateSetMetaDatumAllColumns            = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location", "plan_duration_minutes", "created_at", "updated_at", "parent_plan_id"}
-	planCandidateSetMetaDatumColumnsWithoutDefault = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location", "plan_duration_minutes", "parent_plan_id"}
+	planCandidateSetMetaDatumAllColumns            = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location", "plan_duration_minutes", "created_at", "updated_at"}
+	planCandidateSetMetaDatumColumnsWithoutDefault = []string{"id", "plan_candidate_set_id", "latitude_start", "longitude_start", "is_created_from_current_location", "plan_duration_minutes"}
 	planCandidateSetMetaDatumColumnsWithDefault    = []string{"created_at", "updated_at"}
 	planCandidateSetMetaDatumPrimaryKeyColumns     = []string{"id"}
 	planCandidateSetMetaDatumGeneratedColumns      = []string{}
@@ -465,17 +448,6 @@ func (q planCandidateSetMetaDatumQuery) Exists(ctx context.Context, exec boil.Co
 	return count > 0, nil
 }
 
-// ParentPlan pointed to by the foreign key.
-func (o *PlanCandidateSetMetaDatum) ParentPlan(mods ...qm.QueryMod) planQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("`id` = ?", o.ParentPlanID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	return Plans(queryMods...)
-}
-
 // PlanCandidateSet pointed to by the foreign key.
 func (o *PlanCandidateSetMetaDatum) PlanCandidateSet(mods ...qm.QueryMod) planCandidateSetQuery {
 	queryMods := []qm.QueryMod{
@@ -485,130 +457,6 @@ func (o *PlanCandidateSetMetaDatum) PlanCandidateSet(mods ...qm.QueryMod) planCa
 	queryMods = append(queryMods, mods...)
 
 	return PlanCandidateSets(queryMods...)
-}
-
-// LoadParentPlan allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (planCandidateSetMetaDatumL) LoadParentPlan(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidateSetMetaDatum interface{}, mods queries.Applicator) error {
-	var slice []*PlanCandidateSetMetaDatum
-	var object *PlanCandidateSetMetaDatum
-
-	if singular {
-		var ok bool
-		object, ok = maybePlanCandidateSetMetaDatum.(*PlanCandidateSetMetaDatum)
-		if !ok {
-			object = new(PlanCandidateSetMetaDatum)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanCandidateSetMetaDatum)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanCandidateSetMetaDatum))
-			}
-		}
-	} else {
-		s, ok := maybePlanCandidateSetMetaDatum.(*[]*PlanCandidateSetMetaDatum)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanCandidateSetMetaDatum)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanCandidateSetMetaDatum))
-			}
-		}
-	}
-
-	args := make(map[interface{}]struct{})
-	if singular {
-		if object.R == nil {
-			object.R = &planCandidateSetMetaDatumR{}
-		}
-		if !queries.IsNil(object.ParentPlanID) {
-			args[object.ParentPlanID] = struct{}{}
-		}
-
-	} else {
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &planCandidateSetMetaDatumR{}
-			}
-
-			if !queries.IsNil(obj.ParentPlanID) {
-				args[obj.ParentPlanID] = struct{}{}
-			}
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	argsSlice := make([]interface{}, len(args))
-	i := 0
-	for arg := range args {
-		argsSlice[i] = arg
-		i++
-	}
-
-	query := NewQuery(
-		qm.From(`plans`),
-		qm.WhereIn(`plans.id in ?`, argsSlice...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load Plan")
-	}
-
-	var resultSlice []*Plan
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice Plan")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for plans")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plans")
-	}
-
-	if len(planAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.ParentPlan = foreign
-		if foreign.R == nil {
-			foreign.R = &planR{}
-		}
-		foreign.R.ParentPlanPlanCandidateSetMetaData = append(foreign.R.ParentPlanPlanCandidateSetMetaData, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if queries.Equal(local.ParentPlanID, foreign.ID) {
-				local.R.ParentPlan = foreign
-				if foreign.R == nil {
-					foreign.R = &planR{}
-				}
-				foreign.R.ParentPlanPlanCandidateSetMetaData = append(foreign.R.ParentPlanPlanCandidateSetMetaData, local)
-				break
-			}
-		}
-	}
-
-	return nil
 }
 
 // LoadPlanCandidateSet allows an eager lookup of values, cached into the
@@ -728,86 +576,6 @@ func (planCandidateSetMetaDatumL) LoadPlanCandidateSet(ctx context.Context, e bo
 		}
 	}
 
-	return nil
-}
-
-// SetParentPlan of the planCandidateSetMetaDatum to the related item.
-// Sets o.R.ParentPlan to related.
-// Adds o to related.R.ParentPlanPlanCandidateSetMetaData.
-func (o *PlanCandidateSetMetaDatum) SetParentPlan(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Plan) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE `plan_candidate_set_meta_data` SET %s WHERE %s",
-		strmangle.SetParamNames("`", "`", 0, []string{"parent_plan_id"}),
-		strmangle.WhereClause("`", "`", 0, planCandidateSetMetaDatumPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	queries.Assign(&o.ParentPlanID, related.ID)
-	if o.R == nil {
-		o.R = &planCandidateSetMetaDatumR{
-			ParentPlan: related,
-		}
-	} else {
-		o.R.ParentPlan = related
-	}
-
-	if related.R == nil {
-		related.R = &planR{
-			ParentPlanPlanCandidateSetMetaData: PlanCandidateSetMetaDatumSlice{o},
-		}
-	} else {
-		related.R.ParentPlanPlanCandidateSetMetaData = append(related.R.ParentPlanPlanCandidateSetMetaData, o)
-	}
-
-	return nil
-}
-
-// RemoveParentPlan relationship.
-// Sets o.R.ParentPlan to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *PlanCandidateSetMetaDatum) RemoveParentPlan(ctx context.Context, exec boil.ContextExecutor, related *Plan) error {
-	var err error
-
-	queries.SetScanner(&o.ParentPlanID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("parent_plan_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.ParentPlan = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.ParentPlanPlanCandidateSetMetaData {
-		if queries.Equal(o.ParentPlanID, ri.ParentPlanID) {
-			continue
-		}
-
-		ln := len(related.R.ParentPlanPlanCandidateSetMetaData)
-		if ln > 1 && i < ln-1 {
-			related.R.ParentPlanPlanCandidateSetMetaData[i] = related.R.ParentPlanPlanCandidateSetMetaData[ln-1]
-		}
-		related.R.ParentPlanPlanCandidateSetMetaData = related.R.ParentPlanPlanCandidateSetMetaData[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -1875,38 +1643,6 @@ func (s PlanCandidateSetMetaDatumSlice) UpsertAllByPage(ctx context.Context, exe
 		}
 	}
 	return rowsAffected, nil
-}
-
-// LoadParentPlansByPage performs eager loading of values by page. This is for a N-1 relationship.
-func (s PlanCandidateSetMetaDatumSlice) LoadParentPlansByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
-	return s.LoadParentPlansByPageEx(ctx, e, DefaultPageSize, mods...)
-}
-func (s PlanCandidateSetMetaDatumSlice) LoadParentPlansByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
-	if len(s) == 0 {
-		return nil
-	}
-	for _, chunk := range chunkSlice[*PlanCandidateSetMetaDatum](s, pageSize) {
-		if err := chunk[0].L.LoadParentPlan(ctx, e, false, &chunk, queryMods(mods)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s PlanCandidateSetMetaDatumSlice) GetLoadedParentPlans() PlanSlice {
-	result := make(PlanSlice, 0, len(s))
-	mapCheckDup := make(map[*Plan]struct{})
-	for _, item := range s {
-		if item.R == nil || item.R.ParentPlan == nil {
-			continue
-		}
-		if _, ok := mapCheckDup[item.R.ParentPlan]; ok {
-			continue
-		}
-		result = append(result, item.R.ParentPlan)
-		mapCheckDup[item.R.ParentPlan] = struct{}{}
-	}
-	return result
 }
 
 // LoadPlanCandidateSetsByPage performs eager loading of values by page. This is for a N-1 relationship.
