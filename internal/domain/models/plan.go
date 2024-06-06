@@ -5,10 +5,11 @@ import (
 )
 
 type Plan struct {
-	Id     string  `json:"id"`
-	Name   string  `json:"name"`
-	Places []Place `json:"places"`
-	Author *User   `json:"author"`
+	Id           string  `json:"id"`
+	Name         string  `json:"name"`
+	Places       []Place `json:"places"`
+	Author       *User   `json:"author"`
+	ParentPlanId *string `json:"parent_plan_id"`
 }
 
 // GetPlace 指定したIDの場所情報を取得する
