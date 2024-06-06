@@ -143,6 +143,8 @@ erDiagram
         double longitude_start
         int plan_duration_minutes
         bool is_created_from_current_location
+        %%  もとになったプラン（カスタム元になったプラン等） 
+        char(36) parent_plan_id FK
     }
 
     plan_candidate_set_searched_places {
@@ -177,6 +179,7 @@ erDiagram
     plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
     plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
+    plan_candidate_sets ||..o| plan: "1:1"
     plan_candidates ||..o{ plan_candidate_places: "1:N"
     plan_candidate_places ||..|| places: "1:1"
     plan_candidate_set_searched_places ||..|| places: "1:1"
@@ -202,10 +205,17 @@ erDiagram
         char(36) place_id FK
         int sort_order
     }
+        
+    plan_parent_children {
+        char(36) id PK
+        char(36) parent_plan_id FK
+        char(36) child_plan_id FK
+    }
 
     plans ||..o{ plan_places: "1:N"
     plans ||..|| users: "1:1"
     plan_places ||..|| places: "1:1"
+    plans ||--o{ plan_parent_children: "1:N"
 ```
 
 ### Like Place
