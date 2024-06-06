@@ -80,6 +80,7 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.PlanCandidates(),
 		generated.PlanCandidateSets(),
 		// Plan
+		generated.PlanParentChildren(),
 		generated.PlanPlaces(),
 		generated.Plans(),
 		// GooglePlace

@@ -5,6 +5,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
@@ -725,27 +726,48 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 
 func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 	cases := []struct {
-		name            string
-		planCandidateId string
-		plans           []models.Plan
+		name                   string
+		planCandidateId        string
+		savedPlans             generated.PlanSlice
+		plans                  []models.Plan
+		expectedPlanCandidates generated.PlanCandidateSlice
 	}{
 		{
 			name:            "success",
-			planCandidateId: uuid.New().String(),
+			planCandidateId: "test-plan-candidate",
+			savedPlans: generated.PlanSlice{
+				{ID: "test-plan-1"},
+			},
 			plans: []models.Plan{
 				{
-					Id: uuid.New().String(),
+					Id: "test-plan-1",
 					Places: []models.Place{
 						{Id: "tokyo-station"},
 						{Id: "shinagawa-station"},
 					},
+					ParentPlanId: utils.ToPointer("test-plan-1"),
 				},
 				{
-					Id: uuid.New().String(),
+					Id: "test-plan-2",
 					Places: []models.Place{
 						{Id: "yokohama-station"},
 						{Id: "shin-yokohama-station"},
 					},
+					ParentPlanId: nil,
+				},
+			},
+			expectedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "test-plan-1",
+					PlanCandidateSetID: "test-plan-candidate",
+					SortOrder:          0,
+					ParentPlanID:       null.StringFrom("test-plan-1"),
+				},
+				{
+					ID:                 "test-plan-2",
+					PlanCandidateSetID: "test-plan-candidate",
+					SortOrder:          1,
+					ParentPlanID:       null.String{},
 				},
 			},
 		},
@@ -767,15 +789,18 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				}
 			})
 
-			// 事前にPlaceを作成しておく
+			// データの準備
 			placesInPlans := array.Map(c.plans, func(plan models.Plan) []models.Place { return plan.Places })
 			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlanCandidateSetを作成しておく
 			if err := savePlanCandidate(testContext, testDB, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
+			}
+
+			if _, err := c.savedPlans.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plans: %v", err)
 			}
 
 			if err := planCandidateRepository.AddPlan(testContext, c.planCandidateId, c.plans...); err != nil {
@@ -783,14 +808,20 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			// すべてのPlanCandidateが保存されている
-			numPlanCandidates, err := generated.
+			planCandidates, err := generated.
 				PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
-				Count(testContext, testDB)
+				All(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidates: %v", err)
 			}
-			if int(numPlanCandidates) != len(c.plans) {
-				t.Fatalf("wrong number of plan candidates expected: %v, actual: %v", len(c.plans), numPlanCandidates)
+
+			if diff := cmp.Diff(
+				c.expectedPlanCandidates,
+				planCandidates,
+				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
+				cmpopts.IgnoreFields(generated.PlanCandidate{}, "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Fatalf("wrong plan candidates (-expected, +actual): %v", diff)
 			}
 
 			// すべてのPlanCandidateに対して、すべてのPlaceが保存されている
