@@ -30,6 +30,7 @@ func (s Service) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input 
 	// 保存されるときにもとのプランと別のIDになるようにする
 	copiedPlan := plan
 	copiedPlan.Id = uuid.New().String()
+	copiedPlan.ParentPlanId = &input.PlanId
 
 	newPlanCandidateSetId := uuid.New().String()
 
