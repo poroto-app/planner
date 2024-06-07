@@ -19,7 +19,19 @@ import (
 
 // Collage is the resolver for the collage field.
 func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error) {
-	panic(fmt.Errorf("not implemented: Collage - collage"))
+	r.Logger.Info(
+		"Collage",
+		zap.String("planId", obj.ID),
+	)
+
+	planCollage, err := r.PlanService.FetchPlanCollage(ctx, plan.FetchPlanCollageInput{
+		PlanId: obj.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan collage: %v", err)
+	}
+
+	return factory.PlanCollageFromDomainModel(planCollage), nil
 }
 
 // NearbyPlans is the resolver for the nearbyPlans field.
