@@ -15,7 +15,7 @@ func (s Service) CreatePlanFromPlace(
 	createPlanSessionId string,
 	placeId string,
 ) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}
@@ -30,27 +30,28 @@ func (s Service) CreatePlanFromPlace(
 	}
 
 	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
-		Location: placeStart.Location,
+		Location:           placeStart.Location,
+		PlanCandidateSetId: &createPlanSessionId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places")
 	}
 
 	var categoryNamesRejected []string
-	if planCandidate.MetaData.CategoriesRejected != nil {
-		for _, category := range *planCandidate.MetaData.CategoriesRejected {
+	if planCandidateSet.MetaData.CategoriesRejected != nil {
+		for _, category := range *planCandidateSet.MetaData.CategoriesRejected {
 			categoryNamesRejected = append(categoryNamesRejected, category.Name)
 		}
 	}
 
 	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
 	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
-		PlanCandidateId:       createPlanSessionId,
+		PlanCandidateSetId:    createPlanSessionId,
 		LocationStart:         placeStart.Location,
 		PlaceStart:            *placeStart,
 		Places:                placesNearby,
 		CategoryNamesDisliked: &categoryNamesRejected,
-		FreeTime:              planCandidate.MetaData.FreeTime,
+		FreeTime:              planCandidateSet.MetaData.FreeTime,
 	})
 	if err != nil {
 		return nil, err

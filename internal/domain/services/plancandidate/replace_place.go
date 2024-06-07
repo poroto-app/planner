@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeIdToReplace string) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+func (s Service) ReplacePlace(ctx context.Context, planCandidateSetId string, planId string, placeIdToBeReplaced string, placeIdToReplace string) (*models.Plan, error) {
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, planCandidateSetId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
 	}
 
-	planToUpdate := planCandidate.GetPlan(planId)
+	planToUpdate := planCandidateSet.GetPlan(planId)
 	if planToUpdate == nil {
 		return nil, fmt.Errorf("plan not found: %v\n", planId)
 	}
@@ -38,16 +38,16 @@ func (s Service) ReplacePlace(ctx context.Context, planCandidateId string, planI
 		return nil, fmt.Errorf("place to replace not found: %v\n", placeIdToReplace)
 	}
 
-	if err := s.planCandidateRepository.ReplacePlace(ctx, planCandidateId, planId, placeIdToBeReplaced, *placeToReplace); err != nil {
+	if err := s.planCandidateRepository.ReplacePlace(ctx, planCandidateSetId, planId, placeIdToBeReplaced, *placeToReplace); err != nil {
 		return nil, fmt.Errorf("error while replacing place: %v\n", err)
 	}
 
-	planCandidateUpdated, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+	planCandidateSetUpdated, err := s.planCandidateRepository.Find(ctx, planCandidateSetId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate: %v\n", err)
 	}
 
-	planUpdated := planCandidateUpdated.GetPlan(planId)
+	planUpdated := planCandidateSetUpdated.GetPlan(planId)
 	if planUpdated == nil {
 		return nil, fmt.Errorf("plan not found: %v\n", planId)
 	}

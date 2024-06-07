@@ -7,13 +7,13 @@ import (
 )
 
 type AutoReorderPlacesInput struct {
-	PlanCandidateId string
-	PlanId          string
+	PlanCandidateSetId string
+	PlanId             string
 }
 
 // AutoReorderPlaces はプラン候補の場所をスタート地点からの移動が最小になるように並び替える
 func (s *Service) AutoReorderPlaces(ctx context.Context, input AutoReorderPlacesInput) (*models.Plan, error) {
-	plan, err := s.planCandidateRepository.FindPlan(ctx, input.PlanCandidateId, input.PlanId)
+	plan, err := s.planCandidateRepository.FindPlan(ctx, input.PlanCandidateSetId, input.PlanId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find plan: %w", err)
 	}
@@ -30,7 +30,7 @@ func (s *Service) AutoReorderPlaces(ctx context.Context, input AutoReorderPlaces
 		placeIdsOrdered = append(placeIdsOrdered, place.Id)
 	}
 
-	if err := s.planCandidateRepository.UpdatePlacesOrder(ctx, input.PlanId, input.PlanCandidateId, placeIdsOrdered); err != nil {
+	if err := s.planCandidateRepository.UpdatePlacesOrder(ctx, input.PlanId, input.PlanCandidateSetId, placeIdsOrdered); err != nil {
 		return nil, fmt.Errorf("failed to update places order: %v", err)
 	}
 

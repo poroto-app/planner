@@ -16,10 +16,10 @@ const (
 )
 
 type FetchPlacesToAddInput struct {
-	PlanCandidateId string
-	PlanId          string
-	PlaceId         *string
-	NLimit          uint
+	PlanCandidateSetId string
+	PlanId             string
+	PlaceId            *string
+	NLimit             uint
 }
 
 type FetchPlacesToAddOutput struct {
@@ -40,21 +40,21 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		input.NLimit = defaultMaxPlacesToRecommendPerCategory
 	}
 
-	if input.PlanCandidateId == "" {
-		return nil, fmt.Errorf("plan candidate id is empty")
+	if input.PlanCandidateSetId == "" {
+		return nil, fmt.Errorf("plan candidate set id is empty")
 	}
 
 	if input.PlanId == "" {
 		return nil, fmt.Errorf("plan id is empty")
 	}
 
-	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateSetId, time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
+		return nil, fmt.Errorf("error while fetching plan candidate set: %v", err)
 	}
 
 	var plan *models.Plan
-	for _, p := range planCandidate.Plans {
+	for _, p := range planCandidateSet.Plans {
 		if p.Id == input.PlanId {
 			plan = &p
 			break
@@ -82,7 +82,10 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	}
 
 	// 付近の場所を検索
-	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           startPlace.Location,
+		PlanCandidateSetId: &planCandidateSet.Id,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
@@ -90,8 +93,8 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 	categoriesToSearch := make([]models.LocationCategory, 0)
 
 	// ユーザーが選択したカテゴリを優先的に調べる
-	if planCandidate.MetaData.CategoriesPreferred != nil {
-		categoriesToSearch = append(categoriesToSearch, *planCandidate.MetaData.CategoriesPreferred...)
+	if planCandidateSet.MetaData.CategoriesPreferred != nil {
+		categoriesToSearch = append(categoriesToSearch, *planCandidateSet.MetaData.CategoriesPreferred...)
 	}
 
 	for _, locationCategory := range []models.LocationCategory{
@@ -114,8 +117,8 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		}
 
 		// 検索対象から除外されている場合はスキップする
-		if planCandidate.MetaData.CategoriesRejected != nil {
-			_, isRejected := array.Find(*planCandidate.MetaData.CategoriesRejected, func(category models.LocationCategory) bool {
+		if planCandidateSet.MetaData.CategoriesRejected != nil {
+			_, isRejected := array.Find(*planCandidateSet.MetaData.CategoriesRejected, func(category models.LocationCategory) bool {
 				return category.Name == locationCategory.Name
 			})
 			if isRejected {
@@ -132,7 +135,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 		nil,
 		*plan,
 		startPlace.Location,
-		planCandidate.MetaData,
+		planCandidateSet.MetaData,
 		int(input.NLimit),
 		nil,
 	)
@@ -159,7 +162,7 @@ func (s Service) FetchPlacesToAdd(ctx context.Context, input FetchPlacesToAddInp
 			placesAlreadyChosen,
 			*plan,
 			startPlace.Location,
-			planCandidate.MetaData,
+			planCandidateSet.MetaData,
 			int(input.NLimit),
 			&category,
 		)

@@ -14,32 +14,32 @@ func (s Service) DeleteExpiredPlanCandidates(ctx context.Context, expiresAt time
 		"Fetching expired plan candidates",
 		zap.Time("expiresAt", expiresAt),
 	)
-	expiredPlanCandidateIds, err := s.planCandidateRepository.FindExpiredBefore(ctx, expiresAt)
+	expiredPlanCandidateSetIds, err := s.planCandidateRepository.FindExpiredBefore(ctx, expiresAt)
 	if err != nil {
 		return fmt.Errorf("error while finding expired plan candidates: %v", err)
 	}
 
-	if len(*expiredPlanCandidateIds) == 0 {
+	if len(*expiredPlanCandidateSetIds) == 0 {
 		s.logger.Info("No expired plan candidates found")
 		return nil
 	}
 
 	s.logger.Info(
-		"Found expired plan candidates",
-		zap.Int("count", len(*expiredPlanCandidateIds)),
+		"Found expired plan candidate sets",
+		zap.Int("count", len(*expiredPlanCandidateSetIds)),
 	)
 
 	// プラン候補を削除
 	s.logger.Info(
 		"Deleting expired plan candidates",
-		zap.Int("count", len(*expiredPlanCandidateIds)),
+		zap.Int("count", len(*expiredPlanCandidateSetIds)),
 	)
-	if err := s.planCandidateRepository.DeleteAll(ctx, *expiredPlanCandidateIds); err != nil {
+	if err := s.planCandidateRepository.DeleteAll(ctx, *expiredPlanCandidateSetIds); err != nil {
 		return fmt.Errorf("error while deleting expired plan candidates: %v", err)
 	}
 	s.logger.Info(
 		"Successfully deleted expired plan candidates",
-		zap.Int("count", len(*expiredPlanCandidateIds)),
+		zap.Int("count", len(*expiredPlanCandidateSetIds)),
 	)
 
 	return nil

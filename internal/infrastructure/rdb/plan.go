@@ -22,11 +22,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
 )
 
-const (
-	// 半径2km圏内のプランを検索する
-	defaultDistanceToSearchPlan = 2 * 1000
-)
-
 type PlanRepository struct {
 	db     *sql.DB
 	logger *zap.Logger
@@ -343,9 +338,8 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 	return plans, nil
 }
 
-// TODO: ページングしない（範囲だけ指定させて、ソートも行わない）
-func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
-	minLocation, maxLocation := location.CalculateMBR(defaultDistanceToSearchPlan)
+func (p PlanRepository) FindByLocation(ctx context.Context, location models.GeoLocation, limit int, searchRange int) (*[]models.Plan, *string, error) {
+	minLocation, maxLocation := location.CalculateMBR(float64(searchRange))
 
 	planEntities, err := generated.Plans(concatQueryMod(
 		[]qm.QueryMod{
@@ -368,8 +362,14 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 		return &[]models.Plan{}, nil, nil
 	}
 
-	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
-		return planEntity.ID
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.FlatMap(planEntities, func(planEntity *generated.Plan) []string {
+		if planEntity.R.PlanPlaces == nil {
+			return nil
+		}
+
+		return array.Map(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) string {
+			return planPlace.PlaceID
+		})
 	})...)
 	if err != nil {
 		// いいね数の取得に失敗してもエラーにしない
