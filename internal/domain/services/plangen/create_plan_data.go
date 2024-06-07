@@ -16,13 +16,13 @@ type CreatePlanParams struct {
 }
 
 // createPlanData 写真やタイトルなどのプランに必要な情報を作成する
-func (s Service) createPlanData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) []models.Plan {
+func (s Service) createPlanData(ctx context.Context, planCandidateSetId string, params ...CreatePlanParams) []models.Plan {
 	// レビュー・写真を取得する
 	performanceTimer := time.Now()
-	placeIdToPlaceWithPlaceDetail := s.fetchPlaceDetailData(ctx, planCandidateId, params...)
+	placeIdToPlaceWithPlaceDetail := s.fetchPlaceDetailData(ctx, params...)
 	s.logger.Info(
 		"fetching reviews and images",
-		zap.String("PlanCandidateId", planCandidateId),
+		zap.String("PlanCandidateSetId", planCandidateSetId),
 		zap.Duration("duration", time.Since(performanceTimer)),
 	)
 
@@ -41,14 +41,14 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 				if err != nil {
 					s.logger.Warn(
 						"error while generating plan title",
-						zap.String("PlanCandidateId", planCandidateId),
+						zap.String("PlanCandidateSetId", planCandidateSetId),
 						zap.Error(err),
 					)
 					title = &param.PlaceStart.Google.Name
 				}
 				s.logger.Info(
 					"generating plan title",
-					zap.String("PlanCandidateId", planCandidateId),
+					zap.String("PlanCandidateSetId", planCandidateSetId),
 					zap.Duration("duration", time.Since(performanceTimer)),
 				)
 				chPlanTitle <- *title
@@ -63,7 +63,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 			case <-chTitleTimeOut.C:
 				s.logger.Warn(
 					"timeout while generating plan title",
-					zap.String("PlanCandidateId", planCandidateId),
+					zap.String("PlanCandidateSetId", planCandidateSetId),
 				)
 				title = param.PlaceStart.Google.Name
 			}
@@ -98,7 +98,7 @@ func (s Service) createPlanData(ctx context.Context, planCandidateId string, par
 }
 
 // fetchPlaceDetailData は、指定された場所の写真・レビューを一括で取得し、保存する
-func (s Service) fetchPlaceDetailData(ctx context.Context, planCandidateId string, params ...CreatePlanParams) map[string]models.Place {
+func (s Service) fetchPlaceDetailData(ctx context.Context, params ...CreatePlanParams) map[string]models.Place {
 	// プラン間の場所の重複を無くすため、場所のIDをキーにして場所を保存する
 	placeIdToPlace := make(map[string]models.Place)
 	for _, param := range params {

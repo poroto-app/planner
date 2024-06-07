@@ -42,7 +42,7 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	// プラン候補を作成
-	if err := s.CreatePlanCandidate(ctx, params.CreatePlanSessionId); err != nil {
+	if err := s.CreatePlanCandidateSet(ctx, params.CreatePlanSessionId); err != nil {
 		return nil, fmt.Errorf("error while creating plan candidate: %v\n", err)
 	}
 

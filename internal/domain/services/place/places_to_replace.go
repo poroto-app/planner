@@ -11,17 +11,17 @@ import (
 
 func (s Service) FetchPlacesToReplace(
 	ctx context.Context,
-	planCandidateId string,
+	planCandidateSetId string,
 	planId string,
 	placeId string,
 	nLimit uint,
 ) ([]models.Place, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, planCandidateSetId, time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
+		return nil, fmt.Errorf("error while fetching plan candidate set: %v", err)
 	}
 	var plan *models.Plan
-	for _, p := range planCandidate.Plans {
+	for _, p := range planCandidateSet.Plans {
 		if p.Id == planId {
 			plan = &p
 			break
@@ -51,7 +51,7 @@ func (s Service) FetchPlacesToReplace(
 	// 付近の場所を検索
 	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
 		Location:           startPlace.Location,
-		PlanCandidateSetId: &planCandidate.Id,
+		PlanCandidateSetId: &planCandidateSet.Id,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)

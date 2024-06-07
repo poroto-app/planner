@@ -2,9 +2,7 @@ package models
 
 import "time"
 
-// TODO: PlanCandidateSet という名前にする
-// TODO: Plans を PlanCandidate という名前にする
-type PlanCandidate struct {
+type PlanCandidateSet struct {
 	Id              string
 	Plans           []Plan
 	MetaData        PlanCandidateMetaData
@@ -13,7 +11,7 @@ type PlanCandidate struct {
 	LikedPlaceIds   []string
 }
 
-func (p PlanCandidate) HasPlace(placeId string) bool {
+func (p PlanCandidateSet) HasPlace(placeId string) bool {
 	for _, plan := range p.Plans {
 		for _, place := range plan.Places {
 			if placeId == place.Id {
@@ -24,7 +22,7 @@ func (p PlanCandidate) HasPlace(placeId string) bool {
 	return false
 }
 
-func (p PlanCandidate) GetPlan(planId string) *Plan {
+func (p PlanCandidateSet) GetPlan(planId string) *Plan {
 	for _, plan := range p.Plans {
 		if plan.Id == planId {
 			return &plan

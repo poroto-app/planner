@@ -8,10 +8,10 @@ import (
 )
 
 type PlanRepository struct {
-	Data map[string]models.PlanCandidate
+	Data map[string]models.PlanCandidateSet
 }
 
-func NewPlanCandidateRepository(data map[string]models.PlanCandidate) *PlanRepository {
+func NewPlanCandidateRepository(data map[string]models.PlanCandidateSet) *PlanRepository {
 	return &PlanRepository{
 		Data: data,
 	}
@@ -22,7 +22,7 @@ func (p PlanRepository) Create(ctx context.Context, planCandidateId string, expi
 	panic("implement me")
 }
 
-func (p PlanRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
+func (p PlanRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidateSet, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -85,7 +85,7 @@ func (p PlanRepository) DeleteAll(ctx context.Context, planCandidateIds []string
 	return nil
 }
 
-func (p PlanRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
+func (p PlanRepository) UpdateLikeToPlaceInPlanCandidateSet(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	//TODO implement me
 	panic("implement me")
 }
