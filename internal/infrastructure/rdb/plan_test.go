@@ -712,15 +712,17 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 	}
 }
 
-func TestPlanRepository_SortedByLocation(t *testing.T) {
+func TestPlanRepository_FindByLocation(t *testing.T) {
 	cases := []struct {
-		name        string
-		savedUsers  generated.UserSlice
-		savedPlaces []models.Place
-		savedPlans  []models.Plan
-		location    models.GeoLocation
-		limit       int
-		expected    []models.Plan
+		name                       string
+		savedUsers                 generated.UserSlice
+		savedPlaces                []models.Place
+		savedPlans                 []models.Plan
+		savedUserLikePlaceEntities generated.UserLikePlaceSlice
+		location                   models.GeoLocation
+		limit                      int
+		searchRange                int
+		expected                   []models.Plan
 	}{
 		{
 			name: "should find plans sorted by location",
@@ -784,17 +786,26 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 					},
 				},
 			},
-			location: models.GeoLocation{Latitude: 35.6905, Longitude: 139.6995},
-			limit:    10,
+			savedUserLikePlaceEntities: generated.UserLikePlaceSlice{
+				{
+					ID:      uuid.New().String(),
+					UserID:  "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					PlaceID: "f2c98d68-3904-455b-8832-a0f723a96735",
+				},
+			},
+			location:    models.GeoLocation{Latitude: 35.6905, Longitude: 139.6995},
+			limit:       10,
+			searchRange: 2 * 1000,
 			expected: []models.Plan{
 				{
 					Id:   "9c93c944-ac8e-11ee-a506-0242ac120002",
 					Name: "新宿",
 					Places: []models.Place{
 						{
-							Id:       "f2c98d68-3904-455b-8832-a0f723a96735",
-							Name:     "高島屋新宿店",
-							Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+							Id:        "f2c98d68-3904-455b-8832-a0f723a96735",
+							Name:      "高島屋新宿店",
+							Location:  models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
+							LikeCount: 1,
 							Google: models.GooglePlace{
 								PlaceId:  "ChIJN1t_tDeuEmsRUsoyG83frY4",
 								Location: models.GeoLocation{Latitude: 35.687684359569, Longitude: 139.70220602474},
@@ -824,22 +835,24 @@ func TestPlanRepository_SortedByLocation(t *testing.T) {
 				}
 			})
 
-			// 事前に User を保存
+			// 事前にデータを保存
 			if _, err := c.savedUsers.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
 				t.Errorf("error saving user: %v", err)
 			}
 
-			// 事前に Place を保存
 			if err := savePlaces(textContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
 			}
 
-			// 事前に Plan を保存
 			if err := savePlans(textContext, planRepository.GetDB(), c.savedPlans); err != nil {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			plans, _, err := planRepository.SortedByLocation(textContext, c.location, nil, c.limit)
+			if _, err := c.savedUserLikePlaceEntities.InsertAll(textContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving user like place: %v", err)
+			}
+
+			plans, _, err := planRepository.FindByLocation(textContext, c.location, c.limit, c.searchRange)
 			if err != nil {
 				t.Errorf("error finding plans: %v", err)
 			}

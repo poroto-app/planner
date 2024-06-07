@@ -2006,7 +2006,6 @@ input PlansByLocationInput {
     latitude: Float!
     longitude: Float!
     limit: Int
-    pageKey: String
 }
 
 type PlansByLocationOutput {
@@ -12840,7 +12839,7 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "limit", "pageKey"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "limit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12874,15 +12873,6 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 				return it, err
 			}
 			it.Limit = data
-		case "pageKey":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageKey"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PageKey = data
 		}
 	}
 
