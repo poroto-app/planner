@@ -71,3 +71,5 @@ models:
     fields:
       collage:
         resolver: true
+      nearbyPlans:
+        resolver: true

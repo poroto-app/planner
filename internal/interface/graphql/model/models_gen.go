@@ -282,6 +282,7 @@ type Plan struct {
 	Transitions   []*Transition `json:"transitions"`
 	Author        *User         `json:"author,omitempty"`
 	Collage       *PlanCollage  `json:"collage"`
+	NearbyPlans   []*Plan       `json:"nearbyPlans"`
 }
 
 type PlanCandidate struct {
