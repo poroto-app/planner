@@ -604,6 +604,105 @@ func TestPlaceRepository_SavePlacesFromGooglePlace_DuplicatedValue(t *testing.T)
 	}
 }
 
+func TestPlaceRepository_Find(t *testing.T) {
+	cases := []struct {
+		name                string
+		savedPlaces         []models.Place
+		savedUsers          generated.UserSlice
+		savedUserLikePlaces generated.UserLikePlaceSlice
+		placeId             string
+		expectedPlaces      *models.Place
+	}{
+		{
+			name: "should return place",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId: "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{
+							Latitude:  35.692247367825,
+							Longitude: 139.703036771,
+						},
+						Types: []string{"book_store", "point_of_interest", "store", "establishment"},
+					},
+				},
+			},
+			savedUsers: generated.UserSlice{
+				{ID: "user-1"},
+			},
+			savedUserLikePlaces: generated.UserLikePlaceSlice{
+				{ID: uuid.New().String(), UserID: "user-1", PlaceID: "kinokuniya-shoten"},
+			},
+			placeId: "kinokuniya-shoten",
+			expectedPlaces: &models.Place{
+				Id:        "kinokuniya-shoten",
+				Location:  models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+				LikeCount: 1,
+				Google: models.GooglePlace{
+					PlaceId:  "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+					Location: models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+					Types:    []string{"book_store", "point_of_interest", "store", "establishment"},
+				},
+			},
+		},
+		{
+			name: "not found",
+			savedPlaces: []models.Place{
+				{
+					Id: "kinokuniya-shoten",
+					Google: models.GooglePlace{
+						PlaceId:  "ChIJ7WoyEQr9GGAREzlMT6J-JhA",
+						Location: models.GeoLocation{Latitude: 35.692247367825, Longitude: 139.703036771},
+						Types:    []string{"book_store", "point_of_interest", "store", "establishment"},
+					},
+				},
+			},
+			placeId:        "not-found",
+			expectedPlaces: nil,
+		},
+	}
+
+	placeRepository, err := NewPlaceRepository(testDB)
+	if err != nil {
+		t.Fatalf("error while initializing place repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("error while cleaning up: %v", err)
+				}
+			})
+
+			// データの準備
+			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
+				t.Fatalf("error while saving places: %v", err)
+			}
+
+			if _, err := c.savedUsers.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving users: %v", err)
+			}
+
+			if _, err := c.savedUserLikePlaces.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("error while saving user like places: %v", err)
+			}
+
+			actualPlaces, err := placeRepository.Find(testContext, c.placeId)
+			if err != nil {
+				t.Fatalf("error while finding places: %v", err)
+			}
+
+			if diff := cmp.Diff(c.expectedPlaces, actualPlaces); diff != "" {
+				t.Fatalf("(-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestPlaceRepository_FindByGooglePlaceType(t *testing.T) {
 	cases := []struct {
 		name            string
@@ -951,87 +1050,6 @@ func TestPlaceRepository_FindByGooglePlaceID_WithLikeCount(t *testing.T) {
 
 			if diff := cmp.Diff(c.expectedPlace, actualPlace); diff != "" {
 				t.Fatalf("(-want +got):\n%s", diff)
-			}
-		})
-	}
-}
-
-func TestPlaceRepository_FindByPlanCandidateId(t *testing.T) {
-	cases := []struct {
-		name                               string
-		planCandidateId                    string
-		savedPlaces                        []models.Place
-		savedPlanCandidateSet              models.PlanCandidate
-		savedPlanCandidateSearchedPlaceIds []string
-		expectedPlaces                     []models.Place
-	}{
-		{
-			name:            "find places by plan candidate id",
-			planCandidateId: "plan_candidate_id",
-			savedPlaces: []models.Place{
-				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
-				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
-				{Id: "place_id_3", Google: models.GooglePlace{PlaceId: "google_place_id_3"}},
-			},
-			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "plan_candidate_id",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
-			},
-			savedPlanCandidateSearchedPlaceIds: []string{
-				"place_id_1",
-				"place_id_2",
-			},
-			expectedPlaces: []models.Place{
-				{Id: "place_id_1", Google: models.GooglePlace{PlaceId: "google_place_id_1"}},
-				{Id: "place_id_2", Google: models.GooglePlace{PlaceId: "google_place_id_2"}},
-			},
-		},
-	}
-
-	placeRepository, err := NewPlaceRepository(testDB)
-	if err != nil {
-		t.Fatalf("error while initializing place repository: %v", err)
-	}
-
-	for _, c := range cases {
-		testContext := context.Background()
-		t.Run(c.name, func(t *testing.T) {
-			defer func(ctx context.Context, db *sql.DB) {
-				err := cleanup(ctx, db)
-				if err != nil {
-					t.Fatalf("error while cleaning up: %v", err)
-				}
-			}(testContext, testDB)
-
-			// 事前にPlaceを保存しておく
-			if err := savePlaces(testContext, testDB, c.savedPlaces); err != nil {
-				t.Fatalf("error while saving places: %v", err)
-			}
-
-			// 事前にPlanCandidateSetを保存しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
-				t.Fatalf("error while saving plan candidate set: %v", err)
-			}
-
-			// 事前にPlanCandidateSearchedPlaceを保存しておく
-			for _, searchedPlaceId := range c.savedPlanCandidateSearchedPlaceIds {
-				planCandidateSearchedPlaceEntity := generated.PlanCandidateSetSearchedPlace{
-					ID:                 uuid.New().String(),
-					PlanCandidateSetID: c.savedPlanCandidateSet.Id,
-					PlaceID:            searchedPlaceId,
-				}
-				if err := planCandidateSearchedPlaceEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-					t.Fatalf("error while saving plan candidate searched place: %v", err)
-				}
-			}
-
-			actualPlaces, err := placeRepository.FindByPlanCandidateId(testContext, c.planCandidateId)
-			if err != nil {
-				t.Fatalf("error while finding places: %v", err)
-			}
-
-			if len(actualPlaces) != len(c.expectedPlaces) {
-				t.Fatalf("place expected: %d, actual: %d", len(c.expectedPlaces), len(actualPlaces))
 			}
 		})
 	}

@@ -43,11 +43,6 @@ func (p PlanRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Ti
 	return &values, nil
 }
 
-func (p PlanRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (p PlanRepository) AddPlan(ctx context.Context, planCandidateId string, plan ...models.Plan) error {
 	//TODO implement me
 	panic("implement me")

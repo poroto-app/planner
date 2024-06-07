@@ -3,6 +3,7 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -19,22 +20,20 @@ func (s Service) CreatePlanFromPlace(
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}
 
-	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
-	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	placeStart, err := s.placeRepository.Find(ctx, placeId)
 	if err != nil {
-		return nil, err
-	}
-
-	var placeStart *models.Place
-	for _, place := range places {
-		if place.Id == placeId {
-			placeStart = &place
-			break
-		}
+		return nil, fmt.Errorf("error while fetching place")
 	}
 
 	if placeStart == nil {
 		return nil, fmt.Errorf("place not found")
+	}
+
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location: placeStart.Location,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching nearby places")
 	}
 
 	var categoryNamesRejected []string
@@ -44,11 +43,12 @@ func (s Service) CreatePlanFromPlace(
 		}
 	}
 
+	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
 	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
 		PlanCandidateId:       createPlanSessionId,
 		LocationStart:         placeStart.Location,
 		PlaceStart:            *placeStart,
-		Places:                places,
+		Places:                placesNearby,
 		CategoryNamesDisliked: &categoryNamesRejected,
 		FreeTime:              planCandidate.MetaData.FreeTime,
 	})

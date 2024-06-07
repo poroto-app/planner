@@ -15,6 +15,7 @@ import (
 type Service struct {
 	placesApi                  places.PlacesApi
 	placeSearchService         placesearch.Service
+	placeRepository            repository.PlaceRepository
 	planCandidateRepository    repository.PlanCandidateRepository
 	openaiChatCompletionClient openai.ChatCompletionClient
 	logger                     *zap.Logger
@@ -29,6 +30,11 @@ func NewService(db *sql.DB) (*Service, error) {
 	placeSearchService, err := placesearch.NewPlaceSearchService(db)
 	if err != nil {
 		return nil, fmt.Errorf("error while initializing place search service: %v", err)
+	}
+
+	placeRepository, err := rdb.NewPlaceRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("error while initializing place repository: %v", err)
 	}
 
 	planCandidateRepository, err := rdb.NewPlanCandidateRepository(db)
@@ -51,6 +57,7 @@ func NewService(db *sql.DB) (*Service, error) {
 	return &Service{
 		placesApi:                  *placesApi,
 		placeSearchService:         *placeSearchService,
+		placeRepository:            *placeRepository,
 		planCandidateRepository:    planCandidateRepository,
 		openaiChatCompletionClient: *openaiChatCompletionClient,
 		logger:                     logger,

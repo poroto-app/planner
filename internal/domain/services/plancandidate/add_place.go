@@ -25,23 +25,13 @@ func (s Service) AddPlaceAfterPlace(ctx context.Context, planCandidateId string,
 		"Fetching searched places for plan candidate",
 		zap.String("planCandidateId", planCandidateId),
 	)
-	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
-	if err != nil {
-		return nil, err
-	}
-	s.logger.Debug(
-		"Successfully fetched searched places for plan candidate",
-		zap.String("planCandidateId", planCandidateId),
-	)
 
-	// 追加する場所を検索された場所一覧から取得する
-	var placeToAdd *models.Place
-	for _, place := range places {
-		if place.Id == placeId {
-			placeToAdd = &place
-			break
-		}
+	// 追加する場所を取得
+	placeToAdd, err := s.placeRepository.Find(ctx, placeId)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching place: %v", err)
 	}
+
 	if placeToAdd == nil {
 		return nil, fmt.Errorf("place not found: %v", placeId)
 	}

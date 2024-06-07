@@ -223,22 +223,6 @@ func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresA
 	return &planCandidateIds, nil
 }
 
-func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
-	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		var planCandidateSlice generated.PlanCandidateSetSearchedPlaceSlice = array.Map(placeIds, func(placeId string) *generated.PlanCandidateSetSearchedPlace {
-			planCandidatePlace := generated.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
-			return &planCandidatePlace
-		})
-		if _, err := planCandidateSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert plan candidate places: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to run transaction: %w", err)
-	}
-	return nil
-}
-
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		var planCandidateSlice generated.PlanCandidateSlice
@@ -481,11 +465,6 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 		// プラン候補場所を削除
 		if _, err := generated.PlanCandidatePlaces(generated.PlanCandidatePlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidate places: %w", err)
-		}
-
-		// 検索履歴を削除
-		if _, err := generated.PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate set searched places: %w", err)
 		}
 
 		// プラン候補を削除
