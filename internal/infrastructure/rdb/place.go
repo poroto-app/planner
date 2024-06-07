@@ -188,6 +188,44 @@ func (p PlaceRepository) SavePlacesFromGooglePlaces(ctx context.Context, googleP
 	return &places, nil
 }
 
+func (p PlaceRepository) Find(ctx context.Context, placeId string) (*models.Place, error) {
+	placeEntity, err := generated.Places(
+		concatQueryMod(
+			[]qm.QueryMod{generated.PlaceWhere.ID.EQ(placeId)},
+			placeQueryModes(),
+		)...).One(ctx, p.db)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to find place: %w", err)
+	}
+
+	likeCounts, err := countPlaceLikeCounts(ctx, p.db, placeEntity.ID)
+	if err != nil {
+		// いいね数の取得に失敗してもエラーにしない
+		p.logger.Warn("failed to count place like counts", zap.Error(err))
+	}
+
+	place, err := factory.NewPlaceFromEntity(
+		*placeEntity,
+		placeEntity.R.PlacePhotos,
+		*placeEntity.R.GooglePlaces[0],
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceTypes,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
+		placeEntity.R.GooglePlaces[0].R.GooglePlacePhotos,
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceReviews,
+		placeEntity.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
+		entities.CountLikeOfPlace(likeCounts, placeEntity.ID),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert place entity to place: %w", err)
+	}
+
+	return place, nil
+}
+
 func (p PlaceRepository) FindByLocation(ctx context.Context, location models.GeoLocation, radius float64) ([]models.Place, error) {
 	minLocation, maxLocation := location.CalculateMBR(radius)
 
@@ -338,79 +376,13 @@ func (p PlaceRepository) FindByGooglePlaceID(ctx context.Context, googlePlaceID 
 	return p.findByGooglePlaceId(ctx, p.db, googlePlaceID)
 }
 
-func (p PlaceRepository) FindByPlanCandidateId(ctx context.Context, planCandidateId string) ([]models.Place, error) {
-	planCandidateSetSearchedPlaceSlice, err := generated.PlanCandidateSetSearchedPlaces(concatQueryMod(
-		[]qm.QueryMod{generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId)},
-		placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place),
-	)...).All(ctx, p.db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find plan candidate set searched places: %w", err)
-	}
-
-	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.MapAndFilter(planCandidateSetSearchedPlaceSlice, func(planCandidateSetSearchedPlace *generated.PlanCandidateSetSearchedPlace) (string, bool) {
-		if planCandidateSetSearchedPlace == nil {
-			return "", false
-		}
-		return planCandidateSetSearchedPlace.PlaceID, true
-	})...)
-	if err != nil {
-		// いいね数の取得に失敗してもエラーにしない
-		p.logger.Warn("failed to count place like counts", zap.Error(err))
-	}
-
-	var places []models.Place
-	for _, planCandidateSetSearchedPlace := range planCandidateSetSearchedPlaceSlice {
-		if planCandidateSetSearchedPlace == nil {
-			continue
-		}
-
-		if planCandidateSetSearchedPlace.R == nil {
-			panic("planCandidateSetSearchedPlace.R is nil")
-		}
-
-		if planCandidateSetSearchedPlace.R.Place == nil {
-			p.logger.Warn("planCandidateSetSearchedPlace.R.Place is nil", zap.String("plan_candidate_set_searched_place_id", planCandidateSetSearchedPlace.ID))
-			continue
-		}
-
-		if planCandidateSetSearchedPlace.R.Place.R == nil {
-			panic("planCandidateSetSearchedPlace.R.Place.R is nil")
-		}
-
-		if len(planCandidateSetSearchedPlace.R.Place.R.GooglePlaces) == 0 {
-			p.logger.Warn("planCandidateSetSearchedPlace.R.Place.R.GooglePlaces is empty", zap.String("plan_candidate_set_searched_place_id", planCandidateSetSearchedPlace.ID))
-			continue
-		}
-
-		place, err := factory.NewPlaceFromEntity(
-			*planCandidateSetSearchedPlace.R.Place,
-			planCandidateSetSearchedPlace.R.Place.R.PlacePhotos,
-			*planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0],
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceTypes,
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoReferences,
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotoAttributions,
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlacePhotos,
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceReviews,
-			planCandidateSetSearchedPlace.R.Place.R.GooglePlaces[0].R.GooglePlaceOpeningPeriods,
-			entities.CountLikeOfPlace(planCandidateSetPlaceLikeCounts, planCandidateSetSearchedPlace.PlaceID),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert google place googlePlaceEntity to place: %w", err)
-		}
-
-		places = append(places, *place)
-	}
-
-	return places, nil
-}
-
 func (p PlaceRepository) FindLikePlacesByUserId(ctx context.Context, userId string) (*[]models.Place, error) {
 	userLikePlaces, err := generated.UserLikePlaces(concatQueryMod(
 		[]qm.QueryMod{
 			generated.UserLikePlaceWhere.UserID.EQ(userId),
 			qm.OrderBy(fmt.Sprintf("%s %s", generated.UserLikePlaceColumns.UpdatedAt, "desc")),
 		},
-		placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place),
+		placeQueryModes(generated.UserLikePlaceRels.Place),
 	)...).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user like places: %w", err)
@@ -479,7 +451,7 @@ func (p PlaceRepository) FindRecommendPlacesForCreatePlan(ctx context.Context) (
 			[]qm.QueryMod{
 				qm.OrderBy(generated.PlaceRecommendationColumns.SortOrder),
 			},
-			placeQueryModes(generated.PlanCandidateSetSearchedPlaceRels.Place))...,
+			placeQueryModes(generated.PlaceRecommendationRels.Place))...,
 	).All(ctx, p.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find place recommendations: %w", err)
@@ -919,6 +891,10 @@ func (p PlaceRepository) findAllByGooglePlaceId(ctx context.Context, exec boil.C
 // countPlaceLikeCounts は場所ごとのいいね数をカウントする
 // いいねはPlanCandidateSetとUserによって行われるが、その両方を考慮し、総数をカウントする
 func countPlaceLikeCounts(ctx context.Context, exec boil.ContextExecutor, placeIds ...string) (*[]entities.PlanCandidateSetPlaceLikeCount, error) {
+	placeIds = array.DistinctBy(placeIds, func(placeId string) string {
+		return placeId
+	})
+
 	var placeIdPlaceHolder string
 	if len(placeIds) == 0 {
 		return nil, nil
@@ -959,6 +935,7 @@ GROUP BY place_likes.place_id`,
 		placeIdPlaceHolder,
 	)
 
+	// TODO: ユーザからのいいねも含まれているため、構造体の名前を修正する
 	var planCandidateSetPlaceLikeCounts []entities.PlanCandidateSetPlaceLikeCount
 	if err := queries.
 		Raw(query, toInterfaceArray(placeIds)...).

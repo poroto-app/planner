@@ -7,14 +7,66 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/plan"
+	"poroto.app/poroto/planner/internal/domain/utils"
 
+	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/models"
+	"poroto.app/poroto/planner/internal/interface/graphql/factory"
 	"poroto.app/poroto/planner/internal/interface/graphql/generated"
 	"poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
 // Collage is the resolver for the collage field.
 func (r *planResolver) Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error) {
-	panic(fmt.Errorf("not implemented: Collage - collage"))
+	r.Logger.Info(
+		"Collage",
+		zap.String("planId", obj.ID),
+	)
+
+	planCollage, err := r.PlanService.FetchPlanCollage(ctx, plan.FetchPlanCollageInput{
+		PlanId: obj.ID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching plan collage: %v", err)
+	}
+
+	return factory.PlanCollageFromDomainModel(planCollage), nil
+}
+
+// NearbyPlans is the resolver for the nearbyPlans field.
+func (r *planResolver) NearbyPlans(ctx context.Context, obj *model.Plan) ([]*model.Plan, error) {
+	r.Logger.Info("Plan#NeabyPlans", zap.String("plan_id", obj.ID))
+	if len(obj.Places) == 0 {
+		return nil, nil
+	}
+
+	plans, _, err := r.PlanService.FetchPlansByLocation(
+		ctx,
+		plan.FetchPlansByLocationInput{
+			Location: models.GeoLocation{
+				Latitude:  obj.Places[0].Location.Latitude,
+				Longitude: obj.Places[0].Location.Longitude,
+			},
+			SearchRange: utils.ToPointer(5 * 1000),
+		},
+	)
+	if err != nil {
+		r.Logger.Error("error while fetching nearby plans", zap.Error(err))
+		return nil, nil
+	}
+
+	graphqlPlans := make([]*model.Plan, 0, len(*plans))
+	for _, p := range *plans {
+		graphqlPlan, err := factory.PlanFromDomainModel(p, nil)
+		if err != nil {
+			r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
+			return nil, nil
+		}
+		graphqlPlans = append(graphqlPlans, graphqlPlan)
+	}
+
+	return graphqlPlans, nil
 }
 
 // Plan returns generated.PlanResolver implementation.

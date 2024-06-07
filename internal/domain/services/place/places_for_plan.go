@@ -2,9 +2,11 @@ package place
 
 import (
 	"context"
+	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 )
 
@@ -13,8 +15,8 @@ const (
 )
 
 type FetchCandidatePlacesInput struct {
-	PlanCandidateId string
-	NLimit          int
+	PlanCandidateSetId string
+	NLimit             int
 }
 
 // FetchCandidatePlaces はプランの候補となる場所を取得する
@@ -22,44 +24,49 @@ func (s Service) FetchCandidatePlaces(
 	ctx context.Context,
 	input FetchCandidatePlacesInput,
 ) (*[]models.Place, error) {
-	if input.PlanCandidateId == "" {
-		panic("PlanCandidateId is empty")
+	if input.PlanCandidateSetId == "" {
+		panic("PlanCandidateSetId is empty")
 	}
 
 	if input.NLimit == 0 {
 		input.NLimit = defaultMaxPlacesToSuggest
 	}
 
-	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateSetId, time.Now())
 	if err != nil {
 		return nil, err
 	}
 
-	if planCandidate.MetaData.LocationStart == nil {
+	if planCandidateSet.MetaData.LocationStart == nil {
 		s.logger.Warn(
-			"plan candidate has no start location",
-			zap.String("planCandidateId", planCandidate.Id),
+			"plan candidate set has no start location",
+			zap.String("Id", planCandidateSet.Id),
 		)
 
 		return nil, nil
 	}
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	// 付近の場所を検索
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           *planCandidateSet.MetaData.LocationStart,
+		PlanCandidateSetId: &planCandidateSet.Id,
+	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
 
-	placesFiltered := placesSearched
+	// 検索された場所を保存
+	placesFiltered := placesNearby
 	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
 		Places:        placesFiltered,
-		StartLocation: *planCandidate.MetaData.LocationStart,
+		StartLocation: *planCandidateSet.MetaData.LocationStart,
 	})
 
 	placesSortedByRating := models.SortPlacesByRating(placesFiltered)
 
 	placesToSuggest := make([]models.Place, 0, len(placesSortedByRating))
 	for _, place := range placesSortedByRating {
-		if planCandidate.HasPlace(place.Id) {
+		if planCandidateSet.HasPlace(place.Id) {
 			continue
 		}
 

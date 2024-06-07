@@ -70,6 +70,9 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 	tables := []interface {
 		DeleteAll(context.Context, boil.ContextExecutor) (int64, error)
 	}{
+		// PlanCollage
+		generated.PlanCollagePhotos(),
+		generated.PlanCollages(),
 		// PlaceRecommendation
 		generated.PlaceRecommendations(),
 		// PlanCandidate
@@ -77,7 +80,6 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		generated.PlanCandidatePlaces(),
 		generated.PlanCandidateSetMetaDataCategories(),
 		generated.PlanCandidateSetMetaData(),
-		generated.PlanCandidateSetSearchedPlaces(),
 		generated.PlanCandidates(),
 		generated.PlanCandidateSets(),
 		// Plan

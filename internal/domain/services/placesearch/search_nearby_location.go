@@ -10,6 +10,7 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
 	googleplaces "poroto.app/poroto/planner/internal/infrastructure/api/google/places"
+	"time"
 )
 
 // nearbySearchRadius すでに保存された場所から近くにある場所を検索するときの検索範囲
@@ -17,8 +18,14 @@ const (
 	nearbySearchRadius = 5 * 1000
 )
 
+// SearchNearbyPlacesInput は付近の場所を検索するときの入力
+//
+// PlanCandidateSetId が指定されており、すでに対応するプラン候補で検索が行われている場合は、検索を行わない
+// これは、付近の特定のカテゴリが無い場合に、すでに検索が行われているのに、再度検索が行われてしまうという状況を防ぐため
+// 例：水族館は30km圏内に存在しない場合は検索が行われるが、検索したことを記録していないと、水族館が30km圏内に存在しない場合にもう一度検索が行われてしまう
 type SearchNearbyPlacesInput struct {
-	Location models.GeoLocation
+	Location           models.GeoLocation
+	PlanCandidateSetId *string
 }
 
 // placeTypeWithCondition 検索する必要のあるカテゴリを表す
@@ -38,17 +45,36 @@ type placeTypeWithCondition struct {
 	ignorePlaceCount uint
 }
 
-// SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
+// SearchNearbyPlaces location で指定された場所の付近にある場所を検索し、保存する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlacesInput) ([]models.GooglePlace, error) {
+func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlacesInput) ([]models.Place, error) {
 	if input.Location.Latitude == 0 || input.Location.Longitude == 0 {
 		panic("location is not specified")
+	}
+
+	var isAlreadySearched bool
+	if input.PlanCandidateSetId != nil {
+		planCandidateSet, err := s.planCandidateRepository.Find(ctx, *input.PlanCandidateSetId, time.Now())
+		if err != nil {
+			// エラーが発生しても処理を続行する
+			s.logger.Warn("error while fetching plan candidate set", zap.Error(err))
+		} else if planCandidateSet != nil {
+			isAlreadySearched = planCandidateSet.IsPlaceSearched
+		}
+	} else {
+		s.logger.Warn("plan candidate set id is not specified")
 	}
 
 	// キャッシュされた検索結果を取得
 	placesSaved, err := s.placeRepository.FindByLocation(ctx, input.Location, float64(nearbySearchRadius))
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places from location: %w", err)
+	}
+
+	// すでに検索されている場合は、検索を行わない
+	if isAlreadySearched && len(placesSaved) > 0 {
+		s.logger.Info("skip searching places because it has already been searched", zap.Int("places", len(placesSaved)))
+		return placesSaved, nil
 	}
 
 	// カテゴリごとにキャッシュされた検索結果を取得
@@ -149,26 +175,44 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		}(ctx, ch, placeType)
 	}
 
-	var placesSearched []models.GooglePlace
+	var googlePlacesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
 		if searchResults == nil {
 			continue
 		}
-		placesSearched = append(placesSearched, *searchResults...)
+		googlePlacesSearched = append(googlePlacesSearched, *searchResults...)
 	}
 
 	// 検索された場所に加えて、キャッシュされた場所を追加
 	for _, place := range placesSaved {
-		placesSearched = append(placesSearched, place.Google)
+		googlePlacesSearched = append(googlePlacesSearched, place.Google)
 	}
 
 	// 重複した場所を削除
-	placesSearchedFiltered := array.DistinctBy(placesSearched, func(place models.GooglePlace) string {
+	placesSearchedFiltered := array.DistinctBy(googlePlacesSearched, func(place models.GooglePlace) string {
 		return place.PlaceId
 	})
 
-	return placesSearchedFiltered, nil
+	// 検索された場所を保存
+	places, err := s.placeRepository.SavePlacesFromGooglePlaces(ctx, placesSearchedFiltered...)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving places from google place: %v\n", err)
+	}
+
+	// 検索済みであることを保存する
+	if input.PlanCandidateSetId != nil {
+		err := s.planCandidateRepository.UpdateIsPlaceSearched(ctx, *input.PlanCandidateSetId, true)
+		if err != nil {
+			s.logger.Warn("error while updating place searched", zap.Error(err))
+		}
+	}
+
+	if places == nil {
+		return nil, nil
+	}
+
+	return *places, nil
 }
 
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {

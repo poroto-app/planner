@@ -21,20 +21,20 @@ import (
 // PlanCandidate is the resolver for the planCandidate field.
 func (r *queryResolver) PlanCandidate(ctx context.Context, input model.PlanCandidateInput) (*model.PlanCandidateOutput, error) {
 	r.Logger.Info(
-		"PlanCandidate",
+		"PlanCandidateSet",
 		zap.String("planCandidateId", input.PlanCandidateID),
 	)
 
-	planCandidate, err := r.PlanCandidateService.FindPlanCandidate(ctx, plancandidate.FindPlanCandidateInput{
-		PlanCandidateId:   input.PlanCandidateID,
-		UserId:            input.UserID,
-		FirebaseAuthToken: input.FirebaseAuthToken})
+	planCandidate, err := r.PlanCandidateService.Find(ctx, plancandidate.FindPlanCandidateSetInput{
+		PlanCandidateSetId: input.PlanCandidateID,
+		UserId:             input.UserID,
+		FirebaseAuthToken:  input.FirebaseAuthToken})
 	if err != nil {
 		r.Logger.Error("error while finding plan candidate", zap.Error(err))
 		return nil, err
 	}
 
-	graphqlPlanCandidate := factory.PlanCandidateFromDomainModel(planCandidate)
+	graphqlPlanCandidate := factory.PlanCandidateSetFromDomainModel(planCandidate)
 	return &model.PlanCandidateOutput{
 		PlanCandidate: graphqlPlanCandidate,
 	}, nil
@@ -89,7 +89,7 @@ func (r *queryResolver) NearbyPlaceCategories(ctx context.Context, input model.N
 // AvailablePlacesForPlan is the resolver for the availablePlacesForPlan field.
 func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.AvailablePlacesForPlanInput) (*model.AvailablePlacesForPlan, error) {
 	availablePlaces, err := r.PlaceService.FetchCandidatePlaces(ctx, place.FetchCandidatePlacesInput{
-		PlanCandidateId: input.Session,
+		PlanCandidateSetId: input.Session,
 	})
 	if err != nil {
 		r.Logger.Error("error while fetching available places for plan", zap.Error(err))
@@ -110,10 +110,10 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
 	result, err := r.PlaceService.FetchPlacesToAdd(ctx, place.FetchPlacesToAddInput{
-		PlanCandidateId: input.PlanCandidateID,
-		PlanId:          input.PlanID,
-		PlaceId:         input.PlaceID,
-		NLimit:          4,
+		PlanCandidateSetId: input.PlanCandidateID,
+		PlanId:             input.PlanID,
+		PlaceId:            input.PlaceID,
+		NLimit:             4,
 	})
 	if err != nil {
 		r.Logger.Error("error while fetching places to add", zap.Error(err))

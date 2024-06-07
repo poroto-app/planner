@@ -17,14 +17,14 @@ import (
 
 func TestPlanCandidateRepository_Create(t *testing.T) {
 	cases := []struct {
-		name            string
-		planCandidateId string
-		expiresAt       time.Time
+		name               string
+		planCandidateSetId string
+		expiresAt          time.Time
 	}{
 		{
-			name:            "success",
-			planCandidateId: uuid.New().String(),
-			expiresAt:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+			name:               "success",
+			planCandidateSetId: uuid.New().String(),
+			expiresAt:          time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
@@ -44,11 +44,11 @@ func TestPlanCandidateRepository_Create(t *testing.T) {
 				}
 			})
 
-			if err := planCandidateRepository.Create(testContext, c.planCandidateId, c.expiresAt); err != nil {
+			if err := planCandidateRepository.Create(testContext, c.planCandidateSetId, c.expiresAt); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
-			exists, err := generated.PlanCandidateSetExists(testContext, testDB, c.planCandidateId)
+			exists, err := generated.PlanCandidateSetExists(testContext, testDB, c.planCandidateSetId)
 			if err != nil {
 				t.Fatalf("failed to check plan candidate existence: %v", err)
 			}
@@ -65,29 +65,32 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 	cases := []struct {
 		name                  string
 		now                   time.Time
-		savedPlanCandidateSet models.PlanCandidate
-		planCandidateId       string
-		expected              models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
+		planCandidateSetId    string
+		expected              models.PlanCandidateSet
 	}{
 		{
 			name: "plan candidate set with only id",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
-			planCandidateId: "test",
-			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			expected: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
 		},
 		{
 			name: "plan candidate set with plan candidate",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -106,10 +109,11 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					},
 				},
 			},
-			planCandidateId: "test",
-			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			expected: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -127,12 +131,13 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 		},
 		{
-			name:            "plan candidate set without PlanCandidateSetMetaData",
-			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			planCandidateId: "test",
-			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			name:               "plan candidate set without PlanCandidateSetMetaData",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -142,9 +147,10 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					},
 				},
 			},
-			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			expected: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -153,6 +159,21 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 						},
 					},
 				},
+			},
+		},
+		{
+			name:               "plan candidate set with IsPlaceSearched false",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
+			},
+			expected: models.PlanCandidateSet{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
 			},
 		},
 	}
@@ -180,11 +201,11 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
-			actual, err := planCandidateRepository.Find(testContext, c.planCandidateId, c.now)
+			actual, err := planCandidateRepository.Find(testContext, c.planCandidateSetId, c.now)
 			if err != nil {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
@@ -255,13 +276,13 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 	cases := []struct {
 		name                  string
 		now                   time.Time
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		planCandidateId       string
 	}{
 		{
 			name: "expired plan candidate set will not be returned",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test",
 				ExpiresAt: time.Date(2019, 12, 1, 0, 0, 0, 0, time.Local),
 			},
@@ -292,7 +313,7 @@ func TestPlanCandidateRepository_Find_ShouldReturnNil(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -314,11 +335,11 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 		now                                    time.Time
 		savedPlaces                            []models.Place
 		savedUsers                             generated.UserSlice
-		savedPlanCandidateSets                 []models.PlanCandidate
+		savedPlanCandidateSets                 []models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 		savedUserLikePlaceEntities             generated.UserLikePlaceSlice
-		planCandidateId                        string
-		expected                               models.PlanCandidate
+		planCandidateSetId                     string
+		expected                               models.PlanCandidateSet
 	}{
 		{
 			name: "plan candidate set with place like count",
@@ -331,7 +352,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: "test-user-1", FirebaseUID: uuid.New().String()},
 				{ID: "test-user-2", FirebaseUID: uuid.New().String()},
 			},
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -359,8 +380,8 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				{ID: uuid.New().String(), UserID: "test-user-1", PlaceID: "test-place-1"},
 				{ID: uuid.New().String(), UserID: "test-user-2", PlaceID: "test-place-2"},
 			},
-			planCandidateId: "plan-candidate-set-1",
-			expected: models.PlanCandidate{
+			planCandidateSetId: "plan-candidate-set-1",
+			expected: models.PlanCandidateSet{
 				Id:        "plan-candidate-set-1",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -402,7 +423,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 			}
 
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(textContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(textContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -417,7 +438,7 @@ func TestPlanCandidateRepository_Find_WithPlaceLikeCount(t *testing.T) {
 				t.Fatalf("failed to save user like place: %v", err)
 			}
 
-			actual, err := planCandidateRepository.Find(textContext, c.planCandidateId, c.now)
+			actual, err := planCandidateRepository.Find(textContext, c.planCandidateSetId, c.now)
 			if err != nil {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
@@ -439,7 +460,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		savedPlaces           []models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		expected              models.Plan
 	}{
 		{
@@ -494,7 +515,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 					},
 				},
 			},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -590,7 +611,7 @@ func TestPlanCandidateRepository_FindPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -635,13 +656,13 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 	cases := []struct {
 		name                   string
 		expiresAt              time.Time
-		savedPlanCandidateSets []models.PlanCandidate
+		savedPlanCandidateSets []models.PlanCandidateSet
 		expected               []string
 	}{
 		{
 			name:      "success",
 			expiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "test-plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 12, 0, 0, 0, time.Local),
@@ -671,7 +692,7 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 			})
 
 			// 事前にPlaceを作成しておく
-			placesInPlans := array.Flatten(array.Flatten(array.Map(c.savedPlanCandidateSets, func(planCandidate models.PlanCandidate) [][]models.Place {
+			placesInPlans := array.Flatten(array.Flatten(array.Map(c.savedPlanCandidateSets, func(planCandidate models.PlanCandidateSet) [][]models.Place {
 				return array.Map(planCandidate.Plans, func(plan models.Plan) []models.Place { return plan.Places })
 			})))
 			if err := savePlaces(testContext, testDB, placesInPlans); err != nil {
@@ -680,7 +701,7 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 
 			// 事前にPlanCandidateSetを作成しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(testContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -699,66 +720,6 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 			}
 		})
 
-	}
-}
-
-func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T) {
-	cases := []struct {
-		name            string
-		planCandidateId string
-		placeIds        []string
-	}{
-		{
-			name:            "success",
-			planCandidateId: uuid.New().String(),
-			placeIds:        []string{uuid.New().String(), uuid.New().String()},
-		},
-	}
-
-	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
-	if err != nil {
-		t.Fatalf("failed to create plan candidate repository: %v", err)
-	}
-
-	testContext := context.Background()
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			t.Cleanup(func() {
-				err := cleanup(testContext, testDB)
-				if err != nil {
-					t.Fatalf("failed to cleanup: %v", err)
-				}
-			})
-
-			// 事前にPlanCandidateSetを作成しておく]
-			if err := savePlanCandidate(testContext, testDB, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
-			}
-
-			// 事前にPlaceを作成しておく
-			for _, placeId := range c.placeIds {
-				placeEntity := generated.Place{ID: placeId}
-				if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-					t.Fatalf("failed to insert place: %v", err)
-				}
-			}
-
-			if err := planCandidateRepository.AddSearchedPlacesForPlanCandidate(testContext, c.planCandidateId, c.placeIds); err != nil {
-				t.Fatalf("failed to add searched places for plan candidate: %v", err)
-			}
-
-			numPlanCandidateSetSearchedPlaces, err := generated.
-				PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
-				Count(testContext, testDB)
-			if err != nil {
-				t.Fatalf("failed to get plan candidate places: %v", err)
-			}
-
-			if int(numPlanCandidateSetSearchedPlaces) != len(c.placeIds) {
-				t.Fatalf("number of plan candidate places is not expected: %v", numPlanCandidateSetSearchedPlaces)
-			}
-		})
 	}
 }
 
@@ -813,7 +774,7 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
@@ -945,14 +906,14 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdToDelete       string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdToDelete:    "second-place",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -972,7 +933,7 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdToDelete:    "not-existing-place",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1011,7 +972,7 @@ func TestPlanCandidateRepository_RemovePlaceFromPlan(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1040,14 +1001,14 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdsOrdered       []string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdsOrdered:    []string{"third-place", "first-place", "second-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1086,7 +1047,7 @@ func TestPlanCandidateRepository_UpdatePlacesOrder(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1118,14 +1079,14 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 		planCandidateSetId    string
 		planCandidateId       string
 		placeIdsOrdered       []string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "reorder with not existing place",
 			planCandidateSetId: "test-plan-candidate-set",
 			planCandidateId:    "test-plan-candidate",
 			placeIdsOrdered:    []string{"third-place", "first-place", "not-existing-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1164,7 +1125,7 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1180,13 +1141,13 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 	cases := []struct {
 		name                  string
 		planCandidateSetId    string
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 		metaData              models.PlanCandidateMetaData
 	}{
 		{
 			name:               "save plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				MetaData:  models.PlanCandidateMetaData{},
@@ -1202,7 +1163,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 		{
 			name:               "update plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				MetaData: models.PlanCandidateMetaData{
@@ -1239,7 +1200,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			})
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1300,6 +1261,68 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 	}
 }
 
+func TestPlanCandidateRepository_UpdateIsPlaceSearched(t *testing.T) {
+	cases := []struct {
+		name                  string
+		savedPlanCandidateSet generated.PlanCandidateSetSlice
+		planCandidateSetId    string
+		isPlaceSearched       bool
+		expected              bool
+	}{
+		{
+			name: "success",
+			savedPlanCandidateSet: generated.PlanCandidateSetSlice{
+				{
+					ID:              "test-plan-candidate-set",
+					ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+					IsPlaceSearched: false,
+				},
+			},
+			planCandidateSetId: "test-plan-candidate-set",
+			isPlaceSearched:    true,
+			expected:           true,
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// データの準備
+			if _, err := c.savedPlanCandidateSet.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert plan candidate set: %v", err)
+			}
+
+			err := planCandidateRepository.UpdateIsPlaceSearched(testContext, c.planCandidateSetId, c.isPlaceSearched)
+			if err != nil {
+				t.Fatalf("failed to update is place searched: %v", err)
+			}
+
+			planCandidateSetEntity, err := generated.PlanCandidateSets(
+				generated.PlanCandidateSetWhere.ID.EQ(c.planCandidateSetId),
+			).One(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set: %v", err)
+			}
+
+			if planCandidateSetEntity.IsPlaceSearched != c.expected {
+				t.Fatalf("wrong is place searched expected: %v, actual: %v", c.expected, planCandidateSetEntity.IsPlaceSearched)
+			}
+		})
+	}
+}
+
 func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 	cases := []struct {
 		name                  string
@@ -1307,7 +1330,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 		planCandidateId       string
 		placeIdToReplace      string
 		placeToReplace        models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "success",
@@ -1315,7 +1338,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 			planCandidateId:    "test-plan-candidate",
 			placeIdToReplace:   "second-place",
 			placeToReplace:     models.Place{Id: "replaced-place"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1357,7 +1380,7 @@ func TestPlanCandidateRepository_ReplacePlace(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1388,7 +1411,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 		planCandidateId       string
 		placeIdToReplace      string
 		placeToReplace        models.Place
-		savedPlanCandidateSet models.PlanCandidate
+		savedPlanCandidateSet models.PlanCandidateSet
 	}{
 		{
 			name:               "replace with not existing place",
@@ -1396,7 +1419,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 			planCandidateId:    "test-plan-candidate",
 			placeIdToReplace:   "not-existing-place",
 			placeToReplace:     models.Place{Id: "place-to-replace"},
-			savedPlanCandidateSet: models.PlanCandidate{
+			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1438,7 +1461,7 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 			}
 
 			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1453,13 +1476,13 @@ func TestPlanCandidateRepository_ReplacePlace_ShouldReturnError(t *testing.T) {
 func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 	cases := []struct {
 		name                        string
-		savedPlanCandidateSets      []models.PlanCandidate
+		savedPlanCandidateSets      []models.PlanCandidateSet
 		planCandidateIdsToDelete    []string
 		planCandidateIdsNotToDelete []string
 	}{
 		{
 			name: "success",
-			savedPlanCandidateSets: []models.PlanCandidate{
+			savedPlanCandidateSets: []models.PlanCandidateSet{
 				{
 					Id:        "test-plan-candidate-set-1",
 					ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -1534,7 +1557,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 
 			// 事前にPlanCandidateSetを作成しておく
 			for _, planCandidateSet := range c.savedPlanCandidateSets {
-				if err := savePlanCandidate(testContext, testDB, planCandidateSet); err != nil {
+				if err := savePlanCandidateSet(testContext, testDB, planCandidateSet); err != nil {
 					t.Fatalf("failed to save plan candidate: %v", err)
 				}
 			}
@@ -1592,7 +1615,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 					t.Fatalf("plan candidate set meta data category should not exist")
 				}
 
-				// PlanCandidate が削除されていることを確認
+				// PlanCandidateSet が削除されていることを確認
 				planCandidateEntityExist, err := generated.PlanCandidates(
 					generated.PlanCandidateWhere.ID.EQ(planCandidateId),
 				).Exists(testContext, testDB)
@@ -1613,17 +1636,6 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				if planCandidatePlaceEntityExist {
 					t.Fatalf("plan candidate place should not exist")
 				}
-
-				// PlanCandidateSetSearchedPlace が削除されていることを確認
-				planCandidateSetSearchedPlaceEntityExist, err := generated.PlanCandidateSetSearchedPlaces(
-					generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
-				).Exists(testContext, testDB)
-				if err != nil {
-					t.Fatalf("failed to get plan candidate set searched place: %v", err)
-				}
-				if planCandidateSetSearchedPlaceEntityExist {
-					t.Fatalf("plan candidate set searched place should not exist")
-				}
 			}
 		})
 	}
@@ -1635,7 +1647,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 		planCandidateSetId                     string
 		placeId                                string
 		savedPlaces                            []models.Place
-		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidate                     models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 	}{
 		{
@@ -1645,7 +1657,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1664,7 +1676,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1705,7 +1717,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 			}
 
 			// 事前に PlanCandidateSet を作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidate); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1716,7 +1728,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Like(t *testin
 				}
 			}
 
-			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, true)
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidateSet(testContext, c.planCandidateSetId, c.placeId, true)
 			if err != nil {
 				t.Fatalf("failed to update like to place in plan candidate: %v", err)
 			}
@@ -1742,7 +1754,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 		planCandidateSetId                     string
 		placeId                                string
 		savedPlaces                            []models.Place
-		savedPlanCandidate                     models.PlanCandidate
+		savedPlanCandidate                     models.PlanCandidateSet
 		savedPlanCandidateSetLikePlaceEntities []generated.PlanCandidateSetLikePlace
 	}{
 		{
@@ -1752,7 +1764,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1777,7 +1789,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			savedPlaces: []models.Place{
 				{Id: "test-place"},
 			},
-			savedPlanCandidate: models.PlanCandidate{
+			savedPlanCandidate: models.PlanCandidateSet{
 				Id:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				Plans: []models.Plan{
@@ -1812,7 +1824,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			}
 
 			// 事前に PlanCandidateSet を作成しておく
-			if err := savePlanCandidate(testContext, testDB, c.savedPlanCandidate); err != nil {
+			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidate); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
 
@@ -1823,7 +1835,7 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 				}
 			}
 
-			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidate(testContext, c.planCandidateSetId, c.placeId, false)
+			err := planCandidateRepository.UpdateLikeToPlaceInPlanCandidateSet(testContext, c.planCandidateSetId, c.placeId, false)
 			if err != nil {
 				t.Fatalf("failed to update like to place in plan candidate: %v", err)
 			}

@@ -5,22 +5,23 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 )
 
 func (s Service) FetchPlacesToReplace(
 	ctx context.Context,
-	planCandidateId string,
+	planCandidateSetId string,
 	planId string,
 	placeId string,
 	nLimit uint,
 ) ([]models.Place, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, planCandidateId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, planCandidateSetId, time.Now())
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching plan candidate: %v", err)
+		return nil, fmt.Errorf("error while fetching plan candidate set: %v", err)
 	}
 	var plan *models.Plan
-	for _, p := range planCandidate.Plans {
+	for _, p := range planCandidateSet.Plans {
 		if p.Id == planId {
 			plan = &p
 			break
@@ -47,15 +48,17 @@ func (s Service) FetchPlacesToReplace(
 		return nil, fmt.Errorf("place to replace not found")
 	}
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
+	// 付近の場所を検索
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           startPlace.Location,
+		PlanCandidateSetId: &planCandidateSet.Id,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching placesToReplace searched: %v", err)
+		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
 
-	placesFiltered := placesSearched
-
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
+	placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesNearby,
 		StartLocation: startPlace.Location,
 	})
 

@@ -17,7 +17,7 @@ func NewPlanCandidateSetFromEntity(
 	planCandidateSetLikePlaceSlice generated.PlanCandidateSetLikePlaceSlice,
 	places []models.Place,
 	author *models.User,
-) (*models.PlanCandidate, error) {
+) (*models.PlanCandidateSet, error) {
 	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetEntity.ID)
 	if err != nil {
 		// PlanCandidateSetMetaDataがない場合はエラーにしない
@@ -52,11 +52,12 @@ func NewPlanCandidateSetFromEntity(
 		return planCandidateSetLikePlace.PlaceID, true
 	})
 
-	return &models.PlanCandidate{
-		Id:            planCandidateSetEntity.ID,
-		Plans:         *plans,
-		MetaData:      *planCandidateSetMetaData,
-		ExpiresAt:     planCandidateSetEntity.ExpiresAt,
-		LikedPlaceIds: likedPlaceIds,
+	return &models.PlanCandidateSet{
+		Id:              planCandidateSetEntity.ID,
+		Plans:           *plans,
+		MetaData:        *planCandidateSetMetaData,
+		IsPlaceSearched: planCandidateSetEntity.IsPlaceSearched,
+		ExpiresAt:       planCandidateSetEntity.ExpiresAt,
+		LikedPlaceIds:   likedPlaceIds,
 	}, nil
 }

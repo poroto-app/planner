@@ -19,7 +19,7 @@ const (
 // GooglePlaceId が指定された場合は、その場所を起点としてプランを作成する
 // MaxDistanceFromStart は、プランの起点となる場所を選択するときの LocationStart からの最大距離
 type CreatePlanByLocationInput struct {
-	PlanCandidateId              string
+	PlanCandidateSetId           string
 	LocationStart                models.GeoLocation
 	GooglePlaceId                *string
 	CategoryNamesPreferred       *[]string
@@ -37,53 +37,27 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 	}
 
 	// 付近の場所を検索
-	var places []models.Place
-
-	// すでに検索を行っている場合はその結果を取得
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           input.LocationStart,
+		PlanCandidateSetId: &input.PlanCandidateSetId,
+	})
 	if err != nil {
-		s.logger.Warn(
-			"error while fetching searched Places",
-			zap.String("PlanCandidateId", input.PlanCandidateId),
-			zap.Error(err),
-		)
-	} else if placesSearched != nil {
-		s.logger.Debug(
-			"Places fetched",
-			zap.String("PlanCandidateId", input.PlanCandidateId),
-			zap.Int("Places", len(placesSearched)),
-		)
-		places = placesSearched
-	}
-
-	// 検索を行っていない場合は検索を行う
-	if places == nil {
-		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: input.LocationStart})
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
-		}
-
-		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
-		if err != nil {
-			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
-		}
-
-		places = placesSaved
+		return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 	}
 
 	s.logger.Debug(
 		"Places searched",
-		zap.String("PlanCandidateId", input.PlanCandidateId),
+		zap.String("PlanCandidateSetId", input.PlanCandidateSetId),
 		zap.Float64("lat", input.LocationStart.Latitude),
 		zap.Float64("lng", input.LocationStart.Longitude),
-		zap.Int("Places", len(places)),
+		zap.Int("placesCount", len(placesNearby)),
 	)
 
 	var createPlanParams []CreatePlanParams
 
 	// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 	if input.GooglePlaceId != nil {
-		place, _, err := s.findOrFetchPlaceById(ctx, input.PlanCandidateId, places, *input.GooglePlaceId)
+		place, _, err := s.findOrFetchPlaceById(ctx, placesNearby, *input.GooglePlaceId)
 		if err != nil {
 			s.logger.Warn(
 				"error while fetching place",
@@ -93,7 +67,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		}
 
 		if place != nil && array.IsContain(place.Google.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
-			createPlanParam := s.CreatePlan(input, places, *place, createPlanParams)
+			createPlanParam := s.CreatePlan(input, placesNearby, *place, createPlanParams)
 			if createPlanParam != nil {
 				createPlanParams = append(createPlanParams, *createPlanParam)
 			}
@@ -111,7 +85,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 		placesForPlanStart := s.SelectBasePlace(SelectBasePlaceInput{
 			BaseLocation:      input.LocationStart,
-			Places:            places,
+			Places:            placesNearby,
 			IgnorePlaces:      placesAlreadyAdded,
 			MaxBasePlaceCount: 10,
 			Radius:            filterDistance,
@@ -119,7 +93,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 		var createPlanParamsInRange []CreatePlanParams
 		for _, placeForPlanStart := range placesForPlanStart {
-			createPlanParam := s.CreatePlan(input, places, placeForPlanStart, createPlanParams)
+			createPlanParam := s.CreatePlan(input, placesNearby, placeForPlanStart, createPlanParams)
 			if createPlanParam != nil {
 				createPlanParamsInRange = append(createPlanParamsInRange, *createPlanParam)
 			}
@@ -140,7 +114,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		createPlanParams = append(createPlanParams, createPlanParamsInRange[0])
 	}
 
-	plans := s.createPlanData(ctx, input.PlanCandidateId, createPlanParams...)
+	plans := s.createPlanData(ctx, input.PlanCandidateSetId, createPlanParams...)
 
 	// 場所を指定してプランを作成した場合、その場所を起点としたプランを最初に表示する
 	if input.GooglePlaceId != nil {
@@ -162,12 +136,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 // findOrFetchPlaceById は、googlePlaceId に対応する場所を
 // placesSearched から探し、なければAPIを使って取得する
-func (s Service) findOrFetchPlaceById(
-	ctx context.Context,
-	planCandidateId string,
-	placesSearched []models.Place,
-	googlePlaceId string,
-) (*models.Place, bool, error) {
+func (s Service) findOrFetchPlaceById(ctx context.Context, placesSearched []models.Place, googlePlaceId string) (*models.Place, bool, error) {
 	for _, placeSearched := range placesSearched {
 		if placeSearched.Google.PlaceId == googlePlaceId {
 			// すでに取得されている場合はそれを返す
@@ -184,11 +153,6 @@ func (s Service) findOrFetchPlaceById(
 		return nil, false, nil
 	}
 
-	// キャッシュする
-	if _, err := s.placeSearchService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
-		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
-	}
-
 	return place, false, nil
 }
 
@@ -199,7 +163,7 @@ func (s Service) CreatePlan(input CreatePlanByLocationInput, places []models.Pla
 	}
 
 	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
-		PlanCandidateId:         input.PlanCandidateId,
+		PlanCandidateSetId:      input.PlanCandidateSetId,
 		LocationStart:           placeRecommend.Location,
 		PlaceStart:              placeRecommend,
 		Places:                  places,

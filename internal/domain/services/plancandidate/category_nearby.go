@@ -42,23 +42,20 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	// プラン候補を作成
-	if err := s.CreatePlanCandidate(ctx, params.CreatePlanSessionId); err != nil {
+	if err := s.CreatePlanCandidateSet(ctx, params.CreatePlanSessionId); err != nil {
 		return nil, fmt.Errorf("error while creating plan candidate: %v\n", err)
 	}
 
 	// 付近の場所を検索
-	placesSearched, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: params.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           params.Location,
+		PlanCandidateSetId: &params.CreatePlanSessionId,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}
 
-	// 検索された場所を保存
-	places, err := s.placeSearchService.SaveSearchedPlaces(ctx, params.CreatePlanSessionId, placesSearched)
-	if err != nil {
-		return nil, fmt.Errorf("error while saving searched places: %v\n", err)
-	}
-
-	placesFiltered := places
+	placesFiltered := placesNearby
 	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
 		Places:        placesFiltered,
 		StartLocation: params.Location,

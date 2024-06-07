@@ -3,6 +3,7 @@ package plangen
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 
 	"poroto.app/poroto/planner/internal/domain/models"
@@ -14,43 +15,43 @@ func (s Service) CreatePlanFromPlace(
 	createPlanSessionId string,
 	placeId string,
 ) (*models.Plan, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, createPlanSessionId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching plan candidate")
 	}
 
-	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
-	places, err := s.placeSearchService.FetchSearchedPlaces(ctx, createPlanSessionId)
+	placeStart, err := s.placeRepository.Find(ctx, placeId)
 	if err != nil {
-		return nil, err
-	}
-
-	var placeStart *models.Place
-	for _, place := range places {
-		if place.Id == placeId {
-			placeStart = &place
-			break
-		}
+		return nil, fmt.Errorf("error while fetching place")
 	}
 
 	if placeStart == nil {
 		return nil, fmt.Errorf("place not found")
 	}
 
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           placeStart.Location,
+		PlanCandidateSetId: &createPlanSessionId,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching nearby places")
+	}
+
 	var categoryNamesRejected []string
-	if planCandidate.MetaData.CategoriesRejected != nil {
-		for _, category := range *planCandidate.MetaData.CategoriesRejected {
+	if planCandidateSet.MetaData.CategoriesRejected != nil {
+		for _, category := range *planCandidateSet.MetaData.CategoriesRejected {
 			categoryNamesRejected = append(categoryNamesRejected, category.Name)
 		}
 	}
 
+	// TODO: ユーザーの興味等を保存しておいて、それを反映させる
 	planPlaces, err := s.CreatePlanPlaces(CreatePlanPlacesInput{
-		PlanCandidateId:       createPlanSessionId,
+		PlanCandidateSetId:    createPlanSessionId,
 		LocationStart:         placeStart.Location,
 		PlaceStart:            *placeStart,
-		Places:                places,
+		Places:                placesNearby,
 		CategoryNamesDisliked: &categoryNamesRejected,
-		FreeTime:              planCandidate.MetaData.FreeTime,
+		FreeTime:              planCandidateSet.MetaData.FreeTime,
 	})
 	if err != nil {
 		return nil, err

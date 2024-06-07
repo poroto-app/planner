@@ -41,10 +41,10 @@ func (p PlanCandidateRepository) GetDB() *sql.DB {
 
 // Create プラン候補を作成する
 // TODO: PlanCandidateSet のすべての値を保存できるようにする
-func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error {
+func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateSetId string, expiresAt time.Time) error {
 	if err := runTransaction(cxt, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateEntity := generated.PlanCandidateSet{ID: planCandidateId, ExpiresAt: expiresAt}
-		if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+		planCandidateSetEntity := generated.PlanCandidateSet{ID: planCandidateSetId, ExpiresAt: expiresAt}
+		if err := planCandidateSetEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan candidate: %w", err)
 		}
 		return nil
@@ -54,10 +54,10 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 	return nil
 }
 
-func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
+func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId string, now time.Time) (*models.PlanCandidateSet, error) {
 	planCandidateSetEntity, err := generated.PlanCandidateSets(concatQueryMod(
 		[]qm.QueryMod{
-			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+			generated.PlanCandidateSetWhere.ID.EQ(planCandidateSetId),
 			generated.PlanCandidateSetWhere.ExpiresAt.GT(now),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidates),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaData),
@@ -221,22 +221,6 @@ func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresA
 	}
 
 	return &planCandidateIds, nil
-}
-
-func (p PlanCandidateRepository) AddSearchedPlacesForPlanCandidate(ctx context.Context, planCandidateId string, placeIds []string) error {
-	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		var planCandidateSlice generated.PlanCandidateSetSearchedPlaceSlice = array.Map(placeIds, func(placeId string) *generated.PlanCandidateSetSearchedPlace {
-			planCandidatePlace := generated.PlanCandidateSetSearchedPlace{ID: uuid.New().String(), PlanCandidateSetID: planCandidateId, PlaceID: placeId}
-			return &planCandidatePlace
-		})
-		if _, err := planCandidateSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
-			return fmt.Errorf("failed to insert plan candidate places: %w", err)
-		}
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to run transaction: %w", err)
-	}
-	return nil
 }
 
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
@@ -451,6 +435,28 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 	return nil
 }
 
+func (p PlanCandidateRepository) UpdateIsPlaceSearched(ctx context.Context, planCandidateId string, isPlaceSearched bool) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCandidateSetEntity, err := generated.PlanCandidateSets(
+			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+		).One(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to get plan candidate set: %w", err)
+		}
+
+		planCandidateSetEntity.IsPlaceSearched = isPlaceSearched
+		if _, err := planCandidateSetEntity.Update(ctx, tx, boil.Whitelist(generated.PlanCandidateSetColumns.IsPlaceSearched)); err != nil {
+			return fmt.Errorf("failed to update plan candidate set: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
+
+	return nil
+}
+
 func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		planCandidatePlaceEntity, err := generated.PlanCandidatePlaces(
@@ -483,11 +489,6 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 			return fmt.Errorf("failed to delete plan candidate places: %w", err)
 		}
 
-		// 検索履歴を削除
-		if _, err := generated.PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate set searched places: %w", err)
-		}
-
 		// プラン候補を削除
 		if _, err := generated.PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
 			return fmt.Errorf("failed to delete plan candidates: %w", err)
@@ -514,7 +515,7 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 	return nil
 }
 
-func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
+func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidateSet(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		if like {
 			isPlanCandidateSetLikePlaceEntityExist, err := generated.PlanCandidateSetLikePlaces(
