@@ -2,9 +2,11 @@ package place
 
 import (
 	"context"
+	"fmt"
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 )
 
@@ -44,12 +46,14 @@ func (s Service) FetchCandidatePlaces(
 		return nil, nil
 	}
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	// 付近の場所を検索
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: *planCandidate.MetaData.LocationStart})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
 
-	placesFiltered := placesSearched
+	// 検索された場所を保存
+	placesFiltered := placesNearby
 	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
 		Places:        placesFiltered,
 		StartLocation: *planCandidate.MetaData.LocationStart,

@@ -12,12 +12,12 @@ var TableNames = struct {
 	GooglePlaceTypes                   string
 	GooglePlaces                       string
 	PlacePhotos                        string
+	PlaceRecommendations               string
 	Places                             string
 	PlanCandidatePlaces                string
 	PlanCandidateSetLikePlaces         string
 	PlanCandidateSetMetaData           string
 	PlanCandidateSetMetaDataCategories string
-	PlanCandidateSetSearchedPlaces     string
 	PlanCandidateSets                  string
 	PlanCandidates                     string
 	PlanCollagePhotos                  string
@@ -35,12 +35,12 @@ var TableNames = struct {
 	GooglePlaceTypes:                   "google_place_types",
 	GooglePlaces:                       "google_places",
 	PlacePhotos:                        "place_photos",
+	PlaceRecommendations:               "place_recommendations",
 	Places:                             "places",
 	PlanCandidatePlaces:                "plan_candidate_places",
 	PlanCandidateSetLikePlaces:         "plan_candidate_set_like_places",
 	PlanCandidateSetMetaData:           "plan_candidate_set_meta_data",
 	PlanCandidateSetMetaDataCategories: "plan_candidate_set_meta_data_categories",
-	PlanCandidateSetSearchedPlaces:     "plan_candidate_set_searched_places",
 	PlanCandidateSets:                  "plan_candidate_sets",
 	PlanCandidates:                     "plan_candidates",
 	PlanCollagePhotos:                  "plan_collage_photos",

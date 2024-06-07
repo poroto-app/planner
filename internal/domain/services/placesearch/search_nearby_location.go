@@ -38,9 +38,9 @@ type placeTypeWithCondition struct {
 	ignorePlaceCount uint
 }
 
-// SearchNearbyPlaces location で指定された場所の付近にある場所を検索する
+// SearchNearbyPlaces location で指定された場所の付近にある場所を検索し、保存する
 // また、特定のカテゴリに対して追加の検索を行う
-func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlacesInput) ([]models.GooglePlace, error) {
+func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlacesInput) ([]models.Place, error) {
 	if input.Location.Latitude == 0 || input.Location.Longitude == 0 {
 		panic("location is not specified")
 	}
@@ -149,26 +149,36 @@ func (s Service) SearchNearbyPlaces(ctx context.Context, input SearchNearbyPlace
 		}(ctx, ch, placeType)
 	}
 
-	var placesSearched []models.GooglePlace
+	var googlePlacesSearched []models.GooglePlace
 	for i := 0; i < len(placeTypesToSearch); i++ {
 		searchResults := <-ch
 		if searchResults == nil {
 			continue
 		}
-		placesSearched = append(placesSearched, *searchResults...)
+		googlePlacesSearched = append(googlePlacesSearched, *searchResults...)
 	}
 
 	// 検索された場所に加えて、キャッシュされた場所を追加
 	for _, place := range placesSaved {
-		placesSearched = append(placesSearched, place.Google)
+		googlePlacesSearched = append(googlePlacesSearched, place.Google)
 	}
 
 	// 重複した場所を削除
-	placesSearchedFiltered := array.DistinctBy(placesSearched, func(place models.GooglePlace) string {
+	placesSearchedFiltered := array.DistinctBy(googlePlacesSearched, func(place models.GooglePlace) string {
 		return place.PlaceId
 	})
 
-	return placesSearchedFiltered, nil
+	// 検索された場所を保存
+	places, err := s.placeRepository.SavePlacesFromGooglePlaces(ctx, placesSearchedFiltered...)
+	if err != nil {
+		return nil, fmt.Errorf("error while saving places from google place: %v\n", err)
+	}
+
+	if places == nil {
+		return nil, nil
+	}
+
+	return *places, nil
 }
 
 func (s Service) placeTypesToSearch() []placeTypeWithCondition {
@@ -230,6 +240,7 @@ func (s Service) placeTypesToSearch() []placeTypeWithCondition {
 			ignorePlaceCount: 1,
 		},
 		// 近くに無いことがあたりまえなレベル
+		// TODO: すでに検索したが、ヒットしなかった場合に対応する
 		{
 			placeType:        maps.PlaceTypeAquarium,
 			searchRange:      50 * 1000,

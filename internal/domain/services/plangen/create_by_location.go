@@ -37,38 +37,9 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 	}
 
 	// 付近の場所を検索
-	var places []models.Place
-
-	// すでに検索を行っている場合はその結果を取得
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, input.PlanCandidateId)
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: input.LocationStart})
 	if err != nil {
-		s.logger.Warn(
-			"error while fetching searched Places",
-			zap.String("PlanCandidateId", input.PlanCandidateId),
-			zap.Error(err),
-		)
-	} else if placesSearched != nil {
-		s.logger.Debug(
-			"Places fetched",
-			zap.String("PlanCandidateId", input.PlanCandidateId),
-			zap.Int("Places", len(placesSearched)),
-		)
-		places = placesSearched
-	}
-
-	// 検索を行っていない場合は検索を行う
-	if places == nil {
-		googlePlaces, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: input.LocationStart})
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
-		}
-
-		placesSaved, err := s.placeSearchService.SaveSearchedPlaces(ctx, input.PlanCandidateId, googlePlaces)
-		if err != nil {
-			return nil, fmt.Errorf("error while saving searched Places: %v\n", err)
-		}
-
-		places = placesSaved
+		return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 	}
 
 	s.logger.Debug(
@@ -76,14 +47,14 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		zap.String("PlanCandidateId", input.PlanCandidateId),
 		zap.Float64("lat", input.LocationStart.Latitude),
 		zap.Float64("lng", input.LocationStart.Longitude),
-		zap.Int("Places", len(places)),
+		zap.Int("placesCount", len(placesNearby)),
 	)
 
 	var createPlanParams []CreatePlanParams
 
 	// 開始地点となる場所が建物であれば、そこを基準としたプランを作成する
 	if input.GooglePlaceId != nil {
-		place, _, err := s.findOrFetchPlaceById(ctx, input.PlanCandidateId, places, *input.GooglePlaceId)
+		place, _, err := s.findOrFetchPlaceById(ctx, placesNearby, *input.GooglePlaceId)
 		if err != nil {
 			s.logger.Warn(
 				"error while fetching place",
@@ -93,7 +64,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 		}
 
 		if place != nil && array.IsContain(place.Google.Types, string(maps.AutocompletePlaceTypeEstablishment)) {
-			createPlanParam := s.CreatePlan(input, places, *place, createPlanParams)
+			createPlanParam := s.CreatePlan(input, placesNearby, *place, createPlanParams)
 			if createPlanParam != nil {
 				createPlanParams = append(createPlanParams, *createPlanParam)
 			}
@@ -111,7 +82,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 		placesForPlanStart := s.SelectBasePlace(SelectBasePlaceInput{
 			BaseLocation:      input.LocationStart,
-			Places:            places,
+			Places:            placesNearby,
 			IgnorePlaces:      placesAlreadyAdded,
 			MaxBasePlaceCount: 10,
 			Radius:            filterDistance,
@@ -119,7 +90,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 		var createPlanParamsInRange []CreatePlanParams
 		for _, placeForPlanStart := range placesForPlanStart {
-			createPlanParam := s.CreatePlan(input, places, placeForPlanStart, createPlanParams)
+			createPlanParam := s.CreatePlan(input, placesNearby, placeForPlanStart, createPlanParams)
 			if createPlanParam != nil {
 				createPlanParamsInRange = append(createPlanParamsInRange, *createPlanParam)
 			}
@@ -162,12 +133,7 @@ func (s Service) CreatePlanByLocation(ctx context.Context, input CreatePlanByLoc
 
 // findOrFetchPlaceById は、googlePlaceId に対応する場所を
 // placesSearched から探し、なければAPIを使って取得する
-func (s Service) findOrFetchPlaceById(
-	ctx context.Context,
-	planCandidateId string,
-	placesSearched []models.Place,
-	googlePlaceId string,
-) (*models.Place, bool, error) {
+func (s Service) findOrFetchPlaceById(ctx context.Context, placesSearched []models.Place, googlePlaceId string) (*models.Place, bool, error) {
 	for _, placeSearched := range placesSearched {
 		if placeSearched.Google.PlaceId == googlePlaceId {
 			// すでに取得されている場合はそれを返す
@@ -182,11 +148,6 @@ func (s Service) findOrFetchPlaceById(
 
 	if place == nil {
 		return nil, false, nil
-	}
-
-	// キャッシュする
-	if _, err := s.placeSearchService.SaveSearchedPlaces(ctx, planCandidateId, []models.GooglePlace{place.Google}); err != nil {
-		return nil, false, fmt.Errorf("error while saving searched Places: %v", err)
 	}
 
 	return place, false, nil

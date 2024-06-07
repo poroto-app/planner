@@ -73,12 +73,13 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		// PlanCollage
 		generated.PlanCollagePhotos(),
 		generated.PlanCollages(),
+		// PlaceRecommendation
+		generated.PlaceRecommendations(),
 		// PlanCandidate
 		generated.PlanCandidateSetLikePlaces(),
 		generated.PlanCandidatePlaces(),
 		generated.PlanCandidateSetMetaDataCategories(),
 		generated.PlanCandidateSetMetaData(),
-		generated.PlanCandidateSetSearchedPlaces(),
 		generated.PlanCandidates(),
 		generated.PlanCandidateSets(),
 		// Plan

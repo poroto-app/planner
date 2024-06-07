@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/placefilter"
+	"poroto.app/poroto/planner/internal/domain/services/placesearch"
 	"time"
 )
 
@@ -47,15 +48,14 @@ func (s Service) FetchPlacesToReplace(
 		return nil, fmt.Errorf("place to replace not found")
 	}
 
-	placesSearched, err := s.placeSearchService.FetchSearchedPlaces(ctx, planCandidateId)
+	// 付近の場所を検索
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: startPlace.Location})
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching placesToReplace searched: %v", err)
+		return nil, fmt.Errorf("error while fetching nearby places: %v\n", err)
 	}
 
-	placesFiltered := placesSearched
-
-	placesFiltered = placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
-		Places:        placesFiltered,
+	placesFiltered := placefilter.FilterDefaultIgnore(placefilter.FilterDefaultIgnoreInput{
+		Places:        placesNearby,
 		StartLocation: startPlace.Location,
 	})
 

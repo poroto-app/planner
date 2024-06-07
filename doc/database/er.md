@@ -262,3 +262,19 @@ erDiagram
     %% 一つの場所にたいして複数の写真が登録させることもある
     plan_collage_photos }o..|| place: "N:1"
 ```
+
+### Place Recommendation
+- 重複した場所がおすすめに提示されないように、`place_id` に UNIQUE 制約を付与する
+```mermaid
+---
+title: place_recommendation
+---
+erDiagram
+    place_recommendations {
+        char(36) id PK
+        char(36) place_id FK
+        int sort_order
+    }
+
+    place_recommendations ||--|| places: "1:1"
+```

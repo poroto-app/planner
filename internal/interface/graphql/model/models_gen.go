@@ -103,6 +103,16 @@ type CreatePlanByPlaceOutput struct {
 	Plan    *Plan  `json:"plan"`
 }
 
+type CreatePlanCandidateSetFromSavedPlanInput struct {
+	UserID            *string `json:"userId,omitempty"`
+	FirebaseAuthToken *string `json:"firebaseAuthToken,omitempty"`
+	SavedPlanID       string  `json:"savedPlanId"`
+}
+
+type CreatePlanCandidateSetFromSavedPlanOutput struct {
+	PlanCandidate *PlanCandidate `json:"planCandidate"`
+}
+
 type DeletePlaceFromPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`
@@ -237,6 +247,10 @@ type PlacesNearPlanOutput struct {
 	Places []*Place `json:"places"`
 }
 
+type PlacesRecommendationOutput struct {
+	Places []*Place `json:"places"`
+}
+
 type PlacesToAddForPlanCandidateInput struct {
 	PlanCandidateID string  `json:"planCandidateId"`
 	PlanID          string  `json:"planId"`
@@ -268,6 +282,7 @@ type Plan struct {
 	Transitions   []*Transition `json:"transitions"`
 	Author        *User         `json:"author,omitempty"`
 	Collage       *PlanCollage  `json:"collage"`
+	NearbyPlans   []*Plan       `json:"nearbyPlans"`
 }
 
 type PlanCandidate struct {

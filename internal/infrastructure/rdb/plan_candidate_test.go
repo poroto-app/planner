@@ -702,66 +702,6 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 	}
 }
 
-func TestPlanCandidateRepository_AddSearchedPlacesForPlanCandidate(t *testing.T) {
-	cases := []struct {
-		name            string
-		planCandidateId string
-		placeIds        []string
-	}{
-		{
-			name:            "success",
-			planCandidateId: uuid.New().String(),
-			placeIds:        []string{uuid.New().String(), uuid.New().String()},
-		},
-	}
-
-	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
-	if err != nil {
-		t.Fatalf("failed to create plan candidate repository: %v", err)
-	}
-
-	testContext := context.Background()
-
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			t.Cleanup(func() {
-				err := cleanup(testContext, testDB)
-				if err != nil {
-					t.Fatalf("failed to cleanup: %v", err)
-				}
-			})
-
-			// 事前にPlanCandidateSetを作成しておく]
-			if err := savePlanCandidate(testContext, testDB, models.PlanCandidate{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
-			}
-
-			// 事前にPlaceを作成しておく
-			for _, placeId := range c.placeIds {
-				placeEntity := generated.Place{ID: placeId}
-				if err := placeEntity.Insert(testContext, testDB, boil.Infer()); err != nil {
-					t.Fatalf("failed to insert place: %v", err)
-				}
-			}
-
-			if err := planCandidateRepository.AddSearchedPlacesForPlanCandidate(testContext, c.planCandidateId, c.placeIds); err != nil {
-				t.Fatalf("failed to add searched places for plan candidate: %v", err)
-			}
-
-			numPlanCandidateSetSearchedPlaces, err := generated.
-				PlanCandidateSetSearchedPlaces(generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
-				Count(testContext, testDB)
-			if err != nil {
-				t.Fatalf("failed to get plan candidate places: %v", err)
-			}
-
-			if int(numPlanCandidateSetSearchedPlaces) != len(c.placeIds) {
-				t.Fatalf("number of plan candidate places is not expected: %v", numPlanCandidateSetSearchedPlaces)
-			}
-		})
-	}
-}
-
 func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 	cases := []struct {
 		name            string
@@ -1612,17 +1552,6 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 				}
 				if planCandidatePlaceEntityExist {
 					t.Fatalf("plan candidate place should not exist")
-				}
-
-				// PlanCandidateSetSearchedPlace が削除されていることを確認
-				planCandidateSetSearchedPlaceEntityExist, err := generated.PlanCandidateSetSearchedPlaces(
-					generated.PlanCandidateSetSearchedPlaceWhere.PlanCandidateSetID.EQ(planCandidateId),
-				).Exists(testContext, testDB)
-				if err != nil {
-					t.Fatalf("failed to get plan candidate set searched place: %v", err)
-				}
-				if planCandidateSetSearchedPlaceEntityExist {
-					t.Fatalf("plan candidate set searched place should not exist")
 				}
 			}
 		})
