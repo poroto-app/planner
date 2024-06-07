@@ -47,7 +47,10 @@ func (s Service) CategoriesNearLocation(
 	}
 
 	// 付近の場所を検索
-	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{Location: params.Location})
+	placesNearby, err := s.placeSearchService.SearchNearbyPlaces(ctx, placesearch.SearchNearbyPlacesInput{
+		Location:           params.Location,
+		PlanCandidateSetId: &params.CreatePlanSessionId,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching places: %v\n", err)
 	}

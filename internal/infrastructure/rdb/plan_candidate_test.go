@@ -73,21 +73,24 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			name: "plan candidate set with only id",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
 			planCandidateId: "test",
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 			},
 		},
 		{
 			name: "plan candidate set with plan candidate",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -108,8 +111,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			},
 			planCandidateId: "test",
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				MetaData: models.PlanCandidateMetaData{
 					CreatedBasedOnCurrentLocation: true,
 					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
@@ -131,8 +135,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
 			planCandidateId: "test",
 			savedPlanCandidateSet: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -143,8 +148,9 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				},
 			},
 			expected: models.PlanCandidate{
-				Id:        "test",
-				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: true,
 				Plans: []models.Plan{
 					{
 						Id: "test-plan",
@@ -153,6 +159,21 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 						},
 					},
 				},
+			},
+		},
+		{
+			name:            "plan candidate set with IsPlaceSearched false",
+			now:             time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateId: "test",
+			savedPlanCandidateSet: models.PlanCandidate{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
+			},
+			expected: models.PlanCandidate{
+				Id:              "test",
+				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				IsPlaceSearched: false,
 			},
 		},
 	}
@@ -1235,6 +1256,68 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 			}
 			if int(numCategoriesRejected) != len(*c.metaData.CategoriesRejected) {
 				t.Fatalf("wrong number of plan candidate set meta data categories expected: %v, actual: %v", len(*c.metaData.CategoriesRejected), numCategoriesRejected)
+			}
+		})
+	}
+}
+
+func TestPlanCandidateRepository_UpdateIsPlaceSearched(t *testing.T) {
+	cases := []struct {
+		name                  string
+		savedPlanCandidateSet generated.PlanCandidateSetSlice
+		planCandidateSetId    string
+		isPlaceSearched       bool
+		expected              bool
+	}{
+		{
+			name: "success",
+			savedPlanCandidateSet: generated.PlanCandidateSetSlice{
+				{
+					ID:              "test-plan-candidate-set",
+					ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+					IsPlaceSearched: false,
+				},
+			},
+			planCandidateSetId: "test-plan-candidate-set",
+			isPlaceSearched:    true,
+			expected:           true,
+		},
+	}
+
+	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
+	if err != nil {
+		t.Fatalf("failed to create plan candidate repository: %v", err)
+	}
+
+	for _, c := range cases {
+		testContext := context.Background()
+		t.Run(c.name, func(t *testing.T) {
+			t.Cleanup(func() {
+				err := cleanup(testContext, testDB)
+				if err != nil {
+					t.Fatalf("failed to cleanup: %v", err)
+				}
+			})
+
+			// データの準備
+			if _, err := c.savedPlanCandidateSet.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to insert plan candidate set: %v", err)
+			}
+
+			err := planCandidateRepository.UpdateIsPlaceSearched(testContext, c.planCandidateSetId, c.isPlaceSearched)
+			if err != nil {
+				t.Fatalf("failed to update is place searched: %v", err)
+			}
+
+			planCandidateSetEntity, err := generated.PlanCandidateSets(
+				generated.PlanCandidateSetWhere.ID.EQ(c.planCandidateSetId),
+			).One(testContext, testDB)
+			if err != nil {
+				t.Fatalf("failed to get plan candidate set: %v", err)
+			}
+
+			if planCandidateSetEntity.IsPlaceSearched != c.expected {
+				t.Fatalf("wrong is place searched expected: %v, actual: %v", c.expected, planCandidateSetEntity.IsPlaceSearched)
 			}
 		})
 	}

@@ -30,6 +30,8 @@ type PlanCandidateRepository interface {
 
 	UpdatePlanCandidateMetaData(ctx context.Context, planCandidateId string, meta models.PlanCandidateMetaData) error
 
+	UpdateIsPlaceSearched(ctx context.Context, planCandidateId string, isPlaceSearched bool) error
+
 	ReplacePlace(ctx context.Context, planCandidateId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error
 
 	DeleteAll(ctx context.Context, planCandidateIds []string) error

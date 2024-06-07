@@ -124,7 +124,7 @@ erDiagram
 ```
 
 ### Plan Candidate
-
+- 複数回検索が行われることを避けるため、`is_place_searched` で検索済みかどうかを管理
 ```mermaid
 ---
 title: plan_candidate
@@ -133,6 +133,7 @@ erDiagram
     plan_candidate_sets {
         char(36) id PK
         timestamp expires_at
+        bool is_place_searched
     }
 
     plan_candidate_set_meta_data {

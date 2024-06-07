@@ -53,10 +53,11 @@ func NewPlanCandidateSetFromEntity(
 	})
 
 	return &models.PlanCandidate{
-		Id:            planCandidateSetEntity.ID,
-		Plans:         *plans,
-		MetaData:      *planCandidateSetMetaData,
-		ExpiresAt:     planCandidateSetEntity.ExpiresAt,
-		LikedPlaceIds: likedPlaceIds,
+		Id:              planCandidateSetEntity.ID,
+		Plans:           *plans,
+		MetaData:        *planCandidateSetMetaData,
+		IsPlaceSearched: planCandidateSetEntity.IsPlaceSearched,
+		ExpiresAt:       planCandidateSetEntity.ExpiresAt,
+		LikedPlaceIds:   likedPlaceIds,
 	}, nil
 }

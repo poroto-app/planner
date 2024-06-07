@@ -23,51 +23,58 @@ import (
 
 // PlanCandidateSet is an object representing the database table.
 type PlanCandidateSet struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	ExpiresAt time.Time `boil:"expires_at" json:"expires_at" toml:"expires_at" yaml:"expires_at"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	ExpiresAt       time.Time `boil:"expires_at" json:"expires_at" toml:"expires_at" yaml:"expires_at"`
+	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	IsPlaceSearched bool      `boil:"is_place_searched" json:"is_place_searched" toml:"is_place_searched" yaml:"is_place_searched"`
 
 	R *planCandidateSetR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L planCandidateSetL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var PlanCandidateSetColumns = struct {
-	ID        string
-	ExpiresAt string
-	CreatedAt string
-	UpdatedAt string
+	ID              string
+	ExpiresAt       string
+	CreatedAt       string
+	UpdatedAt       string
+	IsPlaceSearched string
 }{
-	ID:        "id",
-	ExpiresAt: "expires_at",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:              "id",
+	ExpiresAt:       "expires_at",
+	CreatedAt:       "created_at",
+	UpdatedAt:       "updated_at",
+	IsPlaceSearched: "is_place_searched",
 }
 
 var PlanCandidateSetTableColumns = struct {
-	ID        string
-	ExpiresAt string
-	CreatedAt string
-	UpdatedAt string
+	ID              string
+	ExpiresAt       string
+	CreatedAt       string
+	UpdatedAt       string
+	IsPlaceSearched string
 }{
-	ID:        "plan_candidate_sets.id",
-	ExpiresAt: "plan_candidate_sets.expires_at",
-	CreatedAt: "plan_candidate_sets.created_at",
-	UpdatedAt: "plan_candidate_sets.updated_at",
+	ID:              "plan_candidate_sets.id",
+	ExpiresAt:       "plan_candidate_sets.expires_at",
+	CreatedAt:       "plan_candidate_sets.created_at",
+	UpdatedAt:       "plan_candidate_sets.updated_at",
+	IsPlaceSearched: "plan_candidate_sets.is_place_searched",
 }
 
 // Generated where
 
 var PlanCandidateSetWhere = struct {
-	ID        whereHelperstring
-	ExpiresAt whereHelpertime_Time
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID              whereHelperstring
+	ExpiresAt       whereHelpertime_Time
+	CreatedAt       whereHelpertime_Time
+	UpdatedAt       whereHelpertime_Time
+	IsPlaceSearched whereHelperbool
 }{
-	ID:        whereHelperstring{field: "`plan_candidate_sets`.`id`"},
-	ExpiresAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`expires_at`"},
-	CreatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`created_at`"},
-	UpdatedAt: whereHelpertime_Time{field: "`plan_candidate_sets`.`updated_at`"},
+	ID:              whereHelperstring{field: "`plan_candidate_sets`.`id`"},
+	ExpiresAt:       whereHelpertime_Time{field: "`plan_candidate_sets`.`expires_at`"},
+	CreatedAt:       whereHelpertime_Time{field: "`plan_candidate_sets`.`created_at`"},
+	UpdatedAt:       whereHelpertime_Time{field: "`plan_candidate_sets`.`updated_at`"},
+	IsPlaceSearched: whereHelperbool{field: "`plan_candidate_sets`.`is_place_searched`"},
 }
 
 // PlanCandidateSetRels is where relationship names are stored.
@@ -138,9 +145,9 @@ func (r *planCandidateSetR) GetPlanCandidates() PlanCandidateSlice {
 type planCandidateSetL struct{}
 
 var (
-	planCandidateSetAllColumns            = []string{"id", "expires_at", "created_at", "updated_at"}
+	planCandidateSetAllColumns            = []string{"id", "expires_at", "created_at", "updated_at", "is_place_searched"}
 	planCandidateSetColumnsWithoutDefault = []string{"id", "expires_at"}
-	planCandidateSetColumnsWithDefault    = []string{"created_at", "updated_at"}
+	planCandidateSetColumnsWithDefault    = []string{"created_at", "updated_at", "is_place_searched"}
 	planCandidateSetPrimaryKeyColumns     = []string{"id"}
 	planCandidateSetGeneratedColumns      = []string{}
 )
