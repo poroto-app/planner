@@ -10,14 +10,14 @@ import (
 	"poroto.app/poroto/planner/internal/domain/models"
 )
 
-type FindPlanCandidateInput struct {
-	PlanCandidateId   string
-	UserId            *string
-	FirebaseAuthToken *string
+type FindPlanCandidateSetInput struct {
+	PlanCandidateSetId string
+	UserId             *string
+	FirebaseAuthToken  *string
 }
 
-func (s Service) FindPlanCandidate(ctx context.Context, input FindPlanCandidateInput) (*models.PlanCandidate, error) {
-	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateId, time.Now())
+func (s Service) Find(ctx context.Context, input FindPlanCandidateSetInput) (*models.PlanCandidateSet, error) {
+	planCandidateSet, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateSetId, time.Now())
 	if err != nil {
 		return nil, fmt.Errorf("error finding plan candidate: %w", err)
 	}
@@ -41,10 +41,10 @@ func (s Service) FindPlanCandidate(ctx context.Context, input FindPlanCandidateI
 			return nil, fmt.Errorf("error finding like places: %w", err)
 		}
 
-		planCandidate.LikedPlaceIds = array.Map(*likePlaces, func(place models.Place) string {
+		planCandidateSet.LikedPlaceIds = array.Map(*likePlaces, func(place models.Place) string {
 			return place.Id
 		})
 	}
 
-	return planCandidate, nil
+	return planCandidateSet, nil
 }

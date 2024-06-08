@@ -5,15 +5,15 @@ import (
 	graphql "poroto.app/poroto/planner/internal/interface/graphql/model"
 )
 
-func PlanCandidateFromDomainModel(planCandidate *models.PlanCandidate) *graphql.PlanCandidate {
-	if planCandidate == nil {
+func PlanCandidateSetFromDomainModel(planCandidateSet *models.PlanCandidateSet) *graphql.PlanCandidate {
+	if planCandidateSet == nil {
 		return nil
 	}
 
 	return &graphql.PlanCandidate{
-		ID:                            planCandidate.Id,
-		Plans:                         PlansFromDomainModel(&planCandidate.Plans, planCandidate.MetaData.LocationStart),
-		LikedPlaceIds:                 planCandidate.LikedPlaceIds,
-		CreatedBasedOnCurrentLocation: planCandidate.MetaData.CreatedBasedOnCurrentLocation,
+		ID:                            planCandidateSet.Id,
+		Plans:                         PlansFromDomainModel(&planCandidateSet.Plans, planCandidateSet.MetaData.LocationStart),
+		LikedPlaceIds:                 planCandidateSet.LikedPlaceIds,
+		CreatedBasedOnCurrentLocation: planCandidateSet.MetaData.CreatedBasedOnCurrentLocation,
 	}
 }

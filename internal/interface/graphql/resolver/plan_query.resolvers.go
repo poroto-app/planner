@@ -58,12 +58,13 @@ func (r *queryResolver) Plans(ctx context.Context, input *model.PlansInput) (*mo
 func (r *queryResolver) PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error) {
 	plans, nextPageToken, err := r.PlanService.FetchPlansByLocation(
 		ctx,
-		models.GeoLocation{
-			Latitude:  input.Latitude,
-			Longitude: input.Longitude,
+		plan.FetchPlansByLocationInput{
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			Limit: input.Limit,
 		},
-		input.Limit,
-		input.PageKey,
 	)
 	if err != nil {
 		r.Logger.Error("error while fetching plans by location", zap.Error(err))

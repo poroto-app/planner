@@ -13,7 +13,7 @@ import (
 	"context"
 )
 
-func DeleteExpiredPlanCandidate(ctx context.Context, db *sql.DB) error {
+func DeleteExpiredPlanCandidateSet(ctx context.Context, db *sql.DB) error {
 	log.Printf("=================== Start deleting expired plan candidates ===================\n")
 
 	service, err := plancandidate.NewService(ctx, db)
