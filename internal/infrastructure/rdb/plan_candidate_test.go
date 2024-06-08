@@ -1156,7 +1156,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 				CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 				LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-				FreeTime:                      toPointer(60),
+				FreeTime:                      utils.ToPointer(60),
 			},
 		},
 		{
@@ -1170,7 +1170,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 					CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 					LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-					FreeTime:                      toPointer(60),
+					FreeTime:                      utils.ToPointer(60),
 				},
 			},
 			metaData: models.PlanCandidateMetaData{
@@ -1178,7 +1178,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant, models.CategoryBakery},
 				CategoriesRejected:            &[]models.LocationCategory{models.CategoryShopping, models.CategoryAmusements},
 				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
-				FreeTime:                      toPointer(120),
+				FreeTime:                      utils.ToPointer(120),
 			},
 		},
 	}
@@ -1490,7 +1490,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-						FreeTime:                      toPointer(60),
+						FreeTime:                      utils.ToPointer(60),
 					},
 					Plans: []models.Plan{
 						{
@@ -1511,7 +1511,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-						FreeTime:                      toPointer(60),
+						FreeTime:                      utils.ToPointer(60),
 					},
 					Plans: []models.Plan{
 						{
@@ -1852,8 +1852,4 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			}
 		})
 	}
-}
-
-func toPointer[T any](value T) *T {
-	return &value
 }

@@ -737,7 +737,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 					CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 				},
 			},
-			queryCursor: toPointer(newSortByCreatedAtQueryCursor(
+			queryCursor: utils.ToPointer(newSortByCreatedAtQueryCursor(
 				time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 			)),
 			limit: 10,
