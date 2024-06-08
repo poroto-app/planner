@@ -124,6 +124,15 @@ func (s Server) GraphqlAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		if user == nil {
+			s.logger.Debug(
+				"user not found",
+				zap.String("firebaseUid", *firebaseUid),
+			)
+			c.Next()
+			return
+		}
+
 		s.logger.Debug(
 			"set auth user to context",
 			zap.String("userId", user.Id),
