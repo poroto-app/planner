@@ -30,7 +30,6 @@ input PlansByLocationInput {
     latitude: Float!
     longitude: Float!
     limit: Int
-    pageKey: String
 }
 
 type PlansByLocationOutput {
