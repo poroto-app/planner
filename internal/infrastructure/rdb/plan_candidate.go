@@ -41,10 +41,10 @@ func (p PlanCandidateRepository) GetDB() *sql.DB {
 
 // Create プラン候補を作成する
 // TODO: PlanCandidateSet のすべての値を保存できるようにする
-func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId string, expiresAt time.Time) error {
+func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateSetId string, expiresAt time.Time) error {
 	if err := runTransaction(cxt, p, func(ctx context.Context, tx *sql.Tx) error {
-		planCandidateEntity := generated.PlanCandidateSet{ID: planCandidateId, ExpiresAt: expiresAt}
-		if err := planCandidateEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+		planCandidateSetEntity := generated.PlanCandidateSet{ID: planCandidateSetId, ExpiresAt: expiresAt}
+		if err := planCandidateSetEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan candidate: %w", err)
 		}
 		return nil
@@ -54,10 +54,10 @@ func (p PlanCandidateRepository) Create(cxt context.Context, planCandidateId str
 	return nil
 }
 
-func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateId string, now time.Time) (*models.PlanCandidate, error) {
+func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId string, now time.Time) (*models.PlanCandidateSet, error) {
 	planCandidateSetEntity, err := generated.PlanCandidateSets(concatQueryMod(
 		[]qm.QueryMod{
-			generated.PlanCandidateSetWhere.ID.EQ(planCandidateId),
+			generated.PlanCandidateSetWhere.ID.EQ(planCandidateSetId),
 			generated.PlanCandidateSetWhere.ExpiresAt.GT(now),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidates),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaData),
@@ -515,7 +515,7 @@ func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds
 	return nil
 }
 
-func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidate(ctx context.Context, planCandidateId string, placeId string, like bool) error {
+func (p PlanCandidateRepository) UpdateLikeToPlaceInPlanCandidateSet(ctx context.Context, planCandidateId string, placeId string, like bool) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		if like {
 			isPlanCandidateSetLikePlaceEntityExist, err := generated.PlanCandidateSetLikePlaces(

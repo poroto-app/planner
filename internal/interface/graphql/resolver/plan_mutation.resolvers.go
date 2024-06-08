@@ -90,5 +90,25 @@ func (r *mutationResolver) LikeToPlaceInPlan(ctx context.Context, input model.Li
 
 // UpdatePlanCollageImage is the resolver for the updatePlanCollageImage field.
 func (r *mutationResolver) UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImageInput) (*model.UpdatePlanCollageImageOutput, error) {
-	panic(fmt.Errorf("not implemented: UpdatePlanCollageImage - updatePlanCollageImage"))
+	output, err := r.PlanService.UpdatePlanCollageImage(ctx, plan.UpdatePlanCollageImageInput{
+		PlanId:            input.PlanID,
+		PlaceId:           input.PlaceID,
+		ImageUrl:          input.ImageURL,
+		UserId:            input.UserID,
+		FirebaseAuthToken: input.FirebaseAuthToken,
+	})
+	if err != nil {
+		r.Logger.Error("error while updating plan collage image", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlan, err := factory.PlanFromDomainModel(output.Plan, nil)
+	if err != nil {
+		r.Logger.Error("error while converting plan domain model to graphql model", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	return &model.UpdatePlanCollageImageOutput{
+		Plan: graphqlPlan,
+	}, nil
 }

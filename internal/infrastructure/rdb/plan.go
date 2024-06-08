@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
 	"strconv"
 	"time"
+
+	"github.com/friendsofgo/errors"
+	"github.com/google/uuid"
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -19,11 +21,6 @@ import (
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/entities"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/factory"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-)
-
-const (
-	// 半径2km圏内のプランを検索する
-	defaultDistanceToSearchPlan = 2 * 1000
 )
 
 type PlanRepository struct {
@@ -354,9 +351,8 @@ func (p PlanRepository) FindByAuthorId(ctx context.Context, authorId string) (*[
 	return plans, nil
 }
 
-// TODO: ページングしない（範囲だけ指定させて、ソートも行わない）
-func (p PlanRepository) SortedByLocation(ctx context.Context, location models.GeoLocation, queryCursor *string, limit int) (*[]models.Plan, *string, error) {
-	minLocation, maxLocation := location.CalculateMBR(defaultDistanceToSearchPlan)
+func (p PlanRepository) FindByLocation(ctx context.Context, location models.GeoLocation, limit int, searchRange int) (*[]models.Plan, *string, error) {
+	minLocation, maxLocation := location.CalculateMBR(float64(searchRange))
 
 	planEntities, err := generated.Plans(concatQueryMod(
 		[]qm.QueryMod{
@@ -379,8 +375,14 @@ func (p PlanRepository) SortedByLocation(ctx context.Context, location models.Ge
 		return &[]models.Plan{}, nil, nil
 	}
 
-	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.Map(planEntities, func(planEntity *generated.Plan) string {
-		return planEntity.ID
+	planCandidateSetPlaceLikeCounts, err := countPlaceLikeCounts(ctx, p.db, array.FlatMap(planEntities, func(planEntity *generated.Plan) []string {
+		if planEntity.R.PlanPlaces == nil {
+			return nil
+		}
+
+		return array.Map(planEntity.R.PlanPlaces, func(planPlace *generated.PlanPlace) string {
+			return planPlace.PlaceID
+		})
 	})...)
 	if err != nil {
 		// いいね数の取得に失敗してもエラーにしない
@@ -488,6 +490,105 @@ func (p PlanRepository) UpdatePlanAuthorUserByPlanCandidateSet(ctx context.Conte
 		return fmt.Errorf("failed to run transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (p PlanRepository) FindCollage(ctx context.Context, planId string) (*models.PlanCollage, error) {
+	planCollageEntity, err := generated.PlanCollages(
+		generated.PlanCollageWhere.PlanID.EQ(planId),
+		qm.Load(generated.PlanCollageRels.PlanCollagePhotos),
+		qm.Load(generated.PlanCollageRels.PlanCollagePhotos+"."+generated.PlanCollagePhotoRels.PlacePhoto),
+	).One(ctx, p.db)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("failed to find plan collage: %w", err)
+		}
+	}
+
+	if planCollageEntity == nil {
+		return nil, nil
+	}
+
+	var images []models.PlanCollageImage
+	for _, planCollagePhotoEntity := range planCollageEntity.R.PlanCollagePhotos {
+		if planCollagePhotoEntity == nil {
+			continue
+		}
+
+		if planCollageEntity.R.PlanCollagePhotos == nil || len(planCollageEntity.R.PlanCollagePhotos) == 0 {
+			continue
+		}
+
+		images = append(images, models.PlanCollageImage{
+			PlaceId: planCollagePhotoEntity.PlaceID,
+			Image: models.ImageSmallLarge{
+				Small:          utils.ToPointer(planCollagePhotoEntity.R.PlacePhoto.PhotoURL),
+				Large:          utils.ToPointer(planCollagePhotoEntity.R.PlacePhoto.PhotoURL),
+				IsGooglePhotos: false,
+			},
+		})
+	}
+	return &models.PlanCollage{
+		Images: images,
+	}, nil
+}
+
+func (p PlanRepository) UpdateCollageImage(ctx context.Context, planId string, placeId string, placePhotoUrl string) error {
+	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCollageEntity, err := generated.PlanCollages(
+			generated.PlanCollageWhere.PlanID.EQ(planId),
+		).One(ctx, tx)
+		if err != nil {
+			if !errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("failed to find plan collage: %w", err)
+			}
+		}
+
+		// まだ、コラージュが作成されていない場合は作成
+		if planCollageEntity == nil {
+			planCollageEntity = &generated.PlanCollage{
+				ID:     uuid.New().String(),
+				PlanID: planId,
+			}
+			if err := planCollageEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan collage: %w", err)
+			}
+		}
+
+		placePhotoEntity, err := generated.PlacePhotos(
+			generated.PlacePhotoWhere.PlaceID.EQ(placeId),
+			generated.PlacePhotoWhere.PhotoURL.EQ(placePhotoUrl),
+		).One(ctx, tx)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return fmt.Errorf("place photo should be saved before updating plan collage: %w", err)
+			}
+			return fmt.Errorf("failed to find place photo: %w", err)
+		}
+
+		// すでに登録されている場合は削除
+		if _, err := generated.PlanCollagePhotos(
+			generated.PlanCollagePhotoWhere.PlanCollageID.EQ(planCollageEntity.ID),
+			generated.PlanCollagePhotoWhere.PlaceID.EQ(placeId),
+		).DeleteAll(ctx, tx); err != nil {
+			return fmt.Errorf("failed to delete plan collage photo: %w", err)
+		}
+
+		planCollagePhotoEntity := &generated.PlanCollagePhoto{
+			ID:            uuid.New().String(),
+			PlanCollageID: planCollageEntity.ID,
+			PlaceID:       placeId,
+			PlacePhotoID:  placePhotoEntity.ID,
+		}
+
+		if err := planCollagePhotoEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+			return fmt.Errorf("failed to insert plan collage photo: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return fmt.Errorf("failed to run transaction: %w", err)
+	}
 	return nil
 }
 

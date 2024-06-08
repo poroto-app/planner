@@ -282,6 +282,7 @@ type Plan struct {
 	Transitions   []*Transition `json:"transitions"`
 	Author        *User         `json:"author,omitempty"`
 	Collage       *PlanCollage  `json:"collage"`
+	NearbyPlans   []*Plan       `json:"nearbyPlans"`
 }
 
 type PlanCandidate struct {
@@ -322,7 +323,6 @@ type PlansByLocationInput struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
 	Limit     *int    `json:"limit,omitempty"`
-	PageKey   *string `json:"pageKey,omitempty"`
 }
 
 type PlansByLocationOutput struct {

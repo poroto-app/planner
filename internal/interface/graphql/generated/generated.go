@@ -216,6 +216,7 @@ type ComplexityRoot struct {
 		Description   func(childComplexity int) int
 		ID            func(childComplexity int) int
 		Name          func(childComplexity int) int
+		NearbyPlans   func(childComplexity int) int
 		Places        func(childComplexity int) int
 		TimeInMinutes func(childComplexity int) int
 		Transitions   func(childComplexity int) int
@@ -335,6 +336,7 @@ type MutationResolver interface {
 }
 type PlanResolver interface {
 	Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error)
+	NearbyPlans(ctx context.Context, obj *model.Plan) ([]*model.Plan, error)
 }
 type QueryResolver interface {
 	Version(ctx context.Context) (string, error)
@@ -1067,6 +1069,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Plan.Name(childComplexity), true
+
+	case "Plan.nearbyPlans":
+		if e.complexity.Plan.NearbyPlans == nil {
+			break
+		}
+
+		return e.complexity.Plan.NearbyPlans(childComplexity), true
 
 	case "Plan.places":
 		if e.complexity.Plan.Places == nil {
@@ -1997,7 +2006,6 @@ input PlansByLocationInput {
     latitude: Float!
     longitude: Float!
     limit: Int
-    pageKey: String
 }
 
 type PlansByLocationOutput {
@@ -2023,6 +2031,7 @@ type PlansByUserOutput {
     transitions: [Transition!]!
     author: User
     collage: PlanCollage!
+    nearbyPlans: [Plan!]!
 }
 
 type PlanCollage {
@@ -2707,6 +2716,8 @@ func (ec *executionContext) fieldContext_AddPlaceToPlanCandidateAfterPlaceOutput
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -2813,6 +2824,8 @@ func (ec *executionContext) fieldContext_AutoReorderPlacesInPlanCandidateOutput_
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -3117,6 +3130,8 @@ func (ec *executionContext) fieldContext_ChangePlacesOrderInPlanCandidateOutput_
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -3277,6 +3292,8 @@ func (ec *executionContext) fieldContext_CreatePlanByLocationOutput_plans(ctx co
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -3383,6 +3400,8 @@ func (ec *executionContext) fieldContext_CreatePlanByPlaceOutput_plan(ctx contex
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -3543,6 +3562,8 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -3649,6 +3670,8 @@ func (ec *executionContext) fieldContext_EditPlanTitleOfPlanCandidateOutput_plan
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -4457,6 +4480,8 @@ func (ec *executionContext) fieldContext_LikeToPlaceInPlanOutput_plan(ctx contex
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7321,6 +7346,70 @@ func (ec *executionContext) fieldContext_Plan_collage(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Plan_nearbyPlans(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Plan_nearbyPlans(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Plan().NearbyPlans(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlanᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Plan_nearbyPlans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Plan_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Plan_name(ctx, field)
+			case "places":
+				return ec.fieldContext_Plan_places(ctx, field)
+			case "timeInMinutes":
+				return ec.fieldContext_Plan_timeInMinutes(ctx, field)
+			case "description":
+				return ec.fieldContext_Plan_description(ctx, field)
+			case "transitions":
+				return ec.fieldContext_Plan_transitions(ctx, field)
+			case "author":
+				return ec.fieldContext_Plan_author(ctx, field)
+			case "collage":
+				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PlanCandidate_id(ctx context.Context, field graphql.CollectedField, obj *model.PlanCandidate) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PlanCandidate_id(ctx, field)
 	if err != nil {
@@ -7420,6 +7509,8 @@ func (ec *executionContext) fieldContext_PlanCandidate_plans(ctx context.Context
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7767,6 +7858,8 @@ func (ec *executionContext) fieldContext_PlanOutput_plan(ctx context.Context, fi
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7829,6 +7922,8 @@ func (ec *executionContext) fieldContext_PlansByLocationOutput_plans(ctx context
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -7932,6 +8027,8 @@ func (ec *executionContext) fieldContext_PlansByUserOutput_plans(ctx context.Con
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -8050,6 +8147,8 @@ func (ec *executionContext) fieldContext_PlansOutput_plans(ctx context.Context, 
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -9298,6 +9397,8 @@ func (ec *executionContext) fieldContext_ReplacePlaceOfPlanCandidateOutput_plan(
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -9360,6 +9461,8 @@ func (ec *executionContext) fieldContext_SavePlanFromCandidateOutput_plan(ctx co
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -9599,6 +9702,8 @@ func (ec *executionContext) fieldContext_UpdatePlanCollageImageOutput_plan(ctx c
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -9661,6 +9766,8 @@ func (ec *executionContext) fieldContext_UploadPlacePhotoInPlanOutput_plan(ctx c
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -9852,6 +9959,8 @@ func (ec *executionContext) fieldContext_User_plans(ctx context.Context, field g
 				return ec.fieldContext_Plan_author(ctx, field)
 			case "collage":
 				return ec.fieldContext_Plan_collage(ctx, field)
+			case "nearbyPlans":
+				return ec.fieldContext_Plan_nearbyPlans(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Plan", field.Name)
 		},
@@ -12730,7 +12839,7 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"latitude", "longitude", "limit", "pageKey"}
+	fieldsInOrder := [...]string{"latitude", "longitude", "limit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12764,15 +12873,6 @@ func (ec *executionContext) unmarshalInputPlansByLocationInput(ctx context.Conte
 				return it, err
 			}
 			it.Limit = data
-		case "pageKey":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageKey"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.PageKey = data
 		}
 	}
 
@@ -14468,6 +14568,42 @@ func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Plan_collage(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "nearbyPlans":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Plan_nearbyPlans(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}

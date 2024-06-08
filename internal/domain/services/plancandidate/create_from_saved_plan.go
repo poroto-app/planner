@@ -14,7 +14,7 @@ type CreatePlanCandidateSetFromSavedPlanInput struct {
 }
 
 type CreatePlanCandidateSetFromSavedPlanOutput struct {
-	PlanCandidateSet models.PlanCandidate
+	PlanCandidateSet models.PlanCandidateSet
 }
 
 func (s Service) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input CreatePlanCandidateSetFromSavedPlanInput) (*CreatePlanCandidateSetFromSavedPlanOutput, error) {
@@ -34,7 +34,7 @@ func (s Service) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input 
 
 	newPlanCandidateSetId := uuid.New().String()
 
-	if err := s.CreatePlanCandidate(ctx, newPlanCandidateSetId); err != nil {
+	if err := s.CreatePlanCandidateSet(ctx, newPlanCandidateSetId); err != nil {
 		return nil, fmt.Errorf("error while creating plan candidate: %v", err)
 	}
 
@@ -42,10 +42,10 @@ func (s Service) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input 
 		return nil, fmt.Errorf("error while adding plan to plan candidate: %v", err)
 	}
 
-	planCandidateSet, err := s.FindPlanCandidate(ctx, FindPlanCandidateInput{
-		PlanCandidateId:   newPlanCandidateSetId,
-		UserId:            input.UserId,
-		FirebaseAuthToken: input.FirebaseAuthToken,
+	planCandidateSet, err := s.Find(ctx, FindPlanCandidateSetInput{
+		PlanCandidateSetId: newPlanCandidateSetId,
+		UserId:             input.UserId,
+		FirebaseAuthToken:  input.FirebaseAuthToken,
 	})
 
 	if err != nil {
