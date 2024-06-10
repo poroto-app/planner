@@ -16,7 +16,6 @@ type BindPlanCandidateSetToUserOutput {
 
 input UpdateUserProfileInput {
     userId: ID!
-    firebaseAuthToken: String!
     name: String
     profileImageUrl: String
 }

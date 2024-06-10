@@ -2119,7 +2119,6 @@ type BindPlanCandidateSetToUserOutput {
 
 input UpdateUserProfileInput {
     userId: ID!
-    firebaseAuthToken: String!
     name: String
     profileImageUrl: String
 }
@@ -13291,7 +13290,7 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "firebaseAuthToken", "name", "profileImageUrl"}
+	fieldsInOrder := [...]string{"userId", "name", "profileImageUrl"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -13307,15 +13306,6 @@ func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Con
 				return it, err
 			}
 			it.UserID = data
-		case "firebaseAuthToken":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firebaseAuthToken"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FirebaseAuthToken = data
 		case "name":
 			var err error
 

@@ -396,10 +396,9 @@ type UpdatePlanCollageImageOutput struct {
 }
 
 type UpdateUserProfileInput struct {
-	UserID            string  `json:"userId"`
-	FirebaseAuthToken string  `json:"firebaseAuthToken"`
-	Name              *string `json:"name,omitempty"`
-	ProfileImageURL   *string `json:"profileImageUrl,omitempty"`
+	UserID          string  `json:"userId"`
+	Name            *string `json:"name,omitempty"`
+	ProfileImageURL *string `json:"profileImageUrl,omitempty"`
 }
 
 type UpdateUserProfileOutput struct {
