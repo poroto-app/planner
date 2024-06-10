@@ -32,3 +32,8 @@ func (r *mutationResolver) BindPlanCandidateSetToUser(ctx context.Context, input
 		User: graphqlUser,
 	}, nil
 }
+
+// UpdateUserProfile is the resolver for the updateUserProfile field.
+func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input model.UpdateUserProfileInput) (*model.UpdateUserProfileOutput, error) {
+	panic(fmt.Errorf("not implemented: UpdateUserProfile - updateUserProfile"))
+}

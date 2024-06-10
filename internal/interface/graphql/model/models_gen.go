@@ -395,6 +395,17 @@ type UpdatePlanCollageImageOutput struct {
 	Plan *Plan `json:"plan"`
 }
 
+type UpdateUserProfileInput struct {
+	UserID            string  `json:"userId"`
+	FirebaseAuthToken string  `json:"firebaseAuthToken"`
+	Name              *string `json:"name,omitempty"`
+	ProfileImageURL   *string `json:"profileImageUrl,omitempty"`
+}
+
+type UpdateUserProfileOutput struct {
+	User *User `json:"user"`
+}
+
 type UploadPlacePhotoInPlanInput struct {
 	PlaceID  string `json:"placeId"`
 	PhotoURL string `json:"photoUrl"`
