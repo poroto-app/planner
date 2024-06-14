@@ -12,7 +12,7 @@ func PlanCandidateSetFromDomainModel(planCandidateSet *models.PlanCandidateSet) 
 
 	return &graphql.PlanCandidate{
 		ID:                            planCandidateSet.Id,
-		Plans:                         PlansFromDomainModel(&planCandidateSet.Plans, planCandidateSet.MetaData.LocationStart),
+		Plans:                         PlansFromDomainModel(&planCandidateSet.Plans, planCandidateSet.MetaData.GetLocationStart()),
 		LikedPlaceIds:                 planCandidateSet.LikedPlaceIds,
 		CreatedBasedOnCurrentLocation: planCandidateSet.MetaData.CreatedBasedOnCurrentLocation,
 	}
