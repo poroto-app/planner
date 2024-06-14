@@ -158,6 +158,7 @@ type ComplexityRoot struct {
 		ReplacePlaceOfPlanCandidate         func(childComplexity int, input model.ReplacePlaceOfPlanCandidateInput) int
 		SavePlanFromCandidate               func(childComplexity int, input model.SavePlanFromCandidateInput) int
 		UpdatePlanCollageImage              func(childComplexity int, input model.UpdatePlanCollageImageInput) int
+		UpdateUserProfile                   func(childComplexity int, input model.UpdateUserProfileInput) int
 		UploadPlacePhotoInPlan              func(childComplexity int, planID string, userID string, firebaseAuthToken string, inputs []*model.UploadPlacePhotoInPlanInput) int
 	}
 
@@ -303,6 +304,10 @@ type ComplexityRoot struct {
 		Plan func(childComplexity int) int
 	}
 
+	UpdateUserProfileOutput struct {
+		User func(childComplexity int) int
+	}
+
 	UploadPlacePhotoInPlanOutput struct {
 		Plan func(childComplexity int) int
 	}
@@ -333,6 +338,7 @@ type MutationResolver interface {
 	LikeToPlaceInPlan(ctx context.Context, input model.LikeToPlaceInPlanInput) (*model.LikeToPlaceInPlanOutput, error)
 	UpdatePlanCollageImage(ctx context.Context, input model.UpdatePlanCollageImageInput) (*model.UpdatePlanCollageImageOutput, error)
 	BindPlanCandidateSetToUser(ctx context.Context, input model.BindPlanCandidateSetToUserInput) (*model.BindPlanCandidateSetToUserOutput, error)
+	UpdateUserProfile(ctx context.Context, input model.UpdateUserProfileInput) (*model.UpdateUserProfileOutput, error)
 }
 type PlanResolver interface {
 	Collage(ctx context.Context, obj *model.Plan) (*model.PlanCollage, error)
@@ -847,6 +853,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdatePlanCollageImage(childComplexity, args["input"].(model.UpdatePlanCollageImageInput)), true
+
+	case "Mutation.updateUserProfile":
+		if e.complexity.Mutation.UpdateUserProfile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserProfile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserProfile(childComplexity, args["input"].(model.UpdateUserProfileInput)), true
 
 	case "Mutation.uploadPlacePhotoInPlan":
 		if e.complexity.Mutation.UploadPlacePhotoInPlan == nil {
@@ -1431,6 +1449,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpdatePlanCollageImageOutput.Plan(childComplexity), true
 
+	case "UpdateUserProfileOutput.user":
+		if e.complexity.UpdateUserProfileOutput.User == nil {
+			break
+		}
+
+		return e.complexity.UpdateUserProfileOutput.User(childComplexity), true
+
 	case "UploadPlacePhotoInPlanOutput.plan":
 		if e.complexity.UploadPlacePhotoInPlanOutput.Plan == nil {
 			break
@@ -1508,6 +1533,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputReplacePlaceOfPlanCandidateInput,
 		ec.unmarshalInputSavePlanFromCandidateInput,
 		ec.unmarshalInputUpdatePlanCollageImageInput,
+		ec.unmarshalInputUpdateUserProfileInput,
 		ec.unmarshalInputUploadPlacePhotoInPlanInput,
 	)
 	first := true
@@ -2077,6 +2103,8 @@ type Mutation {
 }`, BuiltIn: false},
 	{Name: "../schema/user_mutation.graphqls", Input: `extend type Mutation {
     bindPlanCandidateSetToUser(input: BindPlanCandidateSetToUserInput!): BindPlanCandidateSetToUserOutput!
+
+    updateUserProfile(input: UpdateUserProfileInput!): UpdateUserProfileOutput!
 }
 
 input BindPlanCandidateSetToUserInput {
@@ -2087,7 +2115,18 @@ input BindPlanCandidateSetToUserInput {
 
 type BindPlanCandidateSetToUserOutput {
     user: User!
-}`, BuiltIn: false},
+}
+
+input UpdateUserProfileInput {
+    userId: ID!
+    name: String
+    profileImageUrl: String
+}
+
+type UpdateUserProfileOutput {
+    user: User!
+}
+`, BuiltIn: false},
 	{Name: "../schema/user_query.graphqls", Input: `extend type Query {
     firebaseUser(input: FirebaseUserInput): User!
 
@@ -2334,6 +2373,21 @@ func (ec *executionContext) field_Mutation_updatePlanCollageImage_args(ctx conte
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdatePlanCollageImageInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdatePlanCollageImageInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserProfile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateUserProfileInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateUserProfileInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdateUserProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5656,6 +5710,65 @@ func (ec *executionContext) fieldContext_Mutation_bindPlanCandidateSetToUser(ctx
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_bindPlanCandidateSetToUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateUserProfile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserProfile(rctx, fc.Args["input"].(model.UpdateUserProfileInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateUserProfileOutput)
+	fc.Result = res
+	return ec.marshalNUpdateUserProfileOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdateUserProfileOutput(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateUserProfile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_UpdateUserProfileOutput_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateUserProfileOutput", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateUserProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -9711,6 +9824,62 @@ func (ec *executionContext) fieldContext_UpdatePlanCollageImageOutput_plan(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _UpdateUserProfileOutput_user(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserProfileOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateUserProfileOutput_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateUserProfileOutput_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateUserProfileOutput",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "photoUrl":
+				return ec.fieldContext_User_photoUrl(ctx, field)
+			case "plans":
+				return ec.fieldContext_User_plans(ctx, field)
+			case "likedPlaces":
+				return ec.fieldContext_User_likedPlaces(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UploadPlacePhotoInPlanOutput_plan(ctx context.Context, field graphql.CollectedField, obj *model.UploadPlacePhotoInPlanOutput) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UploadPlacePhotoInPlanOutput_plan(ctx, field)
 	if err != nil {
@@ -13114,6 +13283,53 @@ func (ec *executionContext) unmarshalInputUpdatePlanCollageImageInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateUserProfileInput(ctx context.Context, obj interface{}) (model.UpdateUserProfileInput, error) {
+	var it model.UpdateUserProfileInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"userId", "name", "profileImageUrl"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UserID = data
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "profileImageUrl":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profileImageUrl"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProfileImageURL = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUploadPlacePhotoInPlanInput(ctx context.Context, obj interface{}) (model.UploadPlacePhotoInPlanInput, error) {
 	var it model.UploadPlacePhotoInPlanInput
 	asMap := map[string]interface{}{}
@@ -14100,6 +14316,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "bindPlanCandidateSetToUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_bindPlanCandidateSetToUser(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateUserProfile":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserProfile(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -15534,6 +15757,45 @@ func (ec *executionContext) _UpdatePlanCollageImageOutput(ctx context.Context, s
 			out.Values[i] = graphql.MarshalString("UpdatePlanCollageImageOutput")
 		case "plan":
 			out.Values[i] = ec._UpdatePlanCollageImageOutput_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var updateUserProfileOutputImplementors = []string{"UpdateUserProfileOutput"}
+
+func (ec *executionContext) _UpdateUserProfileOutput(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateUserProfileOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateUserProfileOutputImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateUserProfileOutput")
+		case "user":
+			out.Values[i] = ec._UpdateUserProfileOutput_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -17128,6 +17390,25 @@ func (ec *executionContext) marshalNUpdatePlanCollageImageOutput2ᚖporotoᚗapp
 		return graphql.Null
 	}
 	return ec._UpdatePlanCollageImageOutput(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateUserProfileInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdateUserProfileInput(ctx context.Context, v interface{}) (model.UpdateUserProfileInput, error) {
+	res, err := ec.unmarshalInputUpdateUserProfileInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUpdateUserProfileOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdateUserProfileOutput(ctx context.Context, sel ast.SelectionSet, v model.UpdateUserProfileOutput) graphql.Marshaler {
+	return ec._UpdateUserProfileOutput(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUpdateUserProfileOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUpdateUserProfileOutput(ctx context.Context, sel ast.SelectionSet, v *model.UpdateUserProfileOutput) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UpdateUserProfileOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNUploadPlacePhotoInPlanInput2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐUploadPlacePhotoInPlanInputᚄ(ctx context.Context, v interface{}) ([]*model.UploadPlacePhotoInPlanInput, error) {

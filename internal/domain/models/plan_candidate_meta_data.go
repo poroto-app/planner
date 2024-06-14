@@ -15,3 +15,10 @@ func (p PlanCandidateMetaData) IsZero() bool {
 		p.LocationStart == nil &&
 		p.FreeTime == nil
 }
+
+func (p PlanCandidateMetaData) GetLocationStart() *GeoLocation {
+	if p.CreatedBasedOnCurrentLocation {
+		return p.LocationStart
+	}
+	return nil
+}

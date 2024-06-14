@@ -1,6 +1,9 @@
 package utils
 
-import "testing"
+import (
+	"github.com/google/go-cmp/cmp"
+	"testing"
+)
 
 func TestStrPinter(t *testing.T) {
 	object := struct {
@@ -29,6 +32,61 @@ func TestStrOmitEmpty(t *testing.T) {
 	result = StrOmitEmpty("")
 	if result != nil {
 		t.Errorf("StrOmitEmpty(%v) = %v, want %v", "", result, nil)
+	}
+}
+
+func TestStrOmitWhitespace(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    string
+		expected *string
+	}{
+		{
+			name:     "return original value if not empty",
+			input:    "test",
+			expected: StrOmitEmpty("test"),
+		},
+		{
+			name:     "return nil if empty",
+			input:    "",
+			expected: nil,
+		},
+		{
+			name:     "return nil if whitespace",
+			input:    "  ",
+			expected: nil,
+		},
+		{
+			name:     "return nil if tab",
+			input:    "\t",
+			expected: nil,
+		},
+		{
+			name:     "return nil if newline",
+			input:    "\n",
+			expected: nil,
+		},
+		{
+			name:     "return nil if carriage return",
+			input:    "\r",
+			expected: nil,
+		},
+		{
+			name:     "return nil if mixed whitespace",
+			input:    " \t\n\r",
+			expected: nil,
+		},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			result := StrOmitWhitespace(c.input)
+			if diff := cmp.Diff(c.expected, result); diff != "" {
+				t.Errorf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
 

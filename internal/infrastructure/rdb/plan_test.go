@@ -20,42 +20,98 @@ import (
 
 func TestPlanRepository_Save(t *testing.T) {
 	cases := []struct {
-		name        string
-		savedUsers  generated.UserSlice
-		savedPlaces []models.Place
-		expected    models.Plan
+		name                       string
+		savedUsers                 generated.UserSlice
+		savedPlaces                []models.Place
+		savedPlans                 generated.PlanSlice
+		savedPlanCandidateSets     generated.PlanCandidateSetSlice
+		savedPlanCandidates        generated.PlanCandidateSlice
+		savedPlanCandidatePlaces   generated.PlanCandidatePlaceSlice
+		plan                       models.Plan
+		expectedPlan               generated.Plan
+		expectedPlanPlaces         generated.PlanPlaceSlice
+		expectedPlanParentChildren *generated.PlanParentChild
 	}{
 		{
 			name: "should save plan",
 			savedUsers: generated.UserSlice{
-				{
-					ID:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
-					FirebaseUID: "firebase_uid_1",
-				},
+				{ID: "user_id_1", FirebaseUID: "firebase_uid_1"},
 			},
 			savedPlaces: []models.Place{
+				{Id: "place_id_1"},
+				{Id: "place_id_2"},
+			},
+			savedPlans: generated.PlanSlice{
+				{ID: "plan_parent"},
+			},
+			savedPlanCandidateSets: generated.PlanCandidateSetSlice{
+				{ID: "plan_candidate_set_id_1", ExpiresAt: time.Now()},
+			},
+			savedPlanCandidates: generated.PlanCandidateSlice{
 				{
-					Id: "f2c98d68-3904-455b-8832-a0f723a96735",
-				},
-				{
-					Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
+					ID:                 "plan_candidate_id_1",
+					PlanCandidateSetID: "plan_candidate_set_id_1",
+					Name:               "plan title",
+					ParentPlanID:       null.StringFrom("plan_parent"),
 				},
 			},
-			expected: models.Plan{
-				Id:   uuid.New().String(),
+			savedPlanCandidatePlaces: generated.PlanCandidatePlaceSlice{
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateID:    "plan_candidate_id_1",
+					PlanCandidateSetID: "plan_candidate_set_id_1",
+					PlaceID:            "place_id_1",
+					SortOrder:          0,
+				},
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateID:    "plan_candidate_id_1",
+					PlanCandidateSetID: "plan_candidate_set_id_1",
+					PlaceID:            "place_id_2",
+					SortOrder:          1,
+				},
+			},
+			plan: models.Plan{
+				Id:   "plan",
 				Name: "plan title",
 				Places: []models.Place{
 					{
-						Id: "f2c98d68-3904-455b-8832-a0f723a96735",
+						Id: "place_id_1",
+						Location: models.GeoLocation{
+							Latitude:  35.681236,
+							Longitude: 139.767125,
+						},
 					},
-					{
-						Id: "c61a8b42-2c07-4957-913d-6930f0d881ec",
-					},
+					{Id: "place_id_2"},
 				},
 				Author: &models.User{
-					Id:          "8fde8eff-4b18-4276-b71f-2fec30ea65c8",
+					Id:          "user_id_1",
 					FirebaseUID: "firebase_uid_1",
 				},
+				ParentPlanId: utils.ToPointer("plan_parent"),
+			},
+			expectedPlan: generated.Plan{
+				ID:        "plan",
+				Name:      "plan title",
+				UserID:    null.StringFrom("user_id_1"),
+				Latitude:  35.681236,
+				Longitude: 139.767125,
+			},
+			expectedPlanPlaces: generated.PlanPlaceSlice{
+				{
+					PlanID:    "plan",
+					PlaceID:   "place_id_1",
+					SortOrder: 0,
+				},
+				{
+					PlanID:    "plan",
+					PlaceID:   "place_id_2",
+					SortOrder: 1,
+				},
+			},
+			expectedPlanParentChildren: &generated.PlanParentChild{
+				ParentPlanID: "plan_parent",
+				ChildPlanID:  "plan",
 			},
 		},
 	}
@@ -75,21 +131,36 @@ func TestPlanRepository_Save(t *testing.T) {
 				}
 			})
 
-			// 事前に User を保存
+			// 事前にデータを保存
 			if _, err := c.savedUsers.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
 				t.Errorf("error saving user: %v", err)
 			}
 
-			// 事前に Place を保存
 			if err := savePlaces(testContext, planRepository.GetDB(), c.savedPlaces); err != nil {
 				t.Errorf("error saving places: %v", err)
 			}
 
-			if err := planRepository.Save(testContext, &c.expected); err != nil {
+			if _, err := c.savedPlans.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
 				t.Errorf("error saving plan: %v", err)
 			}
 
-			planEntity, err := generated.Plans(generated.PlanWhere.ID.EQ(c.expected.Id)).One(testContext, planRepository.GetDB())
+			if _, err := c.savedPlanCandidateSets.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate set: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidates.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidatePlaces.InsertAll(testContext, planRepository.GetDB(), boil.Infer()); err != nil {
+				t.Errorf("error saving plan candidate place: %v", err)
+			}
+
+			if err := planRepository.Save(testContext, &c.plan); err != nil {
+				t.Errorf("error saving plan: %v", err)
+			}
+
+			planEntity, err := generated.Plans(generated.PlanWhere.ID.EQ(c.plan.Id)).One(testContext, planRepository.GetDB())
 			if err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					t.Errorf("plan should be saved")
@@ -97,29 +168,47 @@ func TestPlanRepository_Save(t *testing.T) {
 				t.Errorf("error checking if plan exists: %v", err)
 			}
 
-			if diff := cmp.Diff(c.expected.Author.Id, planEntity.UserID.String); diff != "" {
-				t.Errorf("plan author id mismatch (-want +got):\n%s", diff)
+			if diff := cmp.Diff(
+				c.expectedPlan,
+				*planEntity,
+				cmpopts.SortSlices(func(a, b generated.PlanPlace) bool { return a.PlaceID < b.PlaceID }),
+				cmpopts.IgnoreFields(generated.Plan{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Errorf("plan mismatch (-want +got):\n%s", diff)
 			}
 
+			// プランに紐づく場所を確認
 			planPlaceEntities, err := generated.PlanPlaces(
-				generated.PlanPlaceWhere.PlanID.EQ(c.expected.Id),
+				generated.PlanPlaceWhere.PlanID.EQ(c.plan.Id),
 				qm.OrderBy(generated.PlanPlaceColumns.SortOrder),
 			).All(testContext, planRepository.GetDB())
 			if err != nil {
 				t.Errorf("error fetching plan places: %v", err)
 			}
 
-			if len(planPlaceEntities) != len(c.expected.Places) {
-				t.Errorf("wrong plan place slice length, want: %d, got: %d", len(c.expected.Places), len(planPlaceEntities))
+			if diff := cmp.Diff(
+				c.expectedPlanPlaces,
+				planPlaceEntities,
+				cmpopts.SortSlices(func(a, b generated.PlanPlace) bool { return a.PlaceID < b.PlaceID }),
+				cmpopts.IgnoreFields(generated.PlanPlace{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Errorf("plan places mismatch (-want +got):\n%s", diff)
 			}
 
-			for i, expected := range c.expected.Places {
-				if planPlaceEntities[i].PlaceID != expected.Id {
-					t.Errorf("wrong place id, want: %s, got: %s", expected.Id, planPlaceEntities[i].PlaceID)
-				}
-				if planPlaceEntities[i].SortOrder != i {
-					t.Errorf("wrong sort order, want: %d, got: %d", i, planPlaceEntities[i].SortOrder)
-				}
+			// プランの親子関係を確認
+			planParentChildEntiy, err := generated.PlanParentChildren(
+				generated.PlanParentChildWhere.ChildPlanID.EQ(c.plan.Id),
+			).One(testContext, planRepository.GetDB())
+			if err != nil {
+				t.Errorf("error fetching plan parent children: %v", err)
+			}
+
+			if diff := cmp.Diff(
+				c.expectedPlanParentChildren,
+				planParentChildEntiy,
+				cmpopts.IgnoreFields(generated.PlanParentChild{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Errorf("plan parent children mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -648,7 +737,7 @@ func TestPlanRepository_SortedByCreatedAt(t *testing.T) {
 					CreatedAt: time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 				},
 			},
-			queryCursor: toPointer(newSortByCreatedAtQueryCursor(
+			queryCursor: utils.ToPointer(newSortByCreatedAtQueryCursor(
 				time.Date(2021, 1, 2, 0, 0, 0, 0, time.UTC),
 			)),
 			limit: 10,

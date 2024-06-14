@@ -1,5 +1,7 @@
 extend type Mutation {
     bindPlanCandidateSetToUser(input: BindPlanCandidateSetToUserInput!): BindPlanCandidateSetToUserOutput!
+
+    updateUserProfile(input: UpdateUserProfileInput!): UpdateUserProfileOutput!
 }
 
 input BindPlanCandidateSetToUserInput {
@@ -9,5 +11,15 @@ input BindPlanCandidateSetToUserInput {
 }
 
 type BindPlanCandidateSetToUserOutput {
+    user: User!
+}
+
+input UpdateUserProfileInput {
+    userId: ID!
+    name: String
+    profileImageUrl: String
+}
+
+type UpdateUserProfileOutput {
     user: User!
 }

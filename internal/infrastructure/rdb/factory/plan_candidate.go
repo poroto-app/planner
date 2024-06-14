@@ -2,6 +2,7 @@ package factory
 
 import (
 	"fmt"
+	"github.com/volatiletech/null/v8"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
@@ -14,6 +15,7 @@ func PlanCandidateEntityFromDomainModel(planCandidate models.Plan, planCandidate
 		PlanCandidateSetID: planCandidateSetId,
 		Name:               planCandidate.Name,
 		SortOrder:          sortOrder,
+		ParentPlanID:       null.StringFromPtr(planCandidate.ParentPlanId),
 	}
 }
 
@@ -96,9 +98,10 @@ func NewPlanCandidateFromEntity(
 	}
 
 	return &models.Plan{
-		Id:     planCandidateEntity.ID,
-		Name:   planCandidateEntity.Name,
-		Places: *placesOrdered,
-		Author: author,
+		Id:           planCandidateEntity.ID,
+		Name:         planCandidateEntity.Name,
+		Places:       *placesOrdered,
+		Author:       author,
+		ParentPlanId: planCandidateEntity.ParentPlanID.Ptr(),
 	}, nil
 }

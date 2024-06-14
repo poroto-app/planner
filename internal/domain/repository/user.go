@@ -11,4 +11,6 @@ type UserRepository interface {
 	Find(ctx context.Context, id string) (*models.User, error)
 
 	FindByFirebaseUID(ctx context.Context, firebaseUID string) (*models.User, error)
+
+	UpdateProfile(ctx context.Context, userId string, name *string, photoUrl *string) error
 }
