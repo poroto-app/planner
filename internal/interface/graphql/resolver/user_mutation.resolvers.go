@@ -7,6 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"github.com/friendsofgo/errors"
+	"poroto.app/poroto/planner/internal/apperrors"
+	"poroto.app/poroto/planner/internal/domain/utils"
+	gcontext "poroto.app/poroto/planner/internal/interface/graphql/context"
 
 	"go.uber.org/zap"
 	"poroto.app/poroto/planner/internal/domain/services/user"
@@ -35,5 +39,37 @@ func (r *mutationResolver) BindPlanCandidateSetToUser(ctx context.Context, input
 
 // UpdateUserProfile is the resolver for the updateUserProfile field.
 func (r *mutationResolver) UpdateUserProfile(ctx context.Context, input model.UpdateUserProfileInput) (*model.UpdateUserProfileOutput, error) {
-	panic(fmt.Errorf("not implemented: UpdateUserProfile - updateUserProfile"))
+	r.Logger.Info(
+		"update user profile",
+		zap.String("user_id", input.UserID),
+		zap.String("name", utils.FromPointerOrZero(input.Name)),
+		zap.String("profile_image_url", utils.FromPointerOrZero(input.ProfileImageURL)),
+	)
+
+	authUser := gcontext.GetAuthUser(ctx)
+	if authUser == nil {
+		r.Logger.Error("auth user is nil")
+		return nil, fmt.Errorf("not authorized")
+	}
+
+	updatedUser, err := r.UserService.UpdateUserProfile(ctx, user.UpdateUserProfileInput{
+		AuthorizedUser:  *authUser,
+		UserId:          input.UserID,
+		Name:            utils.FromPointerOrZero(input.Name),
+		ProfileImageUrl: utils.FromPointerOrZero(input.ProfileImageURL),
+	})
+	if err != nil {
+		if errors.Is(err, apperrors.ErrUnauthorized) {
+			r.Logger.Error("unauthorized user tried to update profile")
+			return nil, fmt.Errorf("not authorized")
+		}
+		r.Logger.Error("error while updating user profile", zap.Error(err))
+		return nil, fmt.Errorf("internal error")
+	}
+
+	graphqlUser := factory.UserFromDomainModel(updatedUser)
+
+	return &model.UpdateUserProfileOutput{
+		User: graphqlUser,
+	}, nil
 }
