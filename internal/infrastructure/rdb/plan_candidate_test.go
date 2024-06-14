@@ -2,17 +2,19 @@ package rdb
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/utils"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
-	"testing"
-	"time"
 )
 
 func TestPlanCandidateRepository_Create(t *testing.T) {
@@ -65,28 +67,36 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 	cases := []struct {
 		name                  string
 		now                   time.Time
+		savedPlans            generated.PlanSlice
 		savedPlanCandidateSet models.PlanCandidateSet
 		planCandidateSetId    string
-		expected              models.PlanCandidateSet
+		expected              *models.PlanCandidateSet
 	}{
 		{
 			name: "plan candidate set with only id",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			savedPlans: generated.PlanSlice{
+				{ID: "plan-parent"},
+			},
 			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
 			},
 			planCandidateSetId: "test",
-			expected: models.PlanCandidateSet{
+			expected: &models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
+				Plans:           []models.Plan{},
 			},
 		},
 		{
 			name: "plan candidate set with plan candidate",
 			now:  time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			savedPlans: generated.PlanSlice{
+				{ID: "plan-parent"},
+			},
 			savedPlanCandidateSet: models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
@@ -106,11 +116,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 								Google: models.GooglePlace{PlaceId: "test-google-place"},
 							},
 						},
+						ParentPlanId: utils.ToPointer("plan-parent"),
 					},
 				},
 			},
 			planCandidateSetId: "test",
-			expected: models.PlanCandidateSet{
+			expected: &models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -124,8 +135,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					{
 						Id: "test-plan",
 						Places: []models.Place{
-							{Id: "test-place"},
+							{
+								Id:     "test-place",
+								Google: models.GooglePlace{PlaceId: "test-google-place"},
+							},
 						},
+						ParentPlanId: utils.ToPointer("plan-parent"),
 					},
 				},
 			},
@@ -147,7 +162,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 					},
 				},
 			},
-			expected: models.PlanCandidateSet{
+			expected: &models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: true,
@@ -170,10 +185,11 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: false,
 			},
-			expected: models.PlanCandidateSet{
+			expected: &models.PlanCandidateSet{
 				Id:              "test",
 				ExpiresAt:       time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
 				IsPlaceSearched: false,
+				Plans:           []models.Plan{},
 			},
 		},
 	}
@@ -194,13 +210,16 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				}
 			})
 
-			// 事前にPlaceを作成しておく
+			// 事前にデータを準備
 			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
 			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlanCandidateSetを作成しておく
+			if _, err := c.savedPlans.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plans: %v", err)
+			}
+
 			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
 			}
@@ -210,63 +229,12 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				t.Fatalf("failed to find plan candidate: %v", err)
 			}
 
-			if actual == nil {
-				t.Fatalf("plan candidate should be found")
-			}
-
-			// Id の値が一致する
-			if actual.Id != c.expected.Id {
-				t.Fatalf("wrong plan candidate id expected: %v, actual: %v", c.expected.Id, actual.Id)
-			}
-
-			// ExpiresAt の値が一致する
-			if !actual.ExpiresAt.Equal(c.expected.ExpiresAt) {
-				t.Fatalf("wrong plan candidate expires at expected: %v, actual: %v", c.expected.ExpiresAt, actual.ExpiresAt)
-			}
-
-			// Plans の数が一致する
-			if len(actual.Plans) != len(c.expected.Plans) {
-				t.Fatalf("wrong number of plans expected: %v, actual: %v", len(c.expected.Plans), len(actual.Plans))
-			}
-
-			// Plan の順番が一致する
-			for i, plan := range actual.Plans {
-				if plan.Id != c.expected.Plans[i].Id {
-					t.Fatalf("wrong plan id expected: %v, actual: %v", c.expected.Plans[i].Id, plan.Id)
-				}
-
-				// Place の数が一致する
-				if len(plan.Places) != len(c.expected.Plans[i].Places) {
-					t.Fatalf("wrong number of placesInPlanCandidates expected: %v, actual: %v", len(c.expected.Plans[i].Places), len(plan.Places))
-				}
-
-				// Place の順番が一致する
-				for j, place := range plan.Places {
-					if place.Id != c.expected.Plans[i].Places[j].Id {
-						t.Fatalf("wrong place id expected: %v, actual: %v", c.expected.Plans[i].Places[j].Id, place.Id)
-					}
-				}
-			}
-
-			// MetaData の値が一致する
-			if actual.MetaData.CreatedBasedOnCurrentLocation != c.expected.MetaData.CreatedBasedOnCurrentLocation {
-				t.Fatalf("wrong created based on current location expected: %v, actual: %v", c.expected.MetaData.CreatedBasedOnCurrentLocation, actual.MetaData.CreatedBasedOnCurrentLocation)
-			}
-
-			if valueOrZero(actual.MetaData.FreeTime) != valueOrZero(c.expected.MetaData.FreeTime) {
-				t.Fatalf("wrong free time expected: %v, actual: %v", valueOrZero(c.expected.MetaData.FreeTime), valueOrZero(actual.MetaData.FreeTime))
-			}
-
-			if !valueOrZero(actual.MetaData.LocationStart).Equal(valueOrZero(c.expected.MetaData.LocationStart)) {
-				t.Fatalf("wrong location start expected: %v, actual: %v", valueOrZero(c.expected.MetaData.LocationStart), valueOrZero(actual.MetaData.LocationStart))
-			}
-
-			if len(valueOrZero(actual.MetaData.CategoriesPreferred)) != len(valueOrZero(c.expected.MetaData.CategoriesPreferred)) {
-				t.Fatalf("wrong number of categories preferred expected: %v, actual: %v", len(valueOrZero(c.expected.MetaData.CategoriesPreferred)), len(valueOrZero(actual.MetaData.CategoriesPreferred)))
-			}
-
-			if len(valueOrZero(actual.MetaData.CategoriesRejected)) != len(valueOrZero(c.expected.MetaData.CategoriesRejected)) {
-				t.Fatalf("wrong number of categories rejected expected: %v, actual: %v", len(valueOrZero(c.expected.MetaData.CategoriesRejected)), len(valueOrZero(actual.MetaData.CategoriesRejected)))
+			if diff := cmp.Diff(
+				c.expected,
+				actual,
+				cmpopts.IgnoreUnexported(models.Plan{}),
+			); diff != "" {
+				t.Fatalf("wrong plan candidate (-expected, +actual): %v", diff)
 			}
 		})
 	}
@@ -725,27 +693,48 @@ func TestPlanCandidateRepository_FindExpiredBefore(t *testing.T) {
 
 func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 	cases := []struct {
-		name            string
-		planCandidateId string
-		plans           []models.Plan
+		name                   string
+		planCandidateId        string
+		savedPlans             generated.PlanSlice
+		plans                  []models.Plan
+		expectedPlanCandidates generated.PlanCandidateSlice
 	}{
 		{
 			name:            "success",
-			planCandidateId: uuid.New().String(),
+			planCandidateId: "test-plan-candidate",
+			savedPlans: generated.PlanSlice{
+				{ID: "test-plan-1"},
+			},
 			plans: []models.Plan{
 				{
-					Id: uuid.New().String(),
+					Id: "test-plan-1",
 					Places: []models.Place{
 						{Id: "tokyo-station"},
 						{Id: "shinagawa-station"},
 					},
+					ParentPlanId: utils.ToPointer("test-plan-1"),
 				},
 				{
-					Id: uuid.New().String(),
+					Id: "test-plan-2",
 					Places: []models.Place{
 						{Id: "yokohama-station"},
 						{Id: "shin-yokohama-station"},
 					},
+					ParentPlanId: nil,
+				},
+			},
+			expectedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "test-plan-1",
+					PlanCandidateSetID: "test-plan-candidate",
+					SortOrder:          0,
+					ParentPlanID:       null.StringFrom("test-plan-1"),
+				},
+				{
+					ID:                 "test-plan-2",
+					PlanCandidateSetID: "test-plan-candidate",
+					SortOrder:          1,
+					ParentPlanID:       null.String{},
 				},
 			},
 		},
@@ -767,7 +756,7 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				}
 			})
 
-			// 事前にPlaceを作成しておく
+			// データの準備
 			placesInPlans := array.Map(c.plans, func(plan models.Plan) []models.Place { return plan.Places })
 			if err := savePlaces(testContext, testDB, array.Flatten(placesInPlans)); err != nil {
 				t.Fatalf("failed to save places: %v", err)
@@ -778,19 +767,29 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				t.Fatalf("failed to create plan candidate: %v", err)
 			}
 
+			if _, err := c.savedPlans.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plans: %v", err)
+			}
+
 			if err := planCandidateRepository.AddPlan(testContext, c.planCandidateId, c.plans...); err != nil {
 				t.Fatalf("failed to add plan: %v", err)
 			}
 
 			// すべてのPlanCandidateが保存されている
-			numPlanCandidates, err := generated.
+			planCandidates, err := generated.
 				PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.EQ(c.planCandidateId)).
-				Count(testContext, testDB)
+				All(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidates: %v", err)
 			}
-			if int(numPlanCandidates) != len(c.plans) {
-				t.Fatalf("wrong number of plan candidates expected: %v, actual: %v", len(c.plans), numPlanCandidates)
+
+			if diff := cmp.Diff(
+				c.expectedPlanCandidates,
+				planCandidates,
+				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
+				cmpopts.IgnoreFields(generated.PlanCandidate{}, "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Fatalf("wrong plan candidates (-expected, +actual): %v", diff)
 			}
 
 			// すべてのPlanCandidateに対して、すべてのPlaceが保存されている
@@ -1157,7 +1156,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 				CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 				LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-				FreeTime:                      toPointer(60),
+				FreeTime:                      utils.ToPointer(60),
 			},
 		},
 		{
@@ -1171,7 +1170,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 					CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 					LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-					FreeTime:                      toPointer(60),
+					FreeTime:                      utils.ToPointer(60),
 				},
 			},
 			metaData: models.PlanCandidateMetaData{
@@ -1179,7 +1178,7 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant, models.CategoryBakery},
 				CategoriesRejected:            &[]models.LocationCategory{models.CategoryShopping, models.CategoryAmusements},
 				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
-				FreeTime:                      toPointer(120),
+				FreeTime:                      utils.ToPointer(120),
 			},
 		},
 	}
@@ -1491,7 +1490,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-						FreeTime:                      toPointer(60),
+						FreeTime:                      utils.ToPointer(60),
 					},
 					Plans: []models.Plan{
 						{
@@ -1512,7 +1511,7 @@ func TestPlanCandidateRepository_DeleteAll(t *testing.T) {
 						CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
 						CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
 						LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-						FreeTime:                      toPointer(60),
+						FreeTime:                      utils.ToPointer(60),
 					},
 					Plans: []models.Plan{
 						{
@@ -1853,16 +1852,4 @@ func TestPlanCandidateRepository_UpdateLikeToPlaceInPlanCandidate_Unlike(t *test
 			}
 		})
 	}
-}
-
-func toPointer[T any](value T) *T {
-	return &value
-}
-
-func valueOrZero[T any](value *T) T {
-	var zero T
-	if value == nil {
-		return zero
-	}
-	return *value
 }

@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/friendsofgo/errors"
-	"github.com/google/uuid"
 	"strconv"
 	"time"
+
+	"github.com/friendsofgo/errors"
+	"github.com/google/uuid"
 
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -64,6 +65,18 @@ func (p PlanRepository) Save(ctx context.Context, plan *models.Plan) error {
 		planPlaceSlice := factory.NewPlanPlaceSliceFromDomainMode(plan.Places, plan.Id)
 		if _, err := planPlaceSlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
 			return fmt.Errorf("failed to insert plan places: %w", err)
+		}
+
+		if plan.ParentPlanId != nil {
+			planParentChild := generated.PlanParentChild{
+				ID:           uuid.New().String(),
+				ParentPlanID: *plan.ParentPlanId,
+				ChildPlanID:  plan.Id,
+			}
+
+			if err := planParentChild.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan parent child: %w", err)
+			}
 		}
 
 		return nil
