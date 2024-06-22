@@ -1895,9 +1895,9 @@ type CreatePlanByPlaceOutput {
 input CreatePlanByCategoryInput {
     session: String!
     categoryId: String!
-    latitude: Float
-    longitude: Float
-    radiusInKm: Float
+    latitude: Float!
+    longitude: Float!
+    radiusInKm: Float!
 }
 
 type CreatePlanByCategoryOutput {
@@ -12938,7 +12938,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByCategoryInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12947,7 +12947,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByCategoryInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12956,7 +12956,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByCategoryInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radiusInKm"))
-			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
