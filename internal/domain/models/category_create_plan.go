@@ -11,11 +11,12 @@ type LocationCategorySetCreatePlan struct {
 }
 
 type LocationCategoryCreatePlan struct {
-	Name             string
-	DisplayNameJa    string
-	DisplayNameEn    string
-	GooglePlaceTypes []string
-	Image            string
+	Name                string
+	DisplayNameJa       string
+	DisplayNameEn       string
+	GooglePlaceTypes    []string
+	SearchRadiusMinInKm int // 検索半径（最小）
+	Image               string
 }
 
 var (
@@ -64,10 +65,11 @@ var (
 				GooglePlaceTypes: []string{string(maps.PlaceTypeMuseum)},
 			},
 			{
-				Name:             "aquarium",
-				DisplayNameJa:    "水族館",
-				DisplayNameEn:    "Aquarium",
-				GooglePlaceTypes: []string{string(maps.PlaceTypeAquarium)},
+				Name:                "aquarium",
+				DisplayNameJa:       "水族館",
+				DisplayNameEn:       "Aquarium",
+				GooglePlaceTypes:    []string{string(maps.PlaceTypeAquarium)},
+				SearchRadiusMinInKm: 30,
 			},
 			{
 				Name:             "zoo",
