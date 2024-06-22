@@ -66,7 +66,6 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 }
 
 type CreatePlanByCategoryInput struct {
-	Session    string  `json:"session"`
 	CategoryID string  `json:"categoryId"`
 	Latitude   float64 `json:"latitude"`
 	Longitude  float64 `json:"longitude"`
