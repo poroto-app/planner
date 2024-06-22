@@ -65,6 +65,19 @@ type ChangePlacesOrderInPlanCandidateOutput struct {
 	Plan *Plan `json:"plan"`
 }
 
+type CreatePlanByCategoryInput struct {
+	Session    string   `json:"session"`
+	Category   string   `json:"category"`
+	Latitude   *float64 `json:"latitude,omitempty"`
+	Longitude  *float64 `json:"longitude,omitempty"`
+	RadiusInKm *float64 `json:"radiusInKm,omitempty"`
+}
+
+type CreatePlanByCategoryOutput struct {
+	PlanCandidateSetID string  `json:"planCandidateSetId"`
+	Plans              []*Plan `json:"plans"`
+}
+
 type CreatePlanByGooglePlaceIDInput struct {
 	PlanCandidateID     *string  `json:"planCandidateId,omitempty"`
 	GooglePlaceID       string   `json:"googlePlaceId"`

@@ -6,6 +6,8 @@ extend type Mutation {
 
     createPlanByPlace(input: CreatePlanByPlaceInput!): CreatePlanByPlaceOutput!
 
+    createPlanByCategory(input: CreatePlanByCategoryInput!): CreatePlanByCategoryOutput!
+
     # 保存されたプランをベースに新しいプランを作成する
     createPlanCandidateSetFromSavedPlan(input: CreatePlanCandidateSetFromSavedPlanInput!): CreatePlanCandidateSetFromSavedPlanOutput!
 
@@ -57,6 +59,19 @@ input CreatePlanByPlaceInput {
 type CreatePlanByPlaceOutput {
     session: String!
     plan: Plan!
+}
+
+input CreatePlanByCategoryInput {
+    session: String!
+    category: String!
+    latitude: Float
+    longitude: Float
+    radiusInKm: Float
+}
+
+type CreatePlanByCategoryOutput {
+    planCandidateSetId: String!
+    plans: [Plan!]!
 }
 
 input CreatePlanByGooglePlaceIdInput {

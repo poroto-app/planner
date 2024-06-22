@@ -104,6 +104,11 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 	}, nil
 }
 
+// CreatePlanByCategory is the resolver for the createPlanByCategory field.
+func (r *mutationResolver) CreatePlanByCategory(ctx context.Context, input model.CreatePlanByCategoryInput) (*model.CreatePlanByCategoryOutput, error) {
+	panic(fmt.Errorf("not implemented: CreatePlanByCategory - createPlanByCategory"))
+}
+
 // CreatePlanCandidateSetFromSavedPlan is the resolver for the createPlanCandidateSetFromSavedPlan field.
 func (r *mutationResolver) CreatePlanCandidateSetFromSavedPlan(ctx context.Context, input model.CreatePlanCandidateSetFromSavedPlanInput) (*model.CreatePlanCandidateSetFromSavedPlanOutput, error) {
 	r.Logger.Info(
