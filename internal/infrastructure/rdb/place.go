@@ -305,6 +305,8 @@ func (p PlaceRepository) FindByGooglePlaceType(ctx context.Context, googlePlaceT
 		generated.GooglePlaceWhere.Latitude.LT(maxLocation.Latitude),
 		generated.GooglePlaceWhere.Longitude.GT(minLocation.Longitude),
 		generated.GooglePlaceWhere.Longitude.LT(maxLocation.Longitude),
+		qm.OrderBy(generated.GooglePlaceColumns.UserRatingsTotal+" desc"),
+		qm.Limit(100),
 		qm.Load(generated.GooglePlaceRels.Place),
 		qm.Load(generated.GooglePlaceRels.Place+"."+generated.PlaceRels.PlacePhotos),
 		qm.Load(generated.GooglePlaceRels.GooglePlaceTypes),
