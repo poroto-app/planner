@@ -12,7 +12,7 @@ type CreatePlanByCategoryInput struct {
 	PlanCandidateSetId string
 	Category           models.LocationCategoryCreatePlan
 	Location           models.GeoLocation
-	RadiusInKm         int
+	RadiusInKm         float64
 }
 
 func (s Service) CreatePlanByCategory(ctx context.Context, input CreatePlanByCategoryInput) (*[]models.Plan, error) {
@@ -28,7 +28,7 @@ func (s Service) CreatePlanByCategory(ctx context.Context, input CreatePlanByCat
 		ctx,
 		input.Category.GooglePlaceTypes[0],
 		input.Location,
-		float64(searchRadiusInKm)*1000,
+		searchRadiusInKm*1000,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
