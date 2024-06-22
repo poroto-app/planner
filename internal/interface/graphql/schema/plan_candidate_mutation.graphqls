@@ -63,7 +63,7 @@ type CreatePlanByPlaceOutput {
 
 input CreatePlanByCategoryInput {
     session: String!
-    category: String!
+    categoryId: String!
     latitude: Float
     longitude: Float
     radiusInKm: Float

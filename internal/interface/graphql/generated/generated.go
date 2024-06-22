@@ -1894,7 +1894,7 @@ type CreatePlanByPlaceOutput {
 
 input CreatePlanByCategoryInput {
     session: String!
-    category: String!
+    categoryId: String!
     latitude: Float
     longitude: Float
     radiusInKm: Float
@@ -12909,7 +12909,7 @@ func (ec *executionContext) unmarshalInputCreatePlanByCategoryInput(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session", "category", "latitude", "longitude", "radiusInKm"}
+	fieldsInOrder := [...]string{"session", "categoryId", "latitude", "longitude", "radiusInKm"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -12925,15 +12925,15 @@ func (ec *executionContext) unmarshalInputCreatePlanByCategoryInput(ctx context.
 				return it, err
 			}
 			it.Session = data
-		case "category":
+		case "categoryId":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("categoryId"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Category = data
+			it.CategoryID = data
 		case "latitude":
 			var err error
 
