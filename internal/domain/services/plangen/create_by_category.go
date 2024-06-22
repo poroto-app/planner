@@ -34,6 +34,11 @@ func (s Service) CreatePlanByCategory(ctx context.Context, input CreatePlanByCat
 		return nil, fmt.Errorf("error while fetching google Places: %v\n", err)
 	}
 
+	// 検索が大量に行われないようにするため、対象とする場所の数を20件に制限する
+	if len(*placesOfCategory) > 20 {
+		*placesOfCategory = (*placesOfCategory)[:20]
+	}
+
 	var createPlanParams []CreatePlanParams
 	for _, placeOfCategory := range *placesOfCategory {
 		if len(createPlanParams) >= 3 {
