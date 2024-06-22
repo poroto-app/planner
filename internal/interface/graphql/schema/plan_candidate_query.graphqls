@@ -6,7 +6,7 @@ extend type Query {
     # プランを作成可能な他の場所を取得する
     availablePlacesForPlan(input: AvailablePlacesForPlanInput!): AvailablePlacesForPlan!
 
-    placeCategories: [CreatePlanPlaceCategory!]!
+    placeCategories: [CreatePlanPlaceCategorySet!]!
 
     # ===========================================================
     # Edit

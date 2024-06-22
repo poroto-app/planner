@@ -39,6 +39,12 @@ type PlaceCategory {
     name: String!
 }
 
+type CreatePlanPlaceCategorySet {
+    displayNameJa: String!
+    displayNameEn: String!
+    categories: [CreatePlanPlaceCategory!]!
+}
+
 type CreatePlanPlaceCategory {
     id: String!
     displayNameJa: String!

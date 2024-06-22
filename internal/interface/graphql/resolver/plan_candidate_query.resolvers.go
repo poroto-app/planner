@@ -107,7 +107,7 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 }
 
 // PlaceCategories is the resolver for the placeCategories field.
-func (r *queryResolver) PlaceCategories(ctx context.Context) ([]*model.CreatePlanPlaceCategory, error) {
+func (r *queryResolver) PlaceCategories(ctx context.Context) ([]*model.CreatePlanPlaceCategorySet, error) {
 	panic(fmt.Errorf("not implemented: PlaceCategories - placeCategories"))
 }
 

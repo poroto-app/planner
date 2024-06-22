@@ -133,6 +133,12 @@ type CreatePlanPlaceCategory struct {
 	ImageURL      string `json:"imageUrl"`
 }
 
+type CreatePlanPlaceCategorySet struct {
+	DisplayNameJa string                     `json:"displayNameJa"`
+	DisplayNameEn string                     `json:"displayNameEn"`
+	Categories    []*CreatePlanPlaceCategory `json:"categories"`
+}
+
 type DeletePlaceFromPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`
