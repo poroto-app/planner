@@ -126,6 +126,13 @@ type CreatePlanCandidateSetFromSavedPlanOutput struct {
 	PlanCandidate *PlanCandidate `json:"planCandidate"`
 }
 
+type CreatePlanPlaceCategory struct {
+	ID            string `json:"id"`
+	DisplayNameJa string `json:"displayNameJa"`
+	DisplayNameEn string `json:"displayNameEn"`
+	ImageURL      string `json:"imageUrl"`
+}
+
 type DeletePlaceFromPlanCandidateInput struct {
 	PlanCandidateID string `json:"planCandidateId"`
 	PlanID          string `json:"planId"`

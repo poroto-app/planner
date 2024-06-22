@@ -39,6 +39,13 @@ type PlaceCategory {
     name: String!
 }
 
+type CreatePlanPlaceCategory {
+    id: String!
+    displayNameJa: String!
+    displayNameEn: String!
+    imageUrl: String!
+}
+
 type CategoryGroupedPlaces {
     category: PlaceCategory!
     places: [Place!]!

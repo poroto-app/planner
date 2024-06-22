@@ -106,6 +106,11 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 	}, nil
 }
 
+// PlaceCategories is the resolver for the placeCategories field.
+func (r *queryResolver) PlaceCategories(ctx context.Context) ([]*model.CreatePlanPlaceCategory, error) {
+	panic(fmt.Errorf("not implemented: PlaceCategories - placeCategories"))
+}
+
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
