@@ -1,6 +1,11 @@
 package models
 
-import "googlemaps.github.io/maps"
+import (
+	"fmt"
+	"googlemaps.github.io/maps"
+	"os"
+	"poroto.app/poroto/planner/internal/env"
+)
 
 type LocationCategorySetCreatePlan struct {
 	Name             string
@@ -19,6 +24,12 @@ type LocationCategoryCreatePlan struct {
 	Image               string
 }
 
+func getCloudStorageImageUrl(filename string) string {
+	// 変数の中で環境変数を利用するため必要
+	env.LoadEnv()
+	return fmt.Sprintf("https://storage.googleapis.com/%s/public/images/create_plan_categories/%s", os.Getenv("CLOUD_STORAGE_IMAGE_BUCKET"), filename)
+}
+
 var (
 	LocationCategorySetCreatePlanAmusements = LocationCategorySetCreatePlan{
 		Name:          "amusements",
@@ -30,18 +41,21 @@ var (
 				DisplayNameJa:    "遊園地",
 				DisplayNameEn:    "Amusement Park",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeAmusementPark)},
+				Image:            getCloudStorageImageUrl("amusement_park.jpg"),
 			},
 			{
 				Id:               "bowling_alley",
 				DisplayNameJa:    "ボウリング場",
 				DisplayNameEn:    "Bowling Alley",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeBowlingAlley)},
+				Image:            getCloudStorageImageUrl("bowling.jpg"),
 			},
 			{
 				Id:               "movie_theater",
 				DisplayNameJa:    "映画館",
 				DisplayNameEn:    "Movie Theater",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeMovieTheater)},
+				Image:            getCloudStorageImageUrl("movie.jpg"),
 			},
 		},
 		GooglePlaceTypes: CategoryAmusements.SubCategories,
@@ -57,12 +71,14 @@ var (
 				DisplayNameJa:    "美術館",
 				DisplayNameEn:    "Art Gallery",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeArtGallery)},
+				Image:            getCloudStorageImageUrl("art_gallery.jpg"),
 			},
 			{
 				Id:               "museum",
 				DisplayNameJa:    "博物館",
 				DisplayNameEn:    "Museum",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeMuseum)},
+				Image:            getCloudStorageImageUrl("museum.jpg"),
 			},
 			{
 				Id:                  "aquarium",
@@ -70,12 +86,14 @@ var (
 				DisplayNameEn:       "Aquarium",
 				GooglePlaceTypes:    []string{string(maps.PlaceTypeAquarium)},
 				SearchRadiusMinInKm: 30,
+				Image:               getCloudStorageImageUrl("aquarium.jpg"),
 			},
 			{
 				Id:               "zoo",
 				DisplayNameJa:    "動物園",
 				DisplayNameEn:    "Zoo",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeZoo)},
+				Image:            getCloudStorageImageUrl("zoo.jpg"),
 			},
 		},
 	}
@@ -90,12 +108,14 @@ var (
 				DisplayNameJa:    "温泉",
 				DisplayNameEn:    "Spa",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeSpa)},
+				Image:            getCloudStorageImageUrl("spa.jpg"),
 			},
 			{
 				Id:               "park",
 				DisplayNameJa:    "公園",
 				DisplayNameEn:    "Park",
 				GooglePlaceTypes: []string{string(maps.PlaceTypePark)},
+				Image:            getCloudStorageImageUrl("park.jpg"),
 			},
 		},
 	}
@@ -110,12 +130,14 @@ var (
 				DisplayNameJa:    "ショッピングモール",
 				DisplayNameEn:    "Shopping Mall",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeShoppingMall)},
+				Image:            getCloudStorageImageUrl("shopping_mall.jpg"),
 			},
 			{
 				Id:               "本屋",
 				DisplayNameJa:    "本屋",
 				DisplayNameEn:    "Bookstore",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeBookStore)},
+				Image:            getCloudStorageImageUrl("bookstore.jpg"),
 			},
 		},
 	}
@@ -130,18 +152,21 @@ var (
 				DisplayNameJa:    "レストラン",
 				DisplayNameEn:    "Restaurant",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeRestaurant)},
+				Image:            getCloudStorageImageUrl("restaurant.jpg"),
 			},
 			{
 				Id:               "cafe",
 				DisplayNameJa:    "カフェ",
 				DisplayNameEn:    "Cafe",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeCafe)},
+				Image:            getCloudStorageImageUrl("cafe.jpg"),
 			},
 			{
 				Id:               "bakery",
 				DisplayNameJa:    "パン屋",
 				DisplayNameEn:    "Bakery",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeBakery)},
+				Image:            getCloudStorageImageUrl("bakery.jpg"),
 			},
 		},
 	}
@@ -156,12 +181,14 @@ var (
 				DisplayNameJa:    "観光スポット",
 				DisplayNameEn:    "Sightseeing",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeTouristAttraction)},
+				Image:            getCloudStorageImageUrl("tourist_attraction.jpg"),
 			},
 			{
 				Id:               "寺・神社",
 				DisplayNameJa:    "寺・神社",
 				DisplayNameEn:    "Temples & Shrines",
 				GooglePlaceTypes: []string{"place_of_worship"},
+				Image:            getCloudStorageImageUrl("temple.jpg"),
 			},
 		},
 	}
@@ -169,11 +196,11 @@ var (
 
 func GetAllLocationCategorySetCreatePlan() []LocationCategorySetCreatePlan {
 	return []LocationCategorySetCreatePlan{
+		LocationCategorySetCreatePlanEat,
+		LocationCategorySetCreatePlanRelaxation,
+		LocationCategorySetCreatePlanAttractions,
+		LocationCategorySetCreatePlanShopping,
 		LocationCategorySetCreatePlanAmusements,
 		LocationCategorySetCreatePlanCulture,
-		LocationCategorySetCreatePlanRelaxation,
-		LocationCategorySetCreatePlanShopping,
-		LocationCategorySetCreatePlanEat,
-		LocationCategorySetCreatePlanAttractions,
 	}
 }
