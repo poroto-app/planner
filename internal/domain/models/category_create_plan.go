@@ -25,8 +25,7 @@ type LocationCategoryCreatePlan struct {
 }
 
 func getCloudStorageImageUrl(filename string) string {
-	// 変数の中で環境変数を利用するため必要
-	env.LoadEnv()
+	env.LoadEnv(env.WithSkipErrors())
 	return fmt.Sprintf("https://storage.googleapis.com/%s/public/images/create_plan_categories/%s", os.Getenv("CLOUD_STORAGE_IMAGE_BUCKET"), filename)
 }
 
@@ -59,6 +58,28 @@ var (
 			},
 		},
 		GooglePlaceTypes: CategoryAmusements.SubCategories,
+	}
+
+	LocationCategorySetCreatePlanAttractions = LocationCategorySetCreatePlan{
+		Name:          "attractions",
+		DisplayNameJa: "観光",
+		DisplayNameEn: "Attractions",
+		Categories: []LocationCategoryCreatePlan{
+			{
+				Id:               "観光スポット",
+				DisplayNameJa:    "観光スポット",
+				DisplayNameEn:    "Sightseeing",
+				GooglePlaceTypes: []string{string(maps.PlaceTypeTouristAttraction)},
+				Image:            getCloudStorageImageUrl("tourist_attraction.jpg"),
+			},
+			{
+				Id:               "寺・神社",
+				DisplayNameJa:    "寺・神社",
+				DisplayNameEn:    "Temples & Shrines",
+				GooglePlaceTypes: []string{"place_of_worship"},
+				Image:            getCloudStorageImageUrl("temple.jpg"),
+			},
+		},
 	}
 
 	LocationCategorySetCreatePlanCulture = LocationCategorySetCreatePlan{
@@ -94,6 +115,35 @@ var (
 				DisplayNameEn:    "Zoo",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeZoo)},
 				Image:            getCloudStorageImageUrl("zoo.jpg"),
+			},
+		},
+	}
+
+	LocationCategorySetCreatePlanEat = LocationCategorySetCreatePlan{
+		Name:          "eat",
+		DisplayNameJa: "食事",
+		DisplayNameEn: "Eat",
+		Categories: []LocationCategoryCreatePlan{
+			{
+				Id:               "restaurant",
+				DisplayNameJa:    "レストラン",
+				DisplayNameEn:    "Restaurant",
+				GooglePlaceTypes: []string{string(maps.PlaceTypeRestaurant)},
+				Image:            getCloudStorageImageUrl("restaurant.jpg"),
+			},
+			{
+				Id:               "cafe",
+				DisplayNameJa:    "カフェ",
+				DisplayNameEn:    "Cafe",
+				GooglePlaceTypes: []string{string(maps.PlaceTypeCafe)},
+				Image:            getCloudStorageImageUrl("cafe.jpg"),
+			},
+			{
+				Id:               "bakery",
+				DisplayNameJa:    "パン屋",
+				DisplayNameEn:    "Bakery",
+				GooglePlaceTypes: []string{string(maps.PlaceTypeBakery)},
+				Image:            getCloudStorageImageUrl("bakery.jpg"),
 			},
 		},
 	}
@@ -138,57 +188,6 @@ var (
 				DisplayNameEn:    "Bookstore",
 				GooglePlaceTypes: []string{string(maps.PlaceTypeBookStore)},
 				Image:            getCloudStorageImageUrl("bookstore.jpg"),
-			},
-		},
-	}
-
-	LocationCategorySetCreatePlanEat = LocationCategorySetCreatePlan{
-		Name:          "eat",
-		DisplayNameJa: "食事",
-		DisplayNameEn: "Eat",
-		Categories: []LocationCategoryCreatePlan{
-			{
-				Id:               "restaurant",
-				DisplayNameJa:    "レストラン",
-				DisplayNameEn:    "Restaurant",
-				GooglePlaceTypes: []string{string(maps.PlaceTypeRestaurant)},
-				Image:            getCloudStorageImageUrl("restaurant.jpg"),
-			},
-			{
-				Id:               "cafe",
-				DisplayNameJa:    "カフェ",
-				DisplayNameEn:    "Cafe",
-				GooglePlaceTypes: []string{string(maps.PlaceTypeCafe)},
-				Image:            getCloudStorageImageUrl("cafe.jpg"),
-			},
-			{
-				Id:               "bakery",
-				DisplayNameJa:    "パン屋",
-				DisplayNameEn:    "Bakery",
-				GooglePlaceTypes: []string{string(maps.PlaceTypeBakery)},
-				Image:            getCloudStorageImageUrl("bakery.jpg"),
-			},
-		},
-	}
-
-	LocationCategorySetCreatePlanAttractions = LocationCategorySetCreatePlan{
-		Name:          "attractions",
-		DisplayNameJa: "観光",
-		DisplayNameEn: "Attractions",
-		Categories: []LocationCategoryCreatePlan{
-			{
-				Id:               "観光スポット",
-				DisplayNameJa:    "観光スポット",
-				DisplayNameEn:    "Sightseeing",
-				GooglePlaceTypes: []string{string(maps.PlaceTypeTouristAttraction)},
-				Image:            getCloudStorageImageUrl("tourist_attraction.jpg"),
-			},
-			{
-				Id:               "寺・神社",
-				DisplayNameJa:    "寺・神社",
-				DisplayNameEn:    "Temples & Shrines",
-				GooglePlaceTypes: []string{"place_of_worship"},
-				Image:            getCloudStorageImageUrl("temple.jpg"),
 			},
 		},
 	}

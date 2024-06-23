@@ -7,22 +7,41 @@ import (
 	"os"
 )
 
-func LoadEnv() {
+type LoadEnvOptions struct {
+	SkipLoadErrors bool
+}
+
+type LoadEnvOption func(*LoadEnvOptions)
+
+func WithSkipErrors() LoadEnvOption {
+	return func(o *LoadEnvOptions) {
+		o.SkipLoadErrors = true
+	}
+}
+
+func LoadEnv(opts ...LoadEnvOption) {
+	options := &LoadEnvOptions{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	env := os.Getenv("ENV")
 	if "" == env {
 		env = "development"
 		os.Setenv("ENV", env)
 	}
 
-	if err := godotenv.Load(".env.local"); err != nil {
-		log.Fatalf("error while loading .env.local: %v", err)
+	loadEnvFile := func(filename string) {
+		if err := godotenv.Load(filename); err != nil {
+			if options.SkipLoadErrors {
+				log.Printf("error while loading %s: %v", filename, err)
+			} else {
+				log.Fatalf("error while loading %s: %v", filename, err)
+			}
+		}
 	}
 
-	if err := godotenv.Load(fmt.Sprintf(".env.%s.local", env)); err != nil {
-		log.Fatalf("error while loading .env: %v", err)
-	}
-
-	if err := godotenv.Load(fmt.Sprintf(".env.%s", env)); err != nil {
-		log.Fatalf("error while loading .env.%s: %v", env, err)
-	}
+	loadEnvFile(".env.local")
+	loadEnvFile(fmt.Sprintf(".env.%s.local", env))
+	loadEnvFile(fmt.Sprintf(".env.%s", env))
 }
