@@ -17,30 +17,6 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/workflow_build.yaml
-  deploy-cloud-functions-batch-delete-expired-plan-candidates:
-    needs: build
-    name: Deploy Cloud Functions [BatchDeleteExpiredPlanCandidates]
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/decrypt_secrets
-        with:
-          google_credentials_json: ${{ secrets.GOOGLE_CREDENTIALS_KMS }}
-          gh_personal_access_token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          environment: ${{ inputs.environment }}
-      - name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
-      - name: Deploy Cloud Functions
-        uses: ./.github/actions/deploy_cloud_functions
-        with:
-          function_name: 'delete-expired-plan-candidates'
-          entry_point: 'DeleteExpiredPlanCandidates'
-          runtime: 'go120'
-          description: 'batch task to delete expired plan candidates'
-          region: 'asia-northeast1'
   deploy-gae:
     needs: build
     name: GAE Deploy
