@@ -16,8 +16,6 @@ type PlanCandidateRepository interface {
 
 	FindPlan(ctx context.Context, planCandidateSetId string, planId string) (*models.Plan, error)
 
-	FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error)
-
 	// AddPlan プラン候補にプランを追加する
 	// 事前に models.PlanCandidateSet が保存されている必要がある
 	AddPlan(ctx context.Context, planCandidateSetId string, plans ...models.Plan) error
@@ -33,8 +31,6 @@ type PlanCandidateRepository interface {
 	UpdateIsPlaceSearched(ctx context.Context, planCandidateSetId string, isPlaceSearched bool) error
 
 	ReplacePlace(ctx context.Context, planCandidateSetId string, planId string, placeIdToBeReplaced string, placeToReplace models.Place) error
-
-	DeleteAll(ctx context.Context, planCandidateSetIds []string) error
 
 	// TODO: PlaceRepository に移動する
 	UpdateLikeToPlaceInPlanCandidateSet(ctx context.Context, planCandidateSetId string, placeId string, like bool) error
