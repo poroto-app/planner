@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"poroto.app/poroto/planner/internal/domain/array"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -101,6 +102,70 @@ func (r *mutationResolver) CreatePlanByPlace(ctx context.Context, input model.Cr
 
 	return &model.CreatePlanByPlaceOutput{
 		Plan: graphqlPlan,
+	}, nil
+}
+
+// CreatePlanByCategory is the resolver for the createPlanByCategory field.
+func (r *mutationResolver) CreatePlanByCategory(ctx context.Context, input model.CreatePlanByCategoryInput) (*model.CreatePlanByCategoryOutput, error) {
+	r.Logger.Info(
+		"CreatePlanByCategory",
+		zap.String("category", input.CategoryID),
+		zap.Float64("latitude", input.Latitude),
+		zap.Float64("longitude", input.Longitude),
+		zap.Float64("radius", input.RadiusInKm),
+	)
+
+	planCandidateSetId := uuid.New().String()
+	if err := r.PlanCandidateService.CreatePlanCandidateSet(ctx, planCandidateSetId); err != nil {
+		r.Logger.Error("error while creating plan candidate", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	category, ok := array.Find(
+		array.FlatMap(models.GetAllLocationCategorySetCreatePlan(), func(s models.LocationCategorySetCreatePlan) []models.LocationCategoryCreatePlan {
+			return s.Categories
+		}),
+		func(c models.LocationCategoryCreatePlan) bool {
+			return c.Id == input.CategoryID
+		},
+	)
+	if !ok {
+		r.Logger.Error("invalid category id", zap.String("category", input.CategoryID))
+		return nil, fmt.Errorf("invalid category id")
+	}
+
+	plans, err := r.PlanGenService.CreatePlanByCategory(
+		ctx,
+		plangen.CreatePlanByCategoryInput{
+			PlanCandidateSetId: planCandidateSetId,
+			Category:           category,
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+			RadiusInKm: input.RadiusInKm,
+		},
+	)
+	if err != nil {
+		r.Logger.Error("error while creating plan by category", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	if err := r.PlanCandidateService.SavePlans(ctx, plancandidate.SavePlansInput{
+		PlanCandidateSetId: planCandidateSetId,
+		Plans:              *plans,
+		LocationStart: &models.GeoLocation{
+			Latitude:  input.Latitude,
+			Longitude: input.Longitude,
+		},
+		CategoryNamesPreferred: &[]string{category.Id},
+	}); err != nil {
+		r.Logger.Error("error while saving plans", zap.Error(err))
+	}
+
+	return &model.CreatePlanByCategoryOutput{
+		PlanCandidateSetID: planCandidateSetId,
+		Plans:              factory.PlansFromDomainModel(plans, nil),
 	}, nil
 }
 
