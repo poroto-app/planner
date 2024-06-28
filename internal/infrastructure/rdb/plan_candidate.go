@@ -209,20 +209,6 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 	return plan, nil
 }
 
-func (p PlanCandidateRepository) FindExpiredBefore(ctx context.Context, expiresAt time.Time) (*[]string, error) {
-	planCandidateSetSlice, err := generated.PlanCandidateSets(generated.PlanCandidateSetWhere.ExpiresAt.LT(expiresAt)).All(ctx, p.db)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find expired plan candidate sets: %w", err)
-	}
-
-	var planCandidateIds []string
-	for _, planCandidateSet := range planCandidateSetSlice {
-		planCandidateIds = append(planCandidateIds, planCandidateSet.ID)
-	}
-
-	return &planCandidateIds, nil
-}
-
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
 		var planCandidateSlice generated.PlanCandidateSlice
@@ -472,39 +458,6 @@ func (p PlanCandidateRepository) ReplacePlace(ctx context.Context, planCandidate
 
 		if _, err := planCandidatePlaceEntity.Update(ctx, tx, boil.Whitelist(generated.PlanCandidatePlaceColumns.PlaceID)); err != nil {
 			return fmt.Errorf("failed to update plan candidate place: %w", err)
-		}
-
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to run transaction: %w", err)
-	}
-
-	return nil
-}
-
-func (p PlanCandidateRepository) DeleteAll(ctx context.Context, planCandidateIds []string) error {
-	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
-		// プラン候補場所を削除
-		if _, err := generated.PlanCandidatePlaces(generated.PlanCandidatePlaceWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate places: %w", err)
-		}
-
-		// プラン候補を削除
-		if _, err := generated.PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidates: %w", err)
-		}
-
-		// プラン候補メタデータを削除
-		if _, err := generated.PlanCandidateSetMetaData(generated.PlanCandidateSetMetaDatumWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate set meta data: %w", err)
-		}
-		if _, err := generated.PlanCandidateSetMetaDataCategories(generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate set meta data categories: %w", err)
-		}
-
-		// プラン候補一覧を削除
-		if _, err := generated.PlanCandidateSets(generated.PlanCandidateSetWhere.ID.IN(planCandidateIds)).DeleteAll(ctx, tx); err != nil {
-			return fmt.Errorf("failed to delete plan candidate sets: %w", err)
 		}
 
 		return nil
