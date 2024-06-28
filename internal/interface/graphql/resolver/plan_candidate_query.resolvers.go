@@ -106,6 +106,29 @@ func (r *queryResolver) AvailablePlacesForPlan(ctx context.Context, input model.
 	}, nil
 }
 
+// PlaceCategories is the resolver for the placeCategories field.
+func (r *queryResolver) PlaceCategories(ctx context.Context) ([]*model.CreatePlanPlaceCategorySet, error) {
+	r.Logger.Info("PlaceCategories")
+	graphqlCreatePlanPlaceCategorySet := array.Map(
+		models.GetAllLocationCategorySetCreatePlan(),
+		func(categorySet models.LocationCategorySetCreatePlan) *model.CreatePlanPlaceCategorySet {
+			return &model.CreatePlanPlaceCategorySet{
+				DisplayNameJa: categorySet.DisplayNameJa,
+				DisplayNameEn: categorySet.DisplayNameEn,
+				Categories: array.Map(categorySet.Categories, func(category models.LocationCategoryCreatePlan) *model.CreatePlanPlaceCategory {
+					return &model.CreatePlanPlaceCategory{
+						ID:            category.Id,
+						DisplayNameJa: category.DisplayNameJa,
+						DisplayNameEn: category.DisplayNameEn,
+						ImageURL:      category.Image,
+					}
+				}),
+			}
+		},
+	)
+	return graphqlCreatePlanPlaceCategorySet, nil
+}
+
 // PlacesToAddForPlanCandidate is the resolver for the placesToAddForPlanCandidate field.
 func (r *queryResolver) PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error) {
 	// TODO: 指定されたプランIDが不正だった場合の対処をする
