@@ -126,14 +126,14 @@ erDiagram
 ### Plan Candidate
 - 複数回検索が行われることを避けるため、`is_place_searched` で検索済みかどうかを管理
 
-| テーブル                                         | 用途                  |
-|----------------------------------------------|---------------------|
-| plan_candidate_sets                          | 作成されたプラン候補一覧を集約     |
-| plan_candidate_set_meta_data                 | プラン作成時の情報           |
-| plan_candidate_set_meta_data_categories      | プラン作成時に選択・却下したカテゴリ  |
-| plan_candidate_set_meta_data_from_categories | カテゴリからプランを作成したときの情報 |
-| plan_candidates                              | プラン候補               |
-| plan_candidate_places                        | プラン候補に含まれる場所        |
+| テーブル                                            | 用途                  |
+|-------------------------------------------------|---------------------|
+| plan_candidate_sets                             | 作成されたプラン候補一覧を集約     |
+| plan_candidate_set_meta_data                    | プラン作成時の情報           |
+| plan_candidate_set_meta_data_create_by_category | プラン作成時に選択・却下したカテゴリ  |
+| plan_candidate_set_meta_data_from_categories    | カテゴリからプランを作成したときの情報 |
+| plan_candidates                                 | プラン候補               |
+| plan_candidate_places                           | プラン候補に含まれる場所        |
 
 
 ```mermaid
@@ -163,7 +163,7 @@ erDiagram
         bool is_selected
     }
 
-    plan_candidate_set_meta_data_from_categories {
+    plan_candidate_set_meta_data_create_by_category {
         char(36) id PK
         char(36) plan_candidate_set_id FK
         string category_id
@@ -192,7 +192,7 @@ erDiagram
     plan_candidate_sets ||..o{ plan_candidates: "1:N"
     plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
-    plan_candidate_sets ||..o| plan_candidate_set_meta_data_from_categories: "1:1"
+    plan_candidate_sets ||..o| plan_candidate_set_meta_data_create_by_category: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
     plan_candidates ||..o| plan: "1:1"
     plan_candidates ||..o{ plan_candidate_places: "1:N"
