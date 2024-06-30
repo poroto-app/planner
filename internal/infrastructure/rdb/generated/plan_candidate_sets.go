@@ -79,26 +79,29 @@ var PlanCandidateSetWhere = struct {
 
 // PlanCandidateSetRels is where relationship names are stored.
 var PlanCandidateSetRels = struct {
-	PlanCandidatePlaces                string
-	PlanCandidateSetLikePlaces         string
-	PlanCandidateSetMetaData           string
-	PlanCandidateSetMetaDataCategories string
-	PlanCandidates                     string
+	PlanCandidatePlaces                    string
+	PlanCandidateSetLikePlaces             string
+	PlanCandidateSetMetaData               string
+	PlanCandidateSetMetaDataCategories     string
+	PlanCandidateSetMetaDataFromCategories string
+	PlanCandidates                         string
 }{
-	PlanCandidatePlaces:                "PlanCandidatePlaces",
-	PlanCandidateSetLikePlaces:         "PlanCandidateSetLikePlaces",
-	PlanCandidateSetMetaData:           "PlanCandidateSetMetaData",
-	PlanCandidateSetMetaDataCategories: "PlanCandidateSetMetaDataCategories",
-	PlanCandidates:                     "PlanCandidates",
+	PlanCandidatePlaces:                    "PlanCandidatePlaces",
+	PlanCandidateSetLikePlaces:             "PlanCandidateSetLikePlaces",
+	PlanCandidateSetMetaData:               "PlanCandidateSetMetaData",
+	PlanCandidateSetMetaDataCategories:     "PlanCandidateSetMetaDataCategories",
+	PlanCandidateSetMetaDataFromCategories: "PlanCandidateSetMetaDataFromCategories",
+	PlanCandidates:                         "PlanCandidates",
 }
 
 // planCandidateSetR is where relationships are stored.
 type planCandidateSetR struct {
-	PlanCandidatePlaces                PlanCandidatePlaceSlice               `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
-	PlanCandidateSetLikePlaces         PlanCandidateSetLikePlaceSlice        `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
-	PlanCandidateSetMetaData           PlanCandidateSetMetaDatumSlice        `boil:"PlanCandidateSetMetaData" json:"PlanCandidateSetMetaData" toml:"PlanCandidateSetMetaData" yaml:"PlanCandidateSetMetaData"`
-	PlanCandidateSetMetaDataCategories PlanCandidateSetMetaDataCategorySlice `boil:"PlanCandidateSetMetaDataCategories" json:"PlanCandidateSetMetaDataCategories" toml:"PlanCandidateSetMetaDataCategories" yaml:"PlanCandidateSetMetaDataCategories"`
-	PlanCandidates                     PlanCandidateSlice                    `boil:"PlanCandidates" json:"PlanCandidates" toml:"PlanCandidates" yaml:"PlanCandidates"`
+	PlanCandidatePlaces                    PlanCandidatePlaceSlice                   `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
+	PlanCandidateSetLikePlaces             PlanCandidateSetLikePlaceSlice            `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
+	PlanCandidateSetMetaData               PlanCandidateSetMetaDatumSlice            `boil:"PlanCandidateSetMetaData" json:"PlanCandidateSetMetaData" toml:"PlanCandidateSetMetaData" yaml:"PlanCandidateSetMetaData"`
+	PlanCandidateSetMetaDataCategories     PlanCandidateSetMetaDataCategorySlice     `boil:"PlanCandidateSetMetaDataCategories" json:"PlanCandidateSetMetaDataCategories" toml:"PlanCandidateSetMetaDataCategories" yaml:"PlanCandidateSetMetaDataCategories"`
+	PlanCandidateSetMetaDataFromCategories PlanCandidateSetMetaDataFromCategorySlice `boil:"PlanCandidateSetMetaDataFromCategories" json:"PlanCandidateSetMetaDataFromCategories" toml:"PlanCandidateSetMetaDataFromCategories" yaml:"PlanCandidateSetMetaDataFromCategories"`
+	PlanCandidates                         PlanCandidateSlice                        `boil:"PlanCandidates" json:"PlanCandidates" toml:"PlanCandidates" yaml:"PlanCandidates"`
 }
 
 // NewStruct creates a new relationship struct
@@ -132,6 +135,13 @@ func (r *planCandidateSetR) GetPlanCandidateSetMetaDataCategories() PlanCandidat
 		return nil
 	}
 	return r.PlanCandidateSetMetaDataCategories
+}
+
+func (r *planCandidateSetR) GetPlanCandidateSetMetaDataFromCategories() PlanCandidateSetMetaDataFromCategorySlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlanCandidateSetMetaDataFromCategories
 }
 
 func (r *planCandidateSetR) GetPlanCandidates() PlanCandidateSlice {
@@ -511,6 +521,20 @@ func (o *PlanCandidateSet) PlanCandidateSetMetaDataCategories(mods ...qm.QueryMo
 	)
 
 	return PlanCandidateSetMetaDataCategories(queryMods...)
+}
+
+// PlanCandidateSetMetaDataFromCategories retrieves all the plan_candidate_set_meta_data_from_category's PlanCandidateSetMetaDataFromCategories with an executor.
+func (o *PlanCandidateSet) PlanCandidateSetMetaDataFromCategories(mods ...qm.QueryMod) planCandidateSetMetaDataFromCategoryQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`plan_candidate_set_meta_data_from_categories`.`plan_candidate_set_id`=?", o.ID),
+	)
+
+	return PlanCandidateSetMetaDataFromCategories(queryMods...)
 }
 
 // PlanCandidates retrieves all the plan_candidate's PlanCandidates with an executor.
@@ -979,6 +1003,119 @@ func (planCandidateSetL) LoadPlanCandidateSetMetaDataCategories(ctx context.Cont
 	return nil
 }
 
+// LoadPlanCandidateSetMetaDataFromCategories allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (planCandidateSetL) LoadPlanCandidateSetMetaDataFromCategories(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidateSet interface{}, mods queries.Applicator) error {
+	var slice []*PlanCandidateSet
+	var object *PlanCandidateSet
+
+	if singular {
+		var ok bool
+		object, ok = maybePlanCandidateSet.(*PlanCandidateSet)
+		if !ok {
+			object = new(PlanCandidateSet)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlanCandidateSet))
+			}
+		}
+	} else {
+		s, ok := maybePlanCandidateSet.(*[]*PlanCandidateSet)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlanCandidateSet)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlanCandidateSet))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &planCandidateSetR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &planCandidateSetR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`plan_candidate_set_meta_data_from_categories`),
+		qm.WhereIn(`plan_candidate_set_meta_data_from_categories.plan_candidate_set_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load plan_candidate_set_meta_data_from_categories")
+	}
+
+	var resultSlice []*PlanCandidateSetMetaDataFromCategory
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice plan_candidate_set_meta_data_from_categories")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on plan_candidate_set_meta_data_from_categories")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for plan_candidate_set_meta_data_from_categories")
+	}
+
+	if len(planCandidateSetMetaDataFromCategoryAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlanCandidateSetMetaDataFromCategories = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &planCandidateSetMetaDataFromCategoryR{}
+			}
+			foreign.R.PlanCandidateSet = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlanCandidateSetID {
+				local.R.PlanCandidateSetMetaDataFromCategories = append(local.R.PlanCandidateSetMetaDataFromCategories, foreign)
+				if foreign.R == nil {
+					foreign.R = &planCandidateSetMetaDataFromCategoryR{}
+				}
+				foreign.R.PlanCandidateSet = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadPlanCandidates allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (planCandidateSetL) LoadPlanCandidates(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlanCandidateSet interface{}, mods queries.Applicator) error {
@@ -1295,6 +1432,59 @@ func (o *PlanCandidateSet) AddPlanCandidateSetMetaDataCategories(ctx context.Con
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &planCandidateSetMetaDataCategoryR{
+				PlanCandidateSet: o,
+			}
+		} else {
+			rel.R.PlanCandidateSet = o
+		}
+	}
+	return nil
+}
+
+// AddPlanCandidateSetMetaDataFromCategories adds the given related objects to the existing relationships
+// of the plan_candidate_set, optionally inserting them as new records.
+// Appends related to o.R.PlanCandidateSetMetaDataFromCategories.
+// Sets related.R.PlanCandidateSet appropriately.
+func (o *PlanCandidateSet) AddPlanCandidateSetMetaDataFromCategories(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlanCandidateSetMetaDataFromCategory) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlanCandidateSetID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `plan_candidate_set_meta_data_from_categories` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"plan_candidate_set_id"}),
+				strmangle.WhereClause("`", "`", 0, planCandidateSetMetaDataFromCategoryPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlanCandidateSetID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &planCandidateSetR{
+			PlanCandidateSetMetaDataFromCategories: related,
+		}
+	} else {
+		o.R.PlanCandidateSetMetaDataFromCategories = append(o.R.PlanCandidateSetMetaDataFromCategories, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &planCandidateSetMetaDataFromCategoryR{
 				PlanCandidateSet: o,
 			}
 		} else {
@@ -2480,6 +2670,33 @@ func (s PlanCandidateSetSlice) GetLoadedPlanCandidateSetMetaDataCategories() Pla
 			continue
 		}
 		result = append(result, item.R.PlanCandidateSetMetaDataCategories...)
+	}
+	return result
+}
+
+// LoadPlanCandidateSetMetaDataFromCategoriesByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s PlanCandidateSetSlice) LoadPlanCandidateSetMetaDataFromCategoriesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadPlanCandidateSetMetaDataFromCategoriesByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlanCandidateSetSlice) LoadPlanCandidateSetMetaDataFromCategoriesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*PlanCandidateSet](s, pageSize) {
+		if err := chunk[0].L.LoadPlanCandidateSetMetaDataFromCategories(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlanCandidateSetSlice) GetLoadedPlanCandidateSetMetaDataFromCategories() PlanCandidateSetMetaDataFromCategorySlice {
+	result := make(PlanCandidateSetMetaDataFromCategorySlice, 0, len(s)*2)
+	for _, item := range s {
+		if item.R == nil || item.R.PlanCandidateSetMetaDataFromCategories == nil {
+			continue
+		}
+		result = append(result, item.R.PlanCandidateSetMetaDataFromCategories...)
 	}
 	return result
 }
