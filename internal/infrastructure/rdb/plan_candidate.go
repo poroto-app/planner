@@ -63,6 +63,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId st
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaData),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaDataCategories),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetLikePlaces),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaDataCreateByCategories),
 		},
 		placeQueryModes(generated.PlanCandidateSetRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
@@ -126,6 +127,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId st
 		planCandidateSetEntity.R.PlanCandidates,
 		planCandidateSetEntity.R.PlanCandidateSetMetaData,
 		planCandidateSetEntity.R.PlanCandidateSetMetaDataCategories,
+		planCandidateSetEntity.R.PlanCandidateSetMetaDataCreateByCategories,
 		planCandidateSetEntity.R.PlanCandidatePlaces,
 		planCandidateSetEntity.R.PlanCandidateSetLikePlaces,
 		places,

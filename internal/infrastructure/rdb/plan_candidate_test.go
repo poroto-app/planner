@@ -195,6 +195,38 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				Plans:           []models.Plan{},
 			},
 		},
+		{
+			name:               "create by category",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:        "test",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: false,
+					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+						Category:   models.LocationCategorySetCreatePlanAmusements.Categories[0],
+						Location:   models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+						RadiusInKm: 1.0,
+					},
+				},
+			},
+			expected: &models.PlanCandidateSet{
+				Id:        "test",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans:     []models.Plan{},
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: false,
+					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+						Category:   models.LocationCategorySetCreatePlanAmusements.Categories[0],
+						Location:   models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+						RadiusInKm: 1.0,
+					},
+				},
+			},
+		},
 	}
 
 	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
@@ -213,7 +245,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				}
 			})
 
-			// 事前にデータを準備
+			// データ準備
 			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
 			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
 				t.Fatalf("failed to save places: %v", err)
