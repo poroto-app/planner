@@ -14,6 +14,8 @@ extend type Query {
     placesToAddForPlanCandidate(input: PlacesToAddForPlanCandidateInput!): PlacesToAddForPlanCandidateOutput!
 
     placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
+
+    destinationCandidatePlacesForPlanCandidateSet(input: DestinationCandidatePlacesForPlanCandidateSetInput!): DestinationCandidatePlacesForPlanCandidateSetOutput!
 }
 
 input PlanCandidateInput {
@@ -65,5 +67,14 @@ input PlacesToReplaceForPlanCandidateInput {
 }
 
 type PlacesToReplaceForPlanCandidateOutput {
+    places: [Place!]!
+}
+
+input DestinationCandidatePlacesForPlanCandidateSetInput {
+    planCandidateSetId: ID!
+    planId: ID!
+}
+
+type DestinationCandidatePlacesForPlanCandidateSetOutput {
     places: [Place!]!
 }

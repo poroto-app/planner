@@ -5,7 +5,6 @@ go 1.22.0
 require (
 	firebase.google.com/go/v4 v4.14.0
 	github.com/99designs/gqlgen v0.17.34
-	github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
 	github.com/friendsofgo/errors v0.9.2
 	github.com/gin-contrib/cors v1.7.0
 	github.com/gin-gonic/gin v1.10.0
@@ -29,7 +28,6 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
-	cloud.google.com/go/functions v1.16.2 // indirect
 	cloud.google.com/go/iam v1.1.8 // indirect
 	cloud.google.com/go/longrunning v0.5.7 // indirect
 	cloud.google.com/go/storage v1.41.0 // indirect
@@ -38,7 +36,6 @@ require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/cloudevents/sdk-go/v2 v2.14.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
