@@ -7,10 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"poroto.app/poroto/planner/internal/domain/array"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
