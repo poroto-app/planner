@@ -14,6 +14,7 @@ type SavePlansInput struct {
 	CategoryNamesRejected        *[]string
 	FreeTime                     *int
 	CreateBasedOnCurrentLocation bool
+	CreateByCategoryMetaData     *models.CreateByCategoryMetaData
 }
 
 // SavePlans 作成されたプランとプラン候補のメタデータを保存する
@@ -54,6 +55,7 @@ func (s Service) SavePlans(ctx context.Context, input SavePlansInput) (err error
 		CategoriesRejected:            categoriesDisliked,
 		FreeTime:                      input.FreeTime,
 		CreatedBasedOnCurrentLocation: input.CreateBasedOnCurrentLocation,
+		CreateByCategoryMetaData:      input.CreateByCategoryMetaData,
 	}); err != nil {
 		return fmt.Errorf("error while updating plan candidate metadata: %v\n", err)
 	}
