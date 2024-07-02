@@ -149,12 +149,12 @@ type DeletePlaceFromPlanCandidateOutput struct {
 	Plan            *Plan  `json:"plan"`
 }
 
-type DestinationCandidatePlacesForPlanCandidateSetInput struct {
+type DestinationCandidatePlacesForPlanCandidateInput struct {
 	PlanCandidateSetID string `json:"planCandidateSetId"`
 	PlanID             string `json:"planId"`
 }
 
-type DestinationCandidatePlacesForPlanCandidateSetOutput struct {
+type DestinationCandidatePlacesForPlanCandidateOutput struct {
 	Places []*Place `json:"places"`
 }
 

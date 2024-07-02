@@ -114,7 +114,7 @@ type ComplexityRoot struct {
 		PlanCandidateID func(childComplexity int) int
 	}
 
-	DestinationCandidatePlacesForPlanCandidateSetOutput struct {
+	DestinationCandidatePlacesForPlanCandidateOutput struct {
 		Places func(childComplexity int) int
 	}
 
@@ -292,22 +292,22 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AvailablePlacesForPlan                        func(childComplexity int, input model.AvailablePlacesForPlanInput) int
-		DestinationCandidatePlacesForPlanCandidateSet func(childComplexity int, input model.DestinationCandidatePlacesForPlanCandidateSetInput) int
-		FirebaseUser                                  func(childComplexity int, input *model.FirebaseUserInput) int
-		LikePlaces                                    func(childComplexity int, input *model.LikePlacesInput) int
-		NearbyPlaceCategories                         func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
-		PlaceCategories                               func(childComplexity int) int
-		PlacesNearPlan                                func(childComplexity int, input model.PlacesNearPlanInput) int
-		PlacesRecommendation                          func(childComplexity int) int
-		PlacesToAddForPlanCandidate                   func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
-		PlacesToReplaceForPlanCandidate               func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
-		Plan                                          func(childComplexity int, input model.PlanInput) int
-		PlanCandidate                                 func(childComplexity int, input model.PlanCandidateInput) int
-		Plans                                         func(childComplexity int, input *model.PlansInput) int
-		PlansByLocation                               func(childComplexity int, input model.PlansByLocationInput) int
-		PlansByUser                                   func(childComplexity int, input model.PlansByUserInput) int
-		Version                                       func(childComplexity int) int
+		AvailablePlacesForPlan                     func(childComplexity int, input model.AvailablePlacesForPlanInput) int
+		DestinationCandidatePlacesForPlanCandidate func(childComplexity int, input model.DestinationCandidatePlacesForPlanCandidateInput) int
+		FirebaseUser                               func(childComplexity int, input *model.FirebaseUserInput) int
+		LikePlaces                                 func(childComplexity int, input *model.LikePlacesInput) int
+		NearbyPlaceCategories                      func(childComplexity int, input model.NearbyPlaceCategoriesInput) int
+		PlaceCategories                            func(childComplexity int) int
+		PlacesNearPlan                             func(childComplexity int, input model.PlacesNearPlanInput) int
+		PlacesRecommendation                       func(childComplexity int) int
+		PlacesToAddForPlanCandidate                func(childComplexity int, input model.PlacesToAddForPlanCandidateInput) int
+		PlacesToReplaceForPlanCandidate            func(childComplexity int, input model.PlacesToReplaceForPlanCandidateInput) int
+		Plan                                       func(childComplexity int, input model.PlanInput) int
+		PlanCandidate                              func(childComplexity int, input model.PlanCandidateInput) int
+		Plans                                      func(childComplexity int, input *model.PlansInput) int
+		PlansByLocation                            func(childComplexity int, input model.PlansByLocationInput) int
+		PlansByUser                                func(childComplexity int, input model.PlansByUserInput) int
+		Version                                    func(childComplexity int) int
 	}
 
 	ReplacePlaceOfPlanCandidateOutput struct {
@@ -380,7 +380,7 @@ type QueryResolver interface {
 	PlaceCategories(ctx context.Context) ([]*model.CreatePlanPlaceCategorySet, error)
 	PlacesToAddForPlanCandidate(ctx context.Context, input model.PlacesToAddForPlanCandidateInput) (*model.PlacesToAddForPlanCandidateOutput, error)
 	PlacesToReplaceForPlanCandidate(ctx context.Context, input model.PlacesToReplaceForPlanCandidateInput) (*model.PlacesToReplaceForPlanCandidateOutput, error)
-	DestinationCandidatePlacesForPlanCandidateSet(ctx context.Context, input model.DestinationCandidatePlacesForPlanCandidateSetInput) (*model.DestinationCandidatePlacesForPlanCandidateSetOutput, error)
+	DestinationCandidatePlacesForPlanCandidate(ctx context.Context, input model.DestinationCandidatePlacesForPlanCandidateInput) (*model.DestinationCandidatePlacesForPlanCandidateOutput, error)
 	Plan(ctx context.Context, input model.PlanInput) (*model.PlanOutput, error)
 	Plans(ctx context.Context, input *model.PlansInput) (*model.PlansOutput, error)
 	PlansByLocation(ctx context.Context, input model.PlansByLocationInput) (*model.PlansByLocationOutput, error)
@@ -590,12 +590,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeletePlaceFromPlanCandidateOutput.PlanCandidateID(childComplexity), true
 
-	case "DestinationCandidatePlacesForPlanCandidateSetOutput.places":
-		if e.complexity.DestinationCandidatePlacesForPlanCandidateSetOutput.Places == nil {
+	case "DestinationCandidatePlacesForPlanCandidateOutput.places":
+		if e.complexity.DestinationCandidatePlacesForPlanCandidateOutput.Places == nil {
 			break
 		}
 
-		return e.complexity.DestinationCandidatePlacesForPlanCandidateSetOutput.Places(childComplexity), true
+		return e.complexity.DestinationCandidatePlacesForPlanCandidateOutput.Places(childComplexity), true
 
 	case "EditPlanTitleOfPlanCandidateOutput.plan":
 		if e.complexity.EditPlanTitleOfPlanCandidateOutput.Plan == nil {
@@ -1364,17 +1364,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AvailablePlacesForPlan(childComplexity, args["input"].(model.AvailablePlacesForPlanInput)), true
 
-	case "Query.destinationCandidatePlacesForPlanCandidateSet":
-		if e.complexity.Query.DestinationCandidatePlacesForPlanCandidateSet == nil {
+	case "Query.destinationCandidatePlacesForPlanCandidate":
+		if e.complexity.Query.DestinationCandidatePlacesForPlanCandidate == nil {
 			break
 		}
 
-		args, err := ec.field_Query_destinationCandidatePlacesForPlanCandidateSet_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_destinationCandidatePlacesForPlanCandidate_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.DestinationCandidatePlacesForPlanCandidateSet(childComplexity, args["input"].(model.DestinationCandidatePlacesForPlanCandidateSetInput)), true
+		return e.complexity.Query.DestinationCandidatePlacesForPlanCandidate(childComplexity, args["input"].(model.DestinationCandidatePlacesForPlanCandidateInput)), true
 
 	case "Query.firebaseUser":
 		if e.complexity.Query.FirebaseUser == nil {
@@ -1646,7 +1646,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreatePlanByPlaceInput,
 		ec.unmarshalInputCreatePlanCandidateSetFromSavedPlanInput,
 		ec.unmarshalInputDeletePlaceFromPlanCandidateInput,
-		ec.unmarshalInputDestinationCandidatePlacesForPlanCandidateSetInput,
+		ec.unmarshalInputDestinationCandidatePlacesForPlanCandidateInput,
 		ec.unmarshalInputEditPlanTitleOfPlanCandidateInput,
 		ec.unmarshalInputFirebaseUserInput,
 		ec.unmarshalInputLikePlacesInput,
@@ -2058,7 +2058,7 @@ type LikeToPlaceInPlanCandidateOutput {
 
     placesToReplaceForPlanCandidate(input: PlacesToReplaceForPlanCandidateInput!): PlacesToReplaceForPlanCandidateOutput!
 
-    destinationCandidatePlacesForPlanCandidateSet(input: DestinationCandidatePlacesForPlanCandidateSetInput!): DestinationCandidatePlacesForPlanCandidateSetOutput!
+    destinationCandidatePlacesForPlanCandidate(input: DestinationCandidatePlacesForPlanCandidateInput!): DestinationCandidatePlacesForPlanCandidateOutput!
 }
 
 input PlanCandidateInput {
@@ -2113,12 +2113,12 @@ type PlacesToReplaceForPlanCandidateOutput {
     places: [Place!]!
 }
 
-input DestinationCandidatePlacesForPlanCandidateSetInput {
+input DestinationCandidatePlacesForPlanCandidateInput {
     planCandidateSetId: ID!
     planId: ID!
 }
 
-type DestinationCandidatePlacesForPlanCandidateSetOutput {
+type DestinationCandidatePlacesForPlanCandidateOutput {
     places: [Place!]!
 }`, BuiltIn: false},
 	{Name: "../schema/plan_candidate_type.graphqls", Input: `type PlanCandidate {
@@ -2654,13 +2654,13 @@ func (ec *executionContext) field_Query_availablePlacesForPlan_args(ctx context.
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_destinationCandidatePlacesForPlanCandidateSet_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_destinationCandidatePlacesForPlanCandidate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.DestinationCandidatePlacesForPlanCandidateSetInput
+	var arg0 model.DestinationCandidatePlacesForPlanCandidateInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDestinationCandidatePlacesForPlanCandidateSetInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateSetInput(ctx, tmp)
+		arg0, err = ec.unmarshalNDestinationCandidatePlacesForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4252,8 +4252,8 @@ func (ec *executionContext) fieldContext_DeletePlaceFromPlanCandidateOutput_plan
 	return fc, nil
 }
 
-func (ec *executionContext) _DestinationCandidatePlacesForPlanCandidateSetOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.DestinationCandidatePlacesForPlanCandidateSetOutput) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_DestinationCandidatePlacesForPlanCandidateSetOutput_places(ctx, field)
+func (ec *executionContext) _DestinationCandidatePlacesForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField, obj *model.DestinationCandidatePlacesForPlanCandidateOutput) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DestinationCandidatePlacesForPlanCandidateOutput_places(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -4283,9 +4283,9 @@ func (ec *executionContext) _DestinationCandidatePlacesForPlanCandidateSetOutput
 	return ec.marshalNPlace2ᚕᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐPlaceᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_DestinationCandidatePlacesForPlanCandidateSetOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_DestinationCandidatePlacesForPlanCandidateOutput_places(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "DestinationCandidatePlacesForPlanCandidateSetOutput",
+		Object:     "DestinationCandidatePlacesForPlanCandidateOutput",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -9702,8 +9702,8 @@ func (ec *executionContext) fieldContext_Query_placesToReplaceForPlanCandidate(c
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_destinationCandidatePlacesForPlanCandidateSet(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_destinationCandidatePlacesForPlanCandidateSet(ctx, field)
+func (ec *executionContext) _Query_destinationCandidatePlacesForPlanCandidate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_destinationCandidatePlacesForPlanCandidate(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -9716,7 +9716,7 @@ func (ec *executionContext) _Query_destinationCandidatePlacesForPlanCandidateSet
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().DestinationCandidatePlacesForPlanCandidateSet(rctx, fc.Args["input"].(model.DestinationCandidatePlacesForPlanCandidateSetInput))
+		return ec.resolvers.Query().DestinationCandidatePlacesForPlanCandidate(rctx, fc.Args["input"].(model.DestinationCandidatePlacesForPlanCandidateInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9728,12 +9728,12 @@ func (ec *executionContext) _Query_destinationCandidatePlacesForPlanCandidateSet
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.DestinationCandidatePlacesForPlanCandidateSetOutput)
+	res := resTmp.(*model.DestinationCandidatePlacesForPlanCandidateOutput)
 	fc.Result = res
-	return ec.marshalNDestinationCandidatePlacesForPlanCandidateSetOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateSetOutput(ctx, field.Selections, res)
+	return ec.marshalNDestinationCandidatePlacesForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateOutput(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_destinationCandidatePlacesForPlanCandidateSet(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_destinationCandidatePlacesForPlanCandidate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -9742,9 +9742,9 @@ func (ec *executionContext) fieldContext_Query_destinationCandidatePlacesForPlan
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "places":
-				return ec.fieldContext_DestinationCandidatePlacesForPlanCandidateSetOutput_places(ctx, field)
+				return ec.fieldContext_DestinationCandidatePlacesForPlanCandidateOutput_places(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type DestinationCandidatePlacesForPlanCandidateSetOutput", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type DestinationCandidatePlacesForPlanCandidateOutput", field.Name)
 		},
 	}
 	defer func() {
@@ -9754,7 +9754,7 @@ func (ec *executionContext) fieldContext_Query_destinationCandidatePlacesForPlan
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_destinationCandidatePlacesForPlanCandidateSet_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_destinationCandidatePlacesForPlanCandidate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -13425,8 +13425,8 @@ func (ec *executionContext) unmarshalInputDeletePlaceFromPlanCandidateInput(ctx 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputDestinationCandidatePlacesForPlanCandidateSetInput(ctx context.Context, obj interface{}) (model.DestinationCandidatePlacesForPlanCandidateSetInput, error) {
-	var it model.DestinationCandidatePlacesForPlanCandidateSetInput
+func (ec *executionContext) unmarshalInputDestinationCandidatePlacesForPlanCandidateInput(ctx context.Context, obj interface{}) (model.DestinationCandidatePlacesForPlanCandidateInput, error) {
+	var it model.DestinationCandidatePlacesForPlanCandidateInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
@@ -14961,19 +14961,19 @@ func (ec *executionContext) _DeletePlaceFromPlanCandidateOutput(ctx context.Cont
 	return out
 }
 
-var destinationCandidatePlacesForPlanCandidateSetOutputImplementors = []string{"DestinationCandidatePlacesForPlanCandidateSetOutput"}
+var destinationCandidatePlacesForPlanCandidateOutputImplementors = []string{"DestinationCandidatePlacesForPlanCandidateOutput"}
 
-func (ec *executionContext) _DestinationCandidatePlacesForPlanCandidateSetOutput(ctx context.Context, sel ast.SelectionSet, obj *model.DestinationCandidatePlacesForPlanCandidateSetOutput) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, destinationCandidatePlacesForPlanCandidateSetOutputImplementors)
+func (ec *executionContext) _DestinationCandidatePlacesForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, obj *model.DestinationCandidatePlacesForPlanCandidateOutput) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, destinationCandidatePlacesForPlanCandidateOutputImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("DestinationCandidatePlacesForPlanCandidateSetOutput")
+			out.Values[i] = graphql.MarshalString("DestinationCandidatePlacesForPlanCandidateOutput")
 		case "places":
-			out.Values[i] = ec._DestinationCandidatePlacesForPlanCandidateSetOutput_places(ctx, field, obj)
+			out.Values[i] = ec._DestinationCandidatePlacesForPlanCandidateOutput_places(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -16628,7 +16628,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "destinationCandidatePlacesForPlanCandidateSet":
+		case "destinationCandidatePlacesForPlanCandidate":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -16637,7 +16637,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_destinationCandidatePlacesForPlanCandidateSet(ctx, field)
+				res = ec._Query_destinationCandidatePlacesForPlanCandidate(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -17865,23 +17865,23 @@ func (ec *executionContext) marshalNDeletePlaceFromPlanCandidateOutput2ᚖporoto
 	return ec._DeletePlaceFromPlanCandidateOutput(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDestinationCandidatePlacesForPlanCandidateSetInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateSetInput(ctx context.Context, v interface{}) (model.DestinationCandidatePlacesForPlanCandidateSetInput, error) {
-	res, err := ec.unmarshalInputDestinationCandidatePlacesForPlanCandidateSetInput(ctx, v)
+func (ec *executionContext) unmarshalNDestinationCandidatePlacesForPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateInput(ctx context.Context, v interface{}) (model.DestinationCandidatePlacesForPlanCandidateInput, error) {
+	res, err := ec.unmarshalInputDestinationCandidatePlacesForPlanCandidateInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDestinationCandidatePlacesForPlanCandidateSetOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateSetOutput(ctx context.Context, sel ast.SelectionSet, v model.DestinationCandidatePlacesForPlanCandidateSetOutput) graphql.Marshaler {
-	return ec._DestinationCandidatePlacesForPlanCandidateSetOutput(ctx, sel, &v)
+func (ec *executionContext) marshalNDestinationCandidatePlacesForPlanCandidateOutput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v model.DestinationCandidatePlacesForPlanCandidateOutput) graphql.Marshaler {
+	return ec._DestinationCandidatePlacesForPlanCandidateOutput(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDestinationCandidatePlacesForPlanCandidateSetOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateSetOutput(ctx context.Context, sel ast.SelectionSet, v *model.DestinationCandidatePlacesForPlanCandidateSetOutput) graphql.Marshaler {
+func (ec *executionContext) marshalNDestinationCandidatePlacesForPlanCandidateOutput2ᚖporotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐDestinationCandidatePlacesForPlanCandidateOutput(ctx context.Context, sel ast.SelectionSet, v *model.DestinationCandidatePlacesForPlanCandidateOutput) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._DestinationCandidatePlacesForPlanCandidateSetOutput(ctx, sel, v)
+	return ec._DestinationCandidatePlacesForPlanCandidateOutput(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEditPlanTitleOfPlanCandidateInput2porotoᚗappᚋporotoᚋplannerᚋinternalᚋinterfaceᚋgraphqlᚋmodelᚐEditPlanTitleOfPlanCandidateInput(ctx context.Context, v interface{}) (model.EditPlanTitleOfPlanCandidateInput, error) {

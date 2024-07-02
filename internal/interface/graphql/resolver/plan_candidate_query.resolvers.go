@@ -212,7 +212,7 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 	}, nil
 }
 
-// DestinationCandidatePlacesForPlanCandidateSet is the resolver for the destinationCandidatePlacesForPlanCandidateSet field.
-func (r *queryResolver) DestinationCandidatePlacesForPlanCandidateSet(ctx context.Context, input model.DestinationCandidatePlacesForPlanCandidateSetInput) (*model.DestinationCandidatePlacesForPlanCandidateSetOutput, error) {
-	panic(fmt.Errorf("not implemented: DestinationCandidatePlacesForPlanCandidateSet - destinationCandidatePlacesForPlanCandidateSet"))
+// DestinationCandidatePlacesForPlanCandidate is the resolver for the destinationCandidatePlacesForPlanCandidate field.
+func (r *queryResolver) DestinationCandidatePlacesForPlanCandidate(ctx context.Context, input model.DestinationCandidatePlacesForPlanCandidateInput) (*model.DestinationCandidatePlacesForPlanCandidateOutput, error) {
+	panic(fmt.Errorf("not implemented: DestinationCandidatePlacesForPlanCandidate - destinationCandidatePlacesForPlanCandidate"))
 }
