@@ -13,12 +13,13 @@ func NewPlanCandidateSetFromEntity(
 	planCandidateSlice generated.PlanCandidateSlice,
 	planCandidateSetMetaDataSlice generated.PlanCandidateSetMetaDatumSlice,
 	planCandidateSetCategorySlice generated.PlanCandidateSetMetaDataCategorySlice,
+	planCandidateSetMetaDataCreateByCategory generated.PlanCandidateSetMetaDataCreateByCategorySlice,
 	planCandidatePlaces generated.PlanCandidatePlaceSlice,
 	planCandidateSetLikePlaceSlice generated.PlanCandidateSetLikePlaceSlice,
 	places []models.Place,
 	author *models.User,
 ) (*models.PlanCandidateSet, error) {
-	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetEntity.ID)
+	planCandidateSetMetaData, err := NewPlanCandidateMetaDataFromEntity(planCandidateSetMetaDataSlice, planCandidateSetCategorySlice, planCandidateSetMetaDataCreateByCategory, planCandidateSetEntity.ID)
 	if err != nil {
 		// PlanCandidateSetMetaDataがない場合はエラーにしない
 		logger, err := utils.NewLogger(utils.LoggerOption{

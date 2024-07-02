@@ -23,6 +23,7 @@ func NewPlanCandidateMetaDataFromDomainModel(planCandidateSetMetaData models.Pla
 func NewPlanCandidateMetaDataFromEntity(
 	planCandidateSetMetaDataSlice generated.PlanCandidateSetMetaDatumSlice,
 	planCandidateSetCategorySlice generated.PlanCandidateSetMetaDataCategorySlice,
+	planCandidateSetMetaDataCreateByCategory generated.PlanCandidateSetMetaDataCreateByCategorySlice,
 	planCandidateSetId string,
 ) (*models.PlanCandidateMetaData, error) {
 	planCandidateSetMetaData, ok := array.Find(planCandidateSetMetaDataSlice, func(planCandidateSetMetaData *generated.PlanCandidateSetMetaDatum) bool {
@@ -43,6 +44,7 @@ func NewPlanCandidateMetaDataFromEntity(
 			Latitude:  planCandidateSetMetaData.LatitudeStart,
 			Longitude: planCandidateSetMetaData.LongitudeStart,
 		},
-		FreeTime: planCandidateSetMetaData.PlanDurationMinutes.Ptr(),
+		FreeTime:                 planCandidateSetMetaData.PlanDurationMinutes.Ptr(),
+		CreateByCategoryMetaData: newPlanCandidateSetMetaDataCreateByCategoryFromEntry(planCandidateSetMetaDataCreateByCategory),
 	}, nil
 }

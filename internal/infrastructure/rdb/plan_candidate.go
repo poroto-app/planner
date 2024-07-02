@@ -63,6 +63,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId st
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaData),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaDataCategories),
 			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetLikePlaces),
+			qm.Load(generated.PlanCandidateSetRels.PlanCandidateSetMetaDataCreateByCategories),
 		},
 		placeQueryModes(generated.PlanCandidateSetRels.PlanCandidatePlaces, generated.PlanCandidatePlaceRels.Place),
 	)...).One(ctx, p.db)
@@ -126,6 +127,7 @@ func (p PlanCandidateRepository) Find(ctx context.Context, planCandidateSetId st
 		planCandidateSetEntity.R.PlanCandidates,
 		planCandidateSetEntity.R.PlanCandidateSetMetaData,
 		planCandidateSetEntity.R.PlanCandidateSetMetaDataCategories,
+		planCandidateSetEntity.R.PlanCandidateSetMetaDataCreateByCategories,
 		planCandidateSetEntity.R.PlanCandidatePlaces,
 		planCandidateSetEntity.R.PlanCandidateSetLikePlaces,
 		places,
@@ -389,7 +391,6 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 			if err := planCandidateSetMetaDataEntity.Insert(ctx, tx, boil.Infer()); err != nil {
 				return fmt.Errorf("failed to insert plan candidate set meta data: %w", err)
 			}
-
 		} else {
 			// 保存されている場合は更新
 			planCandidateMetaDataEntity := factory.NewPlanCandidateMetaDataFromDomainModel(meta, planCandidateId)
@@ -410,6 +411,19 @@ func (p PlanCandidateRepository) UpdatePlanCandidateMetaData(ctx context.Context
 			planCandidateSetMetaDataCategorySlice := factory.NewPlanCandidateSetMetaDataCategorySliceFromDomainModel(meta.CategoriesPreferred, meta.CategoriesRejected, planCandidateId)
 			if _, err := planCandidateSetMetaDataCategorySlice.InsertAll(ctx, tx, boil.Infer()); err != nil {
 				return fmt.Errorf("failed to insert plan candidate set meta data category: %w", err)
+			}
+		}
+
+		// カテゴリからプランを作成した場合の情報を更新
+		if meta.CreateByCategoryMetaData != nil {
+			// すでに保存されている場合は削除
+			if _, err := generated.PlanCandidateSetMetaDataCreateByCategories(generated.PlanCandidateSetMetaDataCreateByCategoryWhere.PlanCandidateSetID.EQ(planCandidateId)).DeleteAll(ctx, tx); err != nil {
+				return fmt.Errorf("failed to get create by category meta data: %w", err)
+			}
+
+			planCandidateSetMetaDataCreateByCategoryEntity := factory.NewPlanCandidateMetaDataCreateByCategoryFromDomainModel(planCandidateId, *meta.CreateByCategoryMetaData)
+			if err := planCandidateSetMetaDataCreateByCategoryEntity.Insert(ctx, tx, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set meta data create by category: %w", err)
 			}
 		}
 

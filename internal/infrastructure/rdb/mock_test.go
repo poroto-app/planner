@@ -135,6 +135,13 @@ func savePlanCandidateSet(ctx context.Context, db *sql.DB, planCandidateSet mode
 				}
 			}
 		}
+
+		if planCandidateSet.MetaData.CreateByCategoryMetaData != nil {
+			planCandidateSetMetaDataCreateByCategoryEntity := factory.NewPlanCandidateMetaDataCreateByCategoryFromDomainModel(planCandidateSet.Id, *planCandidateSet.MetaData.CreateByCategoryMetaData)
+			if err := planCandidateSetMetaDataCreateByCategoryEntity.Insert(ctx, db, boil.Infer()); err != nil {
+				return fmt.Errorf("failed to insert plan candidate set meta data create by category: %v", err)
+			}
+		}
 	}
 
 	// PlanCandidateを作成
