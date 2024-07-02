@@ -15,16 +15,22 @@ CREATE TABLE IF NOT EXISTS place_photo_versions
 );
 -- +goose StatementEnd
 
+-- +goose StatementBegin
 ALTER TABLE place_photos
     DROP COLUMN photo_url,
     DROP COLUMN width,
     DROP COLUMN height;
+-- +goose StatementEnd
+
+
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS place_photo_versions;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 ALTER TABLE place_photos
-    ADD COLUMN photo_url,
-    ADD COLUMN width,
-    ADD COLUMN height;
+    ADD COLUMN photo_url CHAR(36) DEFAULT NULL,
+    ADD COLUMN width INT DEFAULT 0,
+    ADD COLUMN height INT DEFAULT 0;
 -- +goose StatementEnd
