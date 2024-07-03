@@ -78,6 +78,7 @@ func cleanup(ctx context.Context, db *sql.DB) error {
 		// PlanCandidate
 		generated.PlanCandidateSetLikePlaces(),
 		generated.PlanCandidatePlaces(),
+		generated.PlanCandidateSetMetaDataCreateByCategories(),
 		generated.PlanCandidateSetMetaDataCategories(),
 		generated.PlanCandidateSetMetaData(),
 		generated.PlanCandidates(),
