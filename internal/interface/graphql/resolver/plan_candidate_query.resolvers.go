@@ -214,5 +214,26 @@ func (r *queryResolver) PlacesToReplaceForPlanCandidate(ctx context.Context, inp
 
 // DestinationCandidatePlacesForPlanCandidate is the resolver for the destinationCandidatePlacesForPlanCandidate field.
 func (r *queryResolver) DestinationCandidatePlacesForPlanCandidate(ctx context.Context, input model.DestinationCandidatePlacesForPlanCandidateInput) (*model.DestinationCandidatePlacesForPlanCandidateOutput, error) {
-	panic(fmt.Errorf("not implemented: DestinationCandidatePlacesForPlanCandidate - destinationCandidatePlacesForPlanCandidate"))
+	r.Logger.Info(
+		"DestinationCandidatePlacesForPlanCandidate",
+		zap.String("planCandidateSetId", input.PlanCandidateSetID),
+		zap.String("planId", input.PlanID),
+	)
+
+	places, err := r.PlaceService.FetchDestinationPlacesForPlanCandidate(ctx, place.FetchDestinationPlacesForPlanCandidateInput{
+		PlanCandidateSetId: input.PlanCandidateSetID,
+		PlanCandidateId:    input.PlanID,
+	})
+	if err != nil {
+		r.Logger.Error("error while fetching destination places for plan candidate", zap.Error(err))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	graphqlPlaces := array.Map(*places, func(place models.Place) *model.Place {
+		return factory.PlaceFromDomainModel(&place)
+	})
+
+	return &model.DestinationCandidatePlacesForPlanCandidateOutput{
+		Places: graphqlPlaces,
+	}, nil
 }
