@@ -72,9 +72,8 @@ type PlacesToReplaceForPlanCandidateOutput {
 
 input DestinationCandidatePlacesForPlanCandidateInput {
     planCandidateSetId: ID!
-    planId: ID!
 }
 
 type DestinationCandidatePlacesForPlanCandidateOutput {
-    places: [Place!]!
+    placesForPlanCandidates: [PlacesForPlanCandidate]!
 }

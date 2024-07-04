@@ -151,11 +151,10 @@ type DeletePlaceFromPlanCandidateOutput struct {
 
 type DestinationCandidatePlacesForPlanCandidateInput struct {
 	PlanCandidateSetID string `json:"planCandidateSetId"`
-	PlanID             string `json:"planId"`
 }
 
 type DestinationCandidatePlacesForPlanCandidateOutput struct {
-	Places []*Place `json:"places"`
+	PlacesForPlanCandidates []*PlacesForPlanCandidate `json:"placesForPlanCandidates"`
 }
 
 type EditPlanTitleOfPlanCandidateInput struct {
@@ -270,6 +269,11 @@ type Place struct {
 type PlaceCategory struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type PlacesForPlanCandidate struct {
+	PlanCandidateID string   `json:"planCandidateId"`
+	Places          []*Place `json:"places"`
 }
 
 type PlacesNearPlanInput struct {
