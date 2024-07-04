@@ -213,10 +213,16 @@ func (p PlanCandidateRepository) FindPlan(ctx context.Context, planCandidateId s
 
 func (p PlanCandidateRepository) AddPlan(ctx context.Context, planCandidateId string, plans ...models.Plan) error {
 	if err := runTransaction(ctx, p, func(ctx context.Context, tx *sql.Tx) error {
+		planCountInPlanCandidateSet, err := generated.PlanCandidates(generated.PlanCandidateWhere.PlanCandidateSetID.EQ(planCandidateId)).Count(ctx, tx)
+		if err != nil {
+			return fmt.Errorf("failed to count plan candidate: %w", err)
+		}
+
 		var planCandidateSlice generated.PlanCandidateSlice
 		var planCandidatePlaceSlice generated.PlanCandidatePlaceSlice
 		for iPlan, plan := range plans {
-			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId, iPlan)
+			planSortOrder := iPlan + int(planCountInPlanCandidateSet)
+			planCandidateEntity := factory.PlanCandidateEntityFromDomainModel(plan, planCandidateId, planSortOrder)
 			planCandidateSlice = append(planCandidateSlice, &planCandidateEntity)
 
 			planCandidatePlaceSlice = append(
