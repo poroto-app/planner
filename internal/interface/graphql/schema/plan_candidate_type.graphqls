@@ -4,3 +4,8 @@ type PlanCandidate {
     likedPlaceIds: [String!]!
     createdBasedOnCurrentLocation: Boolean!
 }
+
+type PlacesForPlanCandidate {
+    planCandidateId: ID!
+    places: [Place!]!
+}
