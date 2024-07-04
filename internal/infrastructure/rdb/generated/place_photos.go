@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -23,57 +24,62 @@ import (
 
 // PlacePhoto is an object representing the database table.
 type PlacePhoto struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlaceID   string    `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
-	UserID    string    `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
-	PhotoURL  string    `boil:"photo_url" json:"photo_url" toml:"photo_url" yaml:"photo_url"`
-	Width     int       `boil:"width" json:"width" toml:"width" yaml:"width"`
-	Height    int       `boil:"height" json:"height" toml:"height" yaml:"height"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID                    string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlaceID               string      `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
+	UserID                string      `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	PhotoURL              string      `boil:"photo_url" json:"photo_url" toml:"photo_url" yaml:"photo_url"`
+	Width                 int         `boil:"width" json:"width" toml:"width" yaml:"width"`
+	Height                int         `boil:"height" json:"height" toml:"height" yaml:"height"`
+	CreatedAt             time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt             time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	PlacePhotoReferenceID null.String `boil:"place_photo_reference_id" json:"place_photo_reference_id,omitempty" toml:"place_photo_reference_id" yaml:"place_photo_reference_id,omitempty"`
 
 	R *placePhotoR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L placePhotoL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var PlacePhotoColumns = struct {
-	ID        string
-	PlaceID   string
-	UserID    string
-	PhotoURL  string
-	Width     string
-	Height    string
-	CreatedAt string
-	UpdatedAt string
+	ID                    string
+	PlaceID               string
+	UserID                string
+	PhotoURL              string
+	Width                 string
+	Height                string
+	CreatedAt             string
+	UpdatedAt             string
+	PlacePhotoReferenceID string
 }{
-	ID:        "id",
-	PlaceID:   "place_id",
-	UserID:    "user_id",
-	PhotoURL:  "photo_url",
-	Width:     "width",
-	Height:    "height",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:                    "id",
+	PlaceID:               "place_id",
+	UserID:                "user_id",
+	PhotoURL:              "photo_url",
+	Width:                 "width",
+	Height:                "height",
+	CreatedAt:             "created_at",
+	UpdatedAt:             "updated_at",
+	PlacePhotoReferenceID: "place_photo_reference_id",
 }
 
 var PlacePhotoTableColumns = struct {
-	ID        string
-	PlaceID   string
-	UserID    string
-	PhotoURL  string
-	Width     string
-	Height    string
-	CreatedAt string
-	UpdatedAt string
+	ID                    string
+	PlaceID               string
+	UserID                string
+	PhotoURL              string
+	Width                 string
+	Height                string
+	CreatedAt             string
+	UpdatedAt             string
+	PlacePhotoReferenceID string
 }{
-	ID:        "place_photos.id",
-	PlaceID:   "place_photos.place_id",
-	UserID:    "place_photos.user_id",
-	PhotoURL:  "place_photos.photo_url",
-	Width:     "place_photos.width",
-	Height:    "place_photos.height",
-	CreatedAt: "place_photos.created_at",
-	UpdatedAt: "place_photos.updated_at",
+	ID:                    "place_photos.id",
+	PlaceID:               "place_photos.place_id",
+	UserID:                "place_photos.user_id",
+	PhotoURL:              "place_photos.photo_url",
+	Width:                 "place_photos.width",
+	Height:                "place_photos.height",
+	CreatedAt:             "place_photos.created_at",
+	UpdatedAt:             "place_photos.updated_at",
+	PlacePhotoReferenceID: "place_photos.place_photo_reference_id",
 }
 
 // Generated where
@@ -100,46 +106,58 @@ func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
 }
 
 var PlacePhotoWhere = struct {
-	ID        whereHelperstring
-	PlaceID   whereHelperstring
-	UserID    whereHelperstring
-	PhotoURL  whereHelperstring
-	Width     whereHelperint
-	Height    whereHelperint
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID                    whereHelperstring
+	PlaceID               whereHelperstring
+	UserID                whereHelperstring
+	PhotoURL              whereHelperstring
+	Width                 whereHelperint
+	Height                whereHelperint
+	CreatedAt             whereHelpertime_Time
+	UpdatedAt             whereHelpertime_Time
+	PlacePhotoReferenceID whereHelpernull_String
 }{
-	ID:        whereHelperstring{field: "`place_photos`.`id`"},
-	PlaceID:   whereHelperstring{field: "`place_photos`.`place_id`"},
-	UserID:    whereHelperstring{field: "`place_photos`.`user_id`"},
-	PhotoURL:  whereHelperstring{field: "`place_photos`.`photo_url`"},
-	Width:     whereHelperint{field: "`place_photos`.`width`"},
-	Height:    whereHelperint{field: "`place_photos`.`height`"},
-	CreatedAt: whereHelpertime_Time{field: "`place_photos`.`created_at`"},
-	UpdatedAt: whereHelpertime_Time{field: "`place_photos`.`updated_at`"},
+	ID:                    whereHelperstring{field: "`place_photos`.`id`"},
+	PlaceID:               whereHelperstring{field: "`place_photos`.`place_id`"},
+	UserID:                whereHelperstring{field: "`place_photos`.`user_id`"},
+	PhotoURL:              whereHelperstring{field: "`place_photos`.`photo_url`"},
+	Width:                 whereHelperint{field: "`place_photos`.`width`"},
+	Height:                whereHelperint{field: "`place_photos`.`height`"},
+	CreatedAt:             whereHelpertime_Time{field: "`place_photos`.`created_at`"},
+	UpdatedAt:             whereHelpertime_Time{field: "`place_photos`.`updated_at`"},
+	PlacePhotoReferenceID: whereHelpernull_String{field: "`place_photos`.`place_photo_reference_id`"},
 }
 
 // PlacePhotoRels is where relationship names are stored.
 var PlacePhotoRels = struct {
-	User              string
-	Place             string
-	PlanCollagePhotos string
+	PlacePhotoReference string
+	User                string
+	Place               string
+	PlanCollagePhotos   string
 }{
-	User:              "User",
-	Place:             "Place",
-	PlanCollagePhotos: "PlanCollagePhotos",
+	PlacePhotoReference: "PlacePhotoReference",
+	User:                "User",
+	Place:               "Place",
+	PlanCollagePhotos:   "PlanCollagePhotos",
 }
 
 // placePhotoR is where relationships are stored.
 type placePhotoR struct {
-	User              *User                 `boil:"User" json:"User" toml:"User" yaml:"User"`
-	Place             *Place                `boil:"Place" json:"Place" toml:"Place" yaml:"Place"`
-	PlanCollagePhotos PlanCollagePhotoSlice `boil:"PlanCollagePhotos" json:"PlanCollagePhotos" toml:"PlanCollagePhotos" yaml:"PlanCollagePhotos"`
+	PlacePhotoReference *PlacePhotoReference  `boil:"PlacePhotoReference" json:"PlacePhotoReference" toml:"PlacePhotoReference" yaml:"PlacePhotoReference"`
+	User                *User                 `boil:"User" json:"User" toml:"User" yaml:"User"`
+	Place               *Place                `boil:"Place" json:"Place" toml:"Place" yaml:"Place"`
+	PlanCollagePhotos   PlanCollagePhotoSlice `boil:"PlanCollagePhotos" json:"PlanCollagePhotos" toml:"PlanCollagePhotos" yaml:"PlanCollagePhotos"`
 }
 
 // NewStruct creates a new relationship struct
 func (*placePhotoR) NewStruct() *placePhotoR {
 	return &placePhotoR{}
+}
+
+func (r *placePhotoR) GetPlacePhotoReference() *PlacePhotoReference {
+	if r == nil {
+		return nil
+	}
+	return r.PlacePhotoReference
 }
 
 func (r *placePhotoR) GetUser() *User {
@@ -167,8 +185,8 @@ func (r *placePhotoR) GetPlanCollagePhotos() PlanCollagePhotoSlice {
 type placePhotoL struct{}
 
 var (
-	placePhotoAllColumns            = []string{"id", "place_id", "user_id", "photo_url", "width", "height", "created_at", "updated_at"}
-	placePhotoColumnsWithoutDefault = []string{"id", "place_id", "user_id", "photo_url", "width", "height"}
+	placePhotoAllColumns            = []string{"id", "place_id", "user_id", "photo_url", "width", "height", "created_at", "updated_at", "place_photo_reference_id"}
+	placePhotoColumnsWithoutDefault = []string{"id", "place_id", "user_id", "photo_url", "width", "height", "place_photo_reference_id"}
 	placePhotoColumnsWithDefault    = []string{"created_at", "updated_at"}
 	placePhotoPrimaryKeyColumns     = []string{"id"}
 	placePhotoGeneratedColumns      = []string{}
@@ -479,6 +497,17 @@ func (q placePhotoQuery) Exists(ctx context.Context, exec boil.ContextExecutor) 
 	return count > 0, nil
 }
 
+// PlacePhotoReference pointed to by the foreign key.
+func (o *PlacePhoto) PlacePhotoReference(mods ...qm.QueryMod) placePhotoReferenceQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("`id` = ?", o.PlacePhotoReferenceID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return PlacePhotoReferences(queryMods...)
+}
+
 // User pointed to by the foreign key.
 func (o *PlacePhoto) User(mods ...qm.QueryMod) userQuery {
 	queryMods := []qm.QueryMod{
@@ -513,6 +542,130 @@ func (o *PlacePhoto) PlanCollagePhotos(mods ...qm.QueryMod) planCollagePhotoQuer
 	)
 
 	return PlanCollagePhotos(queryMods...)
+}
+
+// LoadPlacePhotoReference allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (placePhotoL) LoadPlacePhotoReference(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlacePhoto interface{}, mods queries.Applicator) error {
+	var slice []*PlacePhoto
+	var object *PlacePhoto
+
+	if singular {
+		var ok bool
+		object, ok = maybePlacePhoto.(*PlacePhoto)
+		if !ok {
+			object = new(PlacePhoto)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlacePhoto)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlacePhoto))
+			}
+		}
+	} else {
+		s, ok := maybePlacePhoto.(*[]*PlacePhoto)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlacePhoto)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlacePhoto))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &placePhotoR{}
+		}
+		if !queries.IsNil(object.PlacePhotoReferenceID) {
+			args[object.PlacePhotoReferenceID] = struct{}{}
+		}
+
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placePhotoR{}
+			}
+
+			if !queries.IsNil(obj.PlacePhotoReferenceID) {
+				args[obj.PlacePhotoReferenceID] = struct{}{}
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`place_photo_references`),
+		qm.WhereIn(`place_photo_references.id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load PlacePhotoReference")
+	}
+
+	var resultSlice []*PlacePhotoReference
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice PlacePhotoReference")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for place_photo_references")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for place_photo_references")
+	}
+
+	if len(placePhotoReferenceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.PlacePhotoReference = foreign
+		if foreign.R == nil {
+			foreign.R = &placePhotoReferenceR{}
+		}
+		foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.PlacePhotoReferenceID, foreign.ID) {
+				local.R.PlacePhotoReference = foreign
+				if foreign.R == nil {
+					foreign.R = &placePhotoReferenceR{}
+				}
+				foreign.R.PlacePhotos = append(foreign.R.PlacePhotos, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadUser allows an eager lookup of values, cached into the
@@ -865,6 +1018,86 @@ func (placePhotoL) LoadPlanCollagePhotos(ctx context.Context, e boil.ContextExec
 		}
 	}
 
+	return nil
+}
+
+// SetPlacePhotoReference of the placePhoto to the related item.
+// Sets o.R.PlacePhotoReference to related.
+// Adds o to related.R.PlacePhotos.
+func (o *PlacePhoto) SetPlacePhotoReference(ctx context.Context, exec boil.ContextExecutor, insert bool, related *PlacePhotoReference) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE `place_photos` SET %s WHERE %s",
+		strmangle.SetParamNames("`", "`", 0, []string{"place_photo_reference_id"}),
+		strmangle.WhereClause("`", "`", 0, placePhotoPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.PlacePhotoReferenceID, related.ID)
+	if o.R == nil {
+		o.R = &placePhotoR{
+			PlacePhotoReference: related,
+		}
+	} else {
+		o.R.PlacePhotoReference = related
+	}
+
+	if related.R == nil {
+		related.R = &placePhotoReferenceR{
+			PlacePhotos: PlacePhotoSlice{o},
+		}
+	} else {
+		related.R.PlacePhotos = append(related.R.PlacePhotos, o)
+	}
+
+	return nil
+}
+
+// RemovePlacePhotoReference relationship.
+// Sets o.R.PlacePhotoReference to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *PlacePhoto) RemovePlacePhotoReference(ctx context.Context, exec boil.ContextExecutor, related *PlacePhotoReference) error {
+	var err error
+
+	queries.SetScanner(&o.PlacePhotoReferenceID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("place_photo_reference_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.PlacePhotoReference = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.PlacePhotos {
+		if queries.Equal(o.PlacePhotoReferenceID, ri.PlacePhotoReferenceID) {
+			continue
+		}
+
+		ln := len(related.R.PlacePhotos)
+		if ln > 1 && i < ln-1 {
+			related.R.PlacePhotos[i] = related.R.PlacePhotos[ln-1]
+		}
+		related.R.PlacePhotos = related.R.PlacePhotos[:ln-1]
+		break
+	}
 	return nil
 }
 
@@ -2057,6 +2290,38 @@ func (s PlacePhotoSlice) GetLoadedPlanCollagePhotos() PlanCollagePhotoSlice {
 			continue
 		}
 		result = append(result, item.R.PlanCollagePhotos...)
+	}
+	return result
+}
+
+// LoadPlacePhotoReferencesByPage performs eager loading of values by page. This is for a N-1 relationship.
+func (s PlacePhotoSlice) LoadPlacePhotoReferencesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadPlacePhotoReferencesByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlacePhotoSlice) LoadPlacePhotoReferencesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*PlacePhoto](s, pageSize) {
+		if err := chunk[0].L.LoadPlacePhotoReference(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlacePhotoSlice) GetLoadedPlacePhotoReferences() PlacePhotoReferenceSlice {
+	result := make(PlacePhotoReferenceSlice, 0, len(s))
+	mapCheckDup := make(map[*PlacePhotoReference]struct{})
+	for _, item := range s {
+		if item.R == nil || item.R.PlacePhotoReference == nil {
+			continue
+		}
+		if _, ok := mapCheckDup[item.R.PlacePhotoReference]; ok {
+			continue
+		}
+		result = append(result, item.R.PlacePhotoReference)
+		mapCheckDup[item.R.PlacePhotoReference] = struct{}{}
 	}
 	return result
 }

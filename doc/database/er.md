@@ -111,16 +111,23 @@ title: place photos
 ---
 erDiagram
 	place_photos {
-		string id PK
+		char(36) id PK
 		char(36) place_id FK
-		string user_id FK
-		string url
+		char(36) user_id FK
+        char(36) place_photo_references FK
+		char(36) photo_url
 		int width
 		int height
 	}
+    place_photo_references {
+        char(36) id PK
+        char(36) place_id FK
+        char(36) user_id FK
+    }
 
-	place ||..o{ place_photos: "1:N"
-	user ||..o{ place_photos: "1:N"
+	place ||..o{ place_photo_references: "1:N"
+	user ||..o{ place_photo_references: "1:N"
+    place_photo_references ||..|{ place_photos: "1:N"
 ```
 
 ### Plan Candidate
