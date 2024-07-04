@@ -217,23 +217,24 @@ func (r *queryResolver) DestinationCandidatePlacesForPlanCandidate(ctx context.C
 	r.Logger.Info(
 		"DestinationCandidatePlacesForPlanCandidate",
 		zap.String("planCandidateSetId", input.PlanCandidateSetID),
-		zap.String("planId", input.PlanID),
 	)
 
-	places, err := r.PlaceService.FetchDestinationPlacesForPlanCandidate(ctx, place.FetchDestinationPlacesForPlanCandidateInput{
+	o, err := r.PlaceService.FetchDestinationPlacesForPlanCandidate(ctx, place.FetchDestinationPlacesForPlanCandidateInput{
 		PlanCandidateSetId: input.PlanCandidateSetID,
-		PlanCandidateId:    input.PlanID,
 	})
 	if err != nil {
 		r.Logger.Error("error while fetching destination places for plan candidate", zap.Error(err))
 		return nil, fmt.Errorf("internal server error")
 	}
 
-	graphqlPlaces := array.Map(*places, func(place models.Place) *model.Place {
-		return factory.PlaceFromDomainModel(&place)
-	})
-
 	return &model.DestinationCandidatePlacesForPlanCandidateOutput{
-		Places: graphqlPlaces,
+		PlacesForPlanCandidates: array.Map(o.PlacesForPlanCandidates, func(placesForPlanCandidate place.PlacesForPlanCandidate) *model.PlacesForPlanCandidate {
+			return &model.PlacesForPlanCandidate{
+				PlanCandidateID: placesForPlanCandidate.PlanCandidateId,
+				Places: array.Map(placesForPlanCandidate.Places, func(place models.Place) *model.Place {
+					return factory.PlaceFromDomainModel(&place)
+				}),
+			}
+		}),
 	}, nil
 }

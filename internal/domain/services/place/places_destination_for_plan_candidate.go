@@ -13,12 +13,20 @@ const (
 
 type FetchDestinationPlacesForPlanCandidateInput struct {
 	PlanCandidateSetId string
-	PlanCandidateId    string
 	Limit              int
 }
 
+type FetchDestinationPlacesForPlanCandidateOutput struct {
+	PlacesForPlanCandidates []PlacesForPlanCandidate
+}
+
+type PlacesForPlanCandidate struct {
+	PlanCandidateId string
+	Places          []models.Place
+}
+
 // FetchDestinationPlacesForPlanCandidate カテゴリからプランを作成したときに、その条件をもとに他の目的地を提示する
-func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, input FetchDestinationPlacesForPlanCandidateInput) (*[]models.Place, error) {
+func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, input FetchDestinationPlacesForPlanCandidateInput) (*FetchDestinationPlacesForPlanCandidateOutput, error) {
 	if input.Limit == 0 {
 		input.Limit = desfaultFetchDestinationPlacesForPlanCandidateLimit
 	}
@@ -30,12 +38,26 @@ func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, inp
 
 	// カテゴリからプランを作成したときのみ取得できるようにする
 	if planCandidate.MetaData.CreateByCategoryMetaData == nil {
-		return &[]models.Place{}, nil
+		return &FetchDestinationPlacesForPlanCandidateOutput{
+			PlacesForPlanCandidates: array.Map(planCandidate.Plans, func(plan models.Plan) PlacesForPlanCandidate {
+				return PlacesForPlanCandidate{
+					PlanCandidateId: plan.Id,
+					Places:          []models.Place{},
+				}
+			}),
+		}, nil
 	}
 
 	googleCategoryTypes := planCandidate.MetaData.CreateByCategoryMetaData.Category.GooglePlaceTypes
 	if len(googleCategoryTypes) == 0 {
-		return &[]models.Place{}, nil
+		return &FetchDestinationPlacesForPlanCandidateOutput{
+			PlacesForPlanCandidates: array.Map(planCandidate.Plans, func(plan models.Plan) PlacesForPlanCandidate {
+				return PlacesForPlanCandidate{
+					PlanCandidateId: plan.Id,
+					Places:          []models.Place{},
+				}
+			}),
+		}, nil
 	}
 
 	placesInPlans := array.FlatMap(planCandidate.Plans, func(plan models.Plan) []models.Place {
@@ -64,5 +86,12 @@ func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, inp
 		placesDestination = placesDestination[:input.Limit]
 	}
 
-	return &placesDestination, nil
+	return &FetchDestinationPlacesForPlanCandidateOutput{
+		PlacesForPlanCandidates: array.Map(planCandidate.Plans, func(plan models.Plan) PlacesForPlanCandidate {
+			return PlacesForPlanCandidate{
+				PlanCandidateId: plan.Id,
+				Places:          placesDestination,
+			}
+		}),
+	}, nil
 }
