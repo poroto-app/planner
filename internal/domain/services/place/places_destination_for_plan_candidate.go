@@ -86,6 +86,9 @@ func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, inp
 		placesDestination = placesDestination[:input.Limit]
 	}
 
+	// 画像を取得
+	placesDestination = s.placeSearchService.FetchPlacesPhotosAndSave(ctx, placesDestination...)
+
 	return &FetchDestinationPlacesForPlanCandidateOutput{
 		PlacesForPlanCandidates: array.Map(planCandidate.Plans, func(plan models.Plan) PlacesForPlanCandidate {
 			return PlacesForPlanCandidate{
