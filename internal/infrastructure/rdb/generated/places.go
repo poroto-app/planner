@@ -75,6 +75,7 @@ var PlaceWhere = struct {
 var PlaceRels = struct {
 	PlaceRecommendation        string
 	GooglePlaces               string
+	PlacePhotoReferences       string
 	PlacePhotos                string
 	PlanCandidatePlaces        string
 	PlanCandidateSetLikePlaces string
@@ -84,6 +85,7 @@ var PlaceRels = struct {
 }{
 	PlaceRecommendation:        "PlaceRecommendation",
 	GooglePlaces:               "GooglePlaces",
+	PlacePhotoReferences:       "PlacePhotoReferences",
 	PlacePhotos:                "PlacePhotos",
 	PlanCandidatePlaces:        "PlanCandidatePlaces",
 	PlanCandidateSetLikePlaces: "PlanCandidateSetLikePlaces",
@@ -96,6 +98,7 @@ var PlaceRels = struct {
 type placeR struct {
 	PlaceRecommendation        *PlaceRecommendation           `boil:"PlaceRecommendation" json:"PlaceRecommendation" toml:"PlaceRecommendation" yaml:"PlaceRecommendation"`
 	GooglePlaces               GooglePlaceSlice               `boil:"GooglePlaces" json:"GooglePlaces" toml:"GooglePlaces" yaml:"GooglePlaces"`
+	PlacePhotoReferences       PlacePhotoReferenceSlice       `boil:"PlacePhotoReferences" json:"PlacePhotoReferences" toml:"PlacePhotoReferences" yaml:"PlacePhotoReferences"`
 	PlacePhotos                PlacePhotoSlice                `boil:"PlacePhotos" json:"PlacePhotos" toml:"PlacePhotos" yaml:"PlacePhotos"`
 	PlanCandidatePlaces        PlanCandidatePlaceSlice        `boil:"PlanCandidatePlaces" json:"PlanCandidatePlaces" toml:"PlanCandidatePlaces" yaml:"PlanCandidatePlaces"`
 	PlanCandidateSetLikePlaces PlanCandidateSetLikePlaceSlice `boil:"PlanCandidateSetLikePlaces" json:"PlanCandidateSetLikePlaces" toml:"PlanCandidateSetLikePlaces" yaml:"PlanCandidateSetLikePlaces"`
@@ -121,6 +124,13 @@ func (r *placeR) GetGooglePlaces() GooglePlaceSlice {
 		return nil
 	}
 	return r.GooglePlaces
+}
+
+func (r *placeR) GetPlacePhotoReferences() PlacePhotoReferenceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.PlacePhotoReferences
 }
 
 func (r *placeR) GetPlacePhotos() PlacePhotoSlice {
@@ -506,6 +516,20 @@ func (o *Place) GooglePlaces(mods ...qm.QueryMod) googlePlaceQuery {
 	return GooglePlaces(queryMods...)
 }
 
+// PlacePhotoReferences retrieves all the place_photo_reference's PlacePhotoReferences with an executor.
+func (o *Place) PlacePhotoReferences(mods ...qm.QueryMod) placePhotoReferenceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("`place_photo_references`.`place_id`=?", o.ID),
+	)
+
+	return PlacePhotoReferences(queryMods...)
+}
+
 // PlacePhotos retrieves all the place_photo's PlacePhotos with an executor.
 func (o *Place) PlacePhotos(mods ...qm.QueryMod) placePhotoQuery {
 	var queryMods []qm.QueryMod
@@ -810,6 +834,119 @@ func (placeL) LoadGooglePlaces(ctx context.Context, e boil.ContextExecutor, sing
 				local.R.GooglePlaces = append(local.R.GooglePlaces, foreign)
 				if foreign.R == nil {
 					foreign.R = &googlePlaceR{}
+				}
+				foreign.R.Place = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadPlacePhotoReferences allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (placeL) LoadPlacePhotoReferences(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`place_photo_references`),
+		qm.WhereIn(`place_photo_references.place_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load place_photo_references")
+	}
+
+	var resultSlice []*PlacePhotoReference
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice place_photo_references")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on place_photo_references")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for place_photo_references")
+	}
+
+	if len(placePhotoReferenceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.PlacePhotoReferences = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &placePhotoReferenceR{}
+			}
+			foreign.R.Place = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PlaceID {
+				local.R.PlacePhotoReferences = append(local.R.PlacePhotoReferences, foreign)
+				if foreign.R == nil {
+					foreign.R = &placePhotoReferenceR{}
 				}
 				foreign.R.Place = local
 				break
@@ -1592,6 +1729,59 @@ func (o *Place) AddGooglePlaces(ctx context.Context, exec boil.ContextExecutor, 
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &googlePlaceR{
+				Place: o,
+			}
+		} else {
+			rel.R.Place = o
+		}
+	}
+	return nil
+}
+
+// AddPlacePhotoReferences adds the given related objects to the existing relationships
+// of the place, optionally inserting them as new records.
+// Appends related to o.R.PlacePhotoReferences.
+// Sets related.R.Place appropriately.
+func (o *Place) AddPlacePhotoReferences(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*PlacePhotoReference) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PlaceID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE `place_photo_references` SET %s WHERE %s",
+				strmangle.SetParamNames("`", "`", 0, []string{"place_id"}),
+				strmangle.WhereClause("`", "`", 0, placePhotoReferencePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PlaceID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &placeR{
+			PlacePhotoReferences: related,
+		}
+	} else {
+		o.R.PlacePhotoReferences = append(o.R.PlacePhotoReferences, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &placePhotoReferenceR{
 				Place: o,
 			}
 		} else {
@@ -2961,6 +3151,33 @@ func (s PlaceSlice) GetLoadedGooglePlaces() GooglePlaceSlice {
 			continue
 		}
 		result = append(result, item.R.GooglePlaces...)
+	}
+	return result
+}
+
+// LoadPlacePhotoReferencesByPage performs eager loading of values by page. This is for a 1-M or N-M relationship.
+func (s PlaceSlice) LoadPlacePhotoReferencesByPage(ctx context.Context, e boil.ContextExecutor, mods ...qm.QueryMod) error {
+	return s.LoadPlacePhotoReferencesByPageEx(ctx, e, DefaultPageSize, mods...)
+}
+func (s PlaceSlice) LoadPlacePhotoReferencesByPageEx(ctx context.Context, e boil.ContextExecutor, pageSize int, mods ...qm.QueryMod) error {
+	if len(s) == 0 {
+		return nil
+	}
+	for _, chunk := range chunkSlice[*Place](s, pageSize) {
+		if err := chunk[0].L.LoadPlacePhotoReferences(ctx, e, false, &chunk, queryMods(mods)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s PlaceSlice) GetLoadedPlacePhotoReferences() PlacePhotoReferenceSlice {
+	result := make(PlacePhotoReferenceSlice, 0, len(s)*2)
+	for _, item := range s {
+		if item.R == nil || item.R.PlacePhotoReferences == nil {
+			continue
+		}
+		result = append(result, item.R.PlacePhotoReferences...)
 	}
 	return result
 }
