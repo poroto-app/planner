@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	desfaultFetchDestinationPlacesForPlanCandidateLimit = 10
+	defaultFetchDestinationPlacesForPlanCandidateLimit = 10
 )
 
 type FetchDestinationPlacesForPlanCandidateInput struct {
@@ -28,7 +28,7 @@ type PlacesForPlanCandidate struct {
 // FetchDestinationPlacesForPlanCandidate カテゴリからプランを作成したときに、その条件をもとに他の目的地を提示する
 func (s Service) FetchDestinationPlacesForPlanCandidate(ctx context.Context, input FetchDestinationPlacesForPlanCandidateInput) (*FetchDestinationPlacesForPlanCandidateOutput, error) {
 	if input.Limit == 0 {
-		input.Limit = desfaultFetchDestinationPlacesForPlanCandidateLimit
+		input.Limit = defaultFetchDestinationPlacesForPlanCandidateLimit
 	}
 
 	planCandidate, err := s.planCandidateRepository.Find(ctx, input.PlanCandidateSetId, time.Now())
