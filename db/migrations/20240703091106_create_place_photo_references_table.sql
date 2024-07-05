@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS place_photo_references
 (
     id         CHAR(36) PRIMARY KEY,
     place_id   CHAR(36) NOT NULL,
-    user_id    CHAR(36) NOT NULL,
+    user_id    VARCHAR(36) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (place_id) REFERENCES places (id),
