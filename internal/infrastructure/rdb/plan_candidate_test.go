@@ -659,27 +659,34 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 	cases := []struct {
 		name                   string
 		planCandidateId        string
+		savedPlanCandidateSet  generated.PlanCandidateSet
+		savedPlanCandidates    generated.PlanCandidateSlice
 		savedPlans             generated.PlanSlice
 		plans                  []models.Plan
 		expectedPlanCandidates generated.PlanCandidateSlice
 	}{
 		{
-			name:            "success",
-			planCandidateId: "test-plan-candidate",
+			name:            "add plan from empty",
+			planCandidateId: "plan-candidate",
+			savedPlanCandidateSet: generated.PlanCandidateSet{
+				ID:        "plan-candidate",
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
 			savedPlans: generated.PlanSlice{
-				{ID: "test-plan-1"},
+				// もとになったプラン
+				{ID: "test-plan-parent"},
 			},
 			plans: []models.Plan{
 				{
-					Id: "test-plan-1",
+					Id: "plan-candidate-1",
 					Places: []models.Place{
 						{Id: "tokyo-station"},
 						{Id: "shinagawa-station"},
 					},
-					ParentPlanId: utils.ToPointer("test-plan-1"),
+					ParentPlanId: utils.ToPointer("test-plan-parent"),
 				},
 				{
-					Id: "test-plan-2",
+					Id: "plan-candidate-2",
 					Places: []models.Place{
 						{Id: "yokohama-station"},
 						{Id: "shin-yokohama-station"},
@@ -689,14 +696,47 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			},
 			expectedPlanCandidates: generated.PlanCandidateSlice{
 				{
-					ID:                 "test-plan-1",
-					PlanCandidateSetID: "test-plan-candidate",
+					ID:                 "plan-candidate-1",
+					PlanCandidateSetID: "plan-candidate",
 					SortOrder:          0,
-					ParentPlanID:       null.StringFrom("test-plan-1"),
+					ParentPlanID:       null.StringFrom("test-plan-parent"),
 				},
 				{
-					ID:                 "test-plan-2",
-					PlanCandidateSetID: "test-plan-candidate",
+					ID:                 "plan-candidate-2",
+					PlanCandidateSetID: "plan-candidate",
+					SortOrder:          1,
+					ParentPlanID:       null.String{},
+				},
+			},
+		},
+		{
+			name:                  "add plan from existing",
+			planCandidateId:       "plan-candidate",
+			savedPlanCandidateSet: generated.PlanCandidateSet{ID: "plan-candidate", ExpiresAt: time.Now().Add(time.Hour)},
+			savedPlanCandidates: generated.PlanCandidateSlice{
+				// すでに作成されているプラン
+				{ID: "plan-candidate-saved", PlanCandidateSetID: "plan-candidate", SortOrder: 0},
+			},
+			plans: []models.Plan{
+				{
+					Id: "plan-candidate-1",
+					Places: []models.Place{
+						{Id: "yokohama-station"},
+						{Id: "shin-yokohama-station"},
+					},
+					ParentPlanId: nil,
+				},
+			},
+			expectedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "plan-candidate-saved",
+					PlanCandidateSetID: "plan-candidate",
+					SortOrder:          0,
+					ParentPlanID:       null.String{},
+				},
+				{
+					ID:                 "plan-candidate-1",
+					PlanCandidateSetID: "plan-candidate",
 					SortOrder:          1,
 					ParentPlanID:       null.String{},
 				},
@@ -726,9 +766,12 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidateSet(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
+			if err := c.savedPlanCandidateSet.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plan candidate set: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidates.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plan candidates: %v", err)
 			}
 
 			if _, err := c.savedPlans.InsertAll(testContext, testDB, boil.Infer()); err != nil {
@@ -748,10 +791,10 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(
-				c.expectedPlanCandidates,
-				planCandidates,
-				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
+				arrayFromPointerSlice(c.expectedPlanCandidates),
+				arrayFromPointerSlice(planCandidates),
 				cmpopts.IgnoreFields(generated.PlanCandidate{}, "CreatedAt", "UpdatedAt"),
+				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
 			); diff != "" {
 				t.Fatalf("wrong plan candidates (-expected, +actual): %v", diff)
 			}
