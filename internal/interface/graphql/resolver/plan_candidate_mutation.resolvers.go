@@ -7,10 +7,10 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"poroto.app/poroto/planner/internal/domain/array"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"poroto.app/poroto/planner/internal/domain/array"
 	"poroto.app/poroto/planner/internal/domain/models"
 	"poroto.app/poroto/planner/internal/domain/services/plancandidate"
 	"poroto.app/poroto/planner/internal/domain/services/plangen"
@@ -158,7 +158,14 @@ func (r *mutationResolver) CreatePlanByCategory(ctx context.Context, input model
 			Latitude:  input.Latitude,
 			Longitude: input.Longitude,
 		},
-		CategoryNamesPreferred: &[]string{category.Id},
+		CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+			Category:   category,
+			RadiusInKm: input.RadiusInKm,
+			Location: models.GeoLocation{
+				Latitude:  input.Latitude,
+				Longitude: input.Longitude,
+			},
+		},
 	}); err != nil {
 		r.Logger.Error("error while saving plans", zap.Error(err))
 	}

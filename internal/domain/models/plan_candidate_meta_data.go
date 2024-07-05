@@ -7,13 +7,21 @@ type PlanCandidateMetaData struct {
 	CategoriesRejected            *[]LocationCategory
 	LocationStart                 *GeoLocation
 	FreeTime                      *int
+	CreateByCategoryMetaData      *CreateByCategoryMetaData
+}
+
+type CreateByCategoryMetaData struct {
+	Category   LocationCategoryCreatePlan
+	Location   GeoLocation
+	RadiusInKm float64
 }
 
 func (p PlanCandidateMetaData) IsZero() bool {
 	return p.CategoriesPreferred == nil &&
 		p.CategoriesRejected == nil &&
 		p.LocationStart == nil &&
-		p.FreeTime == nil
+		p.FreeTime == nil &&
+		p.CreateByCategoryMetaData == nil
 }
 
 func (p PlanCandidateMetaData) GetLocationStart() *GeoLocation {

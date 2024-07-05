@@ -2,6 +2,9 @@ package rdb
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -192,6 +195,38 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				Plans:           []models.Plan{},
 			},
 		},
+		{
+			name:               "create by category",
+			now:                time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local),
+			planCandidateSetId: "test",
+			savedPlanCandidateSet: models.PlanCandidateSet{
+				Id:        "test",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: false,
+					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+						Category:   models.LocationCategorySetCreatePlanAmusements.Categories[0],
+						Location:   models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+						RadiusInKm: 1.0,
+					},
+				},
+			},
+			expected: &models.PlanCandidateSet{
+				Id:        "test",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+				Plans:     []models.Plan{},
+				MetaData: models.PlanCandidateMetaData{
+					CreatedBasedOnCurrentLocation: false,
+					LocationStart:                 &models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+					CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+						Category:   models.LocationCategorySetCreatePlanAmusements.Categories[0],
+						Location:   models.GeoLocation{Latitude: 139.767125, Longitude: 35.681236},
+						RadiusInKm: 1.0,
+					},
+				},
+			},
+		},
 	}
 
 	planCandidateRepository, err := NewPlanCandidateRepository(testDB)
@@ -210,7 +245,7 @@ func TestPlanCandidateRepository_Find(t *testing.T) {
 				}
 			})
 
-			// 事前にデータを準備
+			// データ準備
 			placesInPlanCandidates := array.Flatten(array.Map(c.savedPlanCandidateSet.Plans, func(plan models.Plan) []models.Place { return plan.Places }))
 			if err := savePlaces(testContext, testDB, placesInPlanCandidates); err != nil {
 				t.Fatalf("failed to save places: %v", err)
@@ -624,27 +659,34 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 	cases := []struct {
 		name                   string
 		planCandidateId        string
+		savedPlanCandidateSet  generated.PlanCandidateSet
+		savedPlanCandidates    generated.PlanCandidateSlice
 		savedPlans             generated.PlanSlice
 		plans                  []models.Plan
 		expectedPlanCandidates generated.PlanCandidateSlice
 	}{
 		{
-			name:            "success",
-			planCandidateId: "test-plan-candidate",
+			name:            "add plan from empty",
+			planCandidateId: "plan-candidate",
+			savedPlanCandidateSet: generated.PlanCandidateSet{
+				ID:        "plan-candidate",
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
 			savedPlans: generated.PlanSlice{
-				{ID: "test-plan-1"},
+				// もとになったプラン
+				{ID: "test-plan-parent"},
 			},
 			plans: []models.Plan{
 				{
-					Id: "test-plan-1",
+					Id: "plan-candidate-1",
 					Places: []models.Place{
 						{Id: "tokyo-station"},
 						{Id: "shinagawa-station"},
 					},
-					ParentPlanId: utils.ToPointer("test-plan-1"),
+					ParentPlanId: utils.ToPointer("test-plan-parent"),
 				},
 				{
-					Id: "test-plan-2",
+					Id: "plan-candidate-2",
 					Places: []models.Place{
 						{Id: "yokohama-station"},
 						{Id: "shin-yokohama-station"},
@@ -654,14 +696,47 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			},
 			expectedPlanCandidates: generated.PlanCandidateSlice{
 				{
-					ID:                 "test-plan-1",
-					PlanCandidateSetID: "test-plan-candidate",
+					ID:                 "plan-candidate-1",
+					PlanCandidateSetID: "plan-candidate",
 					SortOrder:          0,
-					ParentPlanID:       null.StringFrom("test-plan-1"),
+					ParentPlanID:       null.StringFrom("test-plan-parent"),
 				},
 				{
-					ID:                 "test-plan-2",
-					PlanCandidateSetID: "test-plan-candidate",
+					ID:                 "plan-candidate-2",
+					PlanCandidateSetID: "plan-candidate",
+					SortOrder:          1,
+					ParentPlanID:       null.String{},
+				},
+			},
+		},
+		{
+			name:                  "add plan from existing",
+			planCandidateId:       "plan-candidate",
+			savedPlanCandidateSet: generated.PlanCandidateSet{ID: "plan-candidate", ExpiresAt: time.Now().Add(time.Hour)},
+			savedPlanCandidates: generated.PlanCandidateSlice{
+				// すでに作成されているプラン
+				{ID: "plan-candidate-saved", PlanCandidateSetID: "plan-candidate", SortOrder: 0},
+			},
+			plans: []models.Plan{
+				{
+					Id: "plan-candidate-1",
+					Places: []models.Place{
+						{Id: "yokohama-station"},
+						{Id: "shin-yokohama-station"},
+					},
+					ParentPlanId: nil,
+				},
+			},
+			expectedPlanCandidates: generated.PlanCandidateSlice{
+				{
+					ID:                 "plan-candidate-saved",
+					PlanCandidateSetID: "plan-candidate",
+					SortOrder:          0,
+					ParentPlanID:       null.String{},
+				},
+				{
+					ID:                 "plan-candidate-1",
+					PlanCandidateSetID: "plan-candidate",
 					SortOrder:          1,
 					ParentPlanID:       null.String{},
 				},
@@ -691,9 +766,12 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 				t.Fatalf("failed to save places: %v", err)
 			}
 
-			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidateSet(testContext, testDB, models.PlanCandidateSet{Id: c.planCandidateId, ExpiresAt: time.Now().Add(time.Hour)}); err != nil {
-				t.Fatalf("failed to create plan candidate: %v", err)
+			if err := c.savedPlanCandidateSet.Insert(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plan candidate set: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidates.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plan candidates: %v", err)
 			}
 
 			if _, err := c.savedPlans.InsertAll(testContext, testDB, boil.Infer()); err != nil {
@@ -713,10 +791,10 @@ func TestPlanCandidateRepository_AddPlan(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(
-				c.expectedPlanCandidates,
-				planCandidates,
-				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
+				arrayFromPointerSlice(c.expectedPlanCandidates),
+				arrayFromPointerSlice(planCandidates),
 				cmpopts.IgnoreFields(generated.PlanCandidate{}, "CreatedAt", "UpdatedAt"),
+				cmpopts.SortSlices(func(a, b generated.PlanCandidate) bool { return a.SortOrder < b.SortOrder }),
 			); diff != "" {
 				t.Fatalf("wrong plan candidates (-expected, +actual): %v", diff)
 			}
@@ -1067,18 +1145,22 @@ func TestPlanCandidateRepository_UpdatePlacesOrder_ShouldReturnError(t *testing.
 
 func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 	cases := []struct {
-		name                  string
-		planCandidateSetId    string
-		savedPlanCandidateSet models.PlanCandidateSet
-		metaData              models.PlanCandidateMetaData
+		name                                             string
+		planCandidateSetId                               string
+		savedPlanCandidateSet                            generated.PlanCandidateSet
+		savedPlanCandidateSetMetaData                    *generated.PlanCandidateSetMetaDatum
+		savedPlanCandidateSetMetaDataCategorySlice       generated.PlanCandidateSetMetaDataCategorySlice
+		metaData                                         models.PlanCandidateMetaData
+		expectedPlanCandidateSetMetaData                 *generated.PlanCandidateSetMetaDatum
+		expectedPlanCandidateSetMetaDataCategorySlice    generated.PlanCandidateSetMetaDataCategorySlice
+		expectedPlanCandidateSetMetaDataCreateByCategory *generated.PlanCandidateSetMetaDataCreateByCategory
 	}{
 		{
 			name:               "save plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidateSet{
-				Id:        "test-plan-candidate-set",
+			savedPlanCandidateSet: generated.PlanCandidateSet{
+				ID:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
-				MetaData:  models.PlanCandidateMetaData{},
 			},
 			metaData: models.PlanCandidateMetaData{
 				CreatedBasedOnCurrentLocation: true,
@@ -1087,19 +1169,52 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
 				FreeTime:                      utils.ToPointer(60),
 			},
+			expectedPlanCandidateSetMetaData: &generated.PlanCandidateSetMetaDatum{
+				PlanCandidateSetID:           "test-plan-candidate-set",
+				LatitudeStart:                35.681236,
+				LongitudeStart:               139.767125,
+				IsCreatedFromCurrentLocation: true,
+				PlanDurationMinutes:          null.IntFrom(60),
+			},
+			expectedPlanCandidateSetMetaDataCategorySlice: generated.PlanCandidateSetMetaDataCategorySlice{
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryRestaurant.Name,
+					IsSelected:         true,
+				},
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategorySpa.Name,
+					IsSelected:         false,
+				},
+			},
 		},
 		{
 			name:               "update plan candidate meta data",
 			planCandidateSetId: "test-plan-candidate-set",
-			savedPlanCandidateSet: models.PlanCandidateSet{
-				Id:        "test-plan-candidate-set",
+			savedPlanCandidateSet: generated.PlanCandidateSet{
+				ID:        "test-plan-candidate-set",
 				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
-				MetaData: models.PlanCandidateMetaData{
-					CreatedBasedOnCurrentLocation: false,
-					CategoriesPreferred:           &[]models.LocationCategory{models.CategoryRestaurant},
-					CategoriesRejected:            &[]models.LocationCategory{models.CategorySpa},
-					LocationStart:                 &models.GeoLocation{Latitude: 35.681236, Longitude: 139.767125},
-					FreeTime:                      utils.ToPointer(60),
+			},
+			savedPlanCandidateSetMetaData: &generated.PlanCandidateSetMetaDatum{
+				PlanCandidateSetID:           "test-plan-candidate-set",
+				LatitudeStart:                35.681236,
+				LongitudeStart:               139.767125,
+				IsCreatedFromCurrentLocation: false,
+				PlanDurationMinutes:          null.IntFrom(60),
+			},
+			savedPlanCandidateSetMetaDataCategorySlice: generated.PlanCandidateSetMetaDataCategorySlice{
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryRestaurant.Name,
+					IsSelected:         true,
+				},
+				{
+					ID:                 uuid.New().String(),
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategorySpa.Name,
+					IsSelected:         false,
 				},
 			},
 			metaData: models.PlanCandidateMetaData{
@@ -1108,6 +1223,66 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				CategoriesRejected:            &[]models.LocationCategory{models.CategoryShopping, models.CategoryAmusements},
 				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
 				FreeTime:                      utils.ToPointer(120),
+			},
+			expectedPlanCandidateSetMetaData: &generated.PlanCandidateSetMetaDatum{
+				PlanCandidateSetID:           "test-plan-candidate-set",
+				LatitudeStart:                36.681236,
+				LongitudeStart:               140.767125,
+				IsCreatedFromCurrentLocation: true,
+				PlanDurationMinutes:          null.IntFrom(120),
+			},
+			expectedPlanCandidateSetMetaDataCategorySlice: generated.PlanCandidateSetMetaDataCategorySlice{
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryRestaurant.Name,
+					IsSelected:         true,
+				},
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryBakery.Name,
+					IsSelected:         true,
+				},
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryAmusements.Name,
+					IsSelected:         false,
+				},
+				{
+					PlanCandidateSetID: "test-plan-candidate-set",
+					Category:           models.CategoryShopping.Name,
+					IsSelected:         false,
+				},
+			},
+		},
+		{
+			name:               "create plan by category",
+			planCandidateSetId: "test-plan-candidate-set",
+			savedPlanCandidateSet: generated.PlanCandidateSet{
+				ID:        "test-plan-candidate-set",
+				ExpiresAt: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local),
+			},
+			metaData: models.PlanCandidateMetaData{
+				CreatedBasedOnCurrentLocation: true,
+				LocationStart:                 &models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
+				CreateByCategoryMetaData: &models.CreateByCategoryMetaData{
+					Category:   models.LocationCategorySetCreatePlanAmusements.Categories[0],
+					Location:   models.GeoLocation{Latitude: 36.681236, Longitude: 140.767125},
+					RadiusInKm: 1,
+				},
+			},
+			expectedPlanCandidateSetMetaData: &generated.PlanCandidateSetMetaDatum{
+				PlanCandidateSetID:           "test-plan-candidate-set",
+				LatitudeStart:                36.681236,
+				LongitudeStart:               140.767125,
+				IsCreatedFromCurrentLocation: true,
+				PlanDurationMinutes:          null.IntFromPtr(nil),
+			},
+			expectedPlanCandidateSetMetaDataCreateByCategory: &generated.PlanCandidateSetMetaDataCreateByCategory{
+				PlanCandidateSetID: "test-plan-candidate-set",
+				CategoryID:         models.LocationCategorySetCreatePlanAmusements.Categories[0].Id,
+				Latitude:           36.681236,
+				Longitude:          140.767125,
+				RangeInMeters:      1000,
 			},
 		},
 	}
@@ -1127,9 +1302,13 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				}
 			})
 
-			// 事前にPlanCandidateSetを作成しておく
-			if err := savePlanCandidateSet(testContext, testDB, c.savedPlanCandidateSet); err != nil {
+			// データ準備
+			if err := c.savedPlanCandidateSet.Insert(testContext, testDB, boil.Infer()); err != nil {
 				t.Fatalf("failed to save plan candidate: %v", err)
+			}
+
+			if _, err := c.savedPlanCandidateSetMetaDataCategorySlice.InsertAll(testContext, testDB, boil.Infer()); err != nil {
+				t.Fatalf("failed to save plan candidate set meta data category: %v", err)
 			}
 
 			err := planCandidateRepository.UpdatePlanCandidateMetaData(testContext, c.planCandidateSetId, c.metaData)
@@ -1144,46 +1323,43 @@ func TestPlanCandidateRepository_UpdatePlanCandidateMetaData(t *testing.T) {
 				t.Fatalf("failed to get plan candidate set meta data: %v", err)
 			}
 
-			if planCandidateSetMetaDataEntity.IsCreatedFromCurrentLocation != c.metaData.CreatedBasedOnCurrentLocation {
-				t.Fatalf("wrong is created from current location expected: %v, actual: %v", c.metaData.CreatedBasedOnCurrentLocation, planCandidateSetMetaDataEntity.IsCreatedFromCurrentLocation)
+			if diff := cmp.Diff(
+				c.expectedPlanCandidateSetMetaData,
+				planCandidateSetMetaDataEntity,
+				cmpopts.IgnoreFields(generated.PlanCandidateSetMetaDatum{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Fatalf("wrong plan candidate set meta data (-expected, +actual): %v", diff)
 			}
 
-			if planCandidateSetMetaDataEntity.LatitudeStart != c.metaData.LocationStart.Latitude {
-				t.Fatalf("wrong latitude start expected: %v, actual: %v", c.metaData.LocationStart.Latitude, planCandidateSetMetaDataEntity.LatitudeStart)
-			}
-
-			if planCandidateSetMetaDataEntity.LongitudeStart != c.metaData.LocationStart.Longitude {
-				t.Fatalf("wrong longitude start expected: %v, actual: %v", c.metaData.LocationStart.Longitude, planCandidateSetMetaDataEntity.LongitudeStart)
-			}
-
-			if planCandidateSetMetaDataEntity.PlanDurationMinutes.Int != *c.metaData.FreeTime {
-				t.Fatalf("wrong plan duration minutes expected: %v, actual: %v", c.metaData.FreeTime, planCandidateSetMetaDataEntity.PlanDurationMinutes.Int)
-			}
-
-			// CategoriesPreferred が一致する
-			numCategoriesPreferred, err := generated.
-				PlanCandidateSetMetaDataCategories(
-					generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
-					generated.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(true),
-				).Count(testContext, testDB)
+			// Category が保存されている
+			categories, err := generated.PlanCandidateSetMetaDataCategories(generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId)).All(testContext, testDB)
 			if err != nil {
 				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
 			}
-			if int(numCategoriesPreferred) != len(*c.metaData.CategoriesPreferred) {
-				t.Fatalf("wrong number of plan candidate set meta data categories expected: %v, actual: %v", len(*c.metaData.CategoriesPreferred), numCategoriesPreferred)
+
+			if diff := cmp.Diff(
+				c.expectedPlanCandidateSetMetaDataCategorySlice,
+				categories,
+				cmpopts.SortSlices(func(a, b *generated.PlanCandidateSetMetaDataCategory) bool {
+					return strings.Compare(a.Category, b.Category) < 0
+				}),
+				cmpopts.IgnoreFields(generated.PlanCandidateSetMetaDataCategory{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Fatalf("wrong plan candidate set meta data categories (-expected, +actual): %v", diff)
 			}
 
-			// CategoriesRejected が一致する
-			numCategoriesRejected, err := generated.
-				PlanCandidateSetMetaDataCategories(
-					generated.PlanCandidateSetMetaDataCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId),
-					generated.PlanCandidateSetMetaDataCategoryWhere.IsSelected.EQ(false),
-				).Count(testContext, testDB)
-			if err != nil {
-				t.Fatalf("failed to get plan candidate set meta data categories: %v", err)
+			// CreateByCategory が保存されている
+			createByCategoryMetaData, err := generated.PlanCandidateSetMetaDataCreateByCategories(generated.PlanCandidateSetMetaDataCreateByCategoryWhere.PlanCandidateSetID.EQ(c.planCandidateSetId)).One(testContext, testDB)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				t.Fatalf("failed to get plan candidate set meta data create by category: %v", err)
 			}
-			if int(numCategoriesRejected) != len(*c.metaData.CategoriesRejected) {
-				t.Fatalf("wrong number of plan candidate set meta data categories expected: %v, actual: %v", len(*c.metaData.CategoriesRejected), numCategoriesRejected)
+
+			if diff := cmp.Diff(
+				c.expectedPlanCandidateSetMetaDataCreateByCategory,
+				createByCategoryMetaData,
+				cmpopts.IgnoreFields(generated.PlanCandidateSetMetaDataCreateByCategory{}, "ID", "CreatedAt", "UpdatedAt"),
+			); diff != "" {
+				t.Fatalf("wrong plan candidate set meta data create by category (-expected, +actual): %v", diff)
 			}
 		})
 	}

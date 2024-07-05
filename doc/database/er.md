@@ -111,20 +111,38 @@ title: place photos
 ---
 erDiagram
 	place_photos {
-		string id PK
+		char(36) id PK
 		char(36) place_id FK
-		string user_id FK
-		string url
+		char(36) user_id FK
+        char(36) place_photo_references FK
+		char(36) photo_url
 		int width
 		int height
 	}
+    place_photo_references {
+        char(36) id PK
+        char(36) place_id FK
+        char(36) user_id FK
+    }
 
-	place ||..o{ place_photos: "1:N"
-	user ||..o{ place_photos: "1:N"
+	place ||..o{ place_photo_references: "1:N"
+	user ||..o{ place_photo_references: "1:N"
+    place_photo_references ||..|{ place_photos: "1:N"
 ```
 
 ### Plan Candidate
 - 複数回検索が行われることを避けるため、`is_place_searched` で検索済みかどうかを管理
+
+| テーブル                                            | 用途                  |
+|-------------------------------------------------|---------------------|
+| plan_candidate_sets                             | 作成されたプラン候補一覧を集約     |
+| plan_candidate_set_meta_data                    | プラン作成時の情報           |
+| plan_candidate_set_meta_data_create_by_category | プラン作成時に選択・却下したカテゴリ  |
+| plan_candidate_set_meta_data_from_categories    | カテゴリからプランを作成したときの情報 |
+| plan_candidates                                 | プラン候補               |
+| plan_candidate_places                           | プラン候補に含まれる場所        |
+
+
 ```mermaid
 ---
 title: plan_candidate
@@ -145,17 +163,20 @@ erDiagram
         bool is_created_from_current_location
     }
 
-    plan_candidate_set_searched_places {
-        char(36) id PK
-        char(36) plan_candidate_set_id FK
-        char(36) place_id FK
-    }
-
     plan_candidate_set__meta_data_categories {
         char(36) id PK
         char(36) plan_candidate_set_id FK
         string category
         bool is_selected
+    }
+
+    plan_candidate_set_meta_data_create_by_category {
+        char(36) id PK
+        char(36) plan_candidate_set_id FK
+        string category_id
+        int range_in_meters
+        double latitude
+        double longitude
     }
 
     plan_candidates {
@@ -178,8 +199,9 @@ erDiagram
     plan_candidate_sets ||..o{ plan_candidates: "1:N"
     plan_candidate_sets ||..|| plan_candidate_set_meta_data: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_categories: "1:N"
+    plan_candidate_sets ||..o| plan_candidate_set_meta_data_create_by_category: "1:1"
     plan_candidate_sets ||..o{ plan_candidate_set_searched_places: "1:N"
-    plan_candidates ||..o| plan : "1:1"
+    plan_candidates ||..o| plan: "1:1"
     plan_candidates ||..o{ plan_candidate_places: "1:N"
     plan_candidate_places ||..|| places: "1:1"
     plan_candidate_set_searched_places ||..|| places: "1:1"
