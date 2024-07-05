@@ -19,7 +19,7 @@ ALTER TABLE place_photos
 
 -- +goose StatementBegin
 ALTER TABLE place_photos
-    ADD CONSTRAINT fk_place_photos_place_photo_reference_id FOREIGN KEY (place_photo_reference_id) REFERENCES place_photo_references (id);
+    ADD CONSTRAINT fk_place_photos_place_photo_reference_id FOREIGN KEY (place_photo_reference_id) REFERENCES place_photo_references(id);
 -- +goose StatementEnd
 
 
@@ -38,5 +38,3 @@ ALTER TABLE place_photos
 -- +goose StatementBegin
 DROP TABLE IF EXISTS place_photo_references;
 -- +goose StatementEnd
-
-
