@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
@@ -32,10 +33,18 @@ func main() {
 			PlaceID: placePhoto.PlaceID,
 			UserID:  placePhoto.UserID,
 		}
+
+		placePhoto.PlacePhotoReferenceID = null.StringFrom(placePhotoReference.ID)
 		placePhotoReferenceSlice = append(placePhotoReferenceSlice, placePhotoReference)
 	}
 
 	if _, err := placePhotoReferenceSlice.InsertAll(ctx, db, boil.Infer()); err != nil {
 		log.Fatalf("error while inserting place photo references: %v", err)
+	}
+
+	for _, placePhoto := range placePhotoSlice {
+		if _, err := placePhoto.Update(ctx, db, boil.Infer()); err != nil {
+			log.Fatalf("error while updating place photo: %v", err)
+		}
 	}
 }
