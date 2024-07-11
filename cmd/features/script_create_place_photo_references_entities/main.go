@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"poroto.app/poroto/planner/internal/env"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb"
 	"poroto.app/poroto/planner/internal/infrastructure/rdb/generated"
@@ -21,28 +22,35 @@ func main() {
 	}
 
 	ctx := context.Background()
-	placePhotoSlice, err := generated.PlacePhotos().All(ctx, db)
+	placePhotoSliceToUpdate, err := generated.PlacePhotos(qm.Where("place_photo_reference_id is null")).All(ctx, db)
 	if err != nil {
 		log.Fatalf("error while fetching place photos: %v", err)
 	}
-	placePhotoReferenceSlice := make(generated.PlacePhotoReferenceSlice, 0, len(placePhotoSlice))
 
-	for _, placePhoto := range placePhotoSlice {
-		placePhotoReference := &generated.PlacePhotoReference{
+	if len(placePhotoSliceToUpdate) == 0 {
+		log.Println("no place photos to create place photo references")
+		return
+	}
+
+	placePhotoReferenceSliceToSave := make(generated.PlacePhotoReferenceSlice, 0, len(placePhotoSliceToUpdate))
+
+	for _, placePhoto := range placePhotoSliceToUpdate {
+
+		placePhotoReferenceToSave := &generated.PlacePhotoReference{
 			ID:      uuid.New().String(),
 			PlaceID: placePhoto.PlaceID,
 			UserID:  placePhoto.UserID,
 		}
 
-		placePhoto.PlacePhotoReferenceID = null.StringFrom(placePhotoReference.ID)
-		placePhotoReferenceSlice = append(placePhotoReferenceSlice, placePhotoReference)
+		placePhoto.PlacePhotoReferenceID = null.StringFrom(placePhotoReferenceToSave.ID)
+		placePhotoReferenceSliceToSave = append(placePhotoReferenceSliceToSave, placePhotoReferenceToSave)
 	}
 
-	if _, err := placePhotoReferenceSlice.InsertAll(ctx, db, boil.Infer()); err != nil {
+	if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, db, boil.Infer()); err != nil {
 		log.Fatalf("error while inserting place photo references: %v", err)
 	}
 
-	for _, placePhoto := range placePhotoSlice {
+	for _, placePhoto := range placePhotoSliceToUpdate {
 		if _, err := placePhoto.Update(ctx, db, boil.Infer()); err != nil {
 			log.Fatalf("error while updating place photo: %v", err)
 		}
