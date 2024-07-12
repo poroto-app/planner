@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -50,13 +51,41 @@ func main() {
 		log.Printf("place photo reference to save: %+v", placePhotoReferenceToSave)
 	}
 
-	if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, db, boil.Infer()); err != nil {
-		log.Fatalf("error while inserting place photo references: %v", err)
+	if err := runTransaction(ctx, db, func(ctx context.Context, tx boil.Transactor) error {
+		if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, db, boil.Infer()); err != nil {
+			log.Fatalf("error while inserting place photo references: %v", err)
+		}
+
+		for _, placePhoto := range placePhotoSliceToUpdate {
+			if _, err := placePhoto.Update(ctx, db, boil.Infer()); err != nil {
+				log.Fatalf("error while updating place photo: %v", err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		log.Fatalf("error while running transaction: %v", err)
+	}
+}
+
+func runTransaction(ctx context.Context, db *sql.DB, f func(ctx context.Context, tx boil.Transactor) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	for _, placePhoto := range placePhotoSliceToUpdate {
-		if _, err := placePhoto.Update(ctx, db, boil.Infer()); err != nil {
-			log.Fatalf("error while updating place photo: %v", err)
+	err = f(ctx, tx)
+	if err != nil {
+		if err := tx.Rollback(); err != nil {
+			return fmt.Errorf("failed to rollback transaction: %w", err)
 		}
+		return fmt.Errorf("failed to run transaction: %w", err)
 	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
