@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/google/uuid"
@@ -22,7 +23,9 @@ func main() {
 	}
 
 	ctx := context.Background()
-	placePhotoSliceToUpdate, err := generated.PlacePhotos(qm.Where("place_photo_reference_id is null")).All(ctx, db)
+	placePhotoSliceToUpdate, err := generated.PlacePhotos(
+		qm.Where(fmt.Sprintf("%s is null", generated.PlacePhotoColumns.PlacePhotoReferenceID)),
+	).All(ctx, db)
 	if err != nil {
 		log.Fatalf("error while fetching place photos: %v", err)
 	}
@@ -44,6 +47,7 @@ func main() {
 
 		placePhoto.PlacePhotoReferenceID = null.StringFrom(placePhotoReferenceToSave.ID)
 		placePhotoReferenceSliceToSave = append(placePhotoReferenceSliceToSave, placePhotoReferenceToSave)
+		log.Printf("place photo reference to save: %+v", placePhotoReferenceToSave)
 	}
 
 	if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, db, boil.Infer()); err != nil {
