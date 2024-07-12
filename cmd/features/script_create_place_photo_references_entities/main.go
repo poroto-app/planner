@@ -51,13 +51,14 @@ func main() {
 		log.Printf("place photo reference to save: %+v", placePhotoReferenceToSave)
 	}
 
-	if err := runTransaction(ctx, db, func(ctx context.Context, tx boil.Transactor) error {
-		if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, db, boil.Infer()); err != nil {
+	if err := runTransaction(ctx, db, func(ctx context.Context, tx *sql.Tx) error {
+
+		if _, err := placePhotoReferenceSliceToSave.InsertAll(ctx, tx, boil.Infer()); err != nil {
 			log.Fatalf("error while inserting place photo references: %v", err)
 		}
 
 		for _, placePhoto := range placePhotoSliceToUpdate {
-			if _, err := placePhoto.Update(ctx, db, boil.Infer()); err != nil {
+			if _, err := placePhoto.Update(ctx, tx, boil.Infer()); err != nil {
 				log.Fatalf("error while updating place photo: %v", err)
 			}
 		}
@@ -68,7 +69,7 @@ func main() {
 	}
 }
 
-func runTransaction(ctx context.Context, db *sql.DB, f func(ctx context.Context, tx boil.Transactor) error) error {
+func runTransaction(ctx context.Context, db *sql.DB, f func(ctx context.Context, tx *sql.Tx) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
